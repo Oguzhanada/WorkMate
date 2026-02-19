@@ -1,0 +1,94 @@
+{
+  "market": "Ireland",
+  "last_updated": "2026-02-19",
+  "legal_note": "This is a technical compliance baseline, not legal advice. Confirm with Irish counsel/tax advisor before production launch.",
+  "p2b_regulation": {
+    "scope": "EU Regulation 2019/1150 applies when business users (Verified Pros) offer services to consumers through the marketplace.",
+    "required_tc_clauses": [
+      "Clear eligibility, onboarding and suspension/termination grounds for Pros.",
+      "Ranking transparency: explain main parameters affecting job feed visibility (distance to Eircode, response rate, review score, verification status, recency).",
+      "Differentiated treatment disclosure if platform services/products receive preferential ranking.",
+      "Data access terms: what data Pros can access (lead data, messages, analytics), portability/export limits, retention windows.",
+      "Complaint handling process for business users with response SLAs.",
+      "Mediation clause naming at least two mediators for unresolved platform-business disputes.",
+      "Notice periods for T&C updates (minimum 15 days unless legal/security urgency).",
+      "Statement on restrictions for multi-homing/parity obligations if any."
+    ],
+    "operational_controls": [
+      "Versioned T&C with acceptance timestamps in database.",
+      "Automated suspension reason logging and appeal workflow.",
+      "Public transparency page for ranking factors and policy updates."
+    ]
+  },
+  "revenue_ie_vat_ecommerce": {
+    "platform_model": "Service marketplace may be principal or agent depending on contractual flow; VAT treatment differs.",
+    "requirements": [
+      "Collect supplier tax residency and VAT number (if registered).",
+      "Determine B2C vs B2B supply type and place-of-supply rules for services.",
+      "Store invoice records and transaction metadata for Revenue audit readiness.",
+      "If platform is deemed supplier for any digital/e-services, assess OSS/IOSS obligations.",
+      "Apply Irish VAT invoicing fields: supplier details, VAT rate, VAT amount, invoice date/number.",
+      "Keep records for statutory retention period and support CSV/JSON exports."
+    ],
+    "data_points": [
+      "customer_country",
+      "pro_country",
+      "service_category",
+      "vat_rate",
+      "vat_amount",
+      "invoice_number",
+      "supply_type"
+    ]
+  },
+  "eircode_api_integration": {
+    "input_standard": "Use 7-character Eircode format with optional space (e.g., D02 X285).",
+    "validation_regex": "^[AC-FHKNPRTV-Y][0-9]{2}\\s?[AC-FHKNPRTV-Y0-9]{4}$",
+    "providers": [
+      {
+        "name": "Ideal Postcodes",
+        "use_case": "Autocomplete + premise lookup with Eircode support"
+      },
+      {
+        "name": "Loqate",
+        "use_case": "Address verification and international-ready fallback"
+      }
+    ],
+    "implementation_requirements": [
+      "Debounced lookup endpoint in Next.js API route.",
+      "Normalize and uppercase Eircode before storage.",
+      "Store both freeform address and structured fields (line1, locality, county, eircode, geolocation if available).",
+      "Block form submit when Eircode fails regex or provider returns no validated match.",
+      "Cache recent lookups and rate-limit endpoint calls."
+    ]
+  },
+  "stripe_connect_ireland_kyc": {
+    "account_types": ["express", "standard"],
+    "kyc_requirements": [
+      "Collect legal name, DOB, residential address, phone/email for individual sole traders.",
+      "Collect company number, directors/beneficial owners for incorporated entities when required.",
+      "Capture government ID and, where requested, proof of address.",
+      "Monitor Stripe 'requirements.currently_due' and 'eventually_due' fields and block payouts/bidding when overdue.",
+      "Use webhook events (account.updated, capability.updated) to sync verification state."
+    ],
+    "marketplace_payment_pattern": {
+      "secure_hold": "Use PaymentIntent with capture_method=manual to authorize funds when customer accepts a quote.",
+      "capture_trigger": "Capture only when customer marks job complete or completion timeout policy is met.",
+      "commission": "Set application_fee_amount to 15% of total; transfer remaining net amount to connected account.",
+      "refunds_disputes": "Define dispute liability and refund waterfall in T&C and automate via webhook handling."
+    }
+  },
+  "tc_blueprint": {
+    "consumer_clauses": [
+      "Service request lifecycle, quote validity, cancellation window.",
+      "Payment authorization and delayed capture consent.",
+      "Dispute and complaint channel timelines.",
+      "Review policy (genuine reviews, moderation rules)."
+    ],
+    "pro_clauses": [
+      "Verification prerequisites: insurance, ID, Safe Pass where relevant.",
+      "No bidding unless verified status is active.",
+      "Commission, VAT, payout timing and Stripe account obligations.",
+      "Grounds for suspension, delisting, and appeal under P2B complaint flow."
+    ]
+  }
+}
