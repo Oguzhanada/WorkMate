@@ -29,8 +29,8 @@ export default function SiteHeader() {
     <header className={styles.header}>
       <div className={styles.container}>
         <div className={styles.headerBar}>
-          <Link href={localized('/')} className={styles.logo} aria-label="Armut">
-            <span className={styles.logoPill}>Armut</span>
+          <Link href={localized('/')} className={styles.logo} aria-label="ADA">
+            <span className={styles.logoPill}>ADA</span>
           </Link>
 
           <button

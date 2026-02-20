@@ -21,7 +21,8 @@ export default function SiteFooter() {
             <Link href={localized('/about')}>{t('about')}</Link>
             <Link href={localized('/#how-it-works')}>{t('how')}</Link>
             <Link href={localized('/arama?q=careers')}>{t('careers')}</Link>
-            <Link href={localized('/arama?q=contact')}>{t('contact')}</Link>
+            <Link href={localized('/iletisim')}>{t('contact')}</Link>
+            <Link href={localized('/sss')}>{t('faq')}</Link>
           </div>
           <div>
             <h4>{t('topSearches')}</h4>
@@ -66,6 +67,7 @@ export default function SiteFooter() {
             <Link href={localized('/privacy-policy')}>{t('privacy')}</Link>
             <Link href={localized('/terms')}>{t('terms')}</Link>
             <Link href={localized('/cookie-policy')}>{t('cookie')}</Link>
+            <Link href={localized('/data-retention')}>{t('retention')}</Link>
           </div>
         </div>
       </div>

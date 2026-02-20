@@ -1,123 +1,116 @@
-"use client";
+import type {Metadata} from 'next';
+import Script from 'next/script';
+import {getTranslations} from 'next-intl/server';
 
-import {useMemo, useState} from 'react';
-import {useParams} from 'next/navigation';
-import {useTranslations} from 'next-intl';
-
+import {isValidLocale} from '@/lib/i18n';
 import {professionals, services} from '@/lib/marketplace-data';
 
-import styles from '../../inner.module.css';
+import ServiceDetailClient from './ServiceDetailClient';
 
-export default function ServiceDetailPage() {
-  const {slug} = useParams<{slug: string}>();
-  const t = useTranslations('serviceDetail');
-  const common = useTranslations('common');
-  const home = useTranslations('home');
+const baseUrl = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'http://localhost:3000';
 
-  const service = services.find((item) => item.slug === slug) ?? services[0];
-  const serviceName =
-    service.slug === 'ev-temizligi'
-      ? home('trend.homeCleaning')
-      : service.slug === 'boya-badana'
-        ? home('trend.painting')
-        : service.slug === 'nakliyat'
-          ? home('trend.moving')
-          : home('trend.acRepair');
+function getServiceBySlug(slug: string) {
+  return services.find((item) => item.slug === slug) ?? services[0];
+}
 
-  const [city, setCity] = useState('');
-  const [price, setPrice] = useState('');
-  const [rating, setRating] = useState('4.8');
+async function getLocalizedServiceName(locale: string, slug: string) {
+  const home = await getTranslations({locale, namespace: 'home'});
 
-  const filteredPros = useMemo(
-    () =>
-      professionals
-        .filter((pro) => pro.services.includes(service.slug))
-        .filter((pro) => (city ? pro.city.toLowerCase().includes(city.toLowerCase()) : true))
-        .filter((pro) => (rating ? pro.rating >= Number(rating) : true))
-        .filter((pro) => (price ? Number(pro.startingPrice.replace(/[^0-9]/g, '')) <= Number(price) : true)),
-    [city, price, rating, service.slug]
-  );
+  if (slug === 'ev-temizligi') return home('trend.homeCleaning');
+  if (slug === 'boya-badana') return home('trend.painting');
+  if (slug === 'nakliyat') return home('trend.moving');
+  return home('trend.acRepair');
+}
+
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{locale: string; slug: string}>;
+}): Promise<Metadata> {
+  const {locale, slug} = await params;
+  if (!isValidLocale(locale)) return {};
+
+  const seo = await getTranslations({locale, namespace: 'seo'});
+  const service = getServiceBySlug(slug);
+  const localizedName = await getLocalizedServiceName(locale, service.slug);
+
+  return {
+    title: `${localizedName} | ${seo('serviceTitleSuffix')}`,
+    description: `${seo('serviceDescriptionPrefix')} ${localizedName}.`,
+    alternates: {
+      canonical: `${baseUrl}/${locale}/hizmet/${service.slug}`,
+      languages: {
+        en: `${baseUrl}/en/hizmet/${service.slug}`,
+        tr: `${baseUrl}/tr/hizmet/${service.slug}`,
+        pt: `${baseUrl}/pt/hizmet/${service.slug}`,
+        es: `${baseUrl}/es/hizmet/${service.slug}`
+      }
+    }
+  };
+}
+
+export default async function ServiceDetailPage({
+  params
+}: {
+  params: Promise<{locale: string; slug: string}>;
+}) {
+  const {locale, slug} = await params;
+  if (!isValidLocale(locale)) return null;
+
+  const service = getServiceBySlug(slug);
+  const servicePros = professionals.filter((pro) => pro.services.includes(service.slug));
+
+  const serviceSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: service.name,
+    areaServed: service.city,
+    provider: {
+      '@type': 'Organization',
+      name: 'Armut Style Marketplace'
+    },
+    offers: {
+      '@type': 'AggregateOffer',
+      priceCurrency: 'EUR',
+      lowPrice: Number(service.priceRange.replace(/[^0-9]/g, ' ').trim().split(' ')[0] || '0'),
+      highPrice: Number(service.priceRange.replace(/[^0-9]/g, ' ').trim().split(' ')[1] || '0'),
+      offerCount: servicePros.length
+    }
+  };
+
+  const professionalsSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: servicePros.slice(0, 8).map((pro, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      item: {
+        '@type': 'ProfessionalService',
+        name: pro.name,
+        areaServed: pro.city,
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: pro.rating,
+          reviewCount: pro.reviews
+        },
+        offers: {
+          '@type': 'Offer',
+          priceCurrency: 'EUR',
+          price: Number(pro.startingPrice.replace(/[^0-9]/g, ''))
+        }
+      }
+    }))
+  };
 
   return (
-    <main>
-      <section className={styles.serviceHero} style={{backgroundImage: `url(${service.heroImage})`}}>
-        <div className={styles.container}>
-          <h1>{serviceName}</h1>
-          <p>
-            {t('startingFrom')}: <strong>{service.priceRange}</strong>
-          </p>
-        </div>
-      </section>
-
-      <section className={styles.section}>
-        <div className={styles.container}>
-          <article className={styles.card}>
-            <h2>{serviceName}</h2>
-            <p className={styles.muted}>{t('description1')}</p>
-            <p className={styles.muted}>{t('description2')}</p>
-            <p className={styles.muted}>{t('description3')}</p>
-          </article>
-
-          <article className={styles.card}>
-            <h3>{t('filtersTitle')}</h3>
-            <div className={styles.filterRow}>
-              <label className={styles.field}>
-                <span>{common('city')}</span>
-                <input value={city} onChange={(event) => setCity(event.target.value)} placeholder="Dublin" />
-              </label>
-              <label className={styles.field}>
-                <span>{common('price')} (EUR)</span>
-                <input value={price} onChange={(event) => setPrice(event.target.value)} placeholder="150" />
-              </label>
-              <label className={styles.field}>
-                <span>{common('rating')}</span>
-                <select value={rating} onChange={(event) => setRating(event.target.value)}>
-                  <option value="4.8">4.8+</option>
-                  <option value="4.9">4.9+</option>
-                </select>
-              </label>
-            </div>
-          </article>
-
-          <section className={styles.section}>
-            <div className={styles.proList}>
-              {filteredPros.slice(0, 8).map((pro) => (
-                <article className={styles.proCard} key={pro.id}>
-                  <img src={pro.image} alt={pro.name} />
-                  <div>
-                    <h3>{pro.name}</h3>
-                    <p className={styles.muted}>
-                      {pro.city} • {pro.rating.toFixed(1)} ({pro.reviews} {common('reviews')})
-                    </p>
-                    <p className={styles.muted}>
-                      {common('from')} {pro.startingPrice}
-                    </p>
-                    <button className={styles.primary} type="button">
-                      {common('requestQuote')}
-                    </button>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <section className={styles.faq}>
-            <h2>{t('faqTitle')}</h2>
-            <details>
-              <summary>{t('faq1q')}</summary>
-              <p className={styles.muted}>{t('faq1a')}</p>
-            </details>
-            <details>
-              <summary>{t('faq2q')}</summary>
-              <p className={styles.muted}>{t('faq2a')}</p>
-            </details>
-            <details>
-              <summary>{t('faq3q')}</summary>
-              <p className={styles.muted}>{t('faq3a')}</p>
-            </details>
-          </section>
-        </div>
-      </section>
-    </main>
+    <>
+      <Script id="service-jsonld" type="application/ld+json">
+        {JSON.stringify(serviceSchema)}
+      </Script>
+      <Script id="professionals-jsonld" type="application/ld+json">
+        {JSON.stringify(professionalsSchema)}
+      </Script>
+      <ServiceDetailClient slug={slug} />
+    </>
   );
 }

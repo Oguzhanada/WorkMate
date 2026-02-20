@@ -1,8 +1,8 @@
-"use client";
-
+import type {Metadata} from 'next';
 import Link from 'next/link';
-import {useLocale, useTranslations} from 'next-intl';
+import {getTranslations} from 'next-intl/server';
 
+import {isValidLocale} from '@/lib/i18n';
 import {services} from '@/lib/marketplace-data';
 
 import styles from './home.module.css';
@@ -20,10 +20,37 @@ const stepImages = [
   'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=900&q=80'
 ];
 
-export default function LocaleHomePage() {
-  const locale = useLocale();
-  const t = useTranslations('home');
-  const common = useTranslations('common');
+const baseUrl = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'http://localhost:3000';
+
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{locale: string}>;
+}): Promise<Metadata> {
+  const {locale} = await params;
+  if (!isValidLocale(locale)) return {};
+
+  const seo = await getTranslations({locale, namespace: 'seo'});
+
+  return {
+    title: seo('homeTitle'),
+    description: seo('homeDescription'),
+    alternates: {
+      canonical: `${baseUrl}/${locale}`
+    }
+  };
+}
+
+export default async function LocaleHomePage({
+  params
+}: {
+  params: Promise<{locale: string}>;
+}) {
+  const {locale} = await params;
+  if (!isValidLocale(locale)) return null;
+
+  const t = await getTranslations({locale, namespace: 'home'});
+  const common = await getTranslations({locale, namespace: 'common'});
 
   return (
     <main>
@@ -49,7 +76,19 @@ export default function LocaleHomePage() {
               <article className={styles.trendCard} key={service.slug}>
                 <img src={service.heroImage} alt={service.name} />
                 <div className={styles.trendBody}>
-                  <h3>{t(`trend.${service.slug === 'ev-temizligi' ? 'homeCleaning' : service.slug === 'boya-badana' ? 'painting' : service.slug === 'nakliyat' ? 'moving' : 'acRepair'}`)}</h3>
+                  <h3>
+                    {t(
+                      `trend.${
+                        service.slug === 'ev-temizligi'
+                          ? 'homeCleaning'
+                          : service.slug === 'boya-badana'
+                            ? 'painting'
+                            : service.slug === 'nakliyat'
+                              ? 'moving'
+                              : 'acRepair'
+                      }`
+                    )}
+                  </h3>
                   <p>{service.city}</p>
                   <p>{service.priceRange}</p>
                   <Link href={`/${locale}/hizmet/${service.slug}`}>{common('requestQuote')}</Link>

@@ -179,7 +179,14 @@
   "search": {
     "title": "Resultados da busca",
     "subtitle": "Mostrando resultados para",
-    "noResults": "Nenhum serviço ou profissional corresponde à sua busca."
+    "noResults": "Nenhum serviço ou profissional corresponde à sua busca.",
+    "filtersTitle": "Filtrar resultados",
+    "maxPrice": "Preco maximo (EUR)",
+    "minRating": "Avaliacao minima",
+    "clear": "Limpar filtros",
+    "allCities": "Todas as cidades",
+    "allRatings": "Todas as avaliacoes",
+    "allPrices": "Sem limite de preco"
   },
   "footer": {
     "siteMap": "Mapa do site",
@@ -193,7 +200,9 @@
     "contact": "Contato",
     "privacy": "Política de privacidade",
     "terms": "Termos",
-    "cookie": "Política de cookies"
+    "cookie": "Política de cookies",
+    "faq": "FAQ",
+    "retention": "Retencao de Dados"
   },
   "legal": {
     "privacyTitle": "Política de privacidade",
@@ -203,5 +212,53 @@
     "privacyBody": "Processamos dados de conta, solicitação e pagamento para conectar clientes e profissionais, prevenir fraudes e melhorar a confiabilidade da plataforma. Os dados são criptografados em trânsito e os acessos são registrados.",
     "termsBody": "Profissionais são responsáveis por descrições corretas, conformidade legal e entrega no prazo. Clientes concordam em informar requisitos reais e concluir pagamentos pelos fluxos oficiais da plataforma.",
     "cookieBody": "Usamos cookies essenciais para login e segurança, além de cookies analíticos para melhorar busca, qualidade de orçamento e conversão."
+  },
+  "seo": {
+    "defaultTitle": "Marketplace de Servicos Estilo Armut",
+    "defaultDescription": "Compare profissionais verificados, receba orcamentos rapidos e pague com seguranca.",
+    "homeTitle": "Marketplace de Servicos | Orcamentos Rapidos",
+    "homeDescription": "Encontre profissionais confiaveis para limpeza, mudanca, consertos e mais.",
+    "aboutTitle": "Sobre Nos | Servicos Locais Confiaveis",
+    "aboutDescription": "Fundada em 2025 na Irlanda para conectar clientes a profissionais verificados.",
+    "serviceTitleSuffix": "servico na sua cidade",
+    "serviceDescriptionPrefix": "Compare profissionais verificados e receba orcamentos rapidos para"
+  },
+  "consent": {
+    "title": "Preferencias de cookies",
+    "description": "Usamos cookies essenciais e analiticos para melhorar sua experiencia. Voce pode aceitar ou recusar cookies analiticos.",
+    "accept": "Aceitar tudo",
+    "reject": "Recusar nao essenciais",
+    "manage": "Gerenciar cookies"
+  },
+  "contact": {
+    "title": "Contato",
+    "subtitle": "Precisa de ajuda com reservas, pagamentos ou conta profissional? Fale com o suporte.",
+    "email": "E-mail de suporte",
+    "phone": "Suporte por telefone",
+    "hours": "Horario de atendimento",
+    "formTitle": "Envie uma mensagem",
+    "name": "Nome completo",
+    "message": "Mensagem",
+    "submit": "Enviar mensagem",
+    "success": "Sua mensagem foi enviada. Responderemos em breve."
+  },
+  "faqPage": {
+    "title": "Perguntas Frequentes",
+    "subtitle": "Respostas sobre reservas, orcamentos, pagamentos e profissionais.",
+    "q1": "Quantos orcamentos posso receber?",
+    "a1": "A maioria dos clientes recebe de 3 a 5 orcamentos dependendo da cidade e do pedido.",
+    "q2": "Quando eu pago?",
+    "a2": "Voce compara os orcamentos primeiro. O pagamento ocorre apos escolher o profissional e confirmar os termos.",
+    "q3": "Posso cancelar uma solicitacao?",
+    "a3": "Sim. Voce pode cancelar solicitacoes abertas antes do inicio do servico.",
+    "q4": "Como as avaliacoes sao verificadas?",
+    "a4": "Apenas clientes com servicos concluidos podem avaliar o profissional contratado."
+  },
+  "retention": {
+    "title": "Politica de Retencao de Dados",
+    "subtitle": "Por quanto tempo mantemos seus dados e por que.",
+    "p1": "Dados de perfil ficam armazenados enquanto a conta estiver ativa e por ate 24 meses apos encerramento por compliance.",
+    "p2": "Pedidos, historico de orcamentos e registros de pagamento sao mantidos para obrigacoes fiscais e resolucao de disputas.",
+    "p3": "Mensagens de suporte sao retidas por ate 36 meses para melhorar qualidade e investigar fraudes."
   }
 }

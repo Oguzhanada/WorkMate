@@ -179,7 +179,14 @@
   "search": {
     "title": "Search results",
     "subtitle": "Showing results for",
-    "noResults": "No services or professionals matched your search."
+    "noResults": "No services or professionals matched your search.",
+    "filtersTitle": "Filter results",
+    "maxPrice": "Max price (EUR)",
+    "minRating": "Minimum rating",
+    "clear": "Clear filters",
+    "allCities": "All cities",
+    "allRatings": "All ratings",
+    "allPrices": "No price limit"
   },
   "footer": {
     "siteMap": "Sitemap",
@@ -193,7 +200,9 @@
     "contact": "Contact",
     "privacy": "Privacy Policy",
     "terms": "Terms",
-    "cookie": "Cookie Policy"
+    "cookie": "Cookie Policy",
+    "faq": "FAQ",
+    "retention": "Data Retention"
   },
   "legal": {
     "privacyTitle": "Privacy Policy",
@@ -203,5 +212,53 @@
     "privacyBody": "We process account, service request and payment data to match customers with providers, prevent fraud and improve platform reliability. Data is encrypted in transit and access is logged.",
     "termsBody": "Providers are responsible for accurate service descriptions, legal compliance and timely delivery. Customers agree to share honest requirements and complete payments through platform-approved flows.",
     "cookieBody": "We use essential cookies for sign-in and security, plus analytics cookies to improve search relevance, quote quality and conversion across customer and provider journeys."
+  },
+  "seo": {
+    "defaultTitle": "Armut-style Service Marketplace",
+    "defaultDescription": "Compare verified professionals, get fast quotes and pay securely for home services.",
+    "homeTitle": "Home Services Marketplace | Fast Quotes",
+    "homeDescription": "Find trusted local professionals for cleaning, moving, repairs and more.",
+    "aboutTitle": "About Us | Trusted Local Services",
+    "aboutDescription": "Founded in 2025 in Ireland, connecting customers with verified professionals.",
+    "serviceTitleSuffix": "Service in your city",
+    "serviceDescriptionPrefix": "Compare verified professionals and get fast quotes for"
+  },
+  "consent": {
+    "title": "Cookie preferences",
+    "description": "We use essential and analytics cookies to improve your experience. You can accept or decline analytics cookies.",
+    "accept": "Accept all",
+    "reject": "Reject non-essential",
+    "manage": "Manage cookies"
+  },
+  "contact": {
+    "title": "Contact",
+    "subtitle": "Need help with a booking, payment or provider account? Reach our support team.",
+    "email": "Support email",
+    "phone": "Phone support",
+    "hours": "Working hours",
+    "formTitle": "Send us a message",
+    "name": "Full name",
+    "message": "Message",
+    "submit": "Send message",
+    "success": "Your message has been sent. We will respond shortly."
+  },
+  "faqPage": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Answers about bookings, quotes, payments and providers.",
+    "q1": "How many quotes can I receive?",
+    "a1": "Most customers receive 3 to 5 quotes depending on city and request details.",
+    "q2": "When do I pay?",
+    "a2": "You review quotes first. Payment is made only after selecting a professional and confirming terms.",
+    "q3": "Can I cancel a request?",
+    "a3": "Yes. You can cancel open requests anytime from your dashboard before work starts.",
+    "q4": "How are reviews verified?",
+    "a4": "Only customers with completed jobs can submit reviews for the hired professional."
+  },
+  "retention": {
+    "title": "Data Retention Policy",
+    "subtitle": "How long we keep your data and why.",
+    "p1": "Account profile data is stored while your account remains active and for up to 24 months after closure for compliance.",
+    "p2": "Job requests, quote history and payment records are stored for financial, tax and dispute-resolution obligations.",
+    "p3": "Support messages are retained for up to 36 months to improve service quality and investigate fraud reports."
   }
 }

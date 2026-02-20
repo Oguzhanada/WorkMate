@@ -1,13 +1,41 @@
-"use client";
+import type {Metadata} from 'next';
+import {getTranslations} from 'next-intl/server';
 
-import {useTranslations} from 'next-intl';
-
+import {isValidLocale} from '@/lib/i18n';
 import {teamMembers} from '@/lib/marketplace-data';
 
 import styles from '../inner.module.css';
 
-export default function AboutPage() {
-  const t = useTranslations('about');
+const baseUrl = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'http://localhost:3000';
+
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{locale: string}>;
+}): Promise<Metadata> {
+  const {locale} = await params;
+  if (!isValidLocale(locale)) return {};
+
+  const seo = await getTranslations({locale, namespace: 'seo'});
+
+  return {
+    title: seo('aboutTitle'),
+    description: seo('aboutDescription'),
+    alternates: {
+      canonical: `${baseUrl}/${locale}/about`
+    }
+  };
+}
+
+export default async function AboutPage({
+  params
+}: {
+  params: Promise<{locale: string}>;
+}) {
+  const {locale} = await params;
+  if (!isValidLocale(locale)) return null;
+
+  const t = await getTranslations({locale, namespace: 'about'});
 
   return (
     <main>

@@ -9,7 +9,7 @@
 .heroOverlay {
   position: absolute;
   inset: 0;
-  background: rgba(17, 19, 33, 0.55);
+  background: linear-gradient(120deg, rgba(17, 42, 35, 0.74) 0%, rgba(17, 42, 35, 0.56) 70%, rgba(255, 136, 62, 0.12) 100%);
 }
 
 .container {
@@ -26,7 +26,7 @@
   max-width: 820px;
   margin: 0 auto;
   text-align: center;
-  box-shadow: 0 18px 44px rgba(17, 19, 33, 0.16);
+  box-shadow: 0 18px 44px rgba(16, 37, 31, 0.14);
 }
 
 .heroCard h1 {
@@ -54,7 +54,7 @@
 }
 
 .searchBar button {
-  background: #2cb34f;
+  background: #169b62;
   color: #fff;
   border: 0;
   border-radius: 10px;
@@ -83,7 +83,7 @@
   background: #fff;
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(17, 19, 33, 0.1);
+  box-shadow: 0 10px 30px rgba(16, 37, 31, 0.08);
 }
 
 .trendCard img {
@@ -110,8 +110,8 @@
 .trendBody a {
   margin-top: 12px;
   width: 100%;
-  border: 1px solid #2cb34f;
-  background: #2cb34f;
+  border: 1px solid #169b62;
+  background: #169b62;
   color: #fff;
   border-radius: 10px;
   padding: 10px;
@@ -123,7 +123,7 @@
 }
 
 .valuesSection {
-  background: linear-gradient(180deg, #f0f1f2 0%, #e3e5e8 100%);
+  background: linear-gradient(180deg, #f6f4f1 0%, #f8f3ee 100%);
 }
 
 .valueGrid {
@@ -139,7 +139,7 @@
 }
 
 .valueCard i {
-  color: #2cb34f;
+  color: #169b62;
   font-size: 1.6rem;
 }
 
@@ -165,13 +165,13 @@
   gap: 16px;
   align-items: center;
   padding: 16px;
-  box-shadow: 0 10px 25px rgba(17, 19, 33, 0.08);
+  box-shadow: 0 10px 25px rgba(16, 37, 31, 0.08);
 }
 
 .stepBadge {
   width: 40px;
   height: 40px;
-  background: #2cb34f;
+  background: #169b62;
   color: #fff;
   border-radius: 999px;
   display: grid;
@@ -212,7 +212,7 @@
 }
 
 .providerContent {
-  background: linear-gradient(135deg, #404259 0%, #2a2d44 100%);
+  background: linear-gradient(135deg, #1f4a3f 0%, #17372f 62%, #2f4f45 100%);
   color: #fff;
   padding: 40px;
   display: grid;
@@ -230,13 +230,13 @@
 }
 
 .providerButton {
-  background: #2cb34f;
+  background: #169b62;
   color: #fff;
   border-radius: 10px;
   text-decoration: none;
   font-weight: 600;
   padding: 10px 16px;
-  border: 1px solid #2cb34f;
+  border: 1px solid #169b62;
   width: fit-content;
 }
 

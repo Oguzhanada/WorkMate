@@ -179,7 +179,14 @@
   "search": {
     "title": "Resultados de búsqueda",
     "subtitle": "Mostrando resultados para",
-    "noResults": "No encontramos servicios ni profesionales para tu búsqueda."
+    "noResults": "No encontramos servicios ni profesionales para tu búsqueda.",
+    "filtersTitle": "Filtrar resultados",
+    "maxPrice": "Precio maximo (EUR)",
+    "minRating": "Valoracion minima",
+    "clear": "Limpiar filtros",
+    "allCities": "Todas las ciudades",
+    "allRatings": "Todas las valoraciones",
+    "allPrices": "Sin limite de precio"
   },
   "footer": {
     "siteMap": "Mapa del sitio",
@@ -193,7 +200,9 @@
     "contact": "Contacto",
     "privacy": "Política de privacidad",
     "terms": "Términos",
-    "cookie": "Política de cookies"
+    "cookie": "Política de cookies",
+    "faq": "FAQ",
+    "retention": "Retencion de Datos"
   },
   "legal": {
     "privacyTitle": "Política de privacidad",
@@ -203,5 +212,53 @@
     "privacyBody": "Procesamos datos de cuenta, solicitudes y pagos para conectar clientes con profesionales, prevenir fraude y mejorar la fiabilidad de la plataforma. Los datos se cifran en tránsito y los accesos quedan registrados.",
     "termsBody": "Los profesionales son responsables de descripciones correctas, cumplimiento legal y entrega puntual. Los clientes aceptan compartir requisitos reales y pagar mediante los flujos oficiales de la plataforma.",
     "cookieBody": "Usamos cookies esenciales para inicio de sesión y seguridad, y cookies analíticas para mejorar búsqueda, calidad de presupuestos y conversión."
+  },
+  "seo": {
+    "defaultTitle": "Marketplace de Servicios Estilo Armut",
+    "defaultDescription": "Compara profesionales verificados, recibe presupuestos rapidos y paga de forma segura.",
+    "homeTitle": "Marketplace de Servicios | Presupuestos Rapidos",
+    "homeDescription": "Encuentra profesionales de confianza para limpieza, mudanzas, reparaciones y mas.",
+    "aboutTitle": "Sobre Nosotros | Servicios Locales de Confianza",
+    "aboutDescription": "Fundada en 2025 en Irlanda para conectar clientes con profesionales verificados.",
+    "serviceTitleSuffix": "servicio en tu ciudad",
+    "serviceDescriptionPrefix": "Compara profesionales verificados y recibe presupuestos rapidos para"
+  },
+  "consent": {
+    "title": "Preferencias de cookies",
+    "description": "Usamos cookies esenciales y analiticas para mejorar tu experiencia. Puedes aceptar o rechazar cookies analiticas.",
+    "accept": "Aceptar todo",
+    "reject": "Rechazar no esenciales",
+    "manage": "Gestionar cookies"
+  },
+  "contact": {
+    "title": "Contacto",
+    "subtitle": "Necesitas ayuda con reservas, pagos o cuenta profesional? Contacta a soporte.",
+    "email": "Correo de soporte",
+    "phone": "Soporte telefonico",
+    "hours": "Horario de atencion",
+    "formTitle": "Envia un mensaje",
+    "name": "Nombre completo",
+    "message": "Mensaje",
+    "submit": "Enviar mensaje",
+    "success": "Tu mensaje fue enviado. Te responderemos pronto."
+  },
+  "faqPage": {
+    "title": "Preguntas Frecuentes",
+    "subtitle": "Respuestas sobre reservas, presupuestos, pagos y profesionales.",
+    "q1": "Cuantos presupuestos puedo recibir?",
+    "a1": "La mayoria de clientes recibe de 3 a 5 presupuestos segun la ciudad y el detalle del servicio.",
+    "q2": "Cuando pago?",
+    "a2": "Primero comparas presupuestos. El pago se realiza al elegir profesional y confirmar condiciones.",
+    "q3": "Puedo cancelar una solicitud?",
+    "a3": "Si. Puedes cancelar solicitudes abiertas antes de que inicie el trabajo.",
+    "q4": "Como se verifican las resenas?",
+    "a4": "Solo clientes con trabajos completados pueden publicar resenas del profesional contratado."
+  },
+  "retention": {
+    "title": "Politica de Retencion de Datos",
+    "subtitle": "Cuanto tiempo guardamos tus datos y por que.",
+    "p1": "Los datos de perfil se conservan mientras la cuenta este activa y hasta 24 meses tras el cierre por cumplimiento.",
+    "p2": "Solicitudes, historial de presupuestos y pagos se guardan por obligaciones fiscales y resolucion de disputas.",
+    "p3": "Mensajes de soporte se conservan hasta 36 meses para mejorar calidad e investigar fraude."
   }
 }

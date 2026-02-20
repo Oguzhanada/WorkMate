@@ -1,44 +1,32 @@
 "use client";
 
 import Link from 'next/link';
-import {FormEvent, useState} from 'react';
+import {useActionState} from 'react';
 import {useLocale, useTranslations} from 'next-intl';
 
+import {initialAuthFormState, loginAction} from '@/lib/auth-actions';
 import styles from '../inner.module.css';
 
 export default function LoginPage() {
   const locale = useLocale();
   const t = useTranslations('login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [state, formAction, isPending] = useActionState(loginAction, initialAuthFormState);
 
-  const onSubmit = (event: FormEvent) => {
-    event.preventDefault();
-    setError('');
-    setSuccess('');
-
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
-      setError(t('errors.invalidEmail'));
-      return;
-    }
-
-    if (password.length < 6) {
-      setError(t('errors.shortPassword'));
-      return;
-    }
-
-    setSuccess(t('success'));
-  };
+  const errorMessage =
+    state.status === 'error'
+      ? state.code === 'invalid_email'
+        ? t('errors.invalidEmail')
+        : t('errors.shortPassword')
+      : '';
+  const successMessage = state.status === 'success' ? t('success') : '';
 
   return (
     <main className={styles.formWrap}>
       <h1 className={styles.formTitle}>{t('title')}</h1>
       <p className={styles.muted}>{t('subtitle')}</p>
 
-      {error ? <div className={styles.error}>{error}</div> : null}
-      {success ? <div className={styles.toast}>{success}</div> : null}
+      {errorMessage ? <div className={styles.error}>{errorMessage}</div> : null}
+      {successMessage ? <div className={styles.toast}>{successMessage}</div> : null}
 
       <button className={styles.oauthButton} type="button">
         <i className="fa-brands fa-google" /> {t('google')}
@@ -47,23 +35,19 @@ export default function LoginPage() {
         <i className="fa-brands fa-apple" /> {t('apple')}
       </button>
 
-      <form onSubmit={onSubmit}>
+      <form action={formAction}>
         <label className={styles.field}>
           <span>{t('email')}</span>
-          <input value={email} onChange={(event) => setEmail(event.target.value)} />
+          <input name="email" />
         </label>
 
         <label className={styles.field}>
           <span>{t('password')}</span>
-          <input
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
+          <input type="password" name="password" />
         </label>
 
         <div className={styles.actions}>
-          <button type="submit" className={styles.primary}>
+          <button type="submit" className={styles.primary} disabled={isPending}>
             {t('login')}
           </button>
         </div>

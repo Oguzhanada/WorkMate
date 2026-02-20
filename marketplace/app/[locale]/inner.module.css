@@ -16,7 +16,7 @@
 .card {
   background: #fff;
   border-radius: 14px;
-  box-shadow: 0 10px 28px rgba(17, 19, 33, 0.08);
+  box-shadow: 0 10px 28px rgba(16, 37, 31, 0.08);
   padding: 22px;
 }
 
@@ -25,7 +25,7 @@
 }
 
 .statBar {
-  background: #404259;
+  background: linear-gradient(130deg, #1f4a3f 0%, #17372f 100%);
   color: #fff;
   border-radius: 12px;
   padding: 16px;
@@ -42,7 +42,7 @@
 .teamCard {
   background: #fff;
   border-radius: 14px;
-  box-shadow: 0 10px 28px rgba(17, 19, 33, 0.08);
+  box-shadow: 0 10px 28px rgba(16, 37, 31, 0.08);
   overflow: hidden;
 }
 
@@ -61,7 +61,7 @@
   margin: 56px auto;
   background: #fff;
   border-radius: 16px;
-  box-shadow: 0 14px 30px rgba(17, 19, 33, 0.1);
+  box-shadow: 0 14px 30px rgba(16, 37, 31, 0.1);
   padding: 26px;
 }
 
@@ -97,8 +97,8 @@
 }
 
 .primary {
-  border: 1px solid #2cb34f;
-  background: #2cb34f;
+  border: 1px solid #169b62;
+  background: #169b62;
   color: #fff;
   padding: 10px 16px;
   border-radius: 10px;
@@ -110,7 +110,7 @@
 .secondary {
   border: 1px solid #cfd5df;
   background: #fff;
-  color: #1f2337;
+  color: #1c3d34;
   padding: 10px 16px;
   border-radius: 10px;
   font-weight: 600;
@@ -145,7 +145,7 @@
 }
 
 .activeTab {
-  background: #2cb34f;
+  background: #169b62;
   color: #fff;
 }
 
@@ -168,7 +168,7 @@
 }
 
 .banner {
-  background: linear-gradient(135deg, #404259 0%, #2a2d44 100%);
+  background: linear-gradient(135deg, #1f4a3f 0%, #17372f 60%, #2d4b42 100%);
   border-radius: 18px;
   color: #fff;
   padding: 28px;
@@ -188,7 +188,7 @@
 }
 
 .benefitList i {
-  color: #2cb34f;
+  color: #7bcfa2;
 }
 
 .serviceHero {
@@ -203,7 +203,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(17, 19, 33, 0.6);
+  background: linear-gradient(120deg, rgba(17, 42, 35, 0.76) 0%, rgba(17, 42, 35, 0.58) 70%, rgba(255, 136, 62, 0.1) 100%);
 }
 
 .serviceHero > div {
@@ -226,7 +226,7 @@
 .proCard {
   background: #fff;
   border-radius: 14px;
-  box-shadow: 0 10px 28px rgba(17, 19, 33, 0.08);
+  box-shadow: 0 10px 28px rgba(16, 37, 31, 0.08);
   padding: 14px;
   display: grid;
   grid-template-columns: 90px 1fr;
@@ -250,7 +250,7 @@
   background: #fff;
   border-radius: 10px;
   padding: 12px;
-  box-shadow: 0 8px 18px rgba(17, 19, 33, 0.06);
+  box-shadow: 0 8px 18px rgba(16, 37, 31, 0.06);
 }
 
 .resultsGrid {
@@ -262,7 +262,7 @@
 .resultCard {
   background: #fff;
   border-radius: 14px;
-  box-shadow: 0 10px 28px rgba(17, 19, 33, 0.08);
+  box-shadow: 0 10px 28px rgba(16, 37, 31, 0.08);
   overflow: hidden;
 }
 

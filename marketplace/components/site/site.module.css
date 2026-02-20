@@ -1,8 +1,10 @@
 .siteRoot {
   margin: 0;
-  color: #111321;
+  color: #10251f;
   font-family: "Poppins", sans-serif;
-  background: linear-gradient(180deg, #f8f9fa 0%, #eef0f2 100%);
+  background:
+    radial-gradient(circle at 88% 12%, rgba(255, 136, 62, 0.09) 0%, rgba(255, 136, 62, 0) 50%),
+    linear-gradient(180deg, #fcfbf9 0%, #f4f2ef 100%);
   min-height: 100vh;
 }
 
@@ -15,8 +17,9 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(64, 66, 89, 0.97);
+  background: rgba(24, 58, 48, 0.96);
   backdrop-filter: blur(6px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .headerBar {
@@ -35,12 +38,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #2cb34f;
+  background: linear-gradient(120deg, #169b62 0%, #ff883e 100%);
   color: #fff;
   padding: 10px 20px;
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 800;
   font-size: 1.1rem;
+  letter-spacing: 0.04em;
 }
 
 .nav {
@@ -64,13 +68,13 @@
 }
 
 .primaryButton {
-  background: #2cb34f;
+  background: #169b62;
   color: #fff;
   border-radius: 10px;
   text-decoration: none;
   font-weight: 600;
   padding: 10px 16px;
-  border: 1px solid #2cb34f;
+  border: 1px solid #169b62;
   display: inline-flex;
 }
 
@@ -93,8 +97,8 @@
 }
 
 .switcher {
-  border: 1px solid #5a607c;
-  background: #2f3147;
+  border: 1px solid #40685c;
+  background: #22473c;
   color: #fff;
   border-radius: 8px;
   padding: 8px 10px;
@@ -108,13 +112,14 @@
   gap: 18px;
   background: #fff;
   border-radius: 14px;
-  box-shadow: 0 8px 24px rgba(17, 19, 33, 0.08);
+  box-shadow: 0 8px 24px rgba(16, 37, 31, 0.08);
   padding: 14px;
   margin-top: 24px;
+  border: 1px solid #e2e9e5;
 }
 
 .trustItem {
-  color: #404259;
+  color: #2c4e43;
   font-weight: 600;
   font-size: 0.92rem;
   display: inline-flex;
@@ -123,7 +128,7 @@
 }
 
 .trustItem i {
-  color: #2cb34f;
+  color: #169b62;
 }
 
 .pageSection {
@@ -143,13 +148,13 @@
 .card {
   background: #fff;
   border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(17, 19, 33, 0.1);
+  box-shadow: 0 10px 30px rgba(16, 37, 31, 0.08);
 }
 
 .pageHero {
   position: relative;
   padding: 70px 0 52px;
-  background: linear-gradient(135deg, #404259 0%, #2a2d44 100%);
+  background: linear-gradient(135deg, #1f4a3f 0%, #17372f 60%, #365149 100%);
   color: #fff;
 }
 
@@ -165,8 +170,8 @@
 }
 
 .footer {
-  background: #181b2a;
-  color: #d7dbea;
+  background: linear-gradient(145deg, #112a23 0%, #0f221d 100%);
+  color: #d7e6df;
   padding: 56px 0 24px;
 }
 
@@ -184,7 +189,7 @@
 .footerGrid a {
   display: block;
   text-decoration: none;
-  color: #d7dbea;
+  color: #d7e6df;
   margin: 8px 0;
 }
 
@@ -196,7 +201,7 @@
 .socials a {
   width: 36px;
   height: 36px;
-  border: 1px solid #353a52;
+  border: 1px solid #2e4e45;
   border-radius: 8px;
   display: grid;
   place-items: center;
@@ -205,7 +210,7 @@
 .footerBottom {
   margin-top: 30px;
   padding-top: 18px;
-  border-top: 1px solid #2f344e;
+  border-top: 1px solid #27443c;
   display: flex;
   flex-wrap: wrap;
   gap: 14px 18px;
@@ -220,9 +225,9 @@
 
 .footerBottom select {
   margin-left: 8px;
-  background: #252a40;
+  background: #173a31;
   color: #fff;
-  border: 1px solid #3e445d;
+  border: 1px solid #2e4e45;
   border-radius: 6px;
   padding: 5px 8px;
 }
@@ -233,8 +238,56 @@
 }
 
 .footerLegal a {
-  color: #d7dbea;
+  color: #d7e6df;
   text-decoration: none;
+}
+
+.consentBar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 120;
+  padding: 12px 0;
+  background: rgba(17, 42, 35, 0.94);
+  backdrop-filter: blur(6px);
+}
+
+.consentInner {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid #ece6de;
+}
+
+.consentInner h4 {
+  margin: 0 0 4px;
+}
+
+.consentInner p {
+  margin: 0;
+  color: #445c54;
+  font-size: 0.92rem;
+}
+
+.consentActions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.secondaryButton {
+  border: 1px solid #cfd5df;
+  background: #fff;
+  color: #1c3d34;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 @media (max-width: 980px) {
@@ -251,8 +304,8 @@
     top: 76px;
     left: 0;
     right: 0;
-    background: #34364a;
-    border-bottom: 1px solid #4a4e6a;
+    background: #1d4338;
+    border-bottom: 1px solid #2f5f51;
     display: none;
     flex-direction: column;
     padding: 12px 16px;
@@ -279,5 +332,10 @@
 
   .linkButton {
     display: none;
+  }
+
+  .consentInner {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

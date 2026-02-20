@@ -179,7 +179,14 @@
   "search": {
     "title": "Arama sonuçları",
     "subtitle": "Arama sonuçları:",
-    "noResults": "Aramanıza uygun hizmet veya profesyonel bulunamadı."
+    "noResults": "Aramanıza uygun hizmet veya profesyonel bulunamadı.",
+    "filtersTitle": "Sonuçları filtrele",
+    "maxPrice": "Maksimum fiyat (EUR)",
+    "minRating": "Minimum puan",
+    "clear": "Filtreleri temizle",
+    "allCities": "Tüm şehirler",
+    "allRatings": "Tüm puanlar",
+    "allPrices": "Fiyat limiti yok"
   },
   "footer": {
     "siteMap": "Site Haritası",
@@ -193,7 +200,9 @@
     "contact": "İletişim",
     "privacy": "Gizlilik Politikası",
     "terms": "Kullanım Koşulları",
-    "cookie": "Çerez Politikası"
+    "cookie": "Çerez Politikası",
+    "faq": "SSS",
+    "retention": "Veri Saklama"
   },
   "legal": {
     "privacyTitle": "Gizlilik Politikası",
@@ -203,5 +212,53 @@
     "privacyBody": "Müşteri ile profesyoneli eşleştirmek, dolandırıcılığı önlemek ve platform güvenilirliğini artırmak için hesap, talep ve ödeme verilerini işleriz. Veriler aktarım sırasında şifrelenir ve erişimler kayıt altına alınır.",
     "termsBody": "Hizmet verenler doğru hizmet açıklaması, yasal uyumluluk ve zamanında teslimden sorumludur. Müşteriler ihtiyaçlarını doğru paylaşmayı ve ödemeyi platform akışından tamamlamayı kabul eder.",
     "cookieBody": "Giriş ve güvenlik için zorunlu çerezler, arama alaka düzeyi ve teklif kalitesini artırmak için analitik çerezler kullanırız."
+  },
+  "seo": {
+    "defaultTitle": "Armut Benzeri Hizmet Marketplace",
+    "defaultDescription": "Onaylı profesyonelleri karşılaştır, hızlı teklif al ve güvenli ödeme yap.",
+    "homeTitle": "Hizmet Marketplace | Hızlı Teklif Al",
+    "homeDescription": "Temizlik, nakliyat, tamir ve daha fazlası için güvenilir uzmanları bul.",
+    "aboutTitle": "Hakkımızda | Güvenilir Yerel Hizmetler",
+    "aboutDescription": "2025 yılında İrlanda’da kuruldu, müşterileri onaylı profesyonellerle buluşturur.",
+    "serviceTitleSuffix": "hizmeti",
+    "serviceDescriptionPrefix": "Onaylı profesyonelleri karşılaştır ve hızlı teklif al:"
+  },
+  "consent": {
+    "title": "Çerez tercihleri",
+    "description": "Deneyimi geliştirmek için zorunlu ve analitik çerezler kullanırız. Analitik çerezleri kabul edebilir veya reddedebilirsin.",
+    "accept": "Tümünü kabul et",
+    "reject": "Zorunlu dışındakileri reddet",
+    "manage": "Çerezleri yönet"
+  },
+  "contact": {
+    "title": "İletişim",
+    "subtitle": "Rezervasyon, ödeme veya hizmet veren hesabı için destek ekibine ulaşın.",
+    "email": "Destek e-postası",
+    "phone": "Telefon desteği",
+    "hours": "Çalışma saatleri",
+    "formTitle": "Mesaj gönder",
+    "name": "Ad soyad",
+    "message": "Mesaj",
+    "submit": "Mesaj gönder",
+    "success": "Mesajınız gönderildi. Kısa süre içinde dönüş yapacağız."
+  },
+  "faqPage": {
+    "title": "Sıkça Sorulan Sorular",
+    "subtitle": "Rezervasyon, teklif, ödeme ve hizmet verenlerle ilgili yanıtlar.",
+    "q1": "Kaç teklif alabilirim?",
+    "a1": "Talep detayına ve şehre göre çoğu kullanıcı 3-5 teklif alır.",
+    "q2": "Ödemeyi ne zaman yaparım?",
+    "a2": "Önce teklifleri karşılaştırırsın. Profesyonel seçip koşulları onayladıktan sonra ödeme yapılır.",
+    "q3": "Talebimi iptal edebilir miyim?",
+    "a3": "Evet. İş başlamadan önce açık taleplerini panelden iptal edebilirsin.",
+    "q4": "Yorumlar nasıl doğrulanıyor?",
+    "a4": "Yalnızca işi tamamlanmış müşteriler, çalıştıkları profesyonele yorum bırakabilir."
+  },
+  "retention": {
+    "title": "Veri Saklama Politikası",
+    "subtitle": "Verilerinizi ne kadar süre sakladığımız ve neden sakladığımız.",
+    "p1": "Hesap profil verileri, hesabınız aktif kaldığı sürece ve kapanıştan sonra uyumluluk için 24 aya kadar saklanır.",
+    "p2": "İş talepleri, teklif geçmişi ve ödeme kayıtları finansal, vergisel ve uyuşmazlık çözümü yükümlülükleri için tutulur.",
+    "p3": "Destek mesajları hizmet kalitesini artırmak ve dolandırıcılık bildirimlerini incelemek için 36 aya kadar saklanır."
   }
 }
