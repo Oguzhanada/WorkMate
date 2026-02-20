@@ -1,0 +1,294 @@
+.hero {
+  position: relative;
+  padding: 120px 0 90px;
+  background-image: url('https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1800&q=80');
+  background-size: cover;
+  background-position: center;
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 19, 33, 0.55);
+}
+
+.container {
+  width: min(1160px, calc(100% - 32px));
+  margin: 0 auto;
+}
+
+.heroCard {
+  position: relative;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 18px;
+  padding: 36px;
+  max-width: 820px;
+  margin: 0 auto;
+  text-align: center;
+  box-shadow: 0 18px 44px rgba(17, 19, 33, 0.16);
+}
+
+.heroCard h1 {
+  margin: 0 0 12px;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  color: #111321;
+}
+
+.heroCard p {
+  margin: 0 0 24px;
+  color: #2d3149;
+}
+
+.searchBar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+.searchBar input {
+  border: 1px solid #d4d8de;
+  border-radius: 10px;
+  padding: 13px 14px;
+  font: inherit;
+}
+
+.searchBar button {
+  background: #2cb34f;
+  color: #fff;
+  border: 0;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 600;
+  padding: 0 24px;
+  cursor: pointer;
+}
+
+.section {
+  padding: 74px 0;
+}
+
+.sectionTitle {
+  margin: 0 0 24px;
+  font-size: clamp(1.4rem, 2.2vw, 2rem);
+}
+
+.trendGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.trendCard {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(17, 19, 33, 0.1);
+}
+
+.trendCard img {
+  width: 100%;
+  height: 170px;
+  object-fit: cover;
+  display: block;
+}
+
+.trendBody {
+  padding: 16px;
+}
+
+.trendBody h3 {
+  margin: 0 0 10px;
+}
+
+.trendBody p {
+  margin: 0 0 6px;
+  color: #54586f;
+  font-size: 0.92rem;
+}
+
+.trendBody a {
+  margin-top: 12px;
+  width: 100%;
+  border: 1px solid #2cb34f;
+  background: #2cb34f;
+  color: #fff;
+  border-radius: 10px;
+  padding: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.valuesSection {
+  background: linear-gradient(180deg, #f0f1f2 0%, #e3e5e8 100%);
+}
+
+.valueGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.valueCard {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.valueCard i {
+  color: #2cb34f;
+  font-size: 1.6rem;
+}
+
+.valueCard h3 {
+  margin: 14px 0 8px;
+}
+
+.valueCard p {
+  margin: 0;
+  color: #5a5f79;
+}
+
+.stepList {
+  display: grid;
+  gap: 14px;
+}
+
+.stepCard {
+  background: #fff;
+  border-radius: 14px;
+  display: grid;
+  grid-template-columns: auto 1fr 220px;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  box-shadow: 0 10px 25px rgba(17, 19, 33, 0.08);
+}
+
+.stepBadge {
+  width: 40px;
+  height: 40px;
+  background: #2cb34f;
+  color: #fff;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}
+
+.stepText h3 {
+  margin: 0 0 6px;
+}
+
+.stepText p {
+  margin: 0;
+  color: #59607a;
+}
+
+.stepCard img {
+  width: 100%;
+  height: 104px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.providerBanner {
+  border-radius: 20px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  min-height: 280px;
+  box-shadow: 0 16px 34px rgba(17, 19, 33, 0.14);
+}
+
+.providerVisual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.providerContent {
+  background: linear-gradient(135deg, #404259 0%, #2a2d44 100%);
+  color: #fff;
+  padding: 40px;
+  display: grid;
+  gap: 14px;
+  align-content: center;
+}
+
+.providerContent h2 {
+  margin: 0;
+}
+
+.providerContent p {
+  margin: 0;
+  color: #dfe5f4;
+}
+
+.providerButton {
+  background: #2cb34f;
+  color: #fff;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 10px 16px;
+  border: 1px solid #2cb34f;
+  width: fit-content;
+}
+
+@media (max-width: 1080px) {
+  .trendGrid,
+  .valueGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stepCard {
+    grid-template-columns: auto 1fr 180px;
+  }
+}
+
+@media (max-width: 860px) {
+  .hero {
+    padding-top: 100px;
+  }
+
+  .stepCard {
+    grid-template-columns: auto 1fr;
+  }
+
+  .stepCard img {
+    grid-column: 1 / -1;
+    height: 160px;
+  }
+
+  .providerBanner {
+    grid-template-columns: 1fr;
+  }
+
+  .providerVisual {
+    min-height: 220px;
+  }
+}
+
+@media (max-width: 640px) {
+  .searchBar {
+    grid-template-columns: 1fr;
+  }
+
+  .section {
+    padding: 54px 0;
+  }
+
+  .trendGrid,
+  .valueGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .heroCard {
+    padding: 24px;
+  }
+}

@@ -1,0 +1,207 @@
+{
+  "common": {
+    "trusted": "Verified professionals",
+    "secure": "Secure payments",
+    "guarantee": "Money-back guarantee on first job",
+    "searchPlaceholder": "What service are you looking for?",
+    "requestQuote": "Request quote",
+    "viewDetails": "View details",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "city": "City",
+    "price": "Price",
+    "rating": "Rating",
+    "from": "From",
+    "reviews": "reviews",
+    "language": "Language"
+  },
+  "header": {
+    "menu": {
+      "cleaning": "Cleaning",
+      "renovation": "Renovation",
+      "moving": "Moving",
+      "repair": "Repair",
+      "tutoring": "Tutoring",
+      "events": "Events",
+      "other": "Other"
+    },
+    "becomePro": "Become a provider",
+    "login": "Login",
+    "help": "Help"
+  },
+  "home": {
+    "heroTitle": "Service Ready, Right Away",
+    "heroSubtitle": "Find the help you need quickly and get your pending tasks done without stress.",
+    "searchButton": "Search",
+    "trendTitle": "Trending Services This Week",
+    "trend": {
+      "homeCleaning": "Home Cleaning",
+      "painting": "Painting",
+      "moving": "Intercity Moving",
+      "acRepair": "AC Service"
+    },
+    "values": {
+      "qualityTitle": "Get High-Quality Service",
+      "qualityDesc": "Work with highly rated and verified professionals.",
+      "timeTitle": "Save Time",
+      "timeDesc": "Post once and receive multiple quotes in minutes.",
+      "guaranteeTitle": "Stay Protected",
+      "guaranteeDesc": "Transparent reviews and secure workflows reduce risk.",
+      "easyTitle": "Use It Effortlessly",
+      "easyDesc": "Manage requests, quotes and communication in one place."
+    },
+    "howTitle": "How It Works",
+    "steps": {
+      "step1Title": "Describe your need",
+      "step1Desc": "Share details in a short form and set your expectations.",
+      "step2Title": "Receive quotes",
+      "step2Desc": "Trusted local pros send tailored offers quickly.",
+      "step3Title": "Compare and choose",
+      "step3Desc": "Review price, ratings and reviews before hiring."
+    },
+    "proBannerTitle": "Join as a service provider",
+    "proBannerDesc": "Grow your business by reaching new customers in your area.",
+    "proBannerCta": "Register for free"
+  },
+  "about": {
+    "title": "About Us",
+    "storyTitle": "Our Story",
+    "story": "Founded in 2025 in Ireland, we connect trusted local professionals with people needing home services, repairs, lessons, moving, and more. Customers get fast quotes, verified reviews, and secure payments in one streamlined marketplace.",
+    "missionTitle": "Mission",
+    "mission": "Quality, speed and trust in every service request.",
+    "stats": "Over 15,000 professionals • 120,000+ completed jobs • 4.7/5 average rating",
+    "teamTitle": "Leadership Team",
+    "valuesTitle": "Our Values",
+    "values": {
+      "transparency": "Transparency",
+      "customerFirst": "Customer-first",
+      "growth": "Professional growth"
+    }
+  },
+  "login": {
+    "title": "Welcome back",
+    "subtitle": "Log in to manage your requests, quotes and payments.",
+    "email": "Email",
+    "password": "Password",
+    "login": "Login",
+    "google": "Continue with Google",
+    "apple": "Continue with Apple",
+    "noAccount": "Don't have an account?",
+    "signupLink": "Sign up",
+    "success": "Login successful. Redirecting...",
+    "errors": {
+      "invalidEmail": "Enter a valid email address.",
+      "shortPassword": "Password must be at least 6 characters."
+    }
+  },
+  "signup": {
+    "title": "Create your account",
+    "subtitle": "Join the marketplace in less than 2 minutes.",
+    "customerTab": "I'm a Customer",
+    "providerTab": "I'm a Service Provider",
+    "fields": {
+      "name": "Full name",
+      "phone": "Phone",
+      "city": "City",
+      "email": "Email",
+      "password": "Password",
+      "services": "Services offered",
+      "region": "City / Region",
+      "verification": "ID verification"
+    },
+    "verificationNote": "A valid ID and business details are required before you start receiving leads.",
+    "bankInfoNote": "Bank details will be collected later for secure payouts.",
+    "create": "Create account",
+    "google": "Sign up with Google",
+    "apple": "Sign up with Apple",
+    "successCustomer": "Customer account created successfully.",
+    "successProvider": "Provider application submitted successfully.",
+    "errors": {
+      "required": "Please fill in all required fields.",
+      "invalidEmail": "Use a valid email address.",
+      "password": "Password must be at least 6 characters.",
+      "services": "Please list at least one service."
+    }
+  },
+  "becomeProvider": {
+    "title": "Earn money on your schedule - join 15,000+ professionals",
+    "subtitle": "Start receiving service requests from nearby customers with zero registration cost.",
+    "benefits": {
+      "title": "Why providers join",
+      "setPrices": "Set your own prices",
+      "chooseJobs": "Choose the jobs that fit your calendar",
+      "securePaid": "Get paid securely",
+      "reviews": "Build your reputation with verified reviews"
+    },
+    "steps": {
+      "one": "Personal info",
+      "two": "Services and skills",
+      "three": "Areas served",
+      "four": "Documents"
+    },
+    "cta": "Start earning today - free registration",
+    "next": "Continue",
+    "back": "Back",
+    "submit": "Submit application",
+    "form": {
+      "fullName": "Full name",
+      "email": "Email",
+      "phone": "Phone",
+      "city": "City",
+      "primaryServices": "Primary services",
+      "experience": "Experience",
+      "portfolio": "Portfolio link",
+      "availability": "Availability",
+      "primaryCity": "Primary city",
+      "secondaryAreas": "Secondary areas",
+      "radius": "Travel radius",
+      "documents": "Document upload (placeholder)",
+      "bankInfo": "Bank information will be requested during payout setup."
+    }
+  },
+  "serviceDetail": {
+    "startingFrom": "Average price range",
+    "filtersTitle": "Filter professionals",
+    "faqTitle": "Frequently asked questions",
+    "includedTitle": "What is usually included",
+    "whyChooseTitle": "Why choose verified professionals",
+    "questionsTitle": "Common customer questions",
+    "description1": "Service usually includes planning, on-site execution, cleanup and final quality checks based on your home or business needs.",
+    "description2": "Verified professionals arrive prepared, communicate clearly and adapt scope, materials and timing to your priorities.",
+    "description3": "You can request custom quotes for urgent jobs, recurring plans or advanced requirements before confirming your booking.",
+    "faq1q": "How quickly can I receive quotes?",
+    "faq1a": "Most requests receive the first quote within 30 minutes during business hours.",
+    "faq2q": "Are professionals verified?",
+    "faq2a": "Profiles are checked with ID and business verification before they can receive leads.",
+    "faq3q": "What if I am not satisfied?",
+    "faq3a": "Our support team reviews each case and applies first-job money-back protection where eligible."
+  },
+  "search": {
+    "title": "Search results",
+    "subtitle": "Showing results for",
+    "noResults": "No services or professionals matched your search."
+  },
+  "footer": {
+    "siteMap": "Sitemap",
+    "topSearches": "Top Searches",
+    "social": "Social Media",
+    "country": "Country",
+    "copyright": "© 2026 Service Marketplace. All rights reserved.",
+    "about": "About",
+    "how": "How it works",
+    "careers": "Careers",
+    "contact": "Contact",
+    "privacy": "Privacy Policy",
+    "terms": "Terms",
+    "cookie": "Cookie Policy"
+  },
+  "legal": {
+    "privacyTitle": "Privacy Policy",
+    "termsTitle": "Terms and Conditions",
+    "cookieTitle": "Cookie Policy",
+    "lastUpdated": "Last updated: February 20, 2026",
+    "privacyBody": "We process account, service request and payment data to match customers with providers, prevent fraud and improve platform reliability. Data is encrypted in transit and access is logged.",
+    "termsBody": "Providers are responsible for accurate service descriptions, legal compliance and timely delivery. Customers agree to share honest requirements and complete payments through platform-approved flows.",
+    "cookieBody": "We use essential cookies for sign-in and security, plus analytics cookies to improve search relevance, quote quality and conversion across customer and provider journeys."
+  }
+}

@@ -1,0 +1,207 @@
+{
+  "common": {
+    "trusted": "Profesionales verificados",
+    "secure": "Pagos seguros",
+    "guarantee": "Garantía de devolución en el primer servicio",
+    "searchPlaceholder": "¿Qué servicio estás buscando?",
+    "requestQuote": "Solicitar presupuesto",
+    "viewDetails": "Ver detalles",
+    "submit": "Enviar",
+    "cancel": "Cancelar",
+    "city": "Ciudad",
+    "price": "Precio",
+    "rating": "Valoración",
+    "from": "Desde",
+    "reviews": "reseñas",
+    "language": "Idioma"
+  },
+  "header": {
+    "menu": {
+      "cleaning": "Limpieza",
+      "renovation": "Reformas",
+      "moving": "Mudanzas",
+      "repair": "Reparación",
+      "tutoring": "Clases",
+      "events": "Eventos",
+      "other": "Otros"
+    },
+    "becomePro": "Ofrecer servicios",
+    "login": "Iniciar sesión",
+    "help": "Ayuda"
+  },
+  "home": {
+    "heroTitle": "Servicio listo, sin complicaciones",
+    "heroSubtitle": "Encuentra el servicio que necesitas y resuelve tus pendientes rápidamente.",
+    "searchButton": "Buscar",
+    "trendTitle": "Servicios en tendencia esta semana",
+    "trend": {
+      "homeCleaning": "Limpieza del hogar",
+      "painting": "Pintura",
+      "moving": "Mudanza entre ciudades",
+      "acRepair": "Servicio de aire acondicionado"
+    },
+    "values": {
+      "qualityTitle": "Recibe calidad",
+      "qualityDesc": "Trabaja con profesionales verificados y bien valorados.",
+      "timeTitle": "Ahorra tiempo",
+      "timeDesc": "Publica tu solicitud y recibe varias ofertas en minutos.",
+      "guaranteeTitle": "Mantente protegido",
+      "guaranteeDesc": "Reseñas transparentes y procesos seguros para reducir riesgos.",
+      "easyTitle": "Úsalo fácilmente",
+      "easyDesc": "Gestiona solicitudes, ofertas y mensajes en un solo lugar."
+    },
+    "howTitle": "Cómo funciona",
+    "steps": {
+      "step1Title": "Describe tu necesidad",
+      "step1Desc": "Completa un formulario breve con los detalles del servicio.",
+      "step2Title": "Recibe ofertas",
+      "step2Desc": "Profesionales de confianza de tu zona te envían presupuestos.",
+      "step3Title": "Compara y elige",
+      "step3Desc": "Revisa precios, puntuaciones y reseñas antes de contratar."
+    },
+    "proBannerTitle": "Únete como profesional",
+    "proBannerDesc": "Haz crecer tu negocio y consigue nuevos clientes en tu ciudad.",
+    "proBannerCta": "Regístrate gratis"
+  },
+  "about": {
+    "title": "Sobre nosotros",
+    "storyTitle": "Nuestra historia",
+    "story": "Fundada en 2025 en Irlanda, nuestra plataforma conecta a profesionales locales de confianza con personas que necesitan servicios del hogar, reparaciones, clases, mudanzas y más. Los clientes reciben presupuestos rápidos, reseñas verificadas y pagos seguros en un solo marketplace.",
+    "missionTitle": "Misión",
+    "mission": "Calidad, rapidez y confianza en cada solicitud de servicio.",
+    "stats": "Más de 15.000 profesionales • 120.000+ trabajos completados • 4,7/5 de valoración media",
+    "teamTitle": "Equipo directivo",
+    "valuesTitle": "Nuestros valores",
+    "values": {
+      "transparency": "Transparencia",
+      "customerFirst": "Cliente primero",
+      "growth": "Crecimiento profesional"
+    }
+  },
+  "login": {
+    "title": "Bienvenido de nuevo",
+    "subtitle": "Inicia sesión para gestionar solicitudes, ofertas y pagos.",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "login": "Entrar",
+    "google": "Continuar con Google",
+    "apple": "Continuar con Apple",
+    "noAccount": "¿No tienes cuenta?",
+    "signupLink": "Regístrate",
+    "success": "Inicio de sesión correcto. Redirigiendo...",
+    "errors": {
+      "invalidEmail": "Introduce un correo electrónico válido.",
+      "shortPassword": "La contraseña debe tener al menos 6 caracteres."
+    }
+  },
+  "signup": {
+    "title": "Crea tu cuenta",
+    "subtitle": "Únete al marketplace en menos de 2 minutos.",
+    "customerTab": "Soy cliente",
+    "providerTab": "Soy profesional",
+    "fields": {
+      "name": "Nombre completo",
+      "phone": "Teléfono",
+      "city": "Ciudad",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "services": "Servicios ofrecidos",
+      "region": "Ciudad / Región",
+      "verification": "Verificación de identidad"
+    },
+    "verificationNote": "Se requiere una identificación válida y datos de actividad antes de recibir solicitudes.",
+    "bankInfoNote": "Los datos bancarios se solicitarán más adelante para pagos seguros.",
+    "create": "Crear cuenta",
+    "google": "Registrarme con Google",
+    "apple": "Registrarme con Apple",
+    "successCustomer": "Cuenta de cliente creada correctamente.",
+    "successProvider": "Solicitud de profesional enviada correctamente.",
+    "errors": {
+      "required": "Completa todos los campos obligatorios.",
+      "invalidEmail": "Usa un correo electrónico válido.",
+      "password": "La contraseña debe tener al menos 6 caracteres.",
+      "services": "Añade al menos un servicio."
+    }
+  },
+  "becomeProvider": {
+    "title": "Gana dinero a tu ritmo - únete a más de 15.000 profesionales",
+    "subtitle": "Empieza a recibir solicitudes de clientes cercanos con registro gratuito.",
+    "benefits": {
+      "title": "Por qué los profesionales se unen",
+      "setPrices": "Define tus precios",
+      "chooseJobs": "Elige los trabajos que encajen con tu agenda",
+      "securePaid": "Cobra de forma segura",
+      "reviews": "Construye reputación con reseñas verificadas"
+    },
+    "steps": {
+      "one": "Datos personales",
+      "two": "Servicios y habilidades",
+      "three": "Zonas de servicio",
+      "four": "Documentos"
+    },
+    "cta": "Empieza a ganar hoy - registro gratuito",
+    "next": "Continuar",
+    "back": "Atrás",
+    "submit": "Enviar solicitud",
+    "form": {
+      "fullName": "Nombre completo",
+      "email": "Correo electrónico",
+      "phone": "Teléfono",
+      "city": "Ciudad",
+      "primaryServices": "Servicios principales",
+      "experience": "Experiencia",
+      "portfolio": "Enlace de portafolio",
+      "availability": "Disponibilidad",
+      "primaryCity": "Ciudad principal",
+      "secondaryAreas": "Zonas secundarias",
+      "radius": "Radio de servicio",
+      "documents": "Carga de documentos (placeholder)",
+      "bankInfo": "Los datos bancarios se solicitarán durante la configuración de pagos."
+    }
+  },
+  "serviceDetail": {
+    "startingFrom": "Rango de precio promedio",
+    "filtersTitle": "Filtrar profesionales",
+    "faqTitle": "Preguntas frecuentes",
+    "includedTitle": "Qué suele incluirse",
+    "whyChooseTitle": "Por qué elegir profesionales verificados",
+    "questionsTitle": "Preguntas habituales de clientes",
+    "description1": "El servicio normalmente incluye planificación, ejecución en sitio, limpieza final y control de calidad.",
+    "description2": "Los profesionales verificados llegan preparados, con comunicación clara y alcance adaptable a tu necesidad.",
+    "description3": "Puedes pedir presupuestos personalizados para urgencias, planes recurrentes o requisitos avanzados.",
+    "faq1q": "¿Cuánto tardan en llegar los presupuestos?",
+    "faq1a": "La mayoría de las solicitudes recibe la primera oferta en unos 30 minutos en horario laboral.",
+    "faq2q": "¿Los profesionales están verificados?",
+    "faq2a": "Los perfiles pasan validación de identidad y actividad antes de recibir solicitudes.",
+    "faq3q": "¿Qué pasa si no quedo satisfecho?",
+    "faq3a": "Nuestro equipo revisa cada caso y aplica garantía de devolución en el primer servicio cuando corresponde."
+  },
+  "search": {
+    "title": "Resultados de búsqueda",
+    "subtitle": "Mostrando resultados para",
+    "noResults": "No encontramos servicios ni profesionales para tu búsqueda."
+  },
+  "footer": {
+    "siteMap": "Mapa del sitio",
+    "topSearches": "Más buscados",
+    "social": "Redes sociales",
+    "country": "País",
+    "copyright": "© 2026 Marketplace de Servicios. Todos los derechos reservados.",
+    "about": "Sobre nosotros",
+    "how": "Cómo funciona",
+    "careers": "Carreras",
+    "contact": "Contacto",
+    "privacy": "Política de privacidad",
+    "terms": "Términos",
+    "cookie": "Política de cookies"
+  },
+  "legal": {
+    "privacyTitle": "Política de privacidad",
+    "termsTitle": "Términos y condiciones",
+    "cookieTitle": "Política de cookies",
+    "lastUpdated": "Última actualización: 20 de febrero de 2026",
+    "privacyBody": "Procesamos datos de cuenta, solicitudes y pagos para conectar clientes con profesionales, prevenir fraude y mejorar la fiabilidad de la plataforma. Los datos se cifran en tránsito y los accesos quedan registrados.",
+    "termsBody": "Los profesionales son responsables de descripciones correctas, cumplimiento legal y entrega puntual. Los clientes aceptan compartir requisitos reales y pagar mediante los flujos oficiales de la plataforma.",
+    "cookieBody": "Usamos cookies esenciales para inicio de sesión y seguridad, y cookies analíticas para mejorar búsqueda, calidad de presupuestos y conversión."
+  }
+}

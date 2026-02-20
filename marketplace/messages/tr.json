@@ -1,0 +1,207 @@
+{
+  "common": {
+    "trusted": "Onaylı profesyoneller",
+    "secure": "Güvenli ödeme",
+    "guarantee": "İlk işte para iade garantisi",
+    "searchPlaceholder": "Hangi hizmeti arıyorsun?",
+    "requestQuote": "Teklif al",
+    "viewDetails": "Detayları gör",
+    "submit": "Gönder",
+    "cancel": "İptal",
+    "city": "Şehir",
+    "price": "Fiyat",
+    "rating": "Puan",
+    "from": "Başlangıç",
+    "reviews": "yorum",
+    "language": "Dil"
+  },
+  "header": {
+    "menu": {
+      "cleaning": "Temizlik",
+      "renovation": "Tadilat",
+      "moving": "Nakliyat",
+      "repair": "Tamir",
+      "tutoring": "Özel Ders",
+      "events": "Organizasyon",
+      "other": "Diğer"
+    },
+    "becomePro": "Hizmet ver",
+    "login": "Giriş",
+    "help": "Yardım"
+  },
+  "home": {
+    "heroTitle": "Hizmet Piş, Ağzıma Düş",
+    "heroSubtitle": "İhtiyacın olan hizmete kolayca ulaş, bekleyen işlerini hallet.",
+    "searchButton": "Ara",
+    "trendTitle": "Haftanın Trend Hizmetleri",
+    "trend": {
+      "homeCleaning": "Ev Temizliği",
+      "painting": "Boya Badana",
+      "moving": "Şehirler Arası Nakliyat",
+      "acRepair": "Klima Servisi"
+    },
+    "values": {
+      "qualityTitle": "Kaliteli Hizmet Al",
+      "qualityDesc": "Puanı yüksek ve doğrulanmış profesyonellerle çalış.",
+      "timeTitle": "Zaman Kazan",
+      "timeDesc": "Talep oluştur, dakikalar içinde birden fazla teklif al.",
+      "guaranteeTitle": "Garantide Ol",
+      "guaranteeDesc": "Şeffaf yorumlar ve güvenli süreçlerle riskini azalt.",
+      "easyTitle": "Kolayca Kullan",
+      "easyDesc": "Talep, teklif ve iletişimi tek yerden yönet."
+    },
+    "howTitle": "Nasıl Çalışır",
+    "steps": {
+      "step1Title": "İhtiyacını anlat",
+      "step1Desc": "Kısa formu doldur, beklentini net şekilde belirt.",
+      "step2Title": "Teklif al",
+      "step2Desc": "Bölgendeki güvenilir profesyonellerden teklifler gelsin.",
+      "step3Title": "Karşılaştır ve seç",
+      "step3Desc": "Fiyat, puan ve yorumlara göre en iyi seçimi yap."
+    },
+    "proBannerTitle": "Hizmet veren olarak katıl",
+    "proBannerDesc": "Bölgenizdeki yeni müşterilere ulaşıp işinizi büyütün.",
+    "proBannerCta": "Ücretsiz üye ol"
+  },
+  "about": {
+    "title": "Hakkımızda",
+    "storyTitle": "Hikayemiz",
+    "story": "2025 yılında İrlanda'da kurulan platformumuz, güvenilir yerel profesyonelleri temizlik, tamir, ders, nakliyat ve benzeri hizmet arayan kişilerle buluşturur. Müşteriler hızlı teklif alır, onaylı yorumları görür ve ödemelerini güvenle tamamlar.",
+    "missionTitle": "Misyonumuz",
+    "mission": "Her hizmet talebinde kalite, hız ve güven sunmak.",
+    "stats": "15.000+ profesyonel • 120.000+ tamamlanan iş • 4,7/5 ortalama puan",
+    "teamTitle": "Liderlik Ekibi",
+    "valuesTitle": "Değerlerimiz",
+    "values": {
+      "transparency": "Şeffaflık",
+      "customerFirst": "Müşteri odaklılık",
+      "growth": "Profesyonel gelişim"
+    }
+  },
+  "login": {
+    "title": "Tekrar hoş geldin",
+    "subtitle": "Taleplerini, tekliflerini ve ödemelerini yönetmek için giriş yap.",
+    "email": "E-posta",
+    "password": "Şifre",
+    "login": "Giriş yap",
+    "google": "Google ile devam et",
+    "apple": "Apple ile devam et",
+    "noAccount": "Hesabın yok mu?",
+    "signupLink": "Üye ol",
+    "success": "Giriş başarılı. Yönlendiriliyorsun...",
+    "errors": {
+      "invalidEmail": "Geçerli bir e-posta adresi gir.",
+      "shortPassword": "Şifre en az 6 karakter olmalı."
+    }
+  },
+  "signup": {
+    "title": "Hesabını oluştur",
+    "subtitle": "2 dakikadan kısa sürede marketplace'e katıl.",
+    "customerTab": "Müşteriyim",
+    "providerTab": "Hizmet veriyorum",
+    "fields": {
+      "name": "Ad soyad",
+      "phone": "Telefon",
+      "city": "Şehir",
+      "email": "E-posta",
+      "password": "Şifre",
+      "services": "Sunulan hizmetler",
+      "region": "Şehir / Bölge",
+      "verification": "Kimlik doğrulama"
+    },
+    "verificationNote": "Talep almaya başlamadan önce geçerli kimlik ve işletme bilgileri doğrulanır.",
+    "bankInfoNote": "Güvenli ödemeler için banka bilgileri daha sonra alınır.",
+    "create": "Hesap oluştur",
+    "google": "Google ile üye ol",
+    "apple": "Apple ile üye ol",
+    "successCustomer": "Müşteri hesabı başarıyla oluşturuldu.",
+    "successProvider": "Hizmet veren başvurun başarıyla alındı.",
+    "errors": {
+      "required": "Lütfen zorunlu alanları doldur.",
+      "invalidEmail": "Geçerli bir e-posta adresi kullan.",
+      "password": "Şifre en az 6 karakter olmalı.",
+      "services": "En az bir hizmet belirtmelisin."
+    }
+  },
+  "becomeProvider": {
+    "title": "Programına uygun kazan - 15.000+ profesyonele katıl",
+    "subtitle": "Bulunduğun bölgeden yeni iş talepleri al, ücretsiz kayıt ol.",
+    "benefits": {
+      "title": "Neden hizmet verenler katılıyor",
+      "setPrices": "Fiyatını sen belirle",
+      "chooseJobs": "Takvimine uygun işleri seç",
+      "securePaid": "Ödemeni güvenle al",
+      "reviews": "Yorumlarla itibarını güçlendir"
+    },
+    "steps": {
+      "one": "Kişisel bilgiler",
+      "two": "Hizmetler ve yetkinlik",
+      "three": "Hizmet bölgeleri",
+      "four": "Belgeler"
+    },
+    "cta": "Bugün kazanmaya başla - kayıt ücretsiz",
+    "next": "Devam et",
+    "back": "Geri",
+    "submit": "Başvuruyu gönder",
+    "form": {
+      "fullName": "Ad soyad",
+      "email": "E-posta",
+      "phone": "Telefon",
+      "city": "Şehir",
+      "primaryServices": "Ana hizmetler",
+      "experience": "Deneyim",
+      "portfolio": "Portföy linki",
+      "availability": "Uygunluk",
+      "primaryCity": "Ana şehir",
+      "secondaryAreas": "Ek bölgeler",
+      "radius": "Hizmet yarıçapı",
+      "documents": "Belge yükleme (yer tutucu)",
+      "bankInfo": "Banka bilgileri ödeme hesabı kurulumunda istenir."
+    }
+  },
+  "serviceDetail": {
+    "startingFrom": "Ortalama fiyat aralığı",
+    "filtersTitle": "Profesyonelleri filtrele",
+    "faqTitle": "Sık sorulan sorular",
+    "includedTitle": "Genellikle neler dahil",
+    "whyChooseTitle": "Neden onaylı profesyoneller",
+    "questionsTitle": "Müşterilerin sık soruları",
+    "description1": "Hizmet kapsamı genelde planlama, sahada uygulama, temizlik ve son kalite kontrol adımlarını içerir.",
+    "description2": "Onaylı profesyoneller hazırlıklı gelir, net iletişim kurar ve kapsamı ihtiyacına göre uyarlayabilir.",
+    "description3": "Acil işler, düzenli bakım planları veya özel ihtiyaçlar için teklifini özelleştirerek onay verebilirsin.",
+    "faq1q": "Teklifler ne kadar sürede gelir?",
+    "faq1a": "Çoğu talepte mesai saatlerinde ilk teklif 30 dakika içinde gelir.",
+    "faq2q": "Profesyoneller doğrulanıyor mu?",
+    "faq2a": "Profiller, talep almadan önce kimlik ve işletme kontrollerinden geçer.",
+    "faq3q": "Memnun kalmazsam ne olur?",
+    "faq3a": "Destek ekibimiz başvuruları inceler, uygun durumlarda ilk işte iade koruması sunar."
+  },
+  "search": {
+    "title": "Arama sonuçları",
+    "subtitle": "Arama sonuçları:",
+    "noResults": "Aramanıza uygun hizmet veya profesyonel bulunamadı."
+  },
+  "footer": {
+    "siteMap": "Site Haritası",
+    "topSearches": "En Çok Arananlar",
+    "social": "Sosyal Medya",
+    "country": "Ülke",
+    "copyright": "© 2026 Hizmet Marketplace. Tüm hakları saklıdır.",
+    "about": "Hakkımızda",
+    "how": "Nasıl çalışır",
+    "careers": "Kariyer",
+    "contact": "İletişim",
+    "privacy": "Gizlilik Politikası",
+    "terms": "Kullanım Koşulları",
+    "cookie": "Çerez Politikası"
+  },
+  "legal": {
+    "privacyTitle": "Gizlilik Politikası",
+    "termsTitle": "Kullanım Koşulları",
+    "cookieTitle": "Çerez Politikası",
+    "lastUpdated": "Son güncelleme: 20 Şubat 2026",
+    "privacyBody": "Müşteri ile profesyoneli eşleştirmek, dolandırıcılığı önlemek ve platform güvenilirliğini artırmak için hesap, talep ve ödeme verilerini işleriz. Veriler aktarım sırasında şifrelenir ve erişimler kayıt altına alınır.",
+    "termsBody": "Hizmet verenler doğru hizmet açıklaması, yasal uyumluluk ve zamanında teslimden sorumludur. Müşteriler ihtiyaçlarını doğru paylaşmayı ve ödemeyi platform akışından tamamlamayı kabul eder.",
+    "cookieBody": "Giriş ve güvenlik için zorunlu çerezler, arama alaka düzeyi ve teklif kalitesini artırmak için analitik çerezler kullanırız."
+  }
+}
