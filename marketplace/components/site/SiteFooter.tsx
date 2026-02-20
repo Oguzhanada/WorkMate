@@ -9,6 +9,7 @@ export default function SiteFooter() {
   const locale = useLocale();
   const t = useTranslations('footer');
   const home = useTranslations('home');
+  const header = useTranslations('header');
 
   const localized = (path: string) => `/${locale}${path}`;
 
@@ -23,6 +24,7 @@ export default function SiteFooter() {
             <Link href={localized('/arama?q=careers')}>{t('careers')}</Link>
             <Link href={localized('/iletisim')}>{t('contact')}</Link>
             <Link href={localized('/sss')}>{t('faq')}</Link>
+            <Link href={localized('/profil')}>{header('profile')}</Link>
           </div>
           <div>
             <h4>{t('topSearches')}</h4>

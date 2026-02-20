@@ -27,7 +27,9 @@
     },
     "becomePro": "Ofrecer servicios",
     "login": "Iniciar sesión",
-    "help": "Ayuda"
+    "help": "Ayuda",
+    "profile": "Perfil",
+    "logout": "Cerrar sesion"
   },
   "home": {
     "heroTitle": "Servicio listo, sin complicaciones",
@@ -157,7 +159,15 @@
       "radius": "Radio de servicio",
       "documents": "Carga de documentos (placeholder)",
       "bankInfo": "Los datos bancarios se solicitarán durante la configuración de pagos."
-    }
+    },
+    "profileLoaded": "Datos cargados automaticamente desde tu perfil.",
+    "needLogin": "Inicia sesion antes de postularte como profesional.",
+    "missingDoc": "Sube al menos tu documento de identidad.",
+    "submitSuccess": "Solicitud enviada correctamente. Verificacion en proceso.",
+    "submitError": "No se pudo enviar la solicitud. Intentalo de nuevo.",
+    "docsHint": "Sube documento de identidad (obligatorio) y seguro (opcional).",
+    "idDoc": "Documento de identidad",
+    "insuranceDoc": "Documento de seguro"
   },
   "serviceDetail": {
     "startingFrom": "Rango de precio promedio",
@@ -260,5 +270,18 @@
     "p1": "Los datos de perfil se conservan mientras la cuenta este activa y hasta 24 meses tras el cierre por cumplimiento.",
     "p2": "Solicitudes, historial de presupuestos y pagos se guardan por obligaciones fiscales y resolucion de disputas.",
     "p3": "Mensajes de soporte se conservan hasta 36 meses para mejorar calidad e investigar fraude."
+  },
+  "profile": {
+    "title": "Mi Perfil",
+    "subtitle": "Gestiona tu cuenta y continua con tus acciones en el marketplace.",
+    "role": "Rol",
+    "status": "Estado de verificacion",
+    "email": "Correo",
+    "fullName": "Nombre completo",
+    "phone": "Telefono",
+    "actionsTitle": "Acciones rapidas",
+    "postJob": "Crear solicitud",
+    "becomeProvider": "Completar solicitud profesional",
+    "proDashboard": "Abrir panel profesional"
   }
 }

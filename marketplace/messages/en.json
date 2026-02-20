@@ -27,7 +27,9 @@
     },
     "becomePro": "Become a provider",
     "login": "Login",
-    "help": "Help"
+    "help": "Help",
+    "profile": "Profile",
+    "logout": "Logout"
   },
   "home": {
     "heroTitle": "Service Ready, Right Away",
@@ -157,7 +159,15 @@
       "radius": "Travel radius",
       "documents": "Document upload (placeholder)",
       "bankInfo": "Bank information will be requested during payout setup."
-    }
+    },
+    "profileLoaded": "Profile information loaded from your account.",
+    "needLogin": "Please log in before applying as a provider.",
+    "missingDoc": "Please upload at least your ID document.",
+    "submitSuccess": "Application submitted successfully. Verification is now pending.",
+    "submitError": "Application could not be submitted. Please try again.",
+    "docsHint": "Upload ID document (required) and insurance document (optional).",
+    "idDoc": "ID document",
+    "insuranceDoc": "Insurance document"
   },
   "serviceDetail": {
     "startingFrom": "Average price range",
@@ -260,5 +270,18 @@
     "p1": "Account profile data is stored while your account remains active and for up to 24 months after closure for compliance.",
     "p2": "Job requests, quote history and payment records are stored for financial, tax and dispute-resolution obligations.",
     "p3": "Support messages are retained for up to 36 months to improve service quality and investigate fraud reports."
+  },
+  "profile": {
+    "title": "My Profile",
+    "subtitle": "Manage your account and continue your marketplace actions.",
+    "role": "Role",
+    "status": "Verification status",
+    "email": "Email",
+    "fullName": "Full name",
+    "phone": "Phone",
+    "actionsTitle": "Quick actions",
+    "postJob": "Post a job",
+    "becomeProvider": "Complete provider application",
+    "proDashboard": "Open pro dashboard"
   }
 }

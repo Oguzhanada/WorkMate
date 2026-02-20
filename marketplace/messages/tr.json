@@ -27,7 +27,9 @@
     },
     "becomePro": "Hizmet ver",
     "login": "Giriş",
-    "help": "Yardım"
+    "help": "Yardım",
+    "profile": "Profil",
+    "logout": "Çıkış yap"
   },
   "home": {
     "heroTitle": "Hizmet Piş, Ağzıma Düş",
@@ -157,7 +159,15 @@
       "radius": "Hizmet yarıçapı",
       "documents": "Belge yükleme (yer tutucu)",
       "bankInfo": "Banka bilgileri ödeme hesabı kurulumunda istenir."
-    }
+    },
+    "profileLoaded": "Profil bilgileri hesabından otomatik getirildi.",
+    "needLogin": "Hizmet veren başvurusu için önce giriş yapmalısın.",
+    "missingDoc": "Lütfen en az kimlik belgesini yükle.",
+    "submitSuccess": "Başvuru başarıyla gönderildi. Doğrulama süreci başlatıldı.",
+    "submitError": "Başvuru gönderilemedi. Lütfen tekrar dene.",
+    "docsHint": "Kimlik belgesi (zorunlu) ve sigorta belgesi (opsiyonel) yükleyin.",
+    "idDoc": "Kimlik belgesi",
+    "insuranceDoc": "Sigorta belgesi"
   },
   "serviceDetail": {
     "startingFrom": "Ortalama fiyat aralığı",
@@ -260,5 +270,18 @@
     "p1": "Hesap profil verileri, hesabınız aktif kaldığı sürece ve kapanıştan sonra uyumluluk için 24 aya kadar saklanır.",
     "p2": "İş talepleri, teklif geçmişi ve ödeme kayıtları finansal, vergisel ve uyuşmazlık çözümü yükümlülükleri için tutulur.",
     "p3": "Destek mesajları hizmet kalitesini artırmak ve dolandırıcılık bildirimlerini incelemek için 36 aya kadar saklanır."
+  },
+  "profile": {
+    "title": "Profilim",
+    "subtitle": "Hesabını yönet ve marketplace işlemlerine devam et.",
+    "role": "Rol",
+    "status": "Doğrulama durumu",
+    "email": "E-posta",
+    "fullName": "Ad soyad",
+    "phone": "Telefon",
+    "actionsTitle": "Hızlı işlemler",
+    "postJob": "İş talebi oluştur",
+    "becomeProvider": "Hizmet veren başvurusunu tamamla",
+    "proDashboard": "Pro panelini aç"
   }
 }

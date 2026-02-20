@@ -12,6 +12,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/giris',
     '/uye-ol',
     '/hizmet-ver',
+    '/profil',
     '/arama',
     '/iletisim',
     '/sss',

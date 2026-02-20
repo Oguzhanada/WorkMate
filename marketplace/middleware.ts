@@ -1,3 +1,4 @@
+import {createServerClient} from '@supabase/ssr';
 import createMiddleware from 'next-intl/middleware';
 import {NextResponse, type NextRequest} from 'next/server';
 
@@ -49,7 +50,7 @@ function allowRequest(key: string) {
   return {allowed: true, retryAfterMs: 0};
 }
 
-export default function middleware(request: NextRequest) {
+export default async function middleware(request: NextRequest) {
   if (request.method === 'POST' && isAuthMutationPath(request.nextUrl.pathname)) {
     const ip = getClientIdentifier(request);
     const key = `${ip}:${request.nextUrl.pathname}`;
@@ -65,9 +66,44 @@ export default function middleware(request: NextRequest) {
     }
   }
 
-  return intlMiddleware(request);
+  const response = intlMiddleware(request);
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({name, value}) => request.cookies.set(name, value));
+          cookiesToSet.forEach(({name, value, options}) => response.cookies.set(name, value, options));
+        }
+      }
+    }
+  );
+
+  await supabase.auth.getUser();
+
+  return response;
 }
 
 export const config = {
-  matcher: ['/', '/about', '/giris', '/uye-ol', '/hizmet-ver', '/hizmet/:path*', '/arama', '/privacy-policy', '/terms', '/cookie-policy', '/(en|tr|pt|es)/:path*']
+  matcher: [
+    '/',
+    '/about',
+    '/giris',
+    '/uye-ol',
+    '/hizmet-ver',
+    '/hizmet/:path*',
+    '/arama',
+    '/iletisim',
+    '/sss',
+    '/privacy-policy',
+    '/terms',
+    '/cookie-policy',
+    '/data-retention',
+    '/(en|tr|pt|es)/:path*'
+  ]
 };

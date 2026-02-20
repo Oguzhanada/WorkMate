@@ -10,7 +10,17 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
 
   useEffect(() => {
     supabase.from('profiles').select('*').eq('id', profileId).single().then(({ data }) => setProfile(data));
-    supabase.from('jobs').select('*').eq('status', 'open').order('created_at', { ascending: false }).then(({ data }) => setJobs(data || []));
+    supabase
+      .from('quotes')
+      .select('job:jobs(*)')
+      .eq('pro_id', profileId)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        const relatedJobs = (data || [])
+          .map((item: any) => item.job)
+          .filter(Boolean);
+        setJobs(relatedJobs);
+      });
   }, [profileId]);
 
   const submitQuote = async (jobId: string) => {
@@ -19,7 +29,6 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         job_id: jobId,
-        pro_id: profileId,
         quote_amount_cents: 35000,
         availability_slots: [{ start: '2026-02-21T09:00:00Z', end: '2026-02-21T12:00:00Z' }],
       }),
@@ -34,6 +43,7 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Pro Dashboard</h1>
+      {jobs.length === 0 ? <p className="text-sm text-gray-600">Henüz size ait quote/job kaydı yok.</p> : null}
       {jobs.map((job) => (
         <div key={job.id} className="rounded border p-4">
           <p className="font-semibold">{job.title}</p>

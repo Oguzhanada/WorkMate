@@ -1,9 +1,11 @@
 "use client";
 
 import Link from 'next/link';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
+import {useRouter} from 'next/navigation';
 import {useLocale, useTranslations} from 'next-intl';
 
+import {getSupabaseBrowserClient} from '@/lib/supabase/client';
 import LanguageSwitcher from './LanguageSwitcher';
 import styles from './site.module.css';
 
@@ -18,12 +20,37 @@ const navItems = [
 ] as const;
 
 export default function SiteHeader() {
+  const router = useRouter();
   const locale = useLocale();
   const t = useTranslations('header');
   const common = useTranslations('common');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const localized = (path: string) => `/${locale}${path}`;
+
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+
+    supabase.auth.getUser().then(({data}) => {
+      setIsAuthenticated(Boolean(data.user));
+    });
+
+    const {
+      data: {subscription}
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(Boolean(session?.user));
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const logout = async () => {
+    const supabase = getSupabaseBrowserClient();
+    await supabase.auth.signOut();
+    router.push(localized('/giris'));
+    router.refresh();
+  };
 
   return (
     <header className={styles.header}>
@@ -54,9 +81,20 @@ export default function SiteHeader() {
             <Link href={localized('/hizmet-ver')} className={`${styles.primaryButton} ${styles.desktopAction}`}>
               {t('becomePro')}
             </Link>
-            <Link href={localized('/giris')} className={`${styles.linkButton} ${styles.desktopAction}`}>
-              {t('login')}
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link href={localized('/profil')} className={`${styles.linkButton} ${styles.desktopAction}`}>
+                  {t('profile')}
+                </Link>
+                <button type="button" onClick={logout} className={`${styles.linkButton} ${styles.desktopAction} ${styles.linkButtonPlain}`}>
+                  {t('logout')}
+                </button>
+              </>
+            ) : (
+              <Link href={localized('/giris')} className={`${styles.linkButton} ${styles.desktopAction}`}>
+                {t('login')}
+              </Link>
+            )}
             <Link href={localized('/about')} className={`${styles.linkButton} ${styles.desktopAction}`}>
               {t('help')}
             </Link>

@@ -27,7 +27,9 @@
     },
     "becomePro": "Seja profissional",
     "login": "Entrar",
-    "help": "Ajuda"
+    "help": "Ajuda",
+    "profile": "Perfil",
+    "logout": "Sair"
   },
   "home": {
     "heroTitle": "Serviço no ponto, sem complicação",
@@ -157,7 +159,15 @@
       "radius": "Raio de atendimento",
       "documents": "Envio de documentos (placeholder)",
       "bankInfo": "Dados bancários serão solicitados na configuração de pagamento."
-    }
+    },
+    "profileLoaded": "Informacoes carregadas do seu perfil.",
+    "needLogin": "Faca login antes de solicitar cadastro profissional.",
+    "missingDoc": "Envie pelo menos o documento de identidade.",
+    "submitSuccess": "Cadastro enviado com sucesso. Verificacao em andamento.",
+    "submitError": "Nao foi possivel enviar. Tente novamente.",
+    "docsHint": "Envie documento de identidade (obrigatorio) e seguro (opcional).",
+    "idDoc": "Documento de identidade",
+    "insuranceDoc": "Documento de seguro"
   },
   "serviceDetail": {
     "startingFrom": "Faixa média de preço",
@@ -260,5 +270,18 @@
     "p1": "Dados de perfil ficam armazenados enquanto a conta estiver ativa e por ate 24 meses apos encerramento por compliance.",
     "p2": "Pedidos, historico de orcamentos e registros de pagamento sao mantidos para obrigacoes fiscais e resolucao de disputas.",
     "p3": "Mensagens de suporte sao retidas por ate 36 meses para melhorar qualidade e investigar fraudes."
+  },
+  "profile": {
+    "title": "Meu Perfil",
+    "subtitle": "Gerencie sua conta e continue suas acoes no marketplace.",
+    "role": "Funcao",
+    "status": "Status de verificacao",
+    "email": "E-mail",
+    "fullName": "Nome completo",
+    "phone": "Telefone",
+    "actionsTitle": "Acoes rapidas",
+    "postJob": "Criar pedido",
+    "becomeProvider": "Concluir cadastro de profissional",
+    "proDashboard": "Abrir painel profissional"
   }
 }

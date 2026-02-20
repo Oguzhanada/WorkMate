@@ -84,6 +84,13 @@
   font-weight: 500;
 }
 
+.linkButtonPlain {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
 .mobileMenuButton {
   display: none;
   background: transparent;

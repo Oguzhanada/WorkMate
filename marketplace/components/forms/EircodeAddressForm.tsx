@@ -29,6 +29,22 @@ export default function EircodeAddressForm({ onAddressSelect }: { onAddressSelec
     onAddressSelect(data.address);
   };
 
+  const useManual = () => {
+    const clean = eircode.trim();
+    if (!clean) {
+      setError('Lütfen Eircode giriniz');
+      return;
+    }
+
+    setError('');
+    onAddressSelect({
+      address_line_1: 'Manual address entry',
+      locality: 'Unknown',
+      county: 'Unknown',
+      eircode: clean
+    });
+  };
+
   return (
     <div className="space-y-3 rounded-lg border p-4">
       <label className="block text-sm font-medium">Eircode</label>
@@ -38,9 +54,14 @@ export default function EircodeAddressForm({ onAddressSelect }: { onAddressSelec
         placeholder="D02 X285"
         className="w-full rounded border px-3 py-2"
       />
-      <button type="button" onClick={lookup} disabled={loading} className="rounded bg-emerald-700 px-4 py-2 text-white">
-        {loading ? 'Aranıyor...' : 'Adresi Bul'}
-      </button>
+      <div className="flex gap-2">
+        <button type="button" onClick={lookup} disabled={loading} className="rounded bg-emerald-700 px-4 py-2 text-white">
+          {loading ? 'Aranıyor...' : 'Adresi Bul'}
+        </button>
+        <button type="button" onClick={useManual} className="rounded border px-4 py-2">
+          Manuel devam et
+        </button>
+      </div>
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
     </div>
   );

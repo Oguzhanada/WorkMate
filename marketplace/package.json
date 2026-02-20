@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.97.0",
     "next": "^16.1.6",
     "next-intl": "^4.8.3",
@@ -9,7 +10,10 @@
     "zod": "^4.3.6"
   },
   "scripts": {
+    "preflight": "node scripts/preflight.mjs",
+    "health-check": "node scripts/health-check.mjs",
     "dev": "next dev",
+    "dev:checked": "npm run preflight && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

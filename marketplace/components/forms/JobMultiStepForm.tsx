@@ -29,7 +29,6 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        customer_id: customerId,
         title,
         category,
         description,
