@@ -70,6 +70,10 @@ export default function LoginPage() {
       <button className={styles.oauthButton} type="button" disabled>
         <i className="fa-brands fa-apple" /> {t('apple')}
       </button>
+      <button className={styles.oauthButton} type="button" disabled>
+        <i className="fa-brands fa-facebook" /> {t('facebook')}
+      </button>
+      <p className={styles.muted}>{t('oauthSoon')}</p>
 
       <form onSubmit={onSubmit}>
         <label className={styles.field}>
@@ -86,6 +90,10 @@ export default function LoginPage() {
             onChange={(event) => setPassword(event.target.value)}
           />
         </label>
+
+        <p>
+          <Link href={`/${locale}/sifremi-unuttum`}>{t('forgotLink')}</Link>
+        </p>
 
         <div className={styles.actions}>
           <button type="submit" className={styles.primary} disabled={isPending}>

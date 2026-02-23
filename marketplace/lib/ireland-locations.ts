@@ -1,0 +1,53 @@
+export const IRISH_COUNTIES = [
+  'Antrim',
+  'Armagh',
+  'Carlow',
+  'Cavan',
+  'Clare',
+  'Cork',
+  'Derry',
+  'Donegal',
+  'Down',
+  'Dublin',
+  'Fermanagh',
+  'Galway',
+  'Kerry',
+  'Kildare',
+  'Kilkenny',
+  'Laois',
+  'Leitrim',
+  'Limerick',
+  'Longford',
+  'Louth',
+  'Mayo',
+  'Meath',
+  'Monaghan',
+  'Offaly',
+  'Roscommon',
+  'Sligo',
+  'Tipperary',
+  'Tyrone',
+  'Waterford',
+  'Westmeath',
+  'Wexford',
+  'Wicklow',
+] as const;
+
+export const COUNTY_CITIES: Record<string, string[]> = {
+  Dublin: ['Dublin 1', 'Dublin 2', 'Dublin 4', 'Dublin 6', 'Dublin 8', 'Dublin 15', 'Swords', 'Tallaght'],
+  Cork: ['Cork City', 'Ballincollig', 'Cobh', 'Midleton', 'Mallow'],
+  Galway: ['Galway City', 'Tuam', 'Athenry', 'Oranmore'],
+  Limerick: ['Limerick City', 'Newcastle West', 'Abbeyfeale'],
+  Waterford: ['Waterford City', 'Tramore', 'Dungarvan'],
+  Kildare: ['Naas', 'Newbridge', 'Maynooth', 'Celbridge'],
+  Wicklow: ['Bray', 'Wicklow Town', 'Greystones', 'Arklow'],
+  Meath: ['Navan', 'Trim', 'Drogheda', 'Ashbourne'],
+  Kerry: ['Tralee', 'Killarney', 'Listowel'],
+  Donegal: ['Letterkenny', 'Buncrana', 'Donegal Town'],
+  Clare: ['Ennis', 'Shannon', 'Kilrush'],
+  Sligo: ['Sligo Town', 'Tubbercurry'],
+};
+
+export function getCitiesByCounty(county: string) {
+  return COUNTY_CITIES[county] ?? [];
+}

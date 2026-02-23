@@ -1,0 +1,30 @@
+export const JOB_BUDGET_OPTIONS = [
+  '€50-€100',
+  '€100-€200',
+  '€200-€500',
+  '€500-€1,000',
+  '€1,000+',
+] as const;
+
+export const JOB_TITLE_OPTIONS = [
+  'Repair needed',
+  'Installation needed',
+  'Maintenance needed',
+  'Cleaning service needed',
+  'Moving support needed',
+  'Private lesson request',
+  'Other',
+] as const;
+
+export const JOB_SCOPE_OPTIONS = [
+  'Small job (up to 2 hours)',
+  'Medium job (half day)',
+  'Large job (full day or more)',
+] as const;
+
+export const JOB_URGENCY_OPTIONS = [
+  'Today',
+  'Within 3 days',
+  'This week',
+  'Flexible',
+] as const;

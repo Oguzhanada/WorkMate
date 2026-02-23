@@ -4,6 +4,7 @@ import styles from '../inner.module.css';
 
 export default function FaqPage() {
   const t = useTranslations('faqPage');
+  const items = ['1', '2', '3', '4', '5', '6', '7', '8'] as const;
 
   return (
     <main className={styles.section}>
@@ -12,22 +13,12 @@ export default function FaqPage() {
         <p className={styles.muted}>{t('subtitle')}</p>
 
         <section className={styles.faq}>
-          <details>
-            <summary>{t('q1')}</summary>
-            <p className={styles.muted}>{t('a1')}</p>
-          </details>
-          <details>
-            <summary>{t('q2')}</summary>
-            <p className={styles.muted}>{t('a2')}</p>
-          </details>
-          <details>
-            <summary>{t('q3')}</summary>
-            <p className={styles.muted}>{t('a3')}</p>
-          </details>
-          <details>
-            <summary>{t('q4')}</summary>
-            <p className={styles.muted}>{t('a4')}</p>
-          </details>
+          {items.map((item) => (
+            <details key={item}>
+              <summary>{t(`q${item}`)}</summary>
+              <p className={styles.muted}>{t(`a${item}`)}</p>
+            </details>
+          ))}
         </section>
       </div>
     </main>

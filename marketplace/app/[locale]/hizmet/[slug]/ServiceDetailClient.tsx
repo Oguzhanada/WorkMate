@@ -1,13 +1,15 @@
 "use client";
 
+import Link from 'next/link';
 import {useMemo, useState} from 'react';
-import {useTranslations} from 'next-intl';
+import {useLocale, useTranslations} from 'next-intl';
 
 import {professionals, services} from '@/lib/marketplace-data';
 
 import styles from '../../inner.module.css';
 
 export default function ServiceDetailClient({slug}: {slug: string}) {
+  const locale = useLocale();
   const t = useTranslations('serviceDetail');
   const common = useTranslations('common');
   const home = useTranslations('home');
@@ -92,9 +94,9 @@ export default function ServiceDetailClient({slug}: {slug: string}) {
                     <p className={styles.muted}>
                       {common('from')} {pro.startingPrice}
                     </p>
-                    <button className={styles.primary} type="button">
+                    <Link className={styles.primary} href={`/${locale}/post-job?service=${encodeURIComponent(service.slug)}&pro=${encodeURIComponent(pro.id)}`}>
                       {common('requestQuote')}
-                    </button>
+                    </Link>
                   </div>
                 </article>
               ))}

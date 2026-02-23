@@ -160,9 +160,9 @@ export default function SearchPage() {
                   <p className={styles.muted}>
                     {common('from')} {pro.startingPrice}
                   </p>
-                  <button className={styles.primary} type="button">
+                  <Link className={styles.primary} href={`/${locale}/post-job?pro=${encodeURIComponent(pro.id)}`}>
                     {common('requestQuote')}
-                  </button>
+                  </Link>
                 </div>
               </article>
             ))}

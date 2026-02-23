@@ -48,6 +48,10 @@ STRIPE_WEBHOOK_SECRET=
 NEXT_PUBLIC_PLATFORM_BASE_URL=http://localhost:3000
 ```
 
+Development recommendation:
+- Use `ADDRESS_PROVIDER=none` to validate only Eircode format and collect county/city from dropdown lists.
+- Enable paid geocoding providers later in production when needed.
+
 ## Notes
 - Eircode is validated with Irish-specific regex and normalized to uppercase.
 - Verified Pros are enforced at DB trigger level before quote creation.

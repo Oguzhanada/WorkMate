@@ -16,7 +16,7 @@ const navItems = [
   {key: 'repair', href: '/hizmet/klima-servisi'},
   {key: 'tutoring', href: '/arama?q=tutoring'},
   {key: 'events', href: '/arama?q=events'},
-  {key: 'other', href: '/arama?q=home'}
+  {key: 'other', href: '/diger'}
 ] as const;
 
 export default function SiteHeader() {

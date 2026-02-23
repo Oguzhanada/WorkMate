@@ -30,7 +30,7 @@ function getClientIdentifier(request: NextRequest) {
 }
 
 function isAuthMutationPath(pathname: string) {
-  return /^\/(en|tr|pt|es)\/(giris|uye-ol)\/?$/.test(pathname);
+  return /^\/(en|tr)\/(giris|uye-ol)\/?$/.test(pathname);
 }
 
 function allowRequest(key: string) {
@@ -50,7 +50,7 @@ function allowRequest(key: string) {
   return {allowed: true, retryAfterMs: 0};
 }
 
-export default async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   if (request.method === 'POST' && isAuthMutationPath(request.nextUrl.pathname)) {
     const ip = getClientIdentifier(request);
     const key = `${ip}:${request.nextUrl.pathname}`;
@@ -104,6 +104,6 @@ export const config = {
     '/terms',
     '/cookie-policy',
     '/data-retention',
-    '/(en|tr|pt|es)/:path*'
+    '/(en|tr)/:path*'
   ]
 };

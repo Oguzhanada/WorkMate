@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getUserRole, isProRole } from '@/lib/auth/rbac';
 import { createQuoteSchema } from '@/lib/validation/api';
 
 export async function POST(request: NextRequest) {
@@ -11,6 +12,11 @@ export async function POST(request: NextRequest) {
 
   if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const role = await getUserRole(supabase, user.id);
+  if (!isProRole(role)) {
+    return NextResponse.json({ error: 'Only professionals can submit quotes' }, { status: 403 });
   }
 
   let rawBody: unknown;

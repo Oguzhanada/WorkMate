@@ -20,8 +20,9 @@ export default function SiteFooter() {
           <div>
             <h4>{t('siteMap')}</h4>
             <Link href={localized('/about')}>{t('about')}</Link>
-            <Link href={localized('/#how-it-works')}>{t('how')}</Link>
-            <Link href={localized('/arama?q=careers')}>{t('careers')}</Link>
+            <Link href={localized('/nasil-calisir')}>{t('how')}</Link>
+            {/* Careers link is temporarily hidden until the page is ready. */}
+            {/* <Link href={localized('/arama?q=careers')}>{t('careers')}</Link> */}
             <Link href={localized('/iletisim')}>{t('contact')}</Link>
             <Link href={localized('/sss')}>{t('faq')}</Link>
             <Link href={localized('/profil')}>{header('profile')}</Link>

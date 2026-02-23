@@ -1,8 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getUserRole, isProRole } from '@/lib/auth/rbac';
+import { createAccountLinkSchema } from '@/lib/validation/api';
 import { stripe } from '@/lib/stripe';
 
 export async function POST(request: NextRequest) {
-  const { stripe_account_id } = await request.json();
+  const supabase = await getSupabaseRouteClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const role = await getUserRole(supabase, user.id);
+  if (!isProRole(role)) {
+    return NextResponse.json({ error: 'Only professionals can use this endpoint' }, { status: 403 });
+  }
+
+  let rawBody: unknown;
+  try {
+    rawBody = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
+
+  const parsed = createAccountLinkSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: 'Validation failed', details: parsed.error.flatten() },
+      { status: 400 }
+    );
+  }
+
+  const { stripe_account_id } = parsed.data;
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('stripe_account_id')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (!profile?.stripe_account_id || profile.stripe_account_id !== stripe_account_id) {
+    return NextResponse.json({ error: 'Stripe account mismatch' }, { status: 403 });
+  }
 
   const accountLink = await stripe.accountLinks.create({
     account: stripe_account_id,

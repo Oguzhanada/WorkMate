@@ -34,6 +34,7 @@ function fail(label, detail = '') {
 }
 
 let hasFailure = false;
+let hasUserRolesTable = true;
 
 // 1) Auth users reachable
 const { data: usersData, error: usersError } = await client.auth.admin.listUsers({ page: 1, perPage: 200 });
@@ -48,12 +49,15 @@ const users = usersData?.users ?? [];
 const userIds = users.map((u) => u.id);
 
 // 2) Core tables reachable
-const coreTables = ['profiles', 'jobs', 'quotes', 'reviews', 'pro_documents'];
+const coreTables = ['profiles', 'user_roles', 'categories', 'addresses', 'jobs', 'quotes', 'reviews', 'pro_documents', 'notifications', 'verification_checks', 'pro_services', 'pro_service_areas', 'job_intents'];
 for (const table of coreTables) {
-  const { error } = await client.from(table).select('*', { head: true, count: 'exact' }).limit(1);
+  const { error } = await client.from(table).select('*').limit(1);
   if (error) {
     hasFailure = true;
     fail(`table:${table}`, `${error.code ?? ''} ${error.message}`.trim());
+    if (table === 'user_roles') {
+      hasUserRolesTable = false;
+    }
   } else {
     ok(`table:${table}`);
   }
@@ -81,6 +85,32 @@ if (userIds.length > 0) {
   }
 } else {
   ok('profiles consistency', 'no users yet');
+}
+
+// 3.1) profiles -> user_roles consistency
+if (hasUserRolesTable && userIds.length > 0) {
+  const { data: roles, error: rolesError } = await client
+    .from('user_roles')
+    .select('user_id')
+    .in('user_id', userIds);
+
+  if (rolesError) {
+    hasFailure = true;
+    fail('user_roles consistency', rolesError.message);
+  } else {
+    const roleSet = new Set((roles ?? []).map((r) => r.user_id));
+    const missingRoles = userIds.filter((id) => !roleSet.has(id));
+    if (missingRoles.length) {
+      hasFailure = true;
+      fail('user_roles consistency', `missing_for_users=${missingRoles.length}`);
+    } else {
+      ok('user_roles consistency', 'all users have role rows');
+    }
+  }
+} else if (hasUserRolesTable) {
+  ok('user_roles consistency', 'no users yet');
+} else {
+  fail('user_roles consistency', 'user_roles table not found');
 }
 
 // 4) Storage buckets
