@@ -1,4 +1,4 @@
-# WorkMate Marketplace (Next.js + Supabase + Stripe Connect)
+# WorkMate  (Next.js + Supabase + Stripe Connect)
 
 ## Suggested Next.js folder structure
 
