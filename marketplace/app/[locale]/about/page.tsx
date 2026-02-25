@@ -22,7 +22,7 @@ export async function generateMetadata({
     title: seo('aboutTitle'),
     description: seo('aboutDescription'),
     alternates: {
-      canonical: `${baseUrl}/${locale}/about`
+      canonical: `${baseUrl}/about`
     }
   };
 }

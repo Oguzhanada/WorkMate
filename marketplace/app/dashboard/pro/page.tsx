@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import ProDashboard from '@/components/dashboard/ProDashboard';
-import { getUserRole, isProRole } from '@/lib/auth/rbac';
+import { canAccessProDashboard, getUserRoles } from '@/lib/auth/rbac';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import styles from '../../[locale]/inner.module.css';
 
@@ -9,21 +9,21 @@ export default async function ProDashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/en/giris');
+    redirect('/login');
   }
 
-  const role = await getUserRole(supabase, user.id);
-  if (!isProRole(role)) {
-    redirect('/en/profil');
+  const roles = await getUserRoles(supabase, user.id);
+  if (!canAccessProDashboard(roles)) {
+    redirect('/profile');
   }
 
   return (
     <main className={styles.section}>
       <section className={styles.container}>
         <div className={styles.card}>
-          <h1>Pro Paneli</h1>
+          <h1>Pro Dashboard</h1>
           <p className={styles.muted}>
-          Acik isleri takip et, teklif ver ve bildirimlerini buradan yonet.
+          Track open jobs, submit quotes, and manage notifications from one place.
           </p>
         </div>
       </section>
@@ -33,3 +33,4 @@ export default async function ProDashboardPage() {
     </main>
   );
 }
+

@@ -31,6 +31,9 @@
 }
 
 .logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   text-decoration: none;
 }
 
@@ -45,26 +48,170 @@
   font-weight: 800;
   font-size: 1.1rem;
   letter-spacing: 0.04em;
+  background-size: 160% 160%;
+  animation: logoGlow 6s ease-in-out infinite;
 }
 
-.nav {
+.logoText {
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.primaryCtaGroup {
   display: flex;
   justify-content: center;
-  gap: 18px;
+  gap: 12px;
 }
 
-.nav a {
+.ctaBig {
+  background: #169b62;
   color: #fff;
+  border: 1px solid #169b62;
   text-decoration: none;
-  font-weight: 500;
-  font-size: 0.94rem;
-  opacity: 0.9;
+  font-weight: 700;
+  padding: 11px 20px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  box-shadow: 0 8px 24px rgba(22, 155, 98, 0.24);
+  transition: transform 220ms ease, box-shadow 220ms ease, background-color 220ms ease, border-color 220ms ease;
+}
+
+.ctaBig:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(22, 155, 98, 0.3);
+}
+
+.ctaBigSecondary {
+  background: transparent;
+  border-color: #ffffff;
+  color: #ffffff;
+  box-shadow: none;
 }
 
 .headerActions {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.notificationWrap {
+  position: relative;
+}
+
+.notificationButton {
+  position: relative;
+  border: 1px solid #40685c;
+  background: #22473c;
+  color: #fff;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.notificationButton:hover {
+  transform: translateY(-1px);
+  border-color: #5c8578;
+  box-shadow: 0 8px 16px rgba(8, 20, 16, 0.28);
+}
+
+.notificationBadge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ff883e;
+  color: #fff;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  display: grid;
+  place-items: center;
+  padding: 0 4px;
+  font-weight: 700;
+}
+
+.notificationPanel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: min(360px, 90vw);
+  background: #fff;
+  border: 1px solid #e2e9e5;
+  border-radius: 12px;
+  box-shadow: 0 14px 30px rgba(16, 37, 31, 0.16);
+  overflow: hidden;
+  z-index: 150;
+}
+
+.notificationHeader {
+  padding: 10px 12px;
+  border-bottom: 1px solid #edf1ef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.notificationMarkRead {
+  border: 0;
+  background: transparent;
+  color: #169b62;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.notificationList {
+  max-height: 320px;
+  overflow: auto;
+}
+
+.notificationItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #f2f4f7;
+}
+
+.notificationItem a {
+  display: grid;
+  gap: 4px;
+  text-decoration: none;
+  color: #1f2b45;
+  flex: 1;
+}
+
+.notificationItem small {
+  color: #6a7288;
+}
+
+.notificationDelete {
+  border: 1px solid #d7dee9;
+  background: #fff;
+  color: #35405c;
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.notificationInboxLink {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  color: #169b62;
+  font-weight: 600;
+  padding: 10px 12px;
+}
+
+.notificationEmpty {
+  margin: 0;
+  padding: 14px 12px;
+  color: #6a7288;
 }
 
 .primaryButton {
@@ -76,6 +223,12 @@
   padding: 10px 16px;
   border: 1px solid #169b62;
   display: inline-flex;
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+.primaryButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(22, 155, 98, 0.28);
 }
 
 .linkButton {
@@ -89,18 +242,6 @@
   border: 0;
   cursor: pointer;
   font: inherit;
-}
-
-.mobileMenuButton {
-  display: none;
-  background: transparent;
-  border: 0;
-  color: #fff;
-  font-size: 1.25rem;
-}
-
-.navOpen {
-  display: flex;
 }
 
 .switcher {
@@ -132,10 +273,50 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  transition: transform 220ms ease;
+}
+
+.trustItem:hover {
+  transform: translateY(-2px);
 }
 
 .trustItem i {
   color: #169b62;
+}
+
+.kpiStrip {
+  padding: 16px 0 0;
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.kpiCard {
+  border: 1px solid #dbe5df;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: grid;
+  gap: 3px;
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+.kpiCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 22px rgba(16, 37, 31, 0.12);
+}
+
+.kpiCard strong {
+  font-size: 1.15rem;
+  color: #111321;
+}
+
+.kpiCard span {
+  color: #4f5771;
+  font-size: 0.85rem;
 }
 
 .pageSection {
@@ -156,6 +337,12 @@
   background: #fff;
   border-radius: 14px;
   box-shadow: 0 10px 30px rgba(16, 37, 31, 0.08);
+  transition: transform 240ms ease, box-shadow 240ms ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 30px rgba(16, 37, 31, 0.14);
 }
 
 .pageHero {
@@ -212,6 +399,40 @@
   border-radius: 8px;
   display: grid;
   place-items: center;
+  transition: transform 220ms ease, border-color 220ms ease;
+}
+
+.socials a:hover {
+  transform: translateY(-2px);
+  border-color: #40695f;
+}
+
+@keyframes logoGlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logoPill {
+    animation: none;
+  }
+
+  .ctaBig,
+  .notificationButton,
+  .primaryButton,
+  .trustItem,
+  .kpiCard,
+  .card,
+  .socials a {
+    transition: none;
+  }
 }
 
 .footerBottom {
@@ -299,46 +520,42 @@
 
 @media (max-width: 980px) {
   .headerBar {
-    grid-template-columns: auto auto auto;
-  }
-
-  .mobileMenuButton {
-    display: inline-flex;
-  }
-
-  .nav {
-    position: absolute;
-    top: 76px;
-    left: 0;
-    right: 0;
-    background: #1d4338;
-    border-bottom: 1px solid #2f5f51;
-    display: none;
-    flex-direction: column;
-    padding: 12px 16px;
+    grid-template-columns: 1fr;
+    justify-items: center;
     gap: 12px;
+    padding: 12px 0;
   }
 
   .headerActions {
-    justify-self: end;
+    justify-self: center;
   }
 
-  .desktopAction {
-    display: none;
+  .primaryCtaGroup {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
   }
 }
 
 @media (max-width: 760px) {
+  .kpiGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .footerGrid {
     grid-template-columns: 1fr;
   }
 
   .headerActions {
     gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
-  .linkButton {
-    display: none;
+  .ctaBig {
+    width: 100%;
+    max-width: 260px;
+    text-align: center;
   }
 
   .consentInner {

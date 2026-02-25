@@ -14,6 +14,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // Some OAuth signups may miss a profile row if setup triggers were not applied.
+  // Ensure profile exists before writing address row with FK(profile_id -> profiles.id).
+  const { error: ensureProfileError } = await supabase
+    .from('profiles')
+    .upsert(
+      {
+        id: user.id,
+        full_name:
+          (user.user_metadata?.full_name as string | undefined) ??
+          (user.email ? user.email.split('@')[0] : null),
+      },
+      { onConflict: 'id' }
+    );
+
+  if (ensureProfileError) {
+    return NextResponse.json({ error: ensureProfileError.message }, { status: 400 });
+  }
+
   let rawBody: unknown;
   try {
     rawBody = await request.json();

@@ -1,17 +1,16 @@
 "use client";
 
 import Link from 'next/link';
-import {useLocale, useTranslations} from 'next-intl';
+import {useTranslations} from 'next-intl';
 
 import styles from './site.module.css';
 
 export default function SiteFooter() {
-  const locale = useLocale();
   const t = useTranslations('footer');
   const home = useTranslations('home');
   const header = useTranslations('header');
 
-  const localized = (path: string) => `/${locale}${path}`;
+  const localized = (path: string) => path;
 
   return (
     <footer className={styles.footer}>
@@ -20,19 +19,21 @@ export default function SiteFooter() {
           <div>
             <h4>{t('siteMap')}</h4>
             <Link href={localized('/about')}>{t('about')}</Link>
-            <Link href={localized('/nasil-calisir')}>{t('how')}</Link>
+            <Link href={localized('/how-it-works')}>{t('how')}</Link>
+            <Link href={localized('/jobs')}>Jobs</Link>
+            <Link href={localized('/providers')}>Providers</Link>
             {/* Careers link is temporarily hidden until the page is ready. */}
-            {/* <Link href={localized('/arama?q=careers')}>{t('careers')}</Link> */}
-            <Link href={localized('/iletisim')}>{t('contact')}</Link>
-            <Link href={localized('/sss')}>{t('faq')}</Link>
-            <Link href={localized('/profil')}>{header('profile')}</Link>
+            {/* <Link href={localized('/search?q=careers')}>{t('careers')}</Link> */}
+            <Link href={localized('/contact')}>{t('contact')}</Link>
+            <Link href={localized('/faq')}>{t('faq')}</Link>
+            <Link href={localized('/profile')}>{header('profile')}</Link>
           </div>
           <div>
             <h4>{t('topSearches')}</h4>
-            <Link href={localized('/hizmet/ev-temizligi')}>{home('trend.homeCleaning')}</Link>
-            <Link href={localized('/hizmet/boya-badana')}>{home('trend.painting')}</Link>
-            <Link href={localized('/hizmet/nakliyat')}>{home('trend.moving')}</Link>
-            <Link href={localized('/hizmet/klima-servisi')}>{home('trend.acRepair')}</Link>
+            <Link href={localized('/service/home-cleaning')}>{home('trend.homeCleaning')}</Link>
+            <Link href={localized('/service/painting-decorating')}>{home('trend.painting')}</Link>
+            <Link href={localized('/service/moving-services')}>{home('trend.moving')}</Link>
+            <Link href={localized('/service/ac-service')}>{home('trend.acRepair')}</Link>
           </div>
           <div>
             <h4>{t('social')}</h4>
@@ -54,16 +55,6 @@ export default function SiteFooter() {
         </div>
 
         <div className={styles.footerBottom}>
-          <label>
-            {t('country')}:
-            <select defaultValue="TR">
-              <option value="TR">Turkiye</option>
-              <option value="IE">Ireland</option>
-              <option value="BR">Brasil</option>
-              <option value="ES">Espana</option>
-            </select>
-          </label>
-
           <p>{t('copyright')}</p>
 
           <div className={styles.footerLegal}>
@@ -77,3 +68,4 @@ export default function SiteFooter() {
     </footer>
   );
 }
+

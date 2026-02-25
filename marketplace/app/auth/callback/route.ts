@@ -3,7 +3,7 @@ import {NextRequest, NextResponse} from 'next/server';
 import {getSupabaseRouteClient} from '@/lib/supabase/route';
 
 function sanitizeNext(path: string | null) {
-  if (!path || !path.startsWith('/')) return '/en';
+  if (!path || !path.startsWith('/')) return '/';
   return path;
 }
 

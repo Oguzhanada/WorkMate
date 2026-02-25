@@ -18,6 +18,66 @@
   border-radius: 14px;
   box-shadow: 0 10px 28px rgba(16, 37, 31, 0.08);
   padding: 22px;
+  transition: transform 240ms ease, box-shadow 240ms ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 34px rgba(16, 37, 31, 0.14);
+}
+
+.profileTopRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 8px;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  background: #dfe6ec;
+  overflow: hidden;
+  margin: 8px 0;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(120deg, #169b62 0%, #2ba36f 100%);
+  transition: width 220ms ease;
+}
+
+.checkGrid {
+  display: grid;
+  gap: 8px;
+}
+
+.chartWrap {
+  margin-top: 14px;
+  border: 1px solid #dfe5ed;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  align-items: end;
+  min-height: 160px;
+}
+
+.chartBarCol {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+.chartBar {
+  width: 28px;
+  border-radius: 8px 8px 4px 4px;
+  background: linear-gradient(180deg, #169b62 0%, #0f6c47 100%);
 }
 
 .muted {
@@ -44,6 +104,12 @@
   border-radius: 14px;
   box-shadow: 0 10px 28px rgba(16, 37, 31, 0.08);
   overflow: hidden;
+  transition: transform 240ms ease, box-shadow 240ms ease;
+}
+
+.teamCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 34px rgba(16, 37, 31, 0.14);
 }
 
 .teamCard img {
@@ -63,6 +129,7 @@
   border-radius: 16px;
   box-shadow: 0 14px 30px rgba(16, 37, 31, 0.1);
   padding: 26px;
+  animation: formReveal 520ms ease both;
 }
 
 .formTitle {
@@ -88,6 +155,15 @@
   border-radius: 10px;
   font: inherit;
   padding: 11px 12px;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: #169b62;
+  box-shadow: 0 0 0 3px rgba(22, 155, 98, 0.14);
+  outline: none;
 }
 
 .actions {
@@ -105,6 +181,12 @@
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
+  transition: transform 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
+}
+
+.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(22, 155, 98, 0.28);
 }
 
 .secondary {
@@ -115,6 +197,13 @@
   border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.secondary:hover {
+  transform: translateY(-2px);
+  border-color: #b9c0cc;
+  box-shadow: 0 8px 18px rgba(16, 37, 31, 0.12);
 }
 
 .oauthButton {
@@ -125,6 +214,13 @@
   padding: 11px;
   font-weight: 600;
   margin-bottom: 10px;
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.oauthButton:hover {
+  transform: translateY(-2px);
+  border-color: #b9c0cc;
+  box-shadow: 0 10px 20px rgba(16, 37, 31, 0.12);
 }
 
 .tabRow {
@@ -142,6 +238,7 @@
   padding: 11px;
   font-weight: 600;
   cursor: pointer;
+  transition: background-color 220ms ease, color 220ms ease;
 }
 
 .activeTab {
@@ -231,6 +328,12 @@
   display: grid;
   grid-template-columns: 90px 1fr;
   gap: 12px;
+  transition: transform 240ms ease, box-shadow 240ms ease;
+}
+
+.proCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 34px rgba(16, 37, 31, 0.14);
 }
 
 .proCard img {
@@ -264,6 +367,23 @@
   border-radius: 14px;
   box-shadow: 0 10px 28px rgba(16, 37, 31, 0.08);
   overflow: hidden;
+  transition: transform 240ms ease, box-shadow 240ms ease;
+}
+
+.resultCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 34px rgba(16, 37, 31, 0.14);
+}
+
+@keyframes formReveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .resultCard img {
@@ -336,6 +456,11 @@
   .filterRow {
     grid-template-columns: 1fr;
   }
+
+  .profileTopRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 @media (max-width: 680px) {
@@ -353,5 +478,25 @@
   .proCard img {
     width: 100%;
     height: 180px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .formWrap {
+    animation: none;
+  }
+
+  .card,
+  .teamCard,
+  .field input,
+  .field select,
+  .field textarea,
+  .primary,
+  .secondary,
+  .oauthButton,
+  .tabButton,
+  .proCard,
+  .resultCard {
+    transition: none;
   }
 }

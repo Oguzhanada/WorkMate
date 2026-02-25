@@ -24,12 +24,12 @@ using (is_active = true);
 
 insert into public.categories (slug, name, parent_id, sort_order)
 values
-  ('temizlik', 'Temizlik', null, 10),
-  ('tadilat', 'Tadilat', null, 20),
-  ('nakliyat', 'Nakliyat', null, 30),
-  ('tamir', 'Tamir', null, 40),
-  ('ozel-ders', 'Ozel Ders', null, 50),
-  ('organizasyon', 'Organizasyon', null, 60)
+  ('cleaning', 'Cleaning', null, 10),
+  ('renovation', 'Renovation', null, 20),
+  ('moving', 'Moving', null, 30),
+  ('repairs', 'Repairs', null, 40),
+  ('private-lessons', 'Private Lessons', null, 50),
+  ('events', 'Events', null, 60)
 on conflict (slug) do nothing;
 
 -- Subcategories
@@ -37,18 +37,18 @@ insert into public.categories (slug, name, parent_id, sort_order)
 select v.slug, v.name, p.id, v.sort_order
 from (
   values
-    ('ev-temizligi', 'Ev Temizligi', 'temizlik', 101),
-    ('ofis-temizligi', 'Ofis Temizligi', 'temizlik', 102),
-    ('boya-badana', 'Boya Badana', 'tadilat', 201),
-    ('fayans-doseme', 'Fayans Doseme', 'tadilat', 202),
-    ('sehir-ici-nakliyat', 'Sehir Ici Nakliyat', 'nakliyat', 301),
-    ('sehirler-arasi-nakliyat', 'Sehirler Arasi Nakliyat', 'nakliyat', 302),
-    ('tesisat-tamiri', 'Tesisat Tamiri', 'tamir', 401),
-    ('elektrik-tamiri', 'Elektrik Tamiri', 'tamir', 402),
-    ('matematik-ozel-ders', 'Matematik Ozel Ders', 'ozel-ders', 501),
-    ('ingilizce-ozel-ders', 'Ingilizce Ozel Ders', 'ozel-ders', 502),
-    ('dugun-organizasyonu', 'Dugun Organizasyonu', 'organizasyon', 601),
-    ('dogum-gunu-organizasyonu', 'Dogum Gunu Organizasyonu', 'organizasyon', 602)
+    ('home-cleaning', 'Home Cleaning', 'cleaning', 101),
+    ('office-cleaning', 'Office Cleaning', 'cleaning', 102),
+    ('painting-decorating', 'Painting & Decorating', 'renovation', 201),
+    ('tiling', 'Tiling', 'renovation', 202),
+    ('local-moving', 'Local Moving', 'moving', 301),
+    ('intercity-moving', 'Intercity Moving', 'moving', 302),
+    ('plumbing-repair', 'Plumbing Repair', 'repairs', 401),
+    ('electrical-repair', 'Electrical Repair', 'repairs', 402),
+    ('math-tutoring', 'Math Tutoring', 'private-lessons', 501),
+    ('english-tutoring', 'English Tutoring', 'private-lessons', 502),
+    ('wedding-planning', 'Wedding Planning', 'events', 601),
+    ('birthday-planning', 'Birthday Planning', 'events', 602)
 ) as v(slug, name, parent_slug, sort_order)
 join public.categories p on p.slug = v.parent_slug
 on conflict (slug) do nothing;

@@ -1,3 +1,10 @@
+import { Suspense } from 'react';
+import CheckoutSuccessClient from '@/components/payments/CheckoutSuccessClient';
+
 export default function CheckoutSuccessPage() {
-  return <main className="p-6">Ödeme yetkilendirildi (secure hold). İş tamamlanınca tahsil edilecek.</main>;
+  return (
+    <Suspense fallback={<main className="p-6">Verifying secure hold...</main>}>
+      <CheckoutSuccessClient />
+    </Suspense>
+  );
 }

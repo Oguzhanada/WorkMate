@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
   const body = parsed.data;
   const eircode = normalizeEircode(body.eircode);
   if (!isValidEircode(eircode)) {
-    return NextResponse.json({ error: 'Geçerli bir Eircode giriniz.' }, { status: 400 });
+    return NextResponse.json({ error: 'Please enter a valid Eircode.' }, { status: 400 });
   }
 
   const supabase = getSupabaseServiceClient();

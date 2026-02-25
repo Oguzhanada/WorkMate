@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
-import { getUserRole } from '@/lib/auth/rbac';
+import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 
 export async function ensureAdminRoute() {
   const supabase = await getSupabaseRouteClient();
@@ -13,8 +13,8 @@ export async function ensureAdminRoute() {
     return { supabase, user: null, error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
   }
 
-  const role = await getUserRole(supabase, user.id);
-  if (role !== 'admin') {
+  const roles = await getUserRoles(supabase, user.id);
+  if (!canAccessAdmin(roles)) {
     return { supabase, user: null, error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) };
   }
 

@@ -1,0 +1,56 @@
+.wrap {
+  display: grid;
+  gap: 6px;
+}
+
+.label {
+  color: #1f2b45;
+  font-weight: 600;
+}
+
+.trigger {
+  width: 100%;
+  border: 1px solid #d2d6dd;
+  border-radius: 10px;
+  background: #fff;
+  color: #1f2b45;
+  font: inherit;
+  padding: 11px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.placeholder {
+  color: #6c748c;
+}
+
+.value {
+  color: #1f2b45;
+}
+
+.panel {
+  border: 1px solid #dce1e8;
+  border-radius: 10px;
+  background: #fff;
+  max-height: 260px;
+  overflow: auto;
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px;
+  padding: 7px 8px;
+}
+
+.item:hover {
+  background: #f6f8fb;
+}

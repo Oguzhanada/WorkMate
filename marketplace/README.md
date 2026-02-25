@@ -56,4 +56,4 @@ Development recommendation:
 - Eircode is validated with Irish-specific regex and normalized to uppercase.
 - Verified Pros are enforced at DB trigger level before quote creation.
 - Stripe flow uses `capture_method=manual` for secure hold and captures on completion.
-- Commission is calculated at 15% automatically in payment endpoint.
+- Commission is configurable via `PLATFORM_COMMISSION_RATE` (default `0` for launch/test mode).

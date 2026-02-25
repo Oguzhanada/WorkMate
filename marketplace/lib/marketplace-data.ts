@@ -22,7 +22,7 @@ export type ProfessionalItem = {
 
 export const services: ServiceItem[] = [
   {
-    slug: 'ev-temizligi',
+    slug: 'home-cleaning',
     name: 'Home Cleaning',
     category: 'Cleaning',
     city: 'Dublin',
@@ -31,7 +31,7 @@ export const services: ServiceItem[] = [
     heroImage: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1400&q=80'
   },
   {
-    slug: 'boya-badana',
+    slug: 'painting-decorating',
     name: 'Painting',
     category: 'Renovation',
     city: 'Cork',
@@ -40,7 +40,7 @@ export const services: ServiceItem[] = [
     heroImage: 'https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?auto=format&fit=crop&w=1400&q=80'
   },
   {
-    slug: 'nakliyat',
+    slug: 'moving-services',
     name: 'Intercity Moving',
     category: 'Moving',
     city: 'Galway',
@@ -49,7 +49,7 @@ export const services: ServiceItem[] = [
     heroImage: 'https://images.unsplash.com/photo-1600518464441-9306b7c4f605?auto=format&fit=crop&w=1400&q=80'
   },
   {
-    slug: 'klima-servisi',
+    slug: 'ac-service',
     name: 'AC Service',
     category: 'Repair',
     city: 'Istanbul',
@@ -64,7 +64,7 @@ export const professionals: ProfessionalItem[] = [
     id: 'pro-1',
     name: 'Ahmet Yilmaz',
     city: 'Istanbul',
-    services: ['ev-temizligi', 'nakliyat'],
+    services: ['home-cleaning', 'moving-services'],
     rating: 4.9,
     reviews: 412,
     startingPrice: 'EUR95',
@@ -75,7 +75,7 @@ export const professionals: ProfessionalItem[] = [
     id: 'pro-2',
     name: 'Maria Silva',
     city: 'Sao Paulo',
-    services: ['ev-temizligi', 'boya-badana'],
+    services: ['home-cleaning', 'painting-decorating'],
     rating: 4.8,
     reviews: 287,
     startingPrice: 'EUR88',
@@ -86,7 +86,7 @@ export const professionals: ProfessionalItem[] = [
     id: 'pro-3',
     name: 'Juan Lopez',
     city: 'Madrid',
-    services: ['boya-badana'],
+    services: ['painting-decorating'],
     rating: 4.9,
     reviews: 354,
     startingPrice: 'EUR270',
@@ -97,7 +97,7 @@ export const professionals: ProfessionalItem[] = [
     id: 'pro-4',
     name: 'Eoin Murphy',
     city: 'Dublin',
-    services: ['ev-temizligi', 'klima-servisi'],
+    services: ['home-cleaning', 'ac-service'],
     rating: 4.8,
     reviews: 219,
     startingPrice: 'EUR105',
@@ -108,7 +108,7 @@ export const professionals: ProfessionalItem[] = [
     id: 'pro-5',
     name: 'Seda Demir',
     city: 'Istanbul',
-    services: ['ev-temizligi'],
+    services: ['home-cleaning'],
     rating: 4.9,
     reviews: 498,
     startingPrice: 'EUR90',
@@ -119,7 +119,7 @@ export const professionals: ProfessionalItem[] = [
     id: 'pro-6',
     name: 'Lucas Rocha',
     city: 'Sao Paulo',
-    services: ['nakliyat'],
+    services: ['moving-services'],
     rating: 4.8,
     reviews: 175,
     startingPrice: 'EUR320',
@@ -130,7 +130,7 @@ export const professionals: ProfessionalItem[] = [
     id: 'pro-7',
     name: 'Nora O\'Brien',
     city: 'Galway',
-    services: ['klima-servisi', 'boya-badana'],
+    services: ['ac-service', 'painting-decorating'],
     rating: 4.8,
     reviews: 202,
     startingPrice: 'EUR75',
@@ -141,7 +141,7 @@ export const professionals: ProfessionalItem[] = [
     id: 'pro-8',
     name: 'Carlos Mendez',
     city: 'Madrid',
-    services: ['nakliyat', 'ev-temizligi'],
+    services: ['moving-services', 'home-cleaning'],
     rating: 4.9,
     reviews: 261,
     startingPrice: 'EUR110',
@@ -182,3 +182,4 @@ export const teamMembers = [
     image: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=500&q=80'
   }
 ];
+

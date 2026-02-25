@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
-import { getUserRole, isProRole } from '@/lib/auth/rbac';
+import { canQuote, getUserRoles } from '@/lib/auth/rbac';
 import { createAccountLinkSchema } from '@/lib/validation/api';
 import { stripe } from '@/lib/stripe';
 
@@ -15,8 +15,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const role = await getUserRole(supabase, user.id);
-  if (!isProRole(role)) {
+  const roles = await getUserRoles(supabase, user.id);
+  if (!canQuote(roles)) {
     return NextResponse.json({ error: 'Only professionals can use this endpoint' }, { status: 403 });
   }
 

@@ -1,6 +1,22 @@
 'use client';
 
-export default function SecureHoldButton({ amountCents, connectedAccountId, quoteId, jobId, customerId, proId }: any) {
+type SecureHoldButtonProps = {
+  amountCents: number;
+  connectedAccountId: string;
+  quoteId: string;
+  jobId: string;
+  customerId: string;
+  proId: string;
+};
+
+export default function SecureHoldButton({
+  amountCents,
+  connectedAccountId,
+  quoteId,
+  jobId,
+  customerId,
+  proId,
+}: SecureHoldButtonProps) {
   const createSecureHold = async () => {
     const res = await fetch('/api/connect/create-secure-hold', {
       method: 'POST',
@@ -10,16 +26,21 @@ export default function SecureHoldButton({ amountCents, connectedAccountId, quot
 
     const data = await res.json();
     if (!res.ok) {
-      alert(data.error || 'Ödeme başlatılamadı');
+      alert(data.error || 'Payment could not be started');
       return;
     }
 
-    window.location.href = `/checkout/success?pi=${data.payment_intent_id}`;
+    if (data.checkout_url) {
+      window.location.href = data.checkout_url;
+      return;
+    }
+
+    alert('Checkout redirect URL was not returned.');
   };
 
   return (
     <button onClick={createSecureHold} className="rounded bg-slate-900 px-4 py-2 text-white">
-      Secure Hold ile Öde
+      Pay with Secure Hold
     </button>
   );
 }

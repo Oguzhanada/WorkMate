@@ -34,8 +34,7 @@ export async function generateMetadata({
     description: seo.defaultDescription,
     alternates: {
       languages: {
-        en: '/en',
-        tr: '/tr'
+        en: '/'
       }
     }
   };

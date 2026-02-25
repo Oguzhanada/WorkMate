@@ -49,7 +49,7 @@ const users = usersData?.users ?? [];
 const userIds = users.map((u) => u.id);
 
 // 2) Core tables reachable
-const coreTables = ['profiles', 'user_roles', 'categories', 'addresses', 'jobs', 'quotes', 'reviews', 'pro_documents', 'notifications', 'verification_checks', 'pro_services', 'pro_service_areas', 'job_intents'];
+const coreTables = ['profiles', 'user_roles', 'categories', 'addresses', 'jobs', 'quotes', 'reviews', 'pro_documents', 'notifications', 'verification_checks', 'pro_services', 'pro_service_areas', 'job_intents', 'job_messages', 'pro_portfolio', 'pro_lead_actions'];
 for (const table of coreTables) {
   const { error } = await client.from(table).select('*').limit(1);
   if (error) {

@@ -32,7 +32,7 @@ export default function DeleteAccountPanel() {
 
     setFeedback(t('deleteSuccess'));
     setTimeout(() => {
-      router.push(`/${locale}/giris`);
+      router.push(`/login`);
       router.refresh();
     }, 800);
   };
@@ -54,3 +54,4 @@ export default function DeleteAccountPanel() {
     </section>
   );
 }
+

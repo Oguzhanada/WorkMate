@@ -4,6 +4,9 @@ import {getTranslations} from 'next-intl/server';
 
 import {isValidLocale} from '@/lib/i18n';
 import {services} from '@/lib/marketplace-data';
+import QuoteKpiStrip from '@/components/site/QuoteKpiStrip';
+import WelcomeBanner from '@/components/site/WelcomeBanner';
+import VerifiedNavigationLink from '@/components/site/VerifiedNavigationLink';
 
 import styles from './home.module.css';
 
@@ -36,7 +39,7 @@ export async function generateMetadata({
     title: seo('homeTitle'),
     description: seo('homeDescription'),
     alternates: {
-      canonical: `${baseUrl}/${locale}`
+      canonical: `${baseUrl}`
     }
   };
 }
@@ -60,13 +63,19 @@ export default async function LocaleHomePage({
           <div className={styles.heroCard}>
             <h1>{t('heroTitle')}</h1>
             <p>{t('heroSubtitle')}</p>
-            <form className={styles.searchBar} action={`/${locale}/arama`}>
-              <input name="q" type="text" placeholder={common('searchPlaceholder')} />
-              <button type="submit">{t('searchButton')}</button>
-            </form>
+            <div className={styles.heroCtas}>
+              <VerifiedNavigationLink href="/jobs" className={styles.heroCtaSecondary}>
+                {t('heroGetService')}
+              </VerifiedNavigationLink>
+              <Link href="/become-provider" className={styles.heroCtaPrimary}>
+                {t('heroBecomeProvider')}
+              </Link>
+            </div>
           </div>
         </div>
       </section>
+      <WelcomeBanner />
+      <QuoteKpiStrip />
 
       <section className={styles.section}>
         <div className={styles.container}>
@@ -79,11 +88,11 @@ export default async function LocaleHomePage({
                   <h3>
                     {t(
                       `trend.${
-                        service.slug === 'ev-temizligi'
+                        service.slug === 'home-cleaning'
                           ? 'homeCleaning'
-                          : service.slug === 'boya-badana'
+                          : service.slug === 'painting-decorating'
                             ? 'painting'
-                            : service.slug === 'nakliyat'
+                            : service.slug === 'moving-services'
                               ? 'moving'
                               : 'acRepair'
                       }`
@@ -91,7 +100,7 @@ export default async function LocaleHomePage({
                   </h3>
                   <p>{service.city}</p>
                   <p>{service.priceRange}</p>
-                  <Link href={`/${locale}/hizmet/${service.slug}`}>{common('requestQuote')}</Link>
+                  <Link href={`/service/${service.slug}`}>{common('requestQuote')}</Link>
                 </div>
               </article>
             ))}
@@ -143,7 +152,7 @@ export default async function LocaleHomePage({
             <div className={styles.providerContent}>
               <h2>{t('proBannerTitle')}</h2>
               <p>{t('proBannerDesc')}</p>
-              <Link href={`/${locale}/hizmet-ver`} className={styles.providerButton}>
+              <Link href={`/become-provider`} className={styles.providerButton}>
                 {t('proBannerCta')}
               </Link>
             </div>
@@ -153,3 +162,4 @@ export default async function LocaleHomePage({
     </main>
   );
 }
+

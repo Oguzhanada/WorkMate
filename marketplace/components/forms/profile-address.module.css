@@ -1,0 +1,83 @@
+.card {
+  background: #fff;
+  border: 1px solid #e5e9ef;
+  border-radius: 16px;
+  box-shadow: 0 12px 24px rgba(35, 47, 74, 0.08);
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.title {
+  margin: 0;
+}
+
+.feedback {
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 0;
+}
+
+.ok {
+  background: #e8fff5;
+  color: #008f6f;
+  border: 1px solid #bfeedd;
+}
+
+.error {
+  background: #fff1f1;
+  color: #cc4f4f;
+  border: 1px solid #ffd6d6;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.span2 {
+  grid-column: 1 / -1;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field span {
+  color: #636e72;
+}
+
+.input {
+  border: 1px solid #d6dce8;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+}
+
+.input:focus {
+  border-color: #00b894;
+  box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.14);
+  outline: none;
+}
+
+.actions {
+  display: flex;
+}
+
+.save {
+  border: 1px solid #00b894;
+  background: #00b894;
+  color: #fff;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 760px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

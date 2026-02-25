@@ -7,7 +7,7 @@ import {defaultLocale, locales} from './i18n/config';
 const intlMiddleware = createMiddleware({
   locales,
   defaultLocale,
-  localePrefix: 'always'
+  localePrefix: 'never'
 });
 
 type Bucket = {
@@ -30,7 +30,7 @@ function getClientIdentifier(request: NextRequest) {
 }
 
 function isAuthMutationPath(pathname: string) {
-  return /^\/(en|tr)\/(giris|uye-ol)\/?$/.test(pathname);
+  return /^\/(login|sign-up)\/?$/.test(pathname);
 }
 
 function allowRequest(key: string) {
@@ -51,6 +51,11 @@ function allowRequest(key: string) {
 }
 
 export async function proxy(request: NextRequest) {
+  // OAuth callback route must bypass locale rewrites and reach its route handler directly.
+  if (request.nextUrl.pathname === '/auth/callback') {
+    return NextResponse.next();
+  }
+
   if (request.method === 'POST' && isAuthMutationPath(request.nextUrl.pathname)) {
     const ip = getClientIdentifier(request);
     const key = `${ip}:${request.nextUrl.pathname}`;
@@ -91,19 +96,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/',
-    '/about',
-    '/giris',
-    '/uye-ol',
-    '/hizmet-ver',
-    '/hizmet/:path*',
-    '/arama',
-    '/iletisim',
-    '/sss',
-    '/privacy-policy',
-    '/terms',
-    '/cookie-policy',
-    '/data-retention',
-    '/(en|tr)/:path*'
+    '/((?!api|_next|.*\\..*).*)'
   ]
 };

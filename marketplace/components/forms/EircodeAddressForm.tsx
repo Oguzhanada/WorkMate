@@ -12,7 +12,7 @@ type Address = {
   eircode: string;
 };
 
-export default function EircodeAddressForm({ onAddressSelect }: { onAddressSelect: (address: Address) => void }) {
+export default function EircodeAddressForm({ onAddressSelect }: { onAddressSelect: (address: Address | null) => void }) {
   const [eircode, setEircode] = useState('');
   const [county, setCounty] = useState('');
   const [city, setCity] = useState('');
@@ -24,9 +24,14 @@ export default function EircodeAddressForm({ onAddressSelect }: { onAddressSelec
 
   const cityOptions = useMemo(() => getCitiesByCounty(county), [county]);
 
+  const invalidateSelection = () => {
+    setSuccess('');
+    onAddressSelect(null);
+  };
+
   const validateAndUse = async () => {
     if (!eircode.trim() || !county || !city || !addressLine1.trim()) {
-      setError('Eircode, ilce, sehir ve adres satiri 1 zorunlu.');
+      setError('Eircode, county, city, and address line 1 are required.');
       setSuccess('');
       return;
     }
@@ -40,13 +45,13 @@ export default function EircodeAddressForm({ onAddressSelect }: { onAddressSelec
     setLoading(false);
 
     if (!res.ok) {
-      setError(data.error || 'Eircode formati gecersiz');
+      setError(data.error || 'Invalid Eircode format');
       return;
     }
 
     const normalized = data?.address?.eircode ?? eircode.trim().toUpperCase();
     setEircode(normalized);
-    setSuccess('Eircode formati dogrulandi.');
+    setSuccess('Eircode format validated.');
 
     onAddressSelect({
       address_line_1: addressLine1.trim(),
@@ -64,23 +69,27 @@ export default function EircodeAddressForm({ onAddressSelect }: { onAddressSelec
       <input
         className={styles.input}
         value={eircode}
-        onChange={(e) => setEircode(e.target.value.toUpperCase())}
+        onChange={(e) => {
+          setEircode(e.target.value.toUpperCase());
+          invalidateSelection();
+        }}
         placeholder="D02 X285"
       />
       </label>
 
       <div className={styles.grid2}>
         <div className={styles.field}>
-          <span>Ilce (County)</span>
+          <span>County</span>
           <select
             className={styles.select}
             value={county}
             onChange={(e) => {
               setCounty(e.target.value);
               setCity('');
+              invalidateSelection();
             }}
           >
-            <option value="">Ilce sec</option>
+            <option value="">Select county</option>
             {IRISH_COUNTIES.map((item) => (
               <option key={item} value={item}>
                 {item}
@@ -89,14 +98,17 @@ export default function EircodeAddressForm({ onAddressSelect }: { onAddressSelec
           </select>
         </div>
         <div className={styles.field}>
-          <span>Sehir</span>
+          <span>City</span>
           <select
             className={styles.select}
             value={city}
-            onChange={(e) => setCity(e.target.value)}
+            onChange={(e) => {
+              setCity(e.target.value);
+              invalidateSelection();
+            }}
             disabled={!county}
           >
-            <option value="">Sehir sec</option>
+            <option value="">Select city</option>
             {cityOptions.map((item) => (
               <option key={item} value={item}>
                 {item}
@@ -107,18 +119,32 @@ export default function EircodeAddressForm({ onAddressSelect }: { onAddressSelec
       </div>
 
       <label className={styles.field}>
-        <span>Adres satiri 1</span>
-        <input value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} className={styles.input} />
+        <span>Address line 1</span>
+        <input
+          value={addressLine1}
+          onChange={(e) => {
+            setAddressLine1(e.target.value);
+            invalidateSelection();
+          }}
+          className={styles.input}
+        />
       </label>
 
       <label className={styles.field}>
-        <span>Adres satiri 2 (opsiyonel)</span>
-        <input value={addressLine2} onChange={(e) => setAddressLine2(e.target.value)} className={styles.input} />
+        <span>Address line 2 (optional)</span>
+        <input
+          value={addressLine2}
+          onChange={(e) => {
+            setAddressLine2(e.target.value);
+            invalidateSelection();
+          }}
+          className={styles.input}
+        />
       </label>
 
       <div className={styles.buttonRow}>
         <button type="button" onClick={validateAndUse} disabled={loading} className={styles.primary}>
-          {loading ? 'Dogrulaniyor...' : 'Eircode Dogrula ve Adresi Kullan'}
+          {loading ? 'Validating...' : 'Validate Eircode and Use Address'}
         </button>
       </div>
 

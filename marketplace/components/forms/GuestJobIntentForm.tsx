@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
 import { JOB_BUDGET_OPTIONS, JOB_SCOPE_OPTIONS, JOB_TITLE_OPTIONS, JOB_URGENCY_OPTIONS } from '@/lib/constants/job';
 import EircodeAddressForm from './EircodeAddressForm';
+import InfoTooltip from '@/components/ui/InfoTooltip';
 import styles from './forms.module.css';
 
 type Address = {
@@ -42,7 +43,7 @@ export default function GuestJobIntentForm() {
       const response = await fetch('/api/categories', { cache: 'no-store' });
       const payload = await response.json();
       if (!response.ok) {
-        setError(payload.error || 'Kategoriler alinamadi.');
+        setError(payload.error || 'Categories could not be loaded.');
         return;
       }
       const all = (payload.categories ?? []) as Category[];
@@ -52,7 +53,7 @@ export default function GuestJobIntentForm() {
       if (selectable.length > 0) {
         setCategoryId(selectable[0].id);
       } else {
-        setError('Aktif kategori bulunamadi. Lutfen admin panelinden kategori ekleyin.');
+        setError('No active categories found. Please add categories in the admin panel.');
       }
     }
     loadCategories();
@@ -60,7 +61,7 @@ export default function GuestJobIntentForm() {
 
   const nextFromStep1 = () => {
     if (!categoryId || !titleOption || (titleOption === 'Other' && !customTitle.trim())) {
-      setError('Kategori ve is tipi secimi zorunlu.');
+      setError('Category and job type are required.');
       return;
     }
     setError('');
@@ -69,7 +70,7 @@ export default function GuestJobIntentForm() {
 
   const nextFromStep2 = () => {
     if (!scope || !urgency || !address?.eircode || !address?.county || !address?.locality) {
-      setError('Kapsam, aciliyet ve adres alanlarini tamamla.');
+      setError('Please complete scope, urgency, and address fields.');
       return;
     }
     setError('');
@@ -87,7 +88,7 @@ export default function GuestJobIntentForm() {
       .join(' | ');
 
     if (!email.trim() || !title || !description || !address?.eircode || !address?.county || !address?.locality || !categoryId) {
-      setError('Lutfen tum zorunlu alanlari doldur.');
+      setError('Please fill all required fields.');
       return;
     }
 
@@ -115,28 +116,28 @@ export default function GuestJobIntentForm() {
     setIsPending(false);
 
     if (!response.ok) {
-      setError(payload.error || 'Taslak olusturulamadi.');
+      setError(payload.error || 'Draft could not be created.');
       return;
     }
 
     setIntentId(payload.intent_id);
-    setSuccess('Talebin kaydedildi. Test modunda email onayi atlandi; hesabinla devam ederek ilani yayinlayabilirsin.');
+    setSuccess('Your request was saved. In test mode, email verification is bypassed; continue with your account to publish the listing.');
   };
 
   return (
     <div className={styles.card}>
-      <p className={styles.step}>Misafir Talep Akisi - Adim {step}/3</p>
+      <p className={styles.step}>Guest Request Flow - Step {step}/3</p>
       {error ? <p className={`${styles.feedback} ${styles.error}`}>{error}</p> : null}
       {success ? <p className={`${styles.feedback} ${styles.ok}`}>{success}</p> : null}
       <p className={styles.muted}>
-        PROD notu: Gercek ortamda ilan yayinlamadan once email dogrulama zorunlu olacak.
+        PROD note: Email verification will be required before publishing listings in production.
       </p>
 
       {step === 1 ? (
         <div className={styles.field}>
-          <h2 className={styles.title}>1) Hizmeti sec</h2>
+          <h2 className={styles.title}>1) Select Service</h2>
           <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)} className={styles.select}>
-            <option value="">Kategori sec</option>
+            <option value="">Select category</option>
             {categories.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.name}
@@ -145,7 +146,7 @@ export default function GuestJobIntentForm() {
           </select>
 
           <select value={titleOption} onChange={(event) => setTitleOption(event.target.value as (typeof JOB_TITLE_OPTIONS)[number])} className={styles.select}>
-            <option value="">Is tipi sec</option>
+            <option value="">Select job type</option>
             {JOB_TITLE_OPTIONS.map((item) => (
               <option key={item} value={item}>
                 {item}
@@ -153,12 +154,12 @@ export default function GuestJobIntentForm() {
             ))}
           </select>
           {titleOption === 'Other' ? (
-            <input className={styles.input} value={customTitle} onChange={(event) => setCustomTitle(event.target.value)} placeholder="Is tipini yaz" />
+            <input className={styles.input} value={customTitle} onChange={(event) => setCustomTitle(event.target.value)} placeholder="Type job title" />
           ) : null}
 
           <div className={styles.buttonRow}>
             <button type="button" className={styles.primary} onClick={nextFromStep1}>
-              Devam
+              Continue
             </button>
           </div>
         </div>
@@ -166,9 +167,9 @@ export default function GuestJobIntentForm() {
 
       {step === 2 ? (
         <div className={styles.field}>
-          <h2 className={styles.title}>2) Detaylar</h2>
+          <h2 className={styles.title}>2) Details</h2>
           <select value={scope} onChange={(event) => setScope(event.target.value as (typeof JOB_SCOPE_OPTIONS)[number])} className={styles.select}>
-            <option value="">Is kapsami sec</option>
+            <option value="">Select scope</option>
             {JOB_SCOPE_OPTIONS.map((item) => (
               <option key={item} value={item}>
                 {item}
@@ -176,14 +177,20 @@ export default function GuestJobIntentForm() {
             ))}
           </select>
           <select value={urgency} onChange={(event) => setUrgency(event.target.value as (typeof JOB_URGENCY_OPTIONS)[number])} className={styles.select}>
-            <option value="">Aciliyet sec</option>
+            <option value="">Select urgency</option>
             {JOB_URGENCY_OPTIONS.map((item) => (
               <option key={item} value={item}>
                 {item}
               </option>
             ))}
           </select>
-          <textarea className={styles.textarea} value={details} onChange={(event) => setDetails(event.target.value)} placeholder="Ek detay (opsiyonel)" />
+          <textarea className={styles.textarea} value={details} onChange={(event) => setDetails(event.target.value)} placeholder="Additional details (optional)" />
+          <div className={styles.field}>
+            <span>
+              Budget{' '}
+              <InfoTooltip text="Set your estimated range. Providers can still send their own offers." />
+            </span>
+          </div>
           <select value={budgetRange} onChange={(event) => setBudgetRange(event.target.value as (typeof JOB_BUDGET_OPTIONS)[number])} className={styles.select}>
             {JOB_BUDGET_OPTIONS.map((item) => (
               <option key={item} value={item}>
@@ -194,10 +201,10 @@ export default function GuestJobIntentForm() {
           <EircodeAddressForm onAddressSelect={setAddress} />
           <div className={styles.buttonRow}>
             <button type="button" className={styles.secondary} onClick={() => setStep(1)}>
-              Geri
+              Back
             </button>
             <button type="button" className={styles.primary} onClick={nextFromStep2}>
-              Devam
+              Continue
             </button>
           </div>
         </div>
@@ -205,7 +212,7 @@ export default function GuestJobIntentForm() {
 
       {step === 3 ? (
         <div className={styles.field}>
-          <h2 className={styles.title}>3) Email onayi</h2>
+          <h2 className={styles.title}>3) Email Confirmation</h2>
           <label className={styles.field}>
             <span>Email</span>
             <input
@@ -213,24 +220,24 @@ export default function GuestJobIntentForm() {
               className={styles.input}
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="ornek@email.com"
+              placeholder="example@email.com"
             />
           </label>
           <div className={styles.buttonRow}>
             <button type="button" className={styles.secondary} onClick={() => setStep(2)}>
-              Geri
+              Back
             </button>
             <button type="button" className={styles.primary} onClick={onSubmit} disabled={isPending}>
-              {isPending ? 'Kaydediliyor...' : 'Talebi Kaydet'}
+              {isPending ? 'Saving...' : 'Save Request'}
             </button>
           </div>
           {intentId ? (
             <div className={styles.buttonRow}>
-              <Link className={styles.primary} href={`/${locale}/uye-ol?intent=${intentId}&email=${encodeURIComponent(email.trim().toLowerCase())}`}>
-                Hesap olustur ve ilani yayinla
+              <Link className={styles.primary} href={`/sign-up?intent=${intentId}&email=${encodeURIComponent(email.trim().toLowerCase())}`}>
+                Create account and publish listing
               </Link>
-              <Link className={styles.secondary} href={`/${locale}/giris`}>
-                Giris yapip devam et
+              <Link className={styles.secondary} href={`/login`}>
+                Sign in and continue
               </Link>
             </div>
           ) : null}
@@ -239,3 +246,4 @@ export default function GuestJobIntentForm() {
     </div>
   );
 }
+
