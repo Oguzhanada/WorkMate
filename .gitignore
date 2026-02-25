@@ -5,5 +5,7 @@ __pycache__/
 venv/
 inactive_users.csv
 marketplace/.env.local
+marketplace/.env.*
+!marketplace/.env.example
 marketplace/node_modules/
 marketplace/.next/

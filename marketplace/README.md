@@ -1,4 +1,4 @@
-# Irish Service Marketplace (Next.js + Supabase + Stripe Connect)
+# WorkMate Marketplace (Next.js + Supabase + Stripe Connect)
 
 ## Suggested Next.js folder structure
 
@@ -36,17 +36,21 @@ marketplace/
 ## Environment variables
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_PUBLIC_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVICE_ROLE_KEY
 ADDRESS_PROVIDER=ideal_postcodes # or loqate
-IDEAL_POSTCODES_API_KEY=
-LOQATE_API_KEY=
-STRIPE_SECRET_KEY=
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
-STRIPE_WEBHOOK_SECRET=
+IDEAL_POSTCODES_API_KEY=YOUR_IDEAL_POSTCODES_KEY
+LOQATE_API_KEY=YOUR_LOQATE_KEY
+STRIPE_SECRET_KEY=sk_test_REPLACE_ME
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_REPLACE_ME
+STRIPE_WEBHOOK_SECRET=whsec_REPLACE_ME
 NEXT_PUBLIC_PLATFORM_BASE_URL=http://localhost:3000
 ```
+
+Security note:
+- Never commit `.env.local`, service keys, bearer tokens, or private webhook secrets.
+- If any secret is ever shared in chat/screenshots, rotate it immediately.
 
 Development recommendation:
 - Use `ADDRESS_PROVIDER=none` to validate only Eircode format and collect county/city from dropdown lists.
