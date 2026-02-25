@@ -1,0 +1,178 @@
+.page {
+  background: #f8f9fa;
+  min-height: 100vh;
+  padding: 26px 0 44px;
+  font-family: "Inter", "SF Pro Display", "Segoe UI", sans-serif;
+  color: #2d3436;
+}
+
+.container {
+  width: min(1160px, calc(100% - 32px));
+  margin: 0 auto;
+  display: grid;
+  gap: 16px;
+}
+
+.identityBanner {
+  border: 1px solid #f1cf85;
+  background: #fff8df;
+  color: #7c5c12;
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 0 8px 18px rgba(124, 92, 18, 0.08);
+}
+
+.identityBanner strong {
+  display: block;
+  margin: 0 0 4px;
+}
+
+.identityBanner p {
+  margin: 0;
+}
+
+.hero {
+  background: #fff;
+  border: 1px solid #e5e9ef;
+  border-radius: 18px;
+  box-shadow: 0 12px 28px rgba(30, 45, 84, 0.08);
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  animation: fadeLift 360ms ease both;
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.heroSub {
+  margin: 6px 0 0;
+  color: #636e72;
+}
+
+.heroIdentity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 1px solid #d9e1ea;
+}
+
+.avatarFallback {
+  width: 68px;
+  height: 68px;
+  border-radius: 999px;
+  border: 1px solid #d9e1ea;
+  display: grid;
+  place-items: center;
+  background: #eef2f7;
+  font-weight: 700;
+}
+
+.badge {
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  width: fit-content;
+}
+
+.verified {
+  background: #e5faf4;
+  color: #009b77;
+  border: 1px solid #b7eddc;
+}
+
+.notVerified {
+  background: #fff1f1;
+  color: #ff7675;
+  border: 1px solid #ffd3d3;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 16px;
+}
+
+.col {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.card {
+  animation: fadeLift 430ms ease both;
+}
+
+.summary {
+  background: #fff;
+  border: 1px solid #e5e9ef;
+  border-radius: 14px;
+  box-shadow: 0 10px 24px rgba(30, 45, 84, 0.06);
+  padding: 16px;
+}
+
+.summary h3 {
+  margin: 0 0 8px;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.summaryItem {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px;
+  background: #fafcff;
+}
+
+.summaryItem p {
+  margin: 0;
+}
+
+.summaryItem strong {
+  font-size: 1.2rem;
+}
+
+@keyframes fadeLift {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 980px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+}

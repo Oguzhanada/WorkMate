@@ -1,0 +1,190 @@
+.panel {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e5e9ef;
+  box-shadow: 0 12px 24px rgba(35, 47, 74, 0.08);
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.basicWrap {
+  display: grid;
+  gap: 12px;
+}
+
+.hint {
+  margin: 0;
+  color: #59607a;
+}
+
+.ok {
+  margin: 0;
+  color: #157f48;
+  font-weight: 600;
+}
+
+.missing {
+  margin: 0;
+  color: #8c1f1f;
+  font-weight: 600;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field input {
+  border: 1px solid #d2d6dd;
+  border-radius: 10px;
+  font: inherit;
+  padding: 10px 12px;
+}
+
+.field input.inputError {
+  border-color: #d34c4c;
+  box-shadow: 0 0 0 2px rgba(211, 76, 76, 0.12);
+}
+
+.inlineError {
+  color: #9a2e2e;
+  font-size: 0.86rem;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.statusBadge {
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.statusOk {
+  background: #e7fbf6;
+  color: #009b7b;
+  border: 1px solid #bcefe3;
+}
+
+.statusBad {
+  background: #fff1f1;
+  color: #ff7675;
+  border: 1px solid #ffd0d0;
+}
+
+.primary {
+  border: 1px solid #169b62;
+  background: #169b62;
+  color: #fff;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondary {
+  border: 1px solid #cfd5df;
+  background: #fff;
+  color: #1c3d34;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.error {
+  margin: 0;
+  background: #fff2f2;
+  color: #8c1f1f;
+  border: 1px solid #f5cccc;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.toast {
+  margin: 0;
+  background: #e8f8ec;
+  color: #166a2a;
+  border: 1px solid #b8e9c4;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.fileRow {
+  display: grid;
+  gap: 8px;
+}
+
+.uploadBox {
+  border: 1px dashed #c9d3e4;
+  border-radius: 12px;
+  background: #fafcff;
+  padding: 10px;
+}
+
+.uploadInner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.uploadIcon {
+  font-size: 1.15rem;
+}
+
+.fileInput {
+  border: 1px solid #d1d8e6;
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: #fff;
+}
+
+.dragArea {
+  border: 1px dashed #b5c3da;
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #57617a;
+  background: #f8fbff;
+}
+
+.dragAreaActive {
+  border-color: #00b894;
+  background: #ebfbf7;
+  color: #0a6e59;
+}
+
+.checkRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #4f576d;
+}
+
+.checkRow a {
+  color: #2463eb;
+}
+
+@media (max-width: 760px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { claimGuestJobIntentSchema } from '@/lib/validation/api';
-import { getUserRole } from '@/lib/auth/rbac';
+import { canPostJobWithIdentity, getUserRoles } from '@/lib/auth/rbac';
 
 export async function POST(request: NextRequest) {
   const routeClient = await getSupabaseRouteClient();
@@ -15,8 +15,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const role = await getUserRole(routeClient, user.id);
-  if (role !== 'customer' && role !== 'admin') {
+  const roles = await getUserRoles(routeClient, user.id);
+  const { data: profile } = await routeClient
+    .from('profiles')
+    .select('id,id_verification_status')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (!canPostJobWithIdentity(roles, profile?.id_verification_status)) {
     return NextResponse.json({ error: 'Only customers can claim guest jobs' }, { status: 403 });
   }
 

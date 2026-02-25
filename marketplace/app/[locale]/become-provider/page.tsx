@@ -1,0 +1,583 @@
+"use client";
+
+import {FormEvent, useEffect, useMemo, useState} from 'react';
+import {useRouter} from 'next/navigation';
+import {useTranslations} from 'next-intl';
+
+import {getSupabaseBrowserClient} from '@/lib/supabase/client';
+import {IRISH_COUNTIES} from '@/lib/ireland-locations';
+import {isValidIrishPhone, sanitizePhoneInput} from '@/lib/validation/phone';
+import {hasAtLeastTwoNameParts, isValidEnglishFullName} from '@/lib/validation/name';
+import MultiSelectDropdown from '@/components/forms/MultiSelectDropdown';
+import styles from '../inner.module.css';
+
+type Step = 1 | 2 | 3 | 4;
+
+const IRISH_CITIES = ['Dublin', 'Cork', 'Galway', 'Limerick', 'Waterford', 'Kilkenny', 'Sligo', 'Athlone', 'Wexford', 'Drogheda', 'Other'];
+const EXPERIENCE_OPTIONS = ['0-1 years', '1-2 years', '3-5 years', '5-10 years', '10+ years'];
+const AVAILABILITY_OPTIONS = ['Weekdays 08:00-12:00', 'Weekdays 12:00-18:00', 'Weekdays 18:00-22:00', 'Weekend mornings', 'Weekend afternoons', 'Weekend evenings', 'Other'];
+const RADIUS_OPTIONS = ['Up to 10 km', 'Up to 20 km', 'Up to 30 km', 'Up to 50 km', 'Ireland-wide'];
+const COUNTY_OPTIONS = [...IRISH_COUNTIES, 'Ireland-wide'];
+
+type Category = {
+  id: string;
+  name: string;
+  parent_id: string | null;
+};
+
+export default function BecomeProviderPage() {
+  const router = useRouter();
+  const t = useTranslations('becomeProvider');
+
+  const [step, setStep] = useState<Step>(1);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [isPending, setIsPending] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const [email, setEmail] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+
+  const [primaryCity, setPrimaryCity] = useState('');
+  const [otherPrimaryCity, setOtherPrimaryCity] = useState('');
+
+  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
+  const [otherService, setOtherService] = useState('');
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [experienceRange, setExperienceRange] = useState('');
+  const [optionalLink, setOptionalLink] = useState('');
+  const [availabilitySelections, setAvailabilitySelections] = useState<string[]>([]);
+  const [otherAvailability, setOtherAvailability] = useState('');
+
+  const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
+  const [radius, setRadius] = useState('');
+
+  const [idDocument, setIdDocument] = useState<File | null>(null);
+  const [insuranceDocument, setInsuranceDocument] = useState<File | null>(null);
+  const [hasVerifiedIdentity, setHasVerifiedIdentity] = useState(false);
+  const [hasExistingIdDocument, setHasExistingIdDocument] = useState(false);
+  const [hasExistingInsuranceDocument, setHasExistingInsuranceDocument] = useState(false);
+
+  useEffect(() => {
+    const run = async () => {
+      const supabase = getSupabaseBrowserClient();
+      const {
+        data: {user}
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setError(t('needLogin'));
+        router.replace(`/login`);
+        return;
+      }
+
+      setEmail(user.email ?? '');
+
+      const {data} = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      if (data) {
+        setFullName(data.full_name ?? '');
+        setPhone(data.phone ?? '');
+        setHasVerifiedIdentity(data.is_verified === true && data.verification_status === 'verified');
+      }
+
+      const { data: existingDocs } = await supabase
+        .from('pro_documents')
+        .select('document_type,verification_status')
+        .eq('profile_id', user.id);
+
+      setHasExistingIdDocument(
+        (existingDocs ?? []).some(
+          (doc) =>
+            doc.document_type === 'id_verification' &&
+            (doc.verification_status === 'pending' || doc.verification_status === 'verified')
+        )
+      );
+      setHasExistingInsuranceDocument(
+        (existingDocs ?? []).some(
+          (doc) =>
+            doc.document_type === 'public_liability_insurance' &&
+            (doc.verification_status === 'pending' || doc.verification_status === 'verified')
+        )
+      );
+
+      const categoryResponse = await fetch('/api/categories', {cache: 'no-store'});
+      const categoryPayload = await categoryResponse.json();
+      if (categoryResponse.ok) {
+        const all = (categoryPayload.categories ?? []) as Category[];
+        setCategories(all.filter((item) => item.parent_id !== null));
+      }
+    };
+
+    run();
+  }, [router]);
+
+  const selectedServicesList = useMemo(() => {
+    const selectedNames = categories
+      .filter((item) => selectedServiceIds.includes(item.id))
+      .map((item) => item.name);
+
+    return selectedNames;
+  }, [categories, selectedServiceIds]);
+
+  const selectedAreasList = useMemo(() => selectedAreas, [selectedAreas]);
+  const serviceOptions = useMemo(
+    () => categories.map((service) => ({value: service.id, label: service.name})),
+    [categories]
+  );
+  const availabilityOptions = useMemo(
+    () => AVAILABILITY_OPTIONS.map((item) => ({value: item, label: item})),
+    []
+  );
+  const countyOptions = useMemo(
+    () => COUNTY_OPTIONS.map((item) => ({value: item, label: item})),
+    []
+  );
+
+  const resolvedPrimaryCity = primaryCity === 'Other' ? otherPrimaryCity.trim() : primaryCity;
+  const resolvedAvailability = useMemo(() => {
+    const filtered = availabilitySelections.filter((item) => item !== 'Other');
+    if (availabilitySelections.includes('Other') && otherAvailability.trim()) {
+      filtered.push(otherAvailability.trim());
+    }
+    return filtered;
+  }, [availabilitySelections, otherAvailability]);
+
+  const toggleSelection = (current: string[], value: string, setter: (next: string[]) => void) => {
+    if (current.includes(value)) {
+      setter(current.filter((item) => item !== value));
+      return;
+    }
+    setter([...current, value]);
+  };
+
+  const ensureAllowedDocFile = (file: File | null, label: 'ID' | 'insurance') => {
+    if (!file) return '';
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
+    if (!['pdf', 'png', 'jpg', 'jpeg'].includes(ext)) {
+      return `${label} document must be PDF, PNG, JPG or JPEG.`;
+    }
+    return '';
+  };
+
+  const getStepValidationError = (targetStep: Step) => {
+    if (targetStep === 1) {
+      if (!fullName.trim()) {
+        return 'Please enter your full name.';
+      }
+      if (!isValidEnglishFullName(fullName)) {
+        return 'Full name must contain English letters only.';
+      }
+      if (!hasAtLeastTwoNameParts(fullName)) {
+        return 'Enter at least first name and last name.';
+      }
+      if (!isValidIrishPhone(phone)) {
+        return 'Enter a valid Irish phone number (e.g. +353871234567 or 0871234567).';
+      }
+      if (!resolvedPrimaryCity) {
+        return t('errors.cityRequired');
+      }
+    }
+
+    if (targetStep === 2) {
+      if (selectedServiceIds.length === 0) {
+        return t('errors.serviceRequired');
+      }
+      if (!experienceRange) {
+        return t('errors.experienceRequired');
+      }
+      if (!availabilitySelections.length) {
+        return t('errors.availabilityRequired');
+      }
+      if (availabilitySelections.includes('Other') && !otherAvailability.trim()) {
+        return t('errors.otherAvailabilityRequired');
+      }
+    }
+
+    if (targetStep === 3) {
+      if (!selectedAreas.length) {
+        return t('errors.areaRequired');
+      }
+      if (!radius) {
+        return t('errors.radiusRequired');
+      }
+    }
+
+    if (targetStep === 4) {
+      if (!hasVerifiedIdentity && !idDocument && !hasExistingIdDocument) {
+        return t('missingDoc');
+      }
+      if (!insuranceDocument && !hasExistingInsuranceDocument) {
+        return t('missingInsuranceDoc');
+      }
+      const idTypeError = ensureAllowedDocFile(idDocument, 'ID');
+      if (idTypeError) return idTypeError;
+      const insuranceTypeError = ensureAllowedDocFile(insuranceDocument, 'insurance');
+      if (insuranceTypeError) return insuranceTypeError;
+    }
+
+    return '';
+  };
+
+  const validateStep = (targetStep: Step) => {
+    const validationError = getStepValidationError(targetStep);
+    if (validationError) {
+      setError(validationError);
+      return false;
+    }
+    setError('');
+    return true;
+  };
+
+  const next = () => {
+    if (!validateStep(step)) return;
+    setStep((prev) => (prev < 4 ? ((prev + 1) as Step) : prev));
+  };
+  const back = () => {
+    setError('');
+    setStep((prev) => (prev > 1 ? ((prev - 1) as Step) : prev));
+  };
+
+  const uploadDocument = async (
+    userId: string,
+    file: File,
+    type: 'id_verification' | 'public_liability_insurance'
+  ) => {
+    const supabase = getSupabaseBrowserClient();
+    const path =
+      type === 'id_verification'
+        ? `id-verifications/${userId}/${Date.now()}-${file.name}`
+        : `pro-documents/${userId}/${Date.now()}-${file.name}`;
+
+    const {error: uploadError} = await supabase.storage.from('pro-documents').upload(path, file, {
+      upsert: false
+    });
+
+    if (uploadError) throw uploadError;
+
+    const {error: docError} = await supabase.from('pro_documents').insert({
+      profile_id: userId,
+      document_type: type,
+      storage_path: path,
+      verification_status: 'pending'
+    });
+
+    if (docError) throw docError;
+    return path;
+  };
+
+  const onSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    setError('');
+    setMessage('');
+
+    if (!validateStep(1) || !validateStep(2) || !validateStep(3) || !validateStep(4)) return;
+
+    const supabase = getSupabaseBrowserClient();
+    const {
+      data: {user}
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setError(t('needLogin'));
+      router.replace(`/login`);
+      return;
+    }
+
+    try {
+      setIsPending(true);
+      let uploadedIdPath: string | null = null;
+
+      if (idDocument) {
+        uploadedIdPath = await uploadDocument(user.id, idDocument, 'id_verification');
+      }
+
+      if (insuranceDocument) {
+        await uploadDocument(user.id, insuranceDocument, 'public_liability_insurance');
+      }
+
+      const {error: profileError} = await supabase
+        .from('profiles')
+        .update({
+          full_name: fullName.trim(),
+          phone: sanitizePhoneInput(phone),
+          verification_status: hasVerifiedIdentity ? 'verified' : 'pending',
+          id_verification_status: hasVerifiedIdentity ? 'approved' : 'pending',
+          id_verification_document_url: uploadedIdPath,
+          id_verification_submitted_at: idDocument ? new Date().toISOString() : null,
+          id_verification_rejected_reason: null,
+          is_verified: hasVerifiedIdentity,
+          stripe_requirements_due: {
+            application_status: 'submitted',
+            submitted_at: new Date().toISOString(),
+            personal_info: {
+              full_name: fullName.trim() || null,
+              email,
+              phone: sanitizePhoneInput(phone),
+              primary_city: resolvedPrimaryCity
+            },
+            services_and_skills: {
+              services: selectedServicesList,
+              experience_range: experienceRange,
+              optional_link: optionalLink.trim() || null,
+              availability: resolvedAvailability
+            },
+            areas_served: {
+              counties: selectedAreasList,
+              radius
+            },
+            documents_uploaded: {
+              id_document_uploaded: hasVerifiedIdentity || !!idDocument || hasExistingIdDocument,
+              insurance_document_uploaded: !!insuranceDocument || hasExistingInsuranceDocument
+            },
+            reminder: 'PRODUCTION: ID document must be mandatory before activation.'
+          }
+        })
+        .eq('id', user.id);
+
+      if (profileError) throw profileError;
+
+      const {error: deleteServicesError} = await supabase.from('pro_services').delete().eq('profile_id', user.id);
+      if (deleteServicesError) throw deleteServicesError;
+
+      if (selectedServiceIds.length > 0) {
+        const serviceRows = selectedServiceIds.map((categoryId) => ({
+          profile_id: user.id,
+          category_id: categoryId
+        }));
+        const {error: insertServicesError} = await supabase.from('pro_services').insert(serviceRows);
+        if (insertServicesError) throw insertServicesError;
+      }
+
+      const {error: deleteAreasError} = await supabase.from('pro_service_areas').delete().eq('profile_id', user.id);
+      if (deleteAreasError) throw deleteAreasError;
+
+      if (selectedAreasList.length > 0) {
+        const areaRows = selectedAreasList.map((county) => ({
+          profile_id: user.id,
+          county
+        }));
+        const {error: insertAreasError} = await supabase.from('pro_service_areas').insert(areaRows);
+        if (insertAreasError) throw insertAreasError;
+      }
+
+      setIsSubmitted(true);
+      setMessage(t('submitSuccess'));
+      setStep(1);
+    } catch (err) {
+      const details = err instanceof Error ? err.message : '';
+      setError(details ? `${t('submitError')} (${details})` : t('submitError'));
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  const currentStepError = getStepValidationError(step);
+
+  return (
+    <main>
+      <section className={styles.section}>
+        <div className={styles.container}>
+          <div className={styles.banner}>
+            <h1>{t('title')}</h1>
+            <p>{t('subtitle')}</p>
+            <h3>{t('benefits.title')}</h3>
+            <ul className={styles.benefitList}>
+              <li>
+                <i className="fa-solid fa-check" /> {t('benefits.setPrices')}
+              </li>
+              <li>
+                <i className="fa-solid fa-check" /> {t('benefits.chooseJobs')}
+              </li>
+              <li>
+                <i className="fa-solid fa-check" /> {t('benefits.securePaid')}
+              </li>
+              <li>
+                <i className="fa-solid fa-check" /> {t('benefits.reviews')}
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.formWrap}>
+        {message ? <div className={styles.toast}>{message}</div> : null}
+        {error ? <div className={styles.error}>{error}</div> : null}
+
+        {isSubmitted ? (
+          <div className={styles.field}>
+            <h2>{t('applicationFlowTitle')}</h2>
+            <p className={styles.muted}>{t('applicationFlow1')}</p>
+            <p className={styles.muted}>{t('applicationFlow2')}</p>
+            <p className={styles.muted}>{t('applicationFlow3')}</p>
+            <p className={styles.muted}>{t('prodReminder')}</p>
+            <div className={styles.actions}>
+              <button type="button" className={styles.primary} onClick={() => router.push(`/profile`)}>
+                {t('goProfile')}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <h2>{t(`steps.${step === 1 ? 'one' : step === 2 ? 'two' : step === 3 ? 'three' : 'four'}`)}</h2>
+
+            <form onSubmit={onSubmit}>
+              {step === 1 ? (
+                <div className={styles.formRow}>
+                  <label className={styles.field}>
+                    <span>{t('form.fullName')}</span>
+                    <input value={fullName} onChange={(event) => setFullName(event.target.value)} />
+                  </label>
+                  <label className={styles.field}>
+                    <span>{t('form.email')}</span>
+                    <input value={email} readOnly />
+                  </label>
+                  <label className={styles.field}>
+                    <span>{t('form.phone')}</span>
+                    <input
+                      value={phone}
+                      onChange={(event) => setPhone(sanitizePhoneInput(event.target.value))}
+                      inputMode="tel"
+                      placeholder="+353871234567"
+                    />
+                  </label>
+                  <label className={styles.field}>
+                    <span>{t('form.primaryCity')}</span>
+                    <select value={primaryCity} onChange={(event) => setPrimaryCity(event.target.value)}>
+                      <option value="">{t('form.selectCity')}</option>
+                      {IRISH_CITIES.map((city) => (
+                        <option key={city} value={city}>
+                          {city}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {primaryCity === 'Other' ? (
+                    <label className={styles.field}>
+                      <span>{t('form.otherCity')}</span>
+                      <input value={otherPrimaryCity} onChange={(event) => setOtherPrimaryCity(event.target.value)} />
+                    </label>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {step === 2 ? (
+                <div className={styles.field}>
+                  <MultiSelectDropdown
+                    label={t('form.primaryServices')}
+                    options={serviceOptions}
+                    selectedValues={selectedServiceIds}
+                    placeholder="Select services"
+                    onToggle={(value) => toggleSelection(selectedServiceIds, value, setSelectedServiceIds)}
+                  />
+
+                  <label className={styles.field}>
+                    <span>{t('form.experienceRange')}</span>
+                    <select value={experienceRange} onChange={(event) => setExperienceRange(event.target.value)}>
+                      <option value="">{t('form.selectExperience')}</option>
+                      {EXPERIENCE_OPTIONS.map((item) => (
+                        <option key={item} value={item}>
+                          {item}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className={styles.field}>
+                    <span>{t('form.optionalLink')}</span>
+                    <input value={optionalLink} onChange={(event) => setOptionalLink(event.target.value)} placeholder="https://" />
+                  </label>
+
+                  <MultiSelectDropdown
+                    label={t('form.availability')}
+                    options={availabilityOptions}
+                    selectedValues={availabilitySelections}
+                    placeholder="Select availability"
+                    onToggle={(value) =>
+                      toggleSelection(availabilitySelections, value, setAvailabilitySelections)
+                    }
+                  />
+                  {availabilitySelections.includes('Other') ? (
+                    <label className={styles.field}>
+                      <span>{t('form.otherAvailability')}</span>
+                      <input value={otherAvailability} onChange={(event) => setOtherAvailability(event.target.value)} />
+                    </label>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {step === 3 ? (
+                <div className={styles.field}>
+                  <MultiSelectDropdown
+                    label={t('form.secondaryAreas')}
+                    options={countyOptions}
+                    selectedValues={selectedAreas}
+                    placeholder="Select service areas"
+                    onToggle={(value) => toggleSelection(selectedAreas, value, setSelectedAreas)}
+                  />
+
+                  <label className={styles.field}>
+                    <span>{t('form.radius')}</span>
+                    <select value={radius} onChange={(event) => setRadius(event.target.value)}>
+                      <option value="">{t('form.selectRadius')}</option>
+                      {RADIUS_OPTIONS.map((item) => (
+                        <option key={item} value={item}>
+                          {item}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              ) : null}
+
+              {step === 4 ? (
+                <div className={styles.field}>
+                  <span>{t('docsHint')}</span>
+                  <label className={styles.field}>
+                    <span>{t('idDoc')}</span>
+                    {hasVerifiedIdentity ? (
+                      <small className={styles.muted}>
+                        Existing verified identity found. ID upload is not required again.
+                      </small>
+                    ) : (
+                      <>
+                        <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(event) => setIdDocument(event.target.files?.[0] ?? null)} />
+                        {hasExistingIdDocument ? <small className={styles.muted}>Existing ID document found.</small> : null}
+                      </>
+                    )}
+                  </label>
+                  <label className={styles.field}>
+                    <span>{t('insuranceDoc')}</span>
+                    <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(event) => setInsuranceDocument(event.target.files?.[0] ?? null)} />
+                    {hasExistingInsuranceDocument ? <small className={styles.muted}>Existing insurance document found.</small> : null}
+                  </label>
+                  <p className={styles.muted}>{t('form.bankInfo')}</p>
+                </div>
+              ) : null}
+
+              <div className={styles.actions}>
+                {step > 1 ? (
+                  <button type="button" className={styles.secondary} onClick={back}>
+                    {t('back')}
+                  </button>
+                ) : null}
+
+                {step < 4 ? (
+                  <button type="button" className={styles.primary} onClick={next} disabled={Boolean(currentStepError)}>
+                    {t('next')}
+                  </button>
+                ) : (
+                  <button type="submit" className={styles.primary} disabled={isPending || Boolean(currentStepError)}>
+                    {isPending ? t('submitting') : t('submit')}
+                  </button>
+                )}
+              </div>
+              {currentStepError ? <p className={styles.error}>{currentStepError}</p> : null}
+            </form>
+          </>
+        )}
+      </section>
+    </main>
+  );
+}
+

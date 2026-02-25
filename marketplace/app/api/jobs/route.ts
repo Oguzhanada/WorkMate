@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
-import { getUserRole } from '@/lib/auth/rbac';
+import { canPostJob, canPostJobWithIdentity, getUserRoles } from '@/lib/auth/rbac';
 import { isValidEircode, normalizeEircode } from '@/lib/eircode';
 import { createJobSchema } from '@/lib/validation/api';
 
@@ -15,9 +15,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const role = await getUserRole(supabase, user.id);
-  if (role !== 'customer' && role !== 'admin') {
+  const roles = await getUserRoles(supabase, user.id);
+  if (!canPostJob(roles)) {
     return NextResponse.json({ error: 'Only customers can create jobs' }, { status: 403 });
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id,id_verification_status')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (!canPostJobWithIdentity(roles, profile?.id_verification_status)) {
+    return NextResponse.json(
+      { error: 'identity_required', redirect_to: '/profile?message=identity_required' },
+      { status: 403 }
+    );
   }
 
   let rawBody: unknown;
@@ -39,7 +52,7 @@ export async function POST(request: NextRequest) {
   const eircode = normalizeEircode(body.eircode || '');
 
   if (!isValidEircode(eircode)) {
-    return NextResponse.json({ error: 'Geçerli bir Eircode giriniz.' }, { status: 400 });
+    return NextResponse.json({ error: 'Please enter a valid Eircode.' }, { status: 400 });
   }
 
   const { data: categoryRow, error: categoryError } = await supabase
@@ -64,6 +77,7 @@ export async function POST(request: NextRequest) {
     locality: body.locality,
     budget_range: body.budget_range,
     photo_urls: body.photo_urls,
+    requires_verified_id: true,
   }).select('*').single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

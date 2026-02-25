@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
-import { getUserRole, isProRole } from '@/lib/auth/rbac';
+import { canQuoteJob, getUserRoles } from '@/lib/auth/rbac';
 import { createQuoteSchema } from '@/lib/validation/api';
 
 export async function POST(request: NextRequest) {
@@ -14,8 +14,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const role = await getUserRole(supabase, user.id);
-  if (!isProRole(role)) {
+  const roles = await getUserRoles(supabase, user.id);
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id,id_verification_status')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (!canQuoteJob(roles, profile?.id_verification_status)) {
     return NextResponse.json({ error: 'Only professionals can submit quotes' }, { status: 403 });
   }
 
@@ -41,6 +47,9 @@ export async function POST(request: NextRequest) {
     pro_id: user.id,
     quote_amount_cents: body.quote_amount_cents,
     message: body.message,
+    estimated_duration: body.estimated_duration,
+    includes: body.includes,
+    excludes: body.excludes,
     availability_slots: body.availability_slots,
   }).select('*').single();
 

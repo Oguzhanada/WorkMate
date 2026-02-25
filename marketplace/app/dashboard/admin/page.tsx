@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import AdminApplicationsPanel from '@/components/dashboard/AdminApplicationsPanel';
-import { getUserRole } from '@/lib/auth/rbac';
+import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import styles from '../../[locale]/inner.module.css';
 
@@ -11,27 +11,20 @@ export default async function AdminDashboardPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/en/giris');
+    redirect('/login');
   }
 
-  const role = await getUserRole(supabase, user.id);
-  if (role !== 'admin') {
-    redirect('/en/profil');
+  const roles = await getUserRoles(supabase, user.id);
+  if (!canAccessAdmin(roles)) {
+    redirect('/profile');
   }
 
   return (
     <main className={styles.section}>
       <section className={styles.container}>
-        <div className={styles.card}>
-          <h1>Admin Basvuru Kontrol</h1>
-          <p className={styles.muted}>
-          Bekleyen hizmet veren basvurularini burada onaylayabilir veya reddedebilirsin.
-          </p>
-        </div>
-      </section>
-      <section className={styles.container}>
-        <AdminApplicationsPanel />
+        <AdminApplicationsPanel adminEmail={user.email ?? 'Admin'} />
       </section>
     </main>
   );
 }
+

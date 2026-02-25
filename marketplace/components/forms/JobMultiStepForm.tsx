@@ -9,9 +9,12 @@ import {
   JOB_TITLE_OPTIONS,
   JOB_URGENCY_OPTIONS,
 } from '@/lib/constants/job';
+import InfoTooltip from '@/components/ui/InfoTooltip';
 import styles from './forms.module.css';
 
 type Address = {
+  address_line_1?: string;
+  address_line_2?: string;
   eircode: string;
   county?: string;
   locality?: string;
@@ -47,7 +50,7 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
       const payload = await response.json();
       setIsLoadingCategories(false);
       if (!response.ok) {
-        setError(payload.error || 'Kategoriler alinamadi.');
+        setError(payload.error || 'Categories could not be loaded.');
         return;
       }
       const all = (payload.categories ?? []) as Category[];
@@ -79,7 +82,7 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
       .join(' | ');
 
     if (!resolvedTitle || !resolvedDescription || !address?.eircode || !address?.county || !address?.locality || !categoryId) {
-      setError('Lutfen kategori, is tipi, kapsam, aciliyet, county, sehir ve Eircode bilgisini tamamla.');
+      setError('Please complete category, job type, scope, urgency, county, city, and Eircode.');
       return;
     }
 
@@ -107,11 +110,15 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
     setIsPending(false);
 
     if (!response.ok) {
-      setError(payload.error || 'Is talebi olusturulamadi.');
+      if (payload?.error === 'identity_required') {
+        window.location.href = payload?.redirect_to || '/profile?message=identity_required';
+        return;
+      }
+      setError(payload.error || 'Job request could not be created.');
       return;
     }
 
-    setFeedback('Is talebin basariyla olusturuldu. Kisa surede teklifler gelmeye baslar.');
+    setFeedback('Your job request was created successfully. Quotes should start arriving shortly.');
     setStep(1);
     setTitleOption('');
     setCustomTitle('');
@@ -121,17 +128,26 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
     setPhotos([]);
   };
 
+  const nextFromStep2 = () => {
+    if (!address?.eircode || !address?.county || !address?.locality) {
+      setError('Please validate Eircode and complete county/city/address before continuing.');
+      return;
+    }
+    setError('');
+    setStep(3);
+  };
+
   return (
     <div className={styles.card}>
-      <p className={styles.step}>Adim {step}/3</p>
+      <p className={styles.step}>Step {step}/3</p>
       {feedback ? <p className={`${styles.feedback} ${styles.ok}`}>{feedback}</p> : null}
       {error ? <p className={`${styles.feedback} ${styles.error}`}>{error}</p> : null}
 
       {step === 1 ? (
         <div className={styles.field}>
-          <h2 className={styles.title}>1) Kategori ve Is Ozeti</h2>
+          <h2 className={styles.title}>1) Category and Job Summary</h2>
           <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={styles.select} disabled={isLoadingCategories}>
-            <option value="">{isLoadingCategories ? 'Kategoriler yukleniyor...' : 'Kategori sec'}</option>
+            <option value="">{isLoadingCategories ? 'Loading categories...' : 'Select category'}</option>
             {categories.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.name}
@@ -140,7 +156,7 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
           </select>
 
           <select value={titleOption} onChange={(e) => setTitleOption(e.target.value as (typeof JOB_TITLE_OPTIONS)[number])} className={styles.select}>
-            <option value="">Is tipi sec</option>
+            <option value="">Select job type</option>
             {JOB_TITLE_OPTIONS.map((item) => (
               <option key={item} value={item}>
                 {item}
@@ -152,13 +168,13 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
             <input
               value={customTitle}
               onChange={(e) => setCustomTitle(e.target.value)}
-              placeholder="Is tipini yaz"
+              placeholder="Type job title"
               className={styles.input}
             />
           ) : null}
 
           <select value={scope} onChange={(e) => setScope(e.target.value as (typeof JOB_SCOPE_OPTIONS)[number])} className={styles.select}>
-            <option value="">Is kapsami sec</option>
+            <option value="">Select scope</option>
             {JOB_SCOPE_OPTIONS.map((item) => (
               <option key={item} value={item}>
                 {item}
@@ -167,7 +183,7 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
           </select>
 
           <select value={urgency} onChange={(e) => setUrgency(e.target.value as (typeof JOB_URGENCY_OPTIONS)[number])} className={styles.select}>
-            <option value="">Aciliyet sec</option>
+            <option value="">Select urgency</option>
             {JOB_URGENCY_OPTIONS.map((item) => (
               <option key={item} value={item}>
                 {item}
@@ -178,13 +194,13 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
           <textarea
             value={additionalDetails}
             onChange={(e) => setAdditionalDetails(e.target.value)}
-            placeholder="Ek detay (opsiyonel)"
+            placeholder="Additional details (optional)"
             className={styles.textarea}
             rows={4}
           />
           <div className={styles.buttonRow}>
             <button type="button" onClick={() => setStep(2)} className={styles.primary}>
-              Devam
+              Continue
             </button>
           </div>
         </div>
@@ -192,8 +208,14 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
 
       {step === 2 ? (
         <div className={styles.field}>
-          <h2 className={styles.title}>2) Adres ve Butce</h2>
+          <h2 className={styles.title}>2) Address and Budget</h2>
           <EircodeAddressForm onAddressSelect={setAddress} />
+          <div className={styles.field}>
+            <span>
+              Budget{' '}
+              <InfoTooltip text="Set your estimated range. Providers can still send their own offers." />
+            </span>
+          </div>
           <select value={budgetRange} onChange={(e) => setBudgetRange(e.target.value as (typeof JOB_BUDGET_OPTIONS)[number])} className={styles.select}>
             {JOB_BUDGET_OPTIONS.map((item) => (
               <option key={item} value={item}>
@@ -203,10 +225,10 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
           </select>
           <div className={styles.buttonRow}>
             <button type="button" onClick={() => setStep(1)} className={styles.secondary}>
-              Geri
+              Back
             </button>
-            <button type="button" onClick={() => setStep(3)} className={styles.primary}>
-              Devam
+            <button type="button" onClick={nextFromStep2} className={styles.primary}>
+              Continue
             </button>
           </div>
         </div>
@@ -214,14 +236,14 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
 
       {step === 3 ? (
         <div className={styles.field}>
-          <h2 className={styles.title}>3) Fotograf Yukleme</h2>
+          <h2 className={styles.title}>3) Photo Upload</h2>
           <input className={styles.input} type="file" accept="image/*" multiple onChange={(e) => setPhotos(Array.from(e.target.files || []))} />
           <div className={styles.buttonRow}>
             <button type="button" onClick={() => setStep(2)} className={styles.secondary}>
-              Geri
+              Back
             </button>
             <button type="button" onClick={submitJob} disabled={isPending} className={styles.primary}>
-              {isPending ? 'Gonderiliyor...' : 'Is Talebini Olustur'}
+              {isPending ? 'Submitting...' : 'Create Job Request'}
             </button>
           </div>
         </div>

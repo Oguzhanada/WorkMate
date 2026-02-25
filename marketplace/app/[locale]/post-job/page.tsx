@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import JobMultiStepForm from '@/components/forms/JobMultiStepForm';
 import GuestJobIntentForm from '@/components/forms/GuestJobIntentForm';
-import { getUserRole } from '@/lib/auth/rbac';
+import { canPostJobWithIdentity, getUserRoles } from '@/lib/auth/rbac';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import styles from '../inner.module.css';
 
@@ -16,11 +16,15 @@ export default async function LocalizedPostJobPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  let role: string | null = null;
+  let canCreate = false;
   if (user) {
-    role = await getUserRole(supabase, user.id);
-    if (role !== 'customer' && role !== 'admin') {
-      redirect(`/${locale}/profil`);
+    const [{ data: profile }, roles] = await Promise.all([
+      supabase.from('profiles').select('id_verification_status').eq('id', user.id).maybeSingle(),
+      getUserRoles(supabase, user.id),
+    ]);
+    canCreate = canPostJobWithIdentity(roles, profile?.id_verification_status);
+    if (!canCreate) {
+      redirect(`/profile?message=identity_required`);
     }
   }
 
@@ -28,14 +32,14 @@ export default async function LocalizedPostJobPage({
     <main className={styles.section}>
       <section className={styles.container}>
         <div className={styles.card}>
-          <h1>Is Talebi Olustur</h1>
+          <h1>Create Job Request</h1>
           <p className={styles.muted}>
-          Talep detayini net girerek daha dogru ve hizli teklif alabilirsin.
+          Share clear details to receive faster and more accurate quotes.
           </p>
         </div>
       </section>
       <section className={styles.formWrap}>
-        {user && (role === 'customer' || role === 'admin') ? (
+        {user && canCreate ? (
           <JobMultiStepForm customerId={user.id} />
         ) : (
           <GuestJobIntentForm />
@@ -44,3 +48,4 @@ export default async function LocalizedPostJobPage({
     </main>
   );
 }
+
