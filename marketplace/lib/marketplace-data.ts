@@ -52,7 +52,7 @@ export const services: ServiceItem[] = [
     slug: 'ac-service',
     name: 'AC Service',
     category: 'Repair',
-    city: 'Istanbul',
+    city: 'Limerick',
     priceRange: 'EUR60-EUR220',
     summary: 'Maintenance, gas refill and urgent repair visits.',
     heroImage: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1400&q=80'
@@ -63,7 +63,7 @@ export const professionals: ProfessionalItem[] = [
   {
     id: 'pro-1',
     name: 'Ahmet Yilmaz',
-    city: 'Istanbul',
+    city: 'Cork',
     services: ['home-cleaning', 'moving-services'],
     rating: 4.9,
     reviews: 412,
@@ -74,7 +74,7 @@ export const professionals: ProfessionalItem[] = [
   {
     id: 'pro-2',
     name: 'Maria Silva',
-    city: 'Sao Paulo',
+    city: 'Limerick',
     services: ['home-cleaning', 'painting-decorating'],
     rating: 4.8,
     reviews: 287,
@@ -85,7 +85,7 @@ export const professionals: ProfessionalItem[] = [
   {
     id: 'pro-3',
     name: 'Juan Lopez',
-    city: 'Madrid',
+    city: 'Waterford',
     services: ['painting-decorating'],
     rating: 4.9,
     reviews: 354,
@@ -107,7 +107,7 @@ export const professionals: ProfessionalItem[] = [
   {
     id: 'pro-5',
     name: 'Seda Demir',
-    city: 'Istanbul',
+    city: 'Kilkenny',
     services: ['home-cleaning'],
     rating: 4.9,
     reviews: 498,
@@ -118,7 +118,7 @@ export const professionals: ProfessionalItem[] = [
   {
     id: 'pro-6',
     name: 'Lucas Rocha',
-    city: 'Sao Paulo',
+    city: 'Wexford',
     services: ['moving-services'],
     rating: 4.8,
     reviews: 175,
@@ -140,7 +140,7 @@ export const professionals: ProfessionalItem[] = [
   {
     id: 'pro-8',
     name: 'Carlos Mendez',
-    city: 'Madrid',
+    city: 'Cork',
     services: ['moving-services', 'home-cleaning'],
     rating: 4.9,
     reviews: 261,

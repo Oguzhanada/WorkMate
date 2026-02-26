@@ -7,6 +7,7 @@ import {useLocale, useTranslations} from 'next-intl';
 
 import {professionals, services} from '@/lib/marketplace-data';
 import VerifiedNavigationLink from '@/components/site/VerifiedNavigationLink';
+import {COUNTY_CITIES} from '@/lib/ireland-locations';
 
 import styles from '../inner.module.css';
 import pageStyles from './search-page.module.css';
@@ -34,8 +35,12 @@ export default function SearchPage() {
 
   const allCities = useMemo(() => {
     const values = new Set<string>();
-    services.forEach((service) => values.add(service.city));
-    professionals.forEach((pro) => values.add(pro.city));
+    Object.values(COUNTY_CITIES).forEach((cities) => {
+      cities.forEach((city) => values.add(city));
+    });
+    ['Dublin', 'Cork', 'Galway', 'Limerick', 'Waterford', 'Kilkenny', 'Wexford', 'Sligo', 'Athlone'].forEach((city) =>
+      values.add(city)
+    );
     return Array.from(values).sort((a, b) => a.localeCompare(b));
   }, []);
 
