@@ -213,7 +213,21 @@ export default function BecomeProviderPage() {
 
   const selectedAreasList = useMemo(() => selectedAreas, [selectedAreas]);
   const serviceOptions = useMemo(
-    () => categories.map((service) => ({value: service.id, label: service.name})),
+    () => {
+      const hasChildren = categories.some((category) => category.parent_id !== null);
+      const parentNamesById = new Map(
+        categories
+          .filter((category) => category.parent_id === null)
+          .map((category) => [category.id, category.name])
+      );
+
+      return (hasChildren ? categories.filter((category) => category.parent_id !== null) : categories)
+        .map((service) => ({
+          value: service.id,
+          label: service.name,
+          group: service.parent_id ? parentNamesById.get(service.parent_id) : undefined
+        }));
+    },
     [categories]
   );
   const availabilityOptions = useMemo(

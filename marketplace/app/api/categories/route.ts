@@ -1,19 +1,30 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
-import { services } from '@/lib/marketplace-data';
+import { SERVICE_TAXONOMY } from '@/lib/service-taxonomy';
 
 function getFallbackCategories() {
-  const unique = Array.from(new Set(services.map((item) => item.category))).sort((a, b) =>
-    a.localeCompare(b)
-  );
+  let order = 1;
 
-  return unique.map((name, index) => ({
-    id: `fallback-${index + 1}`,
-    slug: name.toLowerCase().replace(/\s+/g, '-'),
-    name,
-    parent_id: null,
-    sort_order: index + 1
-  }));
+  return SERVICE_TAXONOMY.flatMap((group, groupIndex) => {
+    const parentId = `fallback-parent-${groupIndex + 1}`;
+    const parent = {
+      id: parentId,
+      slug: group.slug,
+      name: group.name,
+      parent_id: null,
+      sort_order: order++
+    };
+
+    const children = group.subcategories.map((subcategory) => ({
+      id: `fallback-child-${subcategory.slug}`,
+      slug: subcategory.slug,
+      name: subcategory.name,
+      parent_id: parentId,
+      sort_order: order++
+    }));
+
+    return [parent, ...children];
+  });
 }
 
 export async function GET() {

@@ -135,7 +135,11 @@ export default function SearchPage() {
     if (slug === 'home-cleaning') return home('trend.homeCleaning');
     if (slug === 'painting-decorating') return home('trend.painting');
     if (slug === 'moving-services') return home('trend.moving');
-    return home('trend.acRepair');
+    if (slug === 'ac-service') return home('trend.acRepair');
+    return slug
+      .split('-')
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
   };
 
   const onKeywordSearch = (event: FormEvent) => {

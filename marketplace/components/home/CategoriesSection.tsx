@@ -3,27 +3,39 @@
 import Link from 'next/link';
 import {motion} from 'framer-motion';
 import {
-  Wrench,
-  Zap,
-  Paintbrush,
   Sparkles,
-  Hammer,
+  Wrench,
   Trees,
-  Refrigerator,
-  Waves,
+  Truck,
+  GraduationCap,
+  Laptop,
+  HeartHandshake,
+  PartyPopper,
+  PawPrint,
+  Briefcase,
+  LucideIcon,
   ArrowRight
 } from 'lucide-react';
+import { SERVICE_TAXONOMY } from '@/lib/service-taxonomy';
 
-const categories = [
-  {name: 'Plumber', icon: Waves},
-  {name: 'Electrician', icon: Zap},
-  {name: 'Painter', icon: Paintbrush},
-  {name: 'Cleaning', icon: Sparkles},
-  {name: 'Handyman', icon: Wrench},
-  {name: 'Carpenter', icon: Hammer},
-  {name: 'Gardener', icon: Trees},
-  {name: 'Cooling', icon: Refrigerator}
-];
+const categoryIcons: Record<string, LucideIcon> = {
+  'home-cleaning': Sparkles,
+  'repairs-renovation': Wrench,
+  'garden-outdoor': Trees,
+  'moving-transport': Truck,
+  'tutoring-education': GraduationCap,
+  'tech-support': Laptop,
+  'beauty-wellness': HeartHandshake,
+  'events-media': PartyPopper,
+  'pet-care': PawPrint,
+  'professional-services': Briefcase
+};
+
+const featuredCategories = SERVICE_TAXONOMY.map((group) => ({
+  name: group.name,
+  slug: group.slug,
+  icon: categoryIcons[group.slug] ?? Wrench
+}));
 
 export default function CategoriesSection() {
   return (
@@ -44,7 +56,7 @@ export default function CategoriesSection() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {categories.map((category, index) => (
+          {featuredCategories.map((category, index) => (
             <motion.div
               key={category.name}
               initial={{opacity: 0, y: 24, rotate: -2}}

@@ -6,6 +6,7 @@ import {useEffect, useState} from 'react';
 import {useRouter} from 'next/navigation';
 
 import {heroItemVariants, heroStaggerContainer} from '@/styles/animations';
+import {getTaxonomySuggestions} from '@/lib/service-taxonomy';
 
 const counties = [
   'Antrim',
@@ -48,18 +49,7 @@ const stats = [
   {value: 100, suffix: '%', label: 'Secure Payments', icon: CircleDollarSign}
 ];
 
-const fallbackServiceSuggestions = [
-  'Home Cleaning',
-  'Deep Cleaning',
-  'Office Cleaning',
-  'Painting and Decorating',
-  'Plumbing Repair',
-  'Electrical Repair',
-  'Local Moving',
-  'Intercity Moving',
-  'AC Service',
-  'Handyman Service'
-];
+const fallbackServiceSuggestions = getTaxonomySuggestions();
 
 function Counter({target, suffix = ''}: {target: number; suffix?: string}) {
   const [value, setValue] = useState(0);

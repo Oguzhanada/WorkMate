@@ -24,7 +24,7 @@ export const services: ServiceItem[] = [
   {
     slug: 'home-cleaning',
     name: 'Home Cleaning',
-    category: 'Cleaning',
+    category: 'Home Cleaning',
     city: 'Dublin',
     priceRange: 'EUR80-EUR180',
     summary: 'Weekly, deep and move-out cleaning by verified teams.',
@@ -32,8 +32,8 @@ export const services: ServiceItem[] = [
   },
   {
     slug: 'painting-decorating',
-    name: 'Painting',
-    category: 'Renovation',
+    name: 'Painting & Decorating',
+    category: 'Repairs & Renovation',
     city: 'Cork',
     priceRange: 'EUR250-EUR1200',
     summary: 'Interior and exterior painting with material options.',
@@ -42,7 +42,7 @@ export const services: ServiceItem[] = [
   {
     slug: 'moving-services',
     name: 'Intercity Moving',
-    category: 'Moving',
+    category: 'Moving & Transport',
     city: 'Galway',
     priceRange: 'EUR300-EUR1500',
     summary: 'Insured moving teams for apartments and offices.',
@@ -51,11 +51,29 @@ export const services: ServiceItem[] = [
   {
     slug: 'ac-service',
     name: 'AC Service',
-    category: 'Repair',
+    category: 'Repairs & Renovation',
     city: 'Limerick',
     priceRange: 'EUR60-EUR220',
     summary: 'Maintenance, gas refill and urgent repair visits.',
     heroImage: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1400&q=80'
+  },
+  {
+    slug: 'garden-maintenance',
+    name: 'Garden Maintenance',
+    category: 'Garden & Outdoor',
+    city: 'Galway',
+    priceRange: 'EUR70-EUR240',
+    summary: 'Lawn care, hedge trimming and seasonal cleanup.',
+    heroImage: 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=1400&q=80'
+  },
+  {
+    slug: 'dog-walking',
+    name: 'Dog Walking',
+    category: 'Pet Care',
+    city: 'Cork',
+    priceRange: 'EUR20-EUR65',
+    summary: 'Trusted local walkers for daily and weekend schedules.',
+    heroImage: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=1400&q=80'
   }
 ];
 

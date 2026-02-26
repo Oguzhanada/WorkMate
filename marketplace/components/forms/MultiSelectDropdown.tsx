@@ -7,6 +7,7 @@ import styles from './multi-select-dropdown.module.css';
 type Option = {
   value: string;
   label: string;
+  group?: string;
 };
 
 type Props = {
@@ -52,16 +53,30 @@ export default function MultiSelectDropdown({
 
       {open ? (
         <div className={styles.panel}>
-          {options.map((item) => (
-            <label key={item.value} className={styles.item}>
-              <input
-                type="checkbox"
-                checked={selectedValues.includes(item.value)}
-                onChange={() => onToggle(item.value)}
-              />
-              <span>{item.label}</span>
-            </label>
-          ))}
+          {(() => {
+            const grouped = options.reduce<Record<string, Option[]>>((acc, option) => {
+              const key = option.group?.trim() || '';
+              if (!acc[key]) acc[key] = [];
+              acc[key].push(option);
+              return acc;
+            }, {});
+
+            return Object.entries(grouped).map(([groupName, groupOptions]) => (
+              <div key={groupName || 'default'} className={styles.group}>
+                {groupName ? <p className={styles.groupTitle}>{groupName}</p> : null}
+                {groupOptions.map((item) => (
+                  <label key={item.value} className={styles.item}>
+                    <input
+                      type="checkbox"
+                      checked={selectedValues.includes(item.value)}
+                      onChange={() => onToggle(item.value)}
+                    />
+                    <span>{item.label}</span>
+                  </label>
+                ))}
+              </div>
+            ));
+          })()}
         </div>
       ) : null}
     </div>
