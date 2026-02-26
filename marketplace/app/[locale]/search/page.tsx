@@ -1,8 +1,8 @@
 "use client";
 
 import Link from 'next/link';
-import {useSearchParams} from 'next/navigation';
-import {useMemo, useState} from 'react';
+import {usePathname, useRouter, useSearchParams} from 'next/navigation';
+import {FormEvent, useEffect, useMemo, useState} from 'react';
 import {useLocale, useTranslations} from 'next-intl';
 
 import {professionals, services} from '@/lib/marketplace-data';
@@ -11,15 +11,25 @@ import VerifiedNavigationLink from '@/components/site/VerifiedNavigationLink';
 import styles from '../inner.module.css';
 
 export default function SearchPage() {
-  const locale = useLocale();
+  useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
   const t = useTranslations('search');
   const common = useTranslations('common');
   const home = useTranslations('home');
   const params = useSearchParams();
-  const query = (params.get('q') ?? '').trim().toLowerCase();
-  const [cityFilter, setCityFilter] = useState('');
+  const initialQuery = (params.get('q') ?? '').trim();
+  const countyParam = (params.get('county') ?? '').trim();
+  const query = initialQuery.toLowerCase();
+  const [keyword, setKeyword] = useState(initialQuery);
+  const [cityFilter, setCityFilter] = useState(countyParam);
   const [maxPriceFilter, setMaxPriceFilter] = useState('');
   const [minRatingFilter, setMinRatingFilter] = useState('');
+
+  useEffect(() => {
+    setKeyword((params.get('q') ?? '').trim());
+    setCityFilter((params.get('county') ?? '').trim());
+  }, [params]);
 
   const allCities = useMemo(() => {
     const values = new Set<string>();
@@ -78,6 +88,17 @@ export default function SearchPage() {
     return home('trend.acRepair');
   };
 
+  const onKeywordSearch = (event: FormEvent) => {
+    event.preventDefault();
+    const nextParams = new URLSearchParams(params.toString());
+    const trimmed = keyword.trim();
+    if (trimmed) nextParams.set('q', trimmed);
+    else nextParams.delete('q');
+    if (cityFilter) nextParams.set('county', cityFilter);
+    else nextParams.delete('county');
+    router.push(`${pathname}?${nextParams.toString()}`);
+  };
+
   return (
     <main className={styles.section}>
       <div className={styles.container}>
@@ -85,6 +106,34 @@ export default function SearchPage() {
         <p className={styles.muted}>
           {t('subtitle')} <strong>{query || '-'}</strong>
         </p>
+        <section className={styles.card}>
+          <form onSubmit={onKeywordSearch} className={styles.filterRow}>
+            <label className={styles.field}>
+              <span>Keyword</span>
+              <input
+                value={keyword}
+                onChange={(event) => setKeyword(event.target.value)}
+                placeholder="Search service or provider"
+              />
+            </label>
+            <label className={styles.field}>
+              <span>{common('city')}</span>
+              <select value={cityFilter} onChange={(event) => setCityFilter(event.target.value)}>
+                <option value="">{t('allCities')}</option>
+                {allCities.map((city) => (
+                  <option key={city} value={city}>
+                    {city}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className={styles.actions}>
+              <button type="submit" className={styles.primary}>
+                Find Service
+              </button>
+            </div>
+          </form>
+        </section>
         <section className={styles.card}>
           <h3>{t('filtersTitle')}</h3>
           <div className={styles.filterRow}>
