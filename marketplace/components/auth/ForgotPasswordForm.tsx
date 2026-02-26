@@ -17,6 +17,28 @@ export const forgotPasswordSchema = z.object({
 type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>;
 
 const AUTH_TIMEOUT_MS = 15000;
+const AUTH_PING_TIMEOUT_MS = 5000;
+
+async function canReachAuthServer() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const apikey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !apikey) return false;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), AUTH_PING_TIMEOUT_MS);
+  try {
+    const response = await fetch(`${url}/auth/v1/health`, {
+      method: 'GET',
+      headers: {apikey},
+      signal: controller.signal
+    });
+    return response.ok || response.status === 401;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 export function ForgotPasswordForm() {
   const [form, setForm] = useState<ForgotPasswordData>({email: ''});
@@ -36,6 +58,12 @@ export function ForgotPasswordForm() {
 
     setIsPending(true);
     try {
+      const reachable = await canReachAuthServer();
+      if (!reachable) {
+        setError('Cannot reach authentication server. Check VPN/ad blocker and try again.');
+        return;
+      }
+
       const supabase = getSupabaseBrowserClient();
       const redirectTo = `${window.location.origin}/auth/callback?next=/reset-password`;
       const {error: resetError} = await Promise.race([
