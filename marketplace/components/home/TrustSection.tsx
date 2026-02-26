@@ -15,7 +15,7 @@ import {sectionRevealVariants} from '@/styles/animations';
 const trustItems = [
   {
     title: 'Verified Professionals',
-    description: 'Every provider goes through ID and document review before activation.',
+    description: 'Document-level verification before activation keeps provider quality measurable.',
     icon: ShieldCheck
   },
   {
@@ -24,13 +24,13 @@ const trustItems = [
     icon: FileCheck
   },
   {
-    title: 'Secure Payments',
-    description: 'Funds stay protected and are released under platform rules.',
+    title: 'Transparent Fees',
+    description: 'Transparent fees (target range 8-10%, final policy at launch).',
     icon: Wallet
   },
   {
-    title: 'All Ireland Coverage',
-    description: 'County-level matching with Eircode-ready flow.',
+    title: 'Ireland-only Focus',
+    description: 'Built specifically for Ireland with county-first matching and Eircode-ready flows.',
     icon: MapPinned
   },
   {
@@ -39,8 +39,8 @@ const trustItems = [
     icon: Star
   },
   {
-    title: 'Fast Matching',
-    description: 'Qualified offers begin arriving quickly after posting.',
+    title: 'Responsive Support',
+    description: 'Faster support response targets with clear status updates on active cases.',
     icon: Zap
   }
 ];
