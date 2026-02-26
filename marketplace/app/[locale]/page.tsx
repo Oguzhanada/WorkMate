@@ -5,7 +5,6 @@ import {Suspense} from 'react';
 
 import CategoriesSection from '@/components/home/CategoriesSection';
 import CTASection from '@/components/home/CTASection';
-import Footer from '@/components/home/Footer';
 import HeroSection from '@/components/home/HeroSection';
 import HomeSkeleton from '@/components/home/HomeSkeleton';
 import HowItWorks from '@/components/home/HowItWorks';
@@ -55,7 +54,6 @@ export default async function LocaleHomePage({
         <FeaturedProviders />
         <Testimonials />
         <CTASection />
-        <Footer />
       </Suspense>
     </main>
   );
