@@ -36,6 +36,7 @@ export default function BecomeProviderPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const [email, setEmail] = useState('');
+  const [isEmailLocked, setIsEmailLocked] = useState(true);
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
 
@@ -72,13 +73,46 @@ export default function BecomeProviderPage() {
         return;
       }
 
-      setEmail(user.email ?? '');
+      const userEmail = user.email ?? '';
+      setEmail(userEmail);
+      setIsEmailLocked(Boolean(userEmail));
 
       const {data} = await supabase.from('profiles').select('*').eq('id', user.id).single();
       if (data) {
         setFullName(data.full_name ?? '');
         setPhone(data.phone ?? '');
         setHasVerifiedIdentity(data.is_verified === true && data.verification_status === 'verified');
+
+        const requirements = (data.stripe_requirements_due ?? {}) as {
+          personal_info?: { primary_city?: string | null };
+          services_and_skills?: {
+            experience_range?: string | null;
+            optional_link?: string | null;
+            availability?: string[] | null;
+          };
+          areas_served?: { radius?: string | null };
+        };
+
+        const primaryCityValue = requirements.personal_info?.primary_city?.trim() ?? '';
+        if (primaryCityValue) {
+          if (IRISH_CITIES.includes(primaryCityValue)) {
+            setPrimaryCity(primaryCityValue);
+          } else {
+            setPrimaryCity('Other');
+            setOtherPrimaryCity(primaryCityValue);
+          }
+        }
+
+        setExperienceRange(requirements.services_and_skills?.experience_range ?? '');
+        setOptionalLink(requirements.services_and_skills?.optional_link ?? '');
+
+        const existingAvailability = requirements.services_and_skills?.availability ?? [];
+        const knownAvailability = existingAvailability.filter((slot) => AVAILABILITY_OPTIONS.includes(slot));
+        const customAvailability = existingAvailability.find((slot) => !AVAILABILITY_OPTIONS.includes(slot));
+        setAvailabilitySelections(customAvailability ? [...knownAvailability, 'Other'] : knownAvailability);
+        setOtherAvailability(customAvailability ?? '');
+
+        setRadius(requirements.areas_served?.radius ?? '');
       }
 
       const { data: existingDocs } = await supabase
@@ -101,11 +135,24 @@ export default function BecomeProviderPage() {
         )
       );
 
+      const { data: existingServices } = await supabase
+        .from('pro_services')
+        .select('category_id')
+        .eq('profile_id', user.id);
+      setSelectedServiceIds((existingServices ?? []).map((service) => service.category_id).filter(Boolean));
+
+      const { data: existingAreas } = await supabase
+        .from('pro_service_areas')
+        .select('county')
+        .eq('profile_id', user.id);
+      setSelectedAreas((existingAreas ?? []).map((area) => area.county).filter(Boolean));
+
       const categoryResponse = await fetch('/api/categories', {cache: 'no-store'});
       const categoryPayload = await categoryResponse.json();
       if (categoryResponse.ok) {
         const all = (categoryPayload.categories ?? []) as Category[];
-        setCategories(all.filter((item) => item.parent_id !== null));
+        const leaf = all.filter((item) => item.parent_id !== null);
+        setCategories(leaf.length > 0 ? leaf : all);
       }
     };
 
@@ -430,7 +477,13 @@ export default function BecomeProviderPage() {
                   </label>
                   <label className={styles.field}>
                     <span>{t('form.email')}</span>
-                    <input value={email} readOnly />
+                    <input
+                      value={email}
+                      readOnly={isEmailLocked}
+                      onChange={(event) => {
+                        if (!isEmailLocked) setEmail(event.target.value);
+                      }}
+                    />
                   </label>
                   <label className={styles.field}>
                     <span>{t('form.phone')}</span>
