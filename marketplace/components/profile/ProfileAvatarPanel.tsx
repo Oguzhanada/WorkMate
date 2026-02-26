@@ -5,6 +5,18 @@ import {useRouter} from 'next/navigation';
 
 import styles from './profile-avatar.module.css';
 
+const REQUEST_TIMEOUT_MS = 15000;
+
+async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit, timeoutMs = REQUEST_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, {...init, signal: controller.signal});
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 type Props = {
   initialAvatarUrl: string;
   initialFullName: string;
@@ -47,7 +59,7 @@ export default function ProfileAvatarPanel({
     try {
       const body = new FormData();
       body.append('avatar', file);
-      const response = await fetch('/api/profile/avatar', {
+      const response = await fetchWithTimeout('/api/profile/avatar', {
         method: 'POST',
         body,
       });
@@ -62,6 +74,13 @@ export default function ProfileAvatarPanel({
       setSelectedFileName(file.name);
       setMessage('Profile photo updated.');
       router.refresh();
+    } catch (uploadError) {
+      const fallback = 'Avatar upload failed. Please try again.';
+      if (uploadError instanceof Error) {
+        setError(uploadError.name === 'AbortError' ? 'Avatar upload timed out. Please try again.' : uploadError.message || fallback);
+      } else {
+        setError(fallback);
+      }
     } finally {
       setIsPending(false);
     }
@@ -114,15 +133,23 @@ export default function ProfileAvatarPanel({
               onClick={async () => {
                 setError('');
                 setMessage('');
-                const response = await fetch('/api/profile/avatar', { method: 'DELETE' });
-                const payload = await response.json();
-                if (!response.ok) {
-                  setError(payload.error || 'Could not remove profile photo.');
-                  return;
+                try {
+                  const response = await fetchWithTimeout('/api/profile/avatar', { method: 'DELETE' });
+                  const payload = await response.json();
+                  if (!response.ok) {
+                    setError(payload.error || 'Could not remove profile photo.');
+                    return;
+                  }
+                  setAvatarUrl('');
+                  setMessage('Profile photo removed.');
+                  router.refresh();
+                } catch (removeError) {
+                  if (removeError instanceof Error && removeError.name === 'AbortError') {
+                    setError('Photo remove request timed out. Please try again.');
+                  } else {
+                    setError('Could not remove profile photo.');
+                  }
                 }
-                setAvatarUrl('');
-                setMessage('Profile photo removed.');
-                router.refresh();
               }}
             >
               Remove photo
