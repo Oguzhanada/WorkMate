@@ -6,7 +6,6 @@ import {hasAtLeastTwoNameParts} from '@/lib/validation/name';
 import {isValidIrishPhone} from '@/lib/validation/phone';
 import ProfileAddressForm from '@/components/forms/ProfileAddressForm';
 import ProPortfolioPanel from '@/components/profile/ProPortfolioPanel';
-import ProfileModeSwitch from '@/components/profile/ProfileModeSwitch';
 import ProfileVerificationPanel from '@/components/profile/ProfileVerificationPanel';
 import ProfileAvatarPanel from '@/components/profile/ProfileAvatarPanel';
 import ProfileBasicInfoPanel from '@/components/profile/ProfileBasicInfoPanel';
@@ -186,19 +185,6 @@ export default async function ProfilePage({
             </div>
           </div>
         </section>
-
-        <ProfileModeSwitch
-          hasProviderRole={hasProviderRole}
-          title="Switch mode"
-          customerLabel="Customer"
-          providerLabel="Provider"
-          providerHint="Complete provider verification to use provider mode."
-          customerDashboardCta="Open customer dashboard"
-          providerDashboardCta="Open provider dashboard"
-          providerSetupCta="Complete provider setup"
-          providerInfoCta="See provider requirements"
-          providerStartNowCta="Start verification now"
-        />
 
         <section className={pageStyles.grid}>
           <div className={pageStyles.col}>
