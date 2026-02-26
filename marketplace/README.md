@@ -1,5 +1,12 @@
 # WorkMate  (Next.js + Supabase + Stripe Connect)
 
+## Project guardrails
+
+- English-only across UI, docs, errors, and policies.
+- Ireland-first for legal/compliance/product decisions.
+- If a requested change conflicts with Ireland compliance, stop and apply a compliant alternative.
+- See `AGENTS.md` for the full permanent rule set.
+
 ## Suggested Next.js folder structure
 
 ```text
@@ -47,6 +54,8 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_REPLACE_ME
 STRIPE_WEBHOOK_SECRET=whsec_REPLACE_ME
 NEXT_PUBLIC_PLATFORM_BASE_URL=http://localhost:3000
 ```
+
+Use `.env.example` as the template and keep real values in `.env.local`.
 
 Security note:
 - Never commit `.env.local`, service keys, bearer tokens, or private webhook secrets.
@@ -100,3 +109,8 @@ tests/
 - `.github/workflows/workmate-english-only.yml`
 - `.github/workflows/workmate-ci-tests.yml`
 - `.github/workflows/workmate-nightly-e2e.yml`
+
+## Documentation
+
+- Active docs: `docs/`
+- Archived handover prompts: `docs/archive/`
