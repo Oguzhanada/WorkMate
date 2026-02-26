@@ -3,6 +3,7 @@
 import {motion} from 'framer-motion';
 import {MapPin, Search, ShieldCheck, CircleDollarSign, BadgeCheck} from 'lucide-react';
 import {useEffect, useState} from 'react';
+import {useRouter} from 'next/navigation';
 
 import {heroItemVariants, heroStaggerContainer} from '@/styles/animations';
 
@@ -77,7 +78,16 @@ function Counter({target, suffix = ''}: {target: number; suffix?: string}) {
 }
 
 export default function HeroSection() {
+  const router = useRouter();
   const [county, setCounty] = useState('Dublin');
+  const [serviceQuery, setServiceQuery] = useState('');
+
+  const onFindService = () => {
+    const params = new URLSearchParams();
+    if (serviceQuery.trim()) params.set('q', serviceQuery.trim());
+    if (county) params.set('county', county);
+    router.push(`/search?${params.toString()}`);
+  };
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-[#F9FAFB] via-white to-white px-4 pb-16 pt-10 sm:px-6 lg:px-8">
@@ -105,6 +115,8 @@ export default function HeroSection() {
               <input
                 type="text"
                 placeholder="What service do you need?"
+                value={serviceQuery}
+                onChange={(event) => setServiceQuery(event.target.value)}
                 className="w-full border-none bg-transparent text-sm outline-none"
               />
             </label>
@@ -127,6 +139,7 @@ export default function HeroSection() {
 
             <button
               type="button"
+              onClick={onFindService}
               className="rounded-xl bg-[#00B894] px-4 py-3 text-sm font-semibold text-white transition hover:scale-[1.02] hover:bg-[#008B74]"
             >
               Find Service

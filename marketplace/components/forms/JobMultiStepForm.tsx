@@ -65,9 +65,15 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
   const uploadPhotos = async () => {
     const urls: string[] = [];
     for (const file of photos) {
+      if (!file.type.startsWith('image/')) {
+        throw new Error('Only image files are allowed.');
+      }
       const path = `jobs/${customerId}/${Date.now()}-${file.name}`;
       const { error: uploadError } = await supabase.storage.from('job-photos').upload(path, file);
-      if (!uploadError) urls.push(path);
+      if (uploadError) {
+        throw new Error(uploadError.message || 'Photo upload failed.');
+      }
+      urls.push(path);
     }
     return urls;
   };
@@ -87,45 +93,51 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
       return;
     }
 
-    setError('');
-    setFeedback('');
-    setIsPending(true);
+    try {
+      setError('');
+      setFeedback('');
+      setIsPending(true);
 
-    const photoUrls = await uploadPhotos();
-    const response = await fetch('/api/jobs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: resolvedTitle,
-        category_id: categoryId,
-        description: resolvedDescription,
-        eircode: address.eircode,
-        county: address.county,
-        locality: address.locality,
-        budget_range: budgetRange,
-        photo_urls: photoUrls,
-      }),
-    });
+      const photoUrls = await uploadPhotos();
+      const response = await fetch('/api/jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: resolvedTitle,
+          category_id: categoryId,
+          description: resolvedDescription,
+          eircode: address.eircode,
+          county: address.county,
+          locality: address.locality,
+          budget_range: budgetRange,
+          photo_urls: photoUrls,
+        }),
+      });
 
-    const payload = await response.json();
-    setIsPending(false);
+      const payload = await response.json().catch(() => ({}));
 
-    if (!response.ok) {
-      if (payload?.error === 'identity_required') {
-        window.location.href = payload?.redirect_to || '/profile?message=identity_required';
+      if (!response.ok) {
+        if (payload?.error === 'identity_required') {
+          window.location.href = payload?.redirect_to || '/profile?message=identity_required';
+          return;
+        }
+        setError(payload.error || 'Job request could not be created.');
         return;
       }
-      setError(payload.error || 'Job request could not be created.');
-      return;
-    }
 
-    if (!payload?.job?.id) {
-      setError('Job was created but result summary could not be opened. Please check My posted jobs.');
-      return;
-    }
+      if (!payload?.job?.id) {
+        setError('Job was created but result summary could not be opened. Please check My posted jobs.');
+        return;
+      }
 
-    setFeedback('Your job request was created successfully.');
-    router.push(`/post-job/result/${payload.job.id}`);
+      setFeedback('Your job request was created successfully.');
+      router.push(`/post-job/result/${payload.job.id}`);
+    } catch (submitError) {
+      const message = submitError instanceof Error ? submitError.message : 'Job request could not be created.';
+      setError(message);
+    } finally {
+      setIsPending(false);
+    }
   };
 
   const nextFromStep2 = () => {
