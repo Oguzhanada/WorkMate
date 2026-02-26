@@ -15,6 +15,7 @@ const ALLOWED_DOC_EXTENSIONS = ['pdf', 'png', 'jpg', 'jpeg'];
 const REQUEST_TIMEOUT_MS = 20000;
 
 type Props = {
+  profileId: string;
   hasIdDocument: boolean;
   hasInsuranceDocument: boolean;
   hasProviderRole: boolean;
@@ -47,6 +48,7 @@ async function withTimeout(promise: Promise<any>, message: string, timeoutMs = R
 }
 
 export default function ProfileVerificationPanel({
+  profileId,
   hasIdDocument: initialHasIdDocument,
   hasInsuranceDocument: initialHasInsuranceDocument,
   hasProviderRole,
@@ -84,18 +86,11 @@ export default function ProfileVerificationPanel({
 
   const uploadDoc = async (file: File, type: 'id_verification' | 'public_liability_insurance') => {
     const supabase = getSupabaseBrowserClient();
-    const {
-      data: {user}
-    } = await withTimeout(supabase.auth.getUser(), 'User session check timed out.');
-
-    if (!user) {
-      throw new Error('Please log in again.');
-    }
 
     const path =
       type === 'id_verification'
-        ? `id-verifications/${user.id}/${Date.now()}-${file.name}`
-        : `pro-documents/${user.id}/${Date.now()}-${file.name}`;
+        ? `id-verifications/${profileId}/${Date.now()}-${file.name}`
+        : `pro-documents/${profileId}/${Date.now()}-${file.name}`;
     const {error: uploadError} = await withTimeout(
       supabase.storage.from('pro-documents').upload(path, file, {upsert: false}),
       'Document upload timed out.'
@@ -104,7 +99,7 @@ export default function ProfileVerificationPanel({
 
     const {error: docError} = await withTimeout(
       supabase.from('pro_documents').insert({
-        profile_id: user.id,
+        profile_id: profileId,
         document_type: type,
         storage_path: path,
         verification_status: 'pending'
@@ -125,7 +120,7 @@ export default function ProfileVerificationPanel({
             id_verification_reviewed_at: null,
             id_verification_reviewed_by: null,
           })
-          .eq('id', user.id),
+          .eq('id', profileId),
         'Updating identity status timed out.'
       );
 
@@ -177,17 +172,12 @@ export default function ProfileVerificationPanel({
     setIsUploading(true);
     try {
       const supabase = getSupabaseBrowserClient();
-      const {
-        data: {user}
-      } = await withTimeout(supabase.auth.getUser(), 'User session check timed out.');
-
-      if (!user) throw new Error('Please log in again.');
 
       await withTimeout(
         supabase
           .from('profiles')
           .update({id_verification_method: method})
-          .eq('id', user.id),
+          .eq('id', profileId),
         'Saving verification method timed out.'
       );
 
@@ -204,18 +194,16 @@ export default function ProfileVerificationPanel({
       }
 
       if (uploadedSomething) {
-        if (user) {
-          const {error: profileUpdateError} = await withTimeout(
-            supabase
-              .from('profiles')
-              .update({verification_status: 'pending', is_verified: false})
-              .eq('id', user.id),
-            'Updating profile status timed out.'
-          );
+        const {error: profileUpdateError} = await withTimeout(
+          supabase
+            .from('profiles')
+            .update({verification_status: 'pending', is_verified: false})
+            .eq('id', profileId),
+          'Updating profile status timed out.'
+        );
 
-          if (profileUpdateError) {
-            throw new Error(`Profile status update failed: ${profileUpdateError.message}`);
-          }
+        if (profileUpdateError) {
+          throw new Error(`Profile status update failed: ${profileUpdateError.message}`);
         }
       }
 

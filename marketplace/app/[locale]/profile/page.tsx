@@ -205,6 +205,7 @@ export default async function ProfilePage({
           <div className={pageStyles.col}>
             <div className={pageStyles.card}>
               <ProfileVerificationPanel
+                profileId={user.id}
                 hasIdDocument={hasIdDocument}
                 hasInsuranceDocument={hasInsuranceDocument}
                 hasProviderRole={hasProviderRole}
