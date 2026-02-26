@@ -6,6 +6,102 @@
   box-shadow: 0 14px 30px rgba(9, 35, 57, 0.09);
 }
 
+.wizardLayout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.wizardSidebar {
+  border-right: 1px solid #e4ecf4;
+  padding-right: 14px;
+}
+
+.wizardSidebarTitle {
+  margin: 0 0 12px;
+  color: #12223e;
+  font-size: 1.06rem;
+  font-weight: 700;
+}
+
+.wizardSteps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.wizardStepItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.93rem;
+  color: #6b7280;
+}
+
+.wizardStepDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #d4dbe5;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.wizardStepItemActive {
+  color: #12223e;
+  font-weight: 700;
+}
+
+.wizardStepItemDone .wizardStepDot {
+  background: #00b894;
+}
+
+.wizardStepItemActive .wizardStepDot {
+  background: #0066cc;
+  transform: scale(1.08);
+}
+
+.wizardMain {
+  display: grid;
+  gap: 12px;
+}
+
+.sectionLead {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #5f6b7f;
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  border: 1px solid #cdd8e6;
+  background: #fff;
+  color: #23334d;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.chip:hover {
+  border-color: #00b894;
+}
+
+.chipActive {
+  border-color: #0a3f7a;
+  background: #0a3f7a;
+  color: #fff;
+}
+
 .title {
   margin: 0 0 10px;
   font-size: 1.2rem;
@@ -138,6 +234,18 @@
 }
 
 @media (max-width: 760px) {
+  .wizardLayout {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .wizardSidebar {
+    border-right: 0;
+    border-bottom: 1px solid #e4ecf4;
+    padding-right: 0;
+    padding-bottom: 12px;
+  }
+
   .grid2 {
     grid-template-columns: 1fr;
   }

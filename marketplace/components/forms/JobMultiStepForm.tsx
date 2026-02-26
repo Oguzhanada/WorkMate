@@ -19,6 +19,8 @@ type Category = {
   parent_id: string | null;
 };
 
+const STEP_LABELS = ['Title and details', 'Location and budget', 'Photos and submit'] as const;
+
 export default function JobMultiStepForm({ customerId }: { customerId: string }) {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -163,112 +165,155 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
       <p className={styles.step}>Step {step}/3</p>
       {feedback ? <p className={`${styles.feedback} ${styles.ok}`}>{feedback}</p> : null}
       {error ? <p className={`${styles.feedback} ${styles.error}`}>{error}</p> : null}
+      <div className={styles.wizardLayout}>
+        <aside className={styles.wizardSidebar}>
+          <h3 className={styles.wizardSidebarTitle}>Post a task</h3>
+          <ol className={styles.wizardSteps}>
+            {STEP_LABELS.map((label, index) => {
+              const stepNo = index + 1;
+              return (
+                <li
+                  key={label}
+                  className={`${styles.wizardStepItem} ${step === stepNo ? styles.wizardStepItemActive : ''} ${
+                    step > stepNo ? styles.wizardStepItemDone : ''
+                  }`}
+                >
+                  <span className={styles.wizardStepDot} />
+                  <span>{label}</span>
+                </li>
+              );
+            })}
+          </ol>
+        </aside>
 
-      {step === 1 ? (
-        <div className={styles.field}>
-          <h2 className={styles.title}>1) Category and Job Summary</h2>
-          <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={styles.select} disabled={isLoadingCategories}>
-            <option value="">{isLoadingCategories ? 'Loading categories...' : 'Select category'}</option>
-            {categories.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
+        <div className={styles.wizardMain}>
+          {step === 1 ? (
+            <div className={styles.field}>
+              <h2 className={styles.title}>Let&apos;s start with the basics</h2>
+              <p className={styles.sectionLead}>Tell providers what you need and when you need it.</p>
 
-          <select value={titleOption} onChange={(e) => setTitleOption(e.target.value as (typeof JOB_TITLE_OPTIONS)[number])} className={styles.select}>
-            <option value="">Select job type</option>
-            {JOB_TITLE_OPTIONS.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
+              <label className={styles.field}>
+                <span>Service category</span>
+                <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={styles.select} disabled={isLoadingCategories}>
+                  <option value="">{isLoadingCategories ? 'Loading categories...' : 'Select category'}</option>
+                  {categories.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-          {titleOption === 'Other' ? (
-            <input
-              value={customTitle}
-              onChange={(e) => setCustomTitle(e.target.value)}
-              placeholder="Type job title"
-              className={styles.input}
-            />
+              <label className={styles.field}>
+                <span>In a few words, what do you need done?</span>
+                <select value={titleOption} onChange={(e) => setTitleOption(e.target.value as (typeof JOB_TITLE_OPTIONS)[number])} className={styles.select}>
+                  <option value="">Select job type</option>
+                  {JOB_TITLE_OPTIONS.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              {titleOption === 'Other' ? (
+                <input
+                  value={customTitle}
+                  onChange={(e) => setCustomTitle(e.target.value)}
+                  placeholder="Type job title"
+                  className={styles.input}
+                />
+              ) : null}
+
+              <label className={styles.field}>
+                <span>Scope</span>
+                <select value={scope} onChange={(e) => setScope(e.target.value as (typeof JOB_SCOPE_OPTIONS)[number])} className={styles.select}>
+                  <option value="">Select scope</option>
+                  {JOB_SCOPE_OPTIONS.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <div className={styles.field}>
+                <span>When do you need this done?</span>
+                <div className={styles.chipRow}>
+                  {JOB_URGENCY_OPTIONS.map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      className={`${styles.chip} ${urgency === item ? styles.chipActive : ''}`}
+                      onClick={() => setUrgency(item)}
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <textarea
+                value={additionalDetails}
+                onChange={(e) => setAdditionalDetails(e.target.value)}
+                placeholder="Additional details (optional)"
+                className={styles.textarea}
+                rows={4}
+              />
+              <div className={styles.buttonRow}>
+                <button type="button" onClick={() => setStep(2)} className={styles.primary}>
+                  Continue
+                </button>
+              </div>
+            </div>
           ) : null}
 
-          <select value={scope} onChange={(e) => setScope(e.target.value as (typeof JOB_SCOPE_OPTIONS)[number])} className={styles.select}>
-            <option value="">Select scope</option>
-            {JOB_SCOPE_OPTIONS.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
+          {step === 2 ? (
+            <div className={styles.field}>
+              <h2 className={styles.title}>Location and budget</h2>
+              <p className={styles.sectionLead}>Add your address so local providers can match your request.</p>
+              <EircodeAddressForm value={address} onChange={setAddress} />
+              <div className={styles.field}>
+                <span>
+                  Budget{' '}
+                  <InfoTooltip text="Set an estimated budget. Providers can send custom offers based on scope, urgency, and materials." />
+                </span>
+              </div>
+              <select value={budgetRange} onChange={(e) => setBudgetRange(e.target.value as (typeof JOB_BUDGET_OPTIONS)[number])} className={styles.select}>
+                {JOB_BUDGET_OPTIONS.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+              <div className={styles.buttonRow}>
+                <button type="button" onClick={() => setStep(1)} className={styles.secondary}>
+                  Back
+                </button>
+                <button type="button" onClick={nextFromStep2} className={styles.primary}>
+                  Continue
+                </button>
+              </div>
+            </div>
+          ) : null}
 
-          <select value={urgency} onChange={(e) => setUrgency(e.target.value as (typeof JOB_URGENCY_OPTIONS)[number])} className={styles.select}>
-            <option value="">Select urgency</option>
-            {JOB_URGENCY_OPTIONS.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-
-          <textarea
-            value={additionalDetails}
-            onChange={(e) => setAdditionalDetails(e.target.value)}
-            placeholder="Additional details (optional)"
-            className={styles.textarea}
-            rows={4}
-          />
-          <div className={styles.buttonRow}>
-            <button type="button" onClick={() => setStep(2)} className={styles.primary}>
-              Continue
-            </button>
-          </div>
+          {step === 3 ? (
+            <div className={styles.field}>
+              <h2 className={styles.title}>Add photos and submit</h2>
+              <p className={styles.sectionLead}>Upload optional photos to help providers quote faster.</p>
+              <input className={styles.input} type="file" accept="image/*" multiple onChange={(e) => setPhotos(Array.from(e.target.files || []))} />
+              <div className={styles.buttonRow}>
+                <button type="button" onClick={() => setStep(2)} className={styles.secondary}>
+                  Back
+                </button>
+                <button type="button" onClick={submitJob} disabled={isPending} className={styles.primary}>
+                  {isPending ? 'Submitting...' : 'Create Job Request'}
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
-      ) : null}
-
-      {step === 2 ? (
-        <div className={styles.field}>
-          <h2 className={styles.title}>2) Address and Budget</h2>
-          <EircodeAddressForm value={address} onChange={setAddress} />
-          <div className={styles.field}>
-            <span>
-              Budget{' '}
-              <InfoTooltip text="Set an estimated budget. Providers can send custom offers based on scope, urgency, and materials." />
-            </span>
-          </div>
-          <select value={budgetRange} onChange={(e) => setBudgetRange(e.target.value as (typeof JOB_BUDGET_OPTIONS)[number])} className={styles.select}>
-            {JOB_BUDGET_OPTIONS.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-          <div className={styles.buttonRow}>
-            <button type="button" onClick={() => setStep(1)} className={styles.secondary}>
-              Back
-            </button>
-            <button type="button" onClick={nextFromStep2} className={styles.primary}>
-              Continue
-            </button>
-          </div>
-        </div>
-      ) : null}
-
-      {step === 3 ? (
-        <div className={styles.field}>
-          <h2 className={styles.title}>3) Photo Upload</h2>
-          <input className={styles.input} type="file" accept="image/*" multiple onChange={(e) => setPhotos(Array.from(e.target.files || []))} />
-          <div className={styles.buttonRow}>
-            <button type="button" onClick={() => setStep(2)} className={styles.secondary}>
-              Back
-            </button>
-            <button type="button" onClick={submitJob} disabled={isPending} className={styles.primary}>
-              {isPending ? 'Submitting...' : 'Create Job Request'}
-            </button>
-          </div>
-        </div>
-      ) : null}
+      </div>
     </div>
   );
 }
