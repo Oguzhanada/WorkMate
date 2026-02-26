@@ -9,6 +9,7 @@ import {professionals, services} from '@/lib/marketplace-data';
 import VerifiedNavigationLink from '@/components/site/VerifiedNavigationLink';
 
 import styles from '../inner.module.css';
+import pageStyles from './search-page.module.css';
 
 export default function SearchPage() {
   useLocale();
@@ -103,12 +104,12 @@ export default function SearchPage() {
     <main className={styles.section}>
       <div className={styles.container}>
         <h1>{t('title')}</h1>
-        <p className={styles.muted}>
+        <p className={pageStyles.subtitle}>
           {t('subtitle')} <strong>{query || '-'}</strong>
         </p>
-        <section className={styles.card}>
-          <form onSubmit={onKeywordSearch} className={styles.filterRow}>
-            <label className={styles.field}>
+        <section className={`${styles.card} ${pageStyles.cardShell}`}>
+          <form onSubmit={onKeywordSearch} className={pageStyles.searchRow}>
+            <label className={pageStyles.field}>
               <span>Keyword</span>
               <input
                 value={keyword}
@@ -116,7 +117,7 @@ export default function SearchPage() {
                 placeholder="Search service or provider"
               />
             </label>
-            <label className={styles.field}>
+            <label className={pageStyles.field}>
               <span>{common('city')}</span>
               <select value={cityFilter} onChange={(event) => setCityFilter(event.target.value)}>
                 <option value="">{t('allCities')}</option>
@@ -127,17 +128,17 @@ export default function SearchPage() {
                 ))}
               </select>
             </label>
-            <div className={styles.actions}>
-              <button type="submit" className={styles.primary}>
+            <div className={pageStyles.searchActions}>
+              <button type="submit" className={`${styles.primary} ${pageStyles.searchButton}`}>
                 Find Service
               </button>
             </div>
           </form>
         </section>
-        <section className={styles.card}>
+        <section className={`${styles.card} ${pageStyles.cardShell}`}>
           <h3>{t('filtersTitle')}</h3>
-          <div className={styles.filterRow}>
-            <label className={styles.field}>
+          <div className={pageStyles.filterGrid}>
+            <label className={pageStyles.field}>
               <span>{common('city')}</span>
               <select value={cityFilter} onChange={(event) => setCityFilter(event.target.value)}>
                 <option value="">{t('allCities')}</option>
@@ -148,7 +149,7 @@ export default function SearchPage() {
                 ))}
               </select>
             </label>
-            <label className={styles.field}>
+            <label className={pageStyles.field}>
               <span>{t('maxPrice')}</span>
               <select value={maxPriceFilter} onChange={(event) => setMaxPriceFilter(event.target.value)}>
                 <option value="">{t('allPrices')}</option>
@@ -158,7 +159,7 @@ export default function SearchPage() {
                 <option value="1000">EUR1000</option>
               </select>
             </label>
-            <label className={styles.field}>
+            <label className={pageStyles.field}>
               <span>{t('minRating')}</span>
               <select value={minRatingFilter} onChange={(event) => setMinRatingFilter(event.target.value)}>
                 <option value="">{t('allRatings')}</option>
@@ -171,7 +172,7 @@ export default function SearchPage() {
           </div>
           <button
             type="button"
-            className={styles.secondary}
+            className={`${styles.secondary} ${pageStyles.clearButton}`}
             onClick={() => {
               setCityFilter('');
               setMaxPriceFilter('');
@@ -183,16 +184,16 @@ export default function SearchPage() {
         </section>
 
         {!matchedServices.length && !matchedPros.length ? (
-          <div className={styles.card}>{t('noResults')}</div>
+          <div className={`${styles.card} ${pageStyles.emptyState}`}>{t('noResults')}</div>
         ) : (
-          <div className={styles.resultsGrid}>
+          <div className={pageStyles.resultsGrid}>
             {matchedServices.map((service) => (
-              <article className={styles.resultCard} key={service.slug}>
+              <article className={pageStyles.resultCard} key={service.slug}>
                 <img src={service.heroImage} alt={localizedServiceName(service.slug)} />
-                <div>
+                <div className={pageStyles.cardBody}>
                   <h3>{localizedServiceName(service.slug)}</h3>
-                  <p className={styles.muted}>{service.city}</p>
-                  <Link className={styles.primary} href={`/service/${service.slug}`}>
+                  <p className={pageStyles.meta}>{service.city}</p>
+                  <Link className={`${styles.primary} ${pageStyles.cardAction}`} href={`/service/${service.slug}`}>
                     {common('viewDetails')}
                   </Link>
                 </div>
@@ -200,17 +201,17 @@ export default function SearchPage() {
             ))}
 
             {matchedPros.map((pro) => (
-              <article className={styles.resultCard} key={pro.id}>
+              <article className={pageStyles.resultCard} key={pro.id}>
                 <img src={pro.image} alt={pro.name} />
-                <div>
+                <div className={pageStyles.cardBody}>
                   <h3>{pro.name}</h3>
-                  <p className={styles.muted}>
+                  <p className={pageStyles.meta}>
                     {pro.city} • {pro.rating.toFixed(1)} ({pro.reviews} {common('reviews')})
                   </p>
-                  <p className={styles.muted}>
+                  <p className={pageStyles.meta}>
                     {common('from')} {pro.startingPrice}
                   </p>
-                  <VerifiedNavigationLink className={styles.primary} href={`/post-job?pro=${encodeURIComponent(pro.id)}`}>
+                  <VerifiedNavigationLink className={`${styles.primary} ${pageStyles.cardAction}`} href={`/post-job?pro=${encodeURIComponent(pro.id)}`}>
                     {common('requestQuote')}
                   </VerifiedNavigationLink>
                 </div>
