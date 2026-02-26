@@ -128,11 +128,22 @@ export default function Navbar() {
     setIsAuthenticated(false);
     setHasAdminRole(false);
     setHasProviderRole(false);
+    const clearSupabaseCookies = () => {
+      if (typeof document === 'undefined') return;
+      const cookies = document.cookie.split(';');
+      for (const rawCookie of cookies) {
+        const cookieName = rawCookie.split('=')[0]?.trim();
+        if (!cookieName || !cookieName.startsWith('sb-')) continue;
+        document.cookie = `${cookieName}=; Max-Age=0; path=/;`;
+      }
+    };
     try {
+      await fetch('/api/auth/logout', {method: 'POST'});
       await supabase.auth.signOut({scope: 'global'});
     } catch {
       // fallback redirect below will force fresh auth state
     }
+    clearSupabaseCookies();
     const target = withLocalePrefix(localeRoot, '/login');
     router.replace(target);
     router.refresh();
