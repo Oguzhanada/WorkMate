@@ -9,3 +9,5 @@ marketplace/.env.*
 !marketplace/.env.example
 marketplace/node_modules/
 marketplace/.next/
+marketplace/tsconfig.tsbuildinfo
+marketplace/supabase/.temp/

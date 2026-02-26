@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { claimGuestJobIntentSchema } from '@/lib/validation/api';
-import { canPostJobWithIdentity, getUserRoles } from '@/lib/auth/rbac';
+import { canPostJob, getUserRoles, isIdVerified } from '@/lib/auth/rbac';
 
 export async function POST(request: NextRequest) {
   const routeClient = await getSupabaseRouteClient();
@@ -22,9 +22,10 @@ export async function POST(request: NextRequest) {
     .eq('id', user.id)
     .maybeSingle();
 
-  if (!canPostJobWithIdentity(roles, profile?.id_verification_status)) {
+  if (!canPostJob(roles)) {
     return NextResponse.json({ error: 'Only customers can claim guest jobs' }, { status: 403 });
   }
+  const customerIsVerified = isIdVerified(profile?.id_verification_status);
 
   let rawBody: unknown;
   try {
@@ -95,6 +96,9 @@ export async function POST(request: NextRequest) {
       budget_range: intent.budget_range,
       photo_urls: intent.photo_urls ?? [],
       status: 'open',
+      requires_verified_id: customerIsVerified,
+      created_by_verified_id: customerIsVerified,
+      job_visibility_tier: customerIsVerified ? 'verified_tier' : 'basic',
       review_status: 'pending_review',
     })
     .select('id')

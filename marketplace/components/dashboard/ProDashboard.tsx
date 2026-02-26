@@ -13,6 +13,8 @@ type Profile = {
   id: string;
   is_verified: boolean;
   verification_status: string;
+  id_verification_status?: string | null;
+  provider_matching_priority?: number;
   created_at?: string;
 };
 
@@ -77,6 +79,7 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
   const [leadFilter, setLeadFilter] = useState<'all' | 'saved'>('all');
   const [documents, setDocuments] = useState<ProviderDocument[]>([]);
   const [completedAssignedJobs, setCompletedAssignedJobs] = useState<CompletedAssignedJob[]>([]);
+  const [quotesUsedToday, setQuotesUsedToday] = useState(0);
 
   const loadDashboardData = async () => {
     const [
@@ -87,8 +90,13 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
       { data: proAreasData },
       { data: leadActionData },
       { data: docsData },
+      { data: limitsData },
     ] = await Promise.all([
-      supabase.from('profiles').select('id,is_verified,verification_status,created_at').eq('id', profileId).single(),
+      supabase
+        .from('profiles')
+        .select('id,is_verified,verification_status,id_verification_status,provider_matching_priority,created_at')
+        .eq('id', profileId)
+        .single(),
       supabase.from('quotes').select('id,job_id').eq('pro_id', profileId),
       supabase
         .from('notifications')
@@ -105,6 +113,12 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
         .select('id,document_type,verification_status,expires_at,rejection_reason,created_at')
         .eq('profile_id', profileId)
         .order('created_at', { ascending: false }),
+      supabase
+        .from('quote_daily_limits')
+        .select('used_count')
+        .eq('profile_id', profileId)
+        .eq('quote_date', new Date().toISOString().slice(0, 10))
+        .maybeSingle(),
     ]);
 
     const categories = (proServicesData ?? []).map((row: { category_id: string }) => row.category_id);
@@ -112,19 +126,27 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
     setServiceCategoryIds(categories);
     setServiceAreas(counties);
 
+    const providerIsIdVerified = (profileData as Profile | null)?.id_verification_status === 'approved';
     let jobsData: JobLead[] | null = [];
     if (categories.length > 0 && counties.length > 0) {
+      const countyScope = counties.filter((county) => county !== 'Ireland-wide');
       let jobsQuery = supabase
         .from('jobs')
-        .select('id,customer_id,title,category,category_id,description,eircode,county,budget_range,created_at')
+        .select('id,customer_id,title,category,category_id,description,eircode,county,budget_range,created_at,job_visibility_tier')
         .eq('status', 'open')
         .eq('review_status', 'approved')
         .in('category_id', categories)
         .order('created_at', { ascending: false })
-        .limit(30);
+        .limit(providerIsIdVerified ? 30 : 10);
 
-      if (!counties.includes('Ireland-wide')) {
-        jobsQuery = jobsQuery.in('county', counties);
+      if (providerIsIdVerified) {
+        if (!counties.includes('Ireland-wide')) {
+          jobsQuery = jobsQuery.in('county', counties);
+        }
+      } else {
+        jobsQuery = jobsQuery
+          .eq('job_visibility_tier', 'basic')
+          .in('county', countyScope.length > 0 ? countyScope : ['__no_county__']);
       }
 
       const result = await jobsQuery;
@@ -147,6 +169,7 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
     setQuoteIdByJobId(new Map((quoteData ?? []).map((item: { id: string; job_id: string }) => [item.job_id, item.id])));
     setNotifications((notificationsData as Notification[] | null) ?? []);
     setDocuments((docsData as ProviderDocument[] | null) ?? []);
+    setQuotesUsedToday((limitsData as { used_count: number } | null)?.used_count ?? 0);
 
     const acceptedQuoteIds = (quoteData ?? []).map((row: { id: string }) => row.id);
     if (acceptedQuoteIds.length > 0) {
@@ -260,7 +283,14 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
     }
 
     setQuotedJobIds((current) => new Set(current).add(jobId));
-    setFeedback('Quote submitted successfully.');
+    if (typeof payload.remaining_quotes_today === 'number') {
+      setQuotesUsedToday(3 - payload.remaining_quotes_today);
+      setFeedback(
+        `Quote submitted. ${payload.remaining_quotes_today} basic-tier quote(s) remaining today. Verify your ID for unlimited quotes.`
+      );
+    } else {
+      setFeedback('Quote submitted successfully.');
+    }
   };
 
   if (!profile?.is_verified) {
@@ -280,6 +310,8 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
   const createdAt = profile?.created_at ? new Date(profile.created_at).getTime() : Date.now();
   const monthsSinceSignup = Math.floor((Date.now() - createdAt) / (30 * 24 * 60 * 60 * 1000));
   const commissionRate = monthsSinceSignup < 6 ? 0 : 0.07;
+  const providerIsIdVerified = profile?.id_verification_status === 'approved';
+  const basicQuotesRemaining = Math.max(0, 3 - quotesUsedToday);
   const visibleLeads = leads.filter((job) => {
     if (leadFilter === 'saved') {
       return leadActionsByJob.get(job.id) === 'saved';
@@ -295,6 +327,24 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
         Matching leads are listed here. You can submit one quote per listing.
       </p>
       <ProviderDocumentStatusCards documents={documents} />
+      {!providerIsIdVerified ? (
+        <div className={styles.notice}>
+          <p className={styles.title}>Unlock More Opportunities</p>
+          <p className={styles.meta}>
+            Current limits: county-only leads, basic-tier jobs, max 3 quotes/day.
+          </p>
+          <p className={styles.meta}>
+            Verify your ID to unlock Ireland-wide leads, unlimited quotes, priority matching, and the Verified Pro badge.
+          </p>
+          <p className={styles.meta}>Today: {quotesUsedToday} / 3 quotes used • {basicQuotesRemaining} remaining.</p>
+          <button
+            className={styles.primary}
+            onClick={() => (window.location.href = '/profile?message=identity_upgrade')}
+          >
+            Verify now
+          </button>
+        </div>
+      ) : null}
       {notifications.length > 0 ? (
         <div className={styles.notice}>
           <p className={styles.title}>New notifications</p>
@@ -326,7 +376,8 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
           First 6 months commission: 0%. After that: default {Math.round(commissionRate * 100)}% (target range 5%-10%).
         </p>
         <p className={styles.meta}>
-          Active leads: {leads.length} • Submitted quotes: {quotedJobIds.size}
+          Active leads: {leads.length} • Submitted quotes: {quotedJobIds.size} • Priority score:{' '}
+          {profile?.provider_matching_priority ?? 1}
         </p>
         <p className={styles.meta}>
           Submitting quotes is free. Commission is charged only when work is won.

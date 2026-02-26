@@ -53,31 +53,40 @@ export default function Navbar() {
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
+    let active = true;
 
     const loadAuthState = async () => {
-      setLoadingAuth(true);
-      const {data: userData} = await supabase.auth.getUser();
-      const user = userData.user;
+      try {
+        setLoadingAuth(true);
+        const {data: userData} = await supabase.auth.getUser();
+        const user = userData?.user ?? null;
+        if (!active) return;
 
-      if (!user) {
+        if (!user) {
+          setIsAuthenticated(false);
+          setHasAdminRole(false);
+          setHasProviderRole(false);
+          return;
+        }
+
+        setIsAuthenticated(true);
+
+        const {data: roles} = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id);
+
+        if (!active) return;
+        const roleList = (roles ?? []).map((item) => item.role);
+        setHasAdminRole(roleList.includes('admin'));
+        setHasProviderRole(roleList.includes('verified_pro'));
+      } catch {
         setIsAuthenticated(false);
         setHasAdminRole(false);
         setHasProviderRole(false);
-        setLoadingAuth(false);
-        return;
+      } finally {
+        if (active) setLoadingAuth(false);
       }
-
-      setIsAuthenticated(true);
-
-      const {data: roles} = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id);
-
-      const roleList = (roles ?? []).map((item) => item.role);
-      setHasAdminRole(roleList.includes('admin'));
-      setHasProviderRole(roleList.includes('verified_pro'));
-      setLoadingAuth(false);
     };
 
     loadAuthState();
@@ -105,7 +114,10 @@ export default function Navbar() {
       setLoadingAuth(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleLogout = async () => {

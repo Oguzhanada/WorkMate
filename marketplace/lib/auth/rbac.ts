@@ -18,11 +18,15 @@ export function canQuote(roles: AppRole[]) {
 }
 
 export function canPostJobWithIdentity(roles: AppRole[], idVerificationStatus?: string | null) {
-  return canPostJob(roles) && idVerificationStatus === 'approved';
+  return canPostJob(roles);
 }
 
 export function canQuoteJob(roles: AppRole[], idVerificationStatus?: string | null) {
-  return canQuote(roles) && idVerificationStatus === 'approved';
+  return canQuote(roles);
+}
+
+export function isIdVerified(idVerificationStatus?: string | null) {
+  return idVerificationStatus === 'approved';
 }
 
 export function canAccessProDashboard(roles: AppRole[]) {

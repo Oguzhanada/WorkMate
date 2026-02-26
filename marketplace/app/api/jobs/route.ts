@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
-import { canPostJob, canPostJobWithIdentity, getUserRoles } from '@/lib/auth/rbac';
+import { canPostJob, getUserRoles, isIdVerified } from '@/lib/auth/rbac';
 import { isValidEircode, normalizeEircode } from '@/lib/eircode';
 import { createJobSchema } from '@/lib/validation/api';
 
@@ -26,13 +26,7 @@ export async function POST(request: NextRequest) {
     .select('id,id_verification_status')
     .eq('id', user.id)
     .maybeSingle();
-
-  if (!canPostJobWithIdentity(roles, profile?.id_verification_status)) {
-    return NextResponse.json(
-      { error: 'identity_required', redirect_to: '/profile?message=identity_required' },
-      { status: 403 }
-    );
-  }
+  const customerIsVerified = isIdVerified(profile?.id_verification_status);
 
   let rawBody: unknown;
   try {
@@ -78,7 +72,9 @@ export async function POST(request: NextRequest) {
     locality: body.locality,
     budget_range: body.budget_range,
     photo_urls: body.photo_urls,
-    requires_verified_id: true,
+    requires_verified_id: customerIsVerified,
+    created_by_verified_id: customerIsVerified,
+    job_visibility_tier: customerIsVerified ? 'verified_tier' : 'basic',
     review_status: 'pending_review',
   }).select('*').single();
 
@@ -105,5 +101,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  return NextResponse.json({ job: data }, { status: 201 });
+  return NextResponse.json(
+    {
+      job: data,
+      customer_verification_status: customerIsVerified ? 'approved' : profile?.id_verification_status ?? 'none',
+      upgrade_message: customerIsVerified
+        ? null
+        : 'Verify your ID to increase trust and unlock higher-priority matching.'
+    },
+    { status: 201 }
+  );
 }

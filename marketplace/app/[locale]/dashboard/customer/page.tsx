@@ -70,8 +70,19 @@ export default async function CustomerDashboardPage({
   const proIds = Array.from(new Set((quotes ?? []).map((quote) => quote.pro_id)));
   const { data: pros } =
     proIds.length > 0
-      ? await supabase.from('profiles').select('id,full_name,stripe_account_id').in('id', proIds)
-      : { data: [] as Array<{ id: string; full_name: string | null; stripe_account_id: string | null }> };
+      ? await supabase
+          .from('profiles')
+          .select('id,full_name,stripe_account_id,id_verification_status,provider_matching_priority')
+          .in('id', proIds)
+      : {
+          data: [] as Array<{
+            id: string;
+            full_name: string | null;
+            stripe_account_id: string | null;
+            id_verification_status: string | null;
+            provider_matching_priority: number | null;
+          }>
+        };
 
   const { data: proReviews } =
     proIds.length > 0
@@ -80,6 +91,8 @@ export default async function CustomerDashboardPage({
 
   const proNameById = new Map((pros ?? []).map((pro) => [pro.id, pro.full_name ?? 'Professional']));
   const stripeAccountByProId = new Map((pros ?? []).map((pro) => [pro.id, pro.stripe_account_id]));
+  const proVerificationById = new Map((pros ?? []).map((pro) => [pro.id, pro.id_verification_status ?? 'none']));
+  const proPriorityById = new Map((pros ?? []).map((pro) => [pro.id, pro.provider_matching_priority ?? 1]));
 
   const { data: payments } =
     jobIds.length > 0
@@ -151,6 +164,17 @@ export default async function CustomerDashboardPage({
       created_at: quote.created_at,
     });
     quotesByJob.set(quote.job_id, arr);
+  }
+  for (const [jobId, quoteList] of quotesByJob.entries()) {
+    quotesByJob.set(
+      jobId,
+      quoteList.sort((left, right) => {
+        const rightPriority = proPriorityById.get(right.pro_id) ?? 1;
+        const leftPriority = proPriorityById.get(left.pro_id) ?? 1;
+        if (rightPriority !== leftPriority) return rightPriority - leftPriority;
+        return new Date(right.created_at).getTime() - new Date(left.created_at).getTime();
+      })
+    );
   }
 
   const statusCounts = new Map<string, number>();
@@ -263,6 +287,11 @@ export default async function CustomerDashboardPage({
                     return (
                       <div key={quote.id} className={styles.card}>
                         <p><strong>{proNameById.get(quote.pro_id) ?? 'Professional'}</strong></p>
+                        {(proVerificationById.get(quote.pro_id) ?? 'none') === 'approved' ? (
+                          <p className={styles.verifiedBadge}>✅ Verified Pro</p>
+                        ) : (
+                          <p className={styles.unverifiedBadge}>⚠️ Unverified</p>
+                        )}
                         <p className={styles.muted}>
                           Rating: {stats.count > 0 ? `${stats.avg.toFixed(1)} / 5 (${stats.count} reviews)` : 'No reviews yet'}
                         </p>
@@ -279,6 +308,11 @@ export default async function CustomerDashboardPage({
                         <p className={styles.muted}>Included: {(quote.includes ?? []).join(', ') || '-'}</p>
                         <p className={styles.muted}>Excluded: {(quote.excludes ?? []).join(', ') || '-'}</p>
                         {quote.message ? <p className={styles.muted}>Message: {quote.message}</p> : null}
+                        {(proVerificationById.get(quote.pro_id) ?? 'none') !== 'approved' ? (
+                          <p className={styles.error}>
+                            This provider has not completed ID verification yet. For additional safety, verified providers are recommended.
+                          </p>
+                        ) : null}
                         <QuoteActions
                           jobId={job.id}
                           jobStatus={job.status}
