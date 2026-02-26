@@ -40,6 +40,7 @@ export default function Navbar() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [hasAdminRole, setHasAdminRole] = useState(false);
   const [hasProviderRole, setHasProviderRole] = useState(false);
+  const [profileName, setProfileName] = useState('');
 
   const localeRoot = useMemo(() => getLocaleRoot(pathname), [pathname]);
   const isHome = pathname === localeRoot || pathname === `${localeRoot}/`;
@@ -66,25 +67,28 @@ export default function Navbar() {
           setIsAuthenticated(false);
           setHasAdminRole(false);
           setHasProviderRole(false);
+          setProfileName('');
           return;
         }
 
         setIsAuthenticated(true);
         setLoadingAuth(false);
 
-        const {data: roles} = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', sessionUser.id);
+        const [{data: roles}, {data: profile}] = await Promise.all([
+          supabase.from('user_roles').select('role').eq('user_id', sessionUser.id),
+          supabase.from('profiles').select('full_name').eq('id', sessionUser.id).maybeSingle()
+        ]);
 
         if (!active) return;
         const roleList = (roles ?? []).map((item) => item.role);
         setHasAdminRole(roleList.includes('admin'));
         setHasProviderRole(roleList.includes('verified_pro'));
+        setProfileName(profile?.full_name?.trim() || '');
       } catch {
         setIsAuthenticated(false);
         setHasAdminRole(false);
         setHasProviderRole(false);
+        setProfileName('');
       } finally {
         if (active) setLoadingAuth(false);
       }
@@ -99,20 +103,22 @@ export default function Navbar() {
         setIsAuthenticated(false);
         setHasAdminRole(false);
         setHasProviderRole(false);
+        setProfileName('');
         setLoadingAuth(false);
         return;
       }
 
       setIsAuthenticated(true);
       setLoadingAuth(false);
-      const {data: roles} = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', session.user.id);
+      const [{data: roles}, {data: profile}] = await Promise.all([
+        supabase.from('user_roles').select('role').eq('user_id', session.user.id),
+        supabase.from('profiles').select('full_name').eq('id', session.user.id).maybeSingle()
+      ]);
 
       const roleList = (roles ?? []).map((item) => item.role);
       setHasAdminRole(roleList.includes('admin'));
       setHasProviderRole(roleList.includes('verified_pro'));
+      setProfileName(profile?.full_name?.trim() || '');
       setLoadingAuth(false);
     });
 
@@ -128,6 +134,7 @@ export default function Navbar() {
     setIsAuthenticated(false);
     setHasAdminRole(false);
     setHasProviderRole(false);
+    setProfileName('');
     setLoadingAuth(false);
     const clearSupabaseCookies = () => {
       if (typeof document === 'undefined') return;
@@ -243,7 +250,7 @@ export default function Navbar() {
                 href={withLocalePrefix(localeRoot, '/profile')}
                 className="rounded-xl border border-[#D1D5DB] px-4 py-2 text-sm font-semibold text-[#1F2937] transition hover:border-[#00B894] hover:text-[#00B894]"
               >
-                Profile
+                {profileName || 'Profile'}
               </Link>
               <Link
                 href={dashboardHref}
@@ -342,7 +349,7 @@ export default function Navbar() {
                     onClick={() => setMobileOpen(false)}
                     className="rounded-lg border border-[#D1D5DB] px-3 py-2 text-center text-sm font-semibold"
                   >
-                    Profile
+                    {profileName || 'Profile'}
                   </Link>
                   <Link
                     href={dashboardHref}
