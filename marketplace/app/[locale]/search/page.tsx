@@ -176,17 +176,6 @@ export default function SearchPage() {
           <h3>{t('filtersTitle')}</h3>
           <div className={pageStyles.filterGrid}>
             <label className={pageStyles.field}>
-              <span>{common('city')}</span>
-              <select value={cityFilter} onChange={(event) => setCityFilter(event.target.value)}>
-                <option value="">{t('allCities')}</option>
-                {allCities.map((city) => (
-                  <option key={city} value={city}>
-                    {city}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className={pageStyles.field}>
               <span>{t('maxPrice')}</span>
               <select value={maxPriceFilter} onChange={(event) => setMaxPriceFilter(event.target.value)}>
                 <option value="">{t('allPrices')}</option>
@@ -211,7 +200,6 @@ export default function SearchPage() {
             type="button"
             className={`${styles.secondary} ${pageStyles.clearButton}`}
             onClick={() => {
-              setCityFilter('');
               setMaxPriceFilter('');
               setMinRatingFilter('');
             }}
