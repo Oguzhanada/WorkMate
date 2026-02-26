@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import {usePathname, useRouter, useSearchParams} from 'next/navigation';
 import {FormEvent, useEffect, useMemo, useState} from 'react';
-import {useLocale, useTranslations} from 'next-intl';
+import {useTranslations} from 'next-intl';
 
 import {professionals, services} from '@/lib/marketplace-data';
 import VerifiedNavigationLink from '@/components/site/VerifiedNavigationLink';
@@ -13,7 +13,6 @@ import styles from '../inner.module.css';
 import pageStyles from './search-page.module.css';
 
 export default function SearchPage() {
-  useLocale();
   const router = useRouter();
   const pathname = usePathname();
   const t = useTranslations('search');
@@ -22,15 +21,20 @@ export default function SearchPage() {
   const params = useSearchParams();
   const initialQuery = (params.get('q') ?? '').trim();
   const countyParam = (params.get('county') ?? '').trim();
+  const modeParam = (params.get('mode') ?? 'services').trim().toLowerCase();
   const query = initialQuery.toLowerCase();
+  const initialMode = modeParam === 'providers' ? 'providers' : 'services';
   const [keyword, setKeyword] = useState(initialQuery);
   const [cityFilter, setCityFilter] = useState(countyParam);
+  const [mode, setMode] = useState<'services' | 'providers'>(initialMode);
   const [maxPriceFilter, setMaxPriceFilter] = useState('');
   const [minRatingFilter, setMinRatingFilter] = useState('');
 
   useEffect(() => {
     setKeyword((params.get('q') ?? '').trim());
     setCityFilter((params.get('county') ?? '').trim());
+    const nextMode = (params.get('mode') ?? 'services').trim().toLowerCase();
+    setMode(nextMode === 'providers' ? 'providers' : 'services');
   }, [params]);
 
   const allCities = useMemo(() => {
@@ -102,6 +106,18 @@ export default function SearchPage() {
     else nextParams.delete('q');
     if (cityFilter) nextParams.set('county', cityFilter);
     else nextParams.delete('county');
+    nextParams.set('mode', mode);
+    router.push(`${pathname}?${nextParams.toString()}`);
+  };
+
+  const onModeChange = (nextMode: 'services' | 'providers') => {
+    setMode(nextMode);
+    const nextParams = new URLSearchParams(params.toString());
+    nextParams.set('mode', nextMode);
+    if (keyword.trim()) nextParams.set('q', keyword.trim());
+    else nextParams.delete('q');
+    if (cityFilter) nextParams.set('county', cityFilter);
+    else nextParams.delete('county');
     router.push(`${pathname}?${nextParams.toString()}`);
   };
 
@@ -112,6 +128,22 @@ export default function SearchPage() {
         <p className={pageStyles.subtitle}>
           {t('subtitle')} <strong>{query || '-'}</strong>
         </p>
+        <section className={pageStyles.modeToggle}>
+          <button
+            type="button"
+            onClick={() => onModeChange('services')}
+            className={`${pageStyles.modeButton} ${mode === 'services' ? pageStyles.modeButtonActive : ''}`}
+          >
+            Services
+          </button>
+          <button
+            type="button"
+            onClick={() => onModeChange('providers')}
+            className={`${pageStyles.modeButton} ${mode === 'providers' ? pageStyles.modeButtonActive : ''}`}
+          >
+            Providers
+          </button>
+        </section>
         <section className={`${styles.card} ${pageStyles.cardShell}`}>
           <form onSubmit={onKeywordSearch} className={pageStyles.searchRow}>
             <label className={pageStyles.field}>
@@ -191,37 +223,87 @@ export default function SearchPage() {
         {!matchedServices.length && !matchedPros.length ? (
           <div className={`${styles.card} ${pageStyles.emptyState}`}>{t('noResults')}</div>
         ) : (
-          <div className={pageStyles.resultsGrid}>
-            {matchedServices.map((service) => (
-              <article className={pageStyles.resultCard} key={service.slug}>
-                <img src={service.heroImage} alt={localizedServiceName(service.slug)} />
-                <div className={pageStyles.cardBody}>
-                  <h3>{localizedServiceName(service.slug)}</h3>
-                  <p className={pageStyles.meta}>{service.city}</p>
-                  <Link className={`${styles.primary} ${pageStyles.cardAction}`} href={`/service/${service.slug}`}>
-                    {common('viewDetails')}
-                  </Link>
-                </div>
-              </article>
-            ))}
-
-            {matchedPros.map((pro) => (
-              <article className={pageStyles.resultCard} key={pro.id}>
-                <img src={pro.image} alt={pro.name} />
-                <div className={pageStyles.cardBody}>
-                  <h3>{pro.name}</h3>
-                  <p className={pageStyles.meta}>
-                    {pro.city} • {pro.rating.toFixed(1)} ({pro.reviews} {common('reviews')})
-                  </p>
-                  <p className={pageStyles.meta}>
-                    {common('from')} {pro.startingPrice}
-                  </p>
-                  <VerifiedNavigationLink className={`${styles.primary} ${pageStyles.cardAction}`} href={`/post-job?pro=${encodeURIComponent(pro.id)}`}>
-                    {common('requestQuote')}
-                  </VerifiedNavigationLink>
-                </div>
-              </article>
-            ))}
+          <div className={pageStyles.resultsWrap}>
+            <section>
+              <h2 className={pageStyles.sectionTitle}>
+                {mode === 'services' ? 'Matching services' : 'Matching providers'}
+              </h2>
+              <div className={pageStyles.resultsGrid}>
+                {mode === 'services'
+                  ? matchedServices.map((service) => (
+                      <article className={pageStyles.resultCard} key={service.slug}>
+                        <img src={service.heroImage} alt={localizedServiceName(service.slug)} />
+                        <div className={pageStyles.cardBody}>
+                          <h3>{localizedServiceName(service.slug)}</h3>
+                          <p className={pageStyles.meta}>{service.city}</p>
+                          <Link className={`${styles.primary} ${pageStyles.cardAction}`} href={`/service/${service.slug}`}>
+                            {common('viewDetails')}
+                          </Link>
+                        </div>
+                      </article>
+                    ))
+                  : matchedPros.map((pro) => (
+                      <article className={pageStyles.resultCard} key={pro.id}>
+                        <img src={pro.image} alt={pro.name} />
+                        <div className={pageStyles.cardBody}>
+                          <h3>{pro.name}</h3>
+                          <p className={pageStyles.meta}>
+                            {pro.city} • {pro.rating.toFixed(1)} ({pro.reviews} {common('reviews')})
+                          </p>
+                          <p className={pageStyles.meta}>
+                            {common('from')} {pro.startingPrice}
+                          </p>
+                          <VerifiedNavigationLink
+                            className={`${styles.primary} ${pageStyles.cardAction}`}
+                            href={`/post-job?pro=${encodeURIComponent(pro.id)}`}
+                          >
+                            {common('requestQuote')}
+                          </VerifiedNavigationLink>
+                        </div>
+                      </article>
+                    ))}
+              </div>
+            </section>
+            <section>
+              <h3 className={pageStyles.secondaryTitle}>
+                {mode === 'services' ? 'Related providers' : 'Related services'}
+              </h3>
+              <div className={pageStyles.resultsGrid}>
+                {mode === 'services'
+                  ? matchedPros.slice(0, 6).map((pro) => (
+                      <article className={pageStyles.resultCard} key={pro.id}>
+                        <img src={pro.image} alt={pro.name} />
+                        <div className={pageStyles.cardBody}>
+                          <h3>{pro.name}</h3>
+                          <p className={pageStyles.meta}>
+                            {pro.city} • {pro.rating.toFixed(1)} ({pro.reviews} {common('reviews')})
+                          </p>
+                          <p className={pageStyles.meta}>
+                            {common('from')} {pro.startingPrice}
+                          </p>
+                          <VerifiedNavigationLink
+                            className={`${styles.secondary} ${pageStyles.cardAction}`}
+                            href={`/post-job?pro=${encodeURIComponent(pro.id)}`}
+                          >
+                            {common('requestQuote')}
+                          </VerifiedNavigationLink>
+                        </div>
+                      </article>
+                    ))
+                  : matchedServices.slice(0, 6).map((service) => (
+                      <article className={pageStyles.resultCard} key={service.slug}>
+                        <img src={service.heroImage} alt={localizedServiceName(service.slug)} />
+                        <div className={pageStyles.cardBody}>
+                          <h3>{localizedServiceName(service.slug)}</h3>
+                          <p className={pageStyles.meta}>{service.city}</p>
+                          <Link className={`${styles.secondary} ${pageStyles.cardAction}`} href={`/service/${service.slug}`}>
+                            {common('viewDetails')}
+                          </Link>
+                        </div>
+                      </article>
+                    ))}
+              </div>
+            </section>
           </div>
         )}
       </div>

@@ -48,7 +48,7 @@ const stats = [
   {value: 100, suffix: '%', label: 'Secure Payments', icon: CircleDollarSign}
 ];
 
-const serviceSuggestions = [
+const fallbackServiceSuggestions = [
   'Home Cleaning',
   'Deep Cleaning',
   'Office Cleaning',
@@ -95,6 +95,29 @@ export default function HeroSection() {
   const [county, setCounty] = useState('Dublin');
   const [serviceQuery, setServiceQuery] = useState('');
   const [suggestOpen, setSuggestOpen] = useState(false);
+  const [serviceSuggestions, setServiceSuggestions] = useState<string[]>(fallbackServiceSuggestions);
+
+  useEffect(() => {
+    const loadSuggestions = async () => {
+      try {
+        const response = await fetch('/api/categories', {cache: 'no-store'});
+        if (!response.ok) return;
+        const payload = (await response.json()) as {
+          categories?: Array<{name?: string; parent_id?: string | null}>;
+        };
+        const names = (payload.categories ?? [])
+          .filter((item) => item.parent_id !== null)
+          .map((item) => item.name?.trim() ?? '')
+          .filter(Boolean);
+        if (names.length > 0) {
+          setServiceSuggestions(Array.from(new Set(names)).slice(0, 20));
+        }
+      } catch {
+        // Keep fallback suggestions when categories endpoint is unavailable.
+      }
+    };
+    loadSuggestions();
+  }, []);
 
   const filteredSuggestions = serviceSuggestions
     .filter((item) => item.toLowerCase().includes(serviceQuery.trim().toLowerCase()))
