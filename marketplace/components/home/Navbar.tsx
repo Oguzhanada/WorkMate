@@ -124,10 +124,21 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     const supabase = getSupabaseBrowserClient();
-    await supabase.auth.signOut();
     setMobileOpen(false);
-    router.push(localeRoot);
+    setIsAuthenticated(false);
+    setHasAdminRole(false);
+    setHasProviderRole(false);
+    try {
+      await supabase.auth.signOut({scope: 'global'});
+    } catch {
+      // fallback redirect below will force fresh auth state
+    }
+    const target = withLocalePrefix(localeRoot, '/login');
+    router.replace(target);
     router.refresh();
+    window.setTimeout(() => {
+      window.location.assign(target);
+    }, 120);
   };
 
   const handleHashLink = (hash: string) => {
