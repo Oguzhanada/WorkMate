@@ -31,6 +31,19 @@ const cardVariants = {
   })
 };
 
+const CITY_COORDINATES: Record<string, {x: number; y: number}> = {
+  Dublin: {x: 78, y: 68},
+  Cork: {x: 35, y: 80},
+  Galway: {x: 24, y: 52},
+  Limerick: {x: 32, y: 63},
+  Waterford: {x: 57, y: 78},
+  Kilkenny: {x: 62, y: 74},
+  Wexford: {x: 70, y: 80},
+  Sligo: {x: 28, y: 38},
+  Athlone: {x: 46, y: 54},
+  Drogheda: {x: 73, y: 58}
+};
+
 export default function SearchPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -167,6 +180,34 @@ export default function SearchPage() {
 
   const primaryCount = mode === 'services' ? matchedServices.length : matchedPros.length;
   const secondaryCount = mode === 'services' ? matchedPros.length : matchedServices.length;
+  const [selectedPinId, setSelectedPinId] = useState<string>('');
+
+  const mapPins = useMemo(() => {
+    if (mode === 'services') {
+      return matchedServices.map((service) => ({
+        id: service.slug,
+        label: localizedServiceName(service.slug),
+        city: service.city,
+        meta: service.priceRange
+      }));
+    }
+    return matchedPros.map((provider) => ({
+      id: provider.id,
+      label: provider.name,
+      city: provider.city,
+      meta: `${provider.rating.toFixed(1)} (${provider.reviews} reviews)`
+    }));
+  }, [mode, matchedPros, matchedServices]);
+
+  useEffect(() => {
+    if (mapPins.length === 0) {
+      setSelectedPinId('');
+      return;
+    }
+    if (!mapPins.some((pin) => pin.id === selectedPinId)) {
+      setSelectedPinId(mapPins[0].id);
+    }
+  }, [mapPins, selectedPinId]);
 
   const filterControls = (footerAction?: ReactNode) => (
     <>
@@ -282,7 +323,7 @@ export default function SearchPage() {
             </label>
             <div className={pageStyles.searchActions}>
               <button type="submit" className={`${styles.primary} ${pageStyles.searchButton}`}>
-                Find Service
+                {mode === 'services' ? 'Find Service' : 'Find Provider'}
               </button>
             </div>
           </form>
@@ -342,128 +383,170 @@ export default function SearchPage() {
         {!matchedServices.length && !matchedPros.length ? (
           <div className={`${styles.card} ${pageStyles.emptyState}`}>{t('noResults')}</div>
         ) : (
-          <div className={pageStyles.resultsWrap}>
-            <section>
-              <h2 className={pageStyles.sectionTitle}>
-                {mode === 'services' ? 'Matching services' : 'Matching providers'}
-                <motion.span
-                  key={`${mode}-${primaryCount}`}
-                  initial={prefersReducedMotion ? false : {opacity: 0, y: -4}}
-                  animate={prefersReducedMotion ? undefined : {opacity: 1, y: 0}}
-                  className={pageStyles.resultCount}
-                >
-                  {primaryCount}
-                </motion.span>
-              </h2>
-              {isRefreshing ? <p className={pageStyles.refreshLabel}>Updating results...</p> : null}
-              {isRefreshing ? (
-                <div className={pageStyles.resultsGrid} aria-label="Loading results">
-                  {[1, 2, 3].map((item) => (
-                    <div key={item} className={pageStyles.resultSkeleton} />
-                  ))}
+          <div className={pageStyles.explorerLayout}>
+            <div className={pageStyles.resultsWrap}>
+              <section>
+                <h2 className={pageStyles.sectionTitle}>
+                  {mode === 'services' ? 'Matching services' : 'Matching providers'}
+                  <motion.span
+                    key={`${mode}-${primaryCount}`}
+                    initial={prefersReducedMotion ? false : {opacity: 0, y: -4}}
+                    animate={prefersReducedMotion ? undefined : {opacity: 1, y: 0}}
+                    className={pageStyles.resultCount}
+                  >
+                    {primaryCount}
+                  </motion.span>
+                </h2>
+                {isRefreshing ? <p className={pageStyles.refreshLabel}>Updating results...</p> : null}
+                {isRefreshing ? (
+                  <div className={pageStyles.resultsGrid} aria-label="Loading results">
+                    {[1, 2, 3].map((item) => (
+                      <div key={item} className={pageStyles.resultSkeleton} />
+                    ))}
+                  </div>
+                ) : (
+                  <motion.div
+                    key={`${mode}-${query}-${cityFilter}-${maxPriceFilter}-${minRatingFilter}`}
+                    className={pageStyles.resultsGrid}
+                    initial={prefersReducedMotion ? false : 'hidden'}
+                    animate={prefersReducedMotion ? undefined : 'visible'}
+                  >
+                  {mode === 'services'
+                    ? matchedServices.map((service, index) => (
+                        <motion.article
+                          className={pageStyles.resultCard}
+                          key={service.slug}
+                          variants={cardVariants}
+                          initial={prefersReducedMotion ? false : 'hidden'}
+                          animate={prefersReducedMotion ? undefined : 'visible'}
+                          custom={index}
+                          whileHover={prefersReducedMotion ? undefined : {y: -4}}
+                          viewport={{once: true, amount: 0.2}}
+                        >
+                          <img src={service.heroImage} alt={localizedServiceName(service.slug)} />
+                          <div className={pageStyles.cardBody}>
+                            <h3>{localizedServiceName(service.slug)}</h3>
+                            <p className={pageStyles.meta}>{service.city}</p>
+                            <Link className={`${styles.primary} ${pageStyles.cardAction}`} href={`/service/${service.slug}`}>
+                              {common('viewDetails')}
+                            </Link>
+                          </div>
+                        </motion.article>
+                      ))
+                    : matchedPros.map((pro, index) => (
+                        <motion.article
+                          className={pageStyles.resultCard}
+                          key={pro.id}
+                          variants={cardVariants}
+                          initial={prefersReducedMotion ? false : 'hidden'}
+                          animate={prefersReducedMotion ? undefined : 'visible'}
+                          custom={index}
+                          whileHover={prefersReducedMotion ? undefined : {y: -4}}
+                          viewport={{once: true, amount: 0.2}}
+                        >
+                          <img src={pro.image} alt={pro.name} />
+                          <div className={pageStyles.cardBody}>
+                            <h3>{pro.name}</h3>
+                            <p className={pageStyles.meta}>
+                              {pro.city} • {pro.rating.toFixed(1)} ({pro.reviews} {common('reviews')})
+                            </p>
+                            <p className={pageStyles.meta}>
+                              {common('from')} {pro.startingPrice}
+                            </p>
+                            <VerifiedNavigationLink
+                              className={`${styles.primary} ${pageStyles.cardAction}`}
+                              href={`/post-job?pro=${encodeURIComponent(pro.id)}`}
+                            >
+                              {common('requestQuote')}
+                            </VerifiedNavigationLink>
+                          </div>
+                        </motion.article>
+                      ))}
+                  </motion.div>
+                )}
+              </section>
+              <section>
+                <h3 className={pageStyles.secondaryTitle}>
+                  {mode === 'services' ? 'Related providers' : 'Related services'}
+                  <span className={pageStyles.resultCount}>{secondaryCount}</span>
+                </h3>
+                <div className={pageStyles.resultsGrid}>
+                  {mode === 'services'
+                    ? matchedPros.slice(0, 6).map((pro) => (
+                        <article className={`${pageStyles.resultCard} ${pageStyles.secondaryCard}`} key={pro.id}>
+                          <img src={pro.image} alt={pro.name} />
+                          <div className={pageStyles.cardBody}>
+                            <h3>{pro.name}</h3>
+                            <p className={pageStyles.meta}>
+                              {pro.city} • {pro.rating.toFixed(1)} ({pro.reviews} {common('reviews')})
+                            </p>
+                            <p className={pageStyles.meta}>
+                              {common('from')} {pro.startingPrice}
+                            </p>
+                            <VerifiedNavigationLink
+                              className={`${styles.secondary} ${pageStyles.cardAction}`}
+                              href={`/post-job?pro=${encodeURIComponent(pro.id)}`}
+                            >
+                              {common('requestQuote')}
+                            </VerifiedNavigationLink>
+                          </div>
+                        </article>
+                      ))
+                    : matchedServices.slice(0, 6).map((service) => (
+                        <article className={`${pageStyles.resultCard} ${pageStyles.secondaryCard}`} key={service.slug}>
+                          <img src={service.heroImage} alt={localizedServiceName(service.slug)} />
+                          <div className={pageStyles.cardBody}>
+                            <h3>{localizedServiceName(service.slug)}</h3>
+                            <p className={pageStyles.meta}>{service.city}</p>
+                            <Link className={`${styles.secondary} ${pageStyles.cardAction}`} href={`/service/${service.slug}`}>
+                              {common('viewDetails')}
+                            </Link>
+                          </div>
+                        </article>
+                      ))}
                 </div>
-              ) : (
-                <motion.div
-                  key={`${mode}-${query}-${cityFilter}-${maxPriceFilter}-${minRatingFilter}`}
-                  className={pageStyles.resultsGrid}
-                  initial={prefersReducedMotion ? false : 'hidden'}
-                  animate={prefersReducedMotion ? undefined : 'visible'}
-                >
-                {mode === 'services'
-                  ? matchedServices.map((service, index) => (
-                      <motion.article
-                        className={pageStyles.resultCard}
-                        key={service.slug}
-                        variants={cardVariants}
-                        initial={prefersReducedMotion ? false : 'hidden'}
-                        animate={prefersReducedMotion ? undefined : 'visible'}
-                        custom={index}
-                        whileHover={prefersReducedMotion ? undefined : {y: -4}}
-                        viewport={{once: true, amount: 0.2}}
-                      >
-                        <img src={service.heroImage} alt={localizedServiceName(service.slug)} />
-                        <div className={pageStyles.cardBody}>
-                          <h3>{localizedServiceName(service.slug)}</h3>
-                          <p className={pageStyles.meta}>{service.city}</p>
-                          <Link className={`${styles.primary} ${pageStyles.cardAction}`} href={`/service/${service.slug}`}>
-                            {common('viewDetails')}
-                          </Link>
-                        </div>
-                      </motion.article>
-                    ))
-                  : matchedPros.map((pro, index) => (
-                      <motion.article
-                        className={pageStyles.resultCard}
-                        key={pro.id}
-                        variants={cardVariants}
-                        initial={prefersReducedMotion ? false : 'hidden'}
-                        animate={prefersReducedMotion ? undefined : 'visible'}
-                        custom={index}
-                        whileHover={prefersReducedMotion ? undefined : {y: -4}}
-                        viewport={{once: true, amount: 0.2}}
-                      >
-                        <img src={pro.image} alt={pro.name} />
-                        <div className={pageStyles.cardBody}>
-                          <h3>{pro.name}</h3>
-                          <p className={pageStyles.meta}>
-                            {pro.city} • {pro.rating.toFixed(1)} ({pro.reviews} {common('reviews')})
-                          </p>
-                          <p className={pageStyles.meta}>
-                            {common('from')} {pro.startingPrice}
-                          </p>
-                          <VerifiedNavigationLink
-                            className={`${styles.primary} ${pageStyles.cardAction}`}
-                            href={`/post-job?pro=${encodeURIComponent(pro.id)}`}
-                          >
-                            {common('requestQuote')}
-                          </VerifiedNavigationLink>
-                        </div>
-                      </motion.article>
-                    ))}
-                </motion.div>
-              )}
-            </section>
-            <section>
-              <h3 className={pageStyles.secondaryTitle}>
-                {mode === 'services' ? 'Related providers' : 'Related services'}
-                <span className={pageStyles.resultCount}>{secondaryCount}</span>
-              </h3>
-              <div className={pageStyles.resultsGrid}>
-                {mode === 'services'
-                  ? matchedPros.slice(0, 6).map((pro) => (
-                      <article className={`${pageStyles.resultCard} ${pageStyles.secondaryCard}`} key={pro.id}>
-                        <img src={pro.image} alt={pro.name} />
-                        <div className={pageStyles.cardBody}>
-                          <h3>{pro.name}</h3>
-                          <p className={pageStyles.meta}>
-                            {pro.city} • {pro.rating.toFixed(1)} ({pro.reviews} {common('reviews')})
-                          </p>
-                          <p className={pageStyles.meta}>
-                            {common('from')} {pro.startingPrice}
-                          </p>
-                          <VerifiedNavigationLink
-                            className={`${styles.secondary} ${pageStyles.cardAction}`}
-                            href={`/post-job?pro=${encodeURIComponent(pro.id)}`}
-                          >
-                            {common('requestQuote')}
-                          </VerifiedNavigationLink>
-                        </div>
-                      </article>
-                    ))
-                  : matchedServices.slice(0, 6).map((service) => (
-                      <article className={`${pageStyles.resultCard} ${pageStyles.secondaryCard}`} key={service.slug}>
-                        <img src={service.heroImage} alt={localizedServiceName(service.slug)} />
-                        <div className={pageStyles.cardBody}>
-                          <h3>{localizedServiceName(service.slug)}</h3>
-                          <p className={pageStyles.meta}>{service.city}</p>
-                          <Link className={`${styles.secondary} ${pageStyles.cardAction}`} href={`/service/${service.slug}`}>
-                            {common('viewDetails')}
-                          </Link>
-                        </div>
-                      </article>
-                    ))}
+              </section>
+            </div>
+            <aside className={pageStyles.mapPanel}>
+              <div className={pageStyles.mapHeader}>
+                <h3>{mode === 'services' ? 'Service map' : 'Provider map'}</h3>
+                <p>{mapPins.length} results plotted</p>
               </div>
-            </section>
+              <div className={pageStyles.mapCanvas}>
+                <div className={pageStyles.mapGrid} />
+                {mapPins.map((pin) => {
+                  const coord = CITY_COORDINATES[pin.city] ?? {x: 50, y: 50};
+                  return (
+                    <button
+                      key={pin.id}
+                      type="button"
+                      onClick={() => setSelectedPinId(pin.id)}
+                      className={`${pageStyles.mapPin} ${selectedPinId === pin.id ? pageStyles.mapPinActive : ''}`}
+                      style={{left: `${coord.x}%`, top: `${coord.y}%`}}
+                      aria-label={`${pin.label} in ${pin.city}`}
+                      title={`${pin.label} • ${pin.city}`}
+                    >
+                      {mode === 'services' ? 'S' : 'P'}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className={pageStyles.mapList}>
+                {mapPins.slice(0, 8).map((pin) => (
+                  <button
+                    key={pin.id}
+                    type="button"
+                    onClick={() => setSelectedPinId(pin.id)}
+                    className={`${pageStyles.mapListItem} ${selectedPinId === pin.id ? pageStyles.mapListItemActive : ''}`}
+                  >
+                    <strong>{pin.label}</strong>
+                    <span>
+                      {pin.city} • {pin.meta}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </aside>
           </div>
         )}
       </div>

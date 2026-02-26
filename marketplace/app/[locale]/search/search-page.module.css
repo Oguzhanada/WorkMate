@@ -117,6 +117,13 @@
   gap: 22px;
 }
 
+.explorerLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 16px;
+  align-items: start;
+}
+
 .sectionTitle {
   margin: 0 0 12px;
   color: #1f2937;
@@ -249,7 +256,120 @@
   gap: 10px;
 }
 
+.mapPanel {
+  position: sticky;
+  top: 92px;
+  border: 1px solid #dce5ef;
+  border-radius: 14px;
+  background: linear-gradient(165deg, #ffffff 0%, #f8fbff 100%);
+  box-shadow: 0 10px 24px rgba(16, 37, 31, 0.08);
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.mapHeader h3 {
+  margin: 0;
+  color: #1f2937;
+}
+
+.mapHeader p {
+  margin: 2px 0 0;
+  color: #5a647d;
+  font-size: 0.9rem;
+}
+
+.mapCanvas {
+  position: relative;
+  height: 310px;
+  border-radius: 12px;
+  border: 1px solid #d7e2eb;
+  background:
+    radial-gradient(circle at 30% 35%, rgba(0, 184, 148, 0.1), transparent 45%),
+    radial-gradient(circle at 70% 70%, rgba(0, 102, 204, 0.08), transparent 45%),
+    #f8fbff;
+  overflow: hidden;
+}
+
+.mapGrid {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(to right, rgba(174, 187, 203, 0.2) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(174, 187, 203, 0.2) 1px, transparent 1px);
+  background-size: 34px 34px;
+}
+
+.mapPin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border: 0;
+  border-radius: 999px;
+  width: 28px;
+  height: 28px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  background: #00b894;
+  box-shadow: 0 8px 16px rgba(0, 184, 148, 0.24);
+  cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.mapPin:hover {
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+.mapPinActive {
+  background: #0066cc;
+  box-shadow: 0 10px 20px rgba(0, 102, 204, 0.28);
+}
+
+.mapList {
+  display: grid;
+  gap: 6px;
+  max-height: 232px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.mapListItem {
+  border: 1px solid #dce5ef;
+  background: #fff;
+  border-radius: 10px;
+  padding: 9px 10px;
+  text-align: left;
+  cursor: pointer;
+  display: grid;
+  gap: 4px;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.mapListItem strong {
+  font-size: 0.92rem;
+  color: #1f2937;
+}
+
+.mapListItem span {
+  font-size: 0.82rem;
+  color: #59667f;
+}
+
+.mapListItem:hover {
+  border-color: #b8dacc;
+  box-shadow: 0 8px 18px rgba(16, 37, 31, 0.12);
+  transform: translateY(-1px);
+}
+
+.mapListItemActive {
+  border-color: #00b894;
+  background: #eefcf8;
+}
+
 @media (max-width: 980px) {
+  .explorerLayout {
+    grid-template-columns: 1fr;
+  }
+
   .searchRow,
   .filterGrid,
   .resultsGrid {
@@ -284,6 +404,11 @@
 
   .filterActions {
     flex-wrap: wrap;
+  }
+
+  .mapPanel {
+    position: static;
+    order: -1;
   }
 }
 
