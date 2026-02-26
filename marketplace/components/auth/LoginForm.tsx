@@ -18,6 +18,8 @@ type FieldErrors = {
   password?: string;
 };
 
+const AUTH_TIMEOUT_MS = 15000;
+
 function validateEmail(email: string): string | undefined {
   if (!email.trim()) {
     return 'Email is required.';
@@ -76,25 +78,34 @@ export function LoginForm() {
     }
 
     setIsPending(true);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const {error} = await Promise.race([
+        supabase.auth.signInWithPassword({
+          email: sanitizedEmail,
+          password
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Authentication request timed out. Please try again.')), AUTH_TIMEOUT_MS)
+        )
+      ]);
 
-    const supabase = getSupabaseBrowserClient();
-    const {error} = await supabase.auth.signInWithPassword({
-      email: sanitizedEmail,
-      password
-    });
+      if (error) {
+        setFormError(error.message);
+        return;
+      }
 
-    setIsPending(false);
-
-    if (error) {
-      setFormError(error.message);
-      return;
+      setSuccessMessage(t('success'));
+      setTimeout(() => {
+        router.push('/?welcome=1');
+        router.refresh();
+      }, 550);
+    } catch (submitError) {
+      const message = submitError instanceof Error ? submitError.message : 'Login failed. Please try again.';
+      setFormError(message);
+    } finally {
+      setIsPending(false);
     }
-
-    setSuccessMessage(t('success'));
-    setTimeout(() => {
-      router.push('/?welcome=1');
-      router.refresh();
-    }, 550);
   };
 
   const loginWithOAuth = async (provider: 'google' | 'facebook') => {

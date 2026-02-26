@@ -16,6 +16,8 @@ export const forgotPasswordSchema = z.object({
 
 type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>;
 
+const AUTH_TIMEOUT_MS = 15000;
+
 export function ForgotPasswordForm() {
   const [form, setForm] = useState<ForgotPasswordData>({email: ''});
   const [error, setError] = useState('');
@@ -33,17 +35,28 @@ export function ForgotPasswordForm() {
     }
 
     setIsPending(true);
-    const supabase = getSupabaseBrowserClient();
-    const redirectTo = `${window.location.origin}/auth/callback?next=/reset-password`;
-    const {error: resetError} = await supabase.auth.resetPasswordForEmail(parsed.data.email, {redirectTo});
-    setIsPending(false);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const redirectTo = `${window.location.origin}/auth/callback?next=/reset-password`;
+      const {error: resetError} = await Promise.race([
+        supabase.auth.resetPasswordForEmail(parsed.data.email, {redirectTo}),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Password reset request timed out. Please try again.')), AUTH_TIMEOUT_MS)
+        )
+      ]);
 
-    if (resetError) {
-      setError(resetError.message);
-      return;
+      if (resetError) {
+        setError(resetError.message);
+        return;
+      }
+
+      setSuccess(true);
+    } catch (resetError) {
+      const message = resetError instanceof Error ? resetError.message : 'Password reset request failed.';
+      setError(message);
+    } finally {
+      setIsPending(false);
     }
-
-    setSuccess(true);
   };
 
   const onSubmit = async (event: FormEvent) => {

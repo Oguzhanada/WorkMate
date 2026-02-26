@@ -118,6 +118,8 @@ type FieldErrors = Partial<Record<keyof SignUpFormData | 'idDocument' | 'provide
 
 type EircodeStatus = 'idle' | 'validating' | 'valid' | 'invalid';
 
+const AUTH_TIMEOUT_MS = 15000;
+
 function normalizeEircode(value: string) {
   const compact = value.toUpperCase().replace(/\s+/g, '');
   if (compact.length <= 3) return compact;
@@ -310,14 +312,25 @@ export function SignUpForm() {
     const supabase = getSupabaseBrowserClient();
     const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent('/?welcome=1')}`;
 
-    const {error} = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {redirectTo}
-    });
+    try {
+      const {error} = await Promise.race([
+        supabase.auth.signInWithOAuth({
+          provider,
+          options: {redirectTo}
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Authentication request timed out. Please try again.')), AUTH_TIMEOUT_MS)
+        )
+      ]);
 
-    if (error) {
+      if (error) {
+        setOauthPending('');
+        setFormError(error.message);
+      }
+    } catch (oauthError) {
+      const message = oauthError instanceof Error ? oauthError.message : 'OAuth login failed. Please try again.';
       setOauthPending('');
-      setFormError(error.message);
+      setFormError(message);
     }
   };
 
@@ -345,30 +358,34 @@ export function SignUpForm() {
       const supabase = getSupabaseBrowserClient();
       const redirectTo = `${window.location.origin}/auth/callback?next=/?welcome=1`;
 
-      const {error} = await supabase.auth.signUp({
-        email: form.email,
-        password: form.password,
-        options: {
-          emailRedirectTo: redirectTo,
-          data: {
-            full_name: form.fullName,
-            phone: normalizeIrishPhone(form.phone),
-            city: role === 'provider' ? form.city : '',
-            county: role === 'provider' ? form.county : '',
-            eircode: role === 'provider' ? form.eircode : '',
-            address_line_1: role === 'provider' ? form.address1 : '',
-            address_line_2: role === 'provider' ? form.address2 : '',
-            locality: role === 'provider' ? form.city : '',
-            role,
-            id_document_name: idDocument?.name,
-            provider_document_name: providerDocument?.name ?? ''
+      const {error} = await Promise.race([
+        supabase.auth.signUp({
+          email: form.email,
+          password: form.password,
+          options: {
+            emailRedirectTo: redirectTo,
+            data: {
+              full_name: form.fullName,
+              phone: normalizeIrishPhone(form.phone),
+              city: role === 'provider' ? form.city : '',
+              county: role === 'provider' ? form.county : '',
+              eircode: role === 'provider' ? form.eircode : '',
+              address_line_1: role === 'provider' ? form.address1 : '',
+              address_line_2: role === 'provider' ? form.address2 : '',
+              locality: role === 'provider' ? form.city : '',
+              role,
+              id_document_name: idDocument?.name,
+              provider_document_name: providerDocument?.name ?? ''
+            }
           }
-        }
-      });
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Authentication request timed out. Please try again.')), AUTH_TIMEOUT_MS)
+        )
+      ]);
 
       if (error) {
         setFormError('❌ Something went wrong. Please try again.');
-        setIsPending(false);
         return;
       }
 
