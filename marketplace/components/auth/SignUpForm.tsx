@@ -450,6 +450,18 @@ export function SignUpForm() {
     >
       <h2 className={styles.formTitle}>Create your account</h2>
       <p className={styles.formSubtitle}>Join the marketplace in less than 2 minutes</p>
+      <section className={styles.guidelinesCard}>
+        <p className={styles.guidelinesTitle}>Community rules snapshot</p>
+        <ul className={styles.guidelinesList}>
+          <li>18+ only and one active account per person.</li>
+          <li>Respectful communication only.</li>
+          <li>Keep payments and communication on WorkMate.</li>
+          <li>No illegal or prohibited services.</li>
+        </ul>
+        <Link href="/community-guidelines" className={styles.guidelinesLink}>
+          Read full Community Guidelines
+        </Link>
+      </section>
 
       <RoleSelector value={role} onChange={setRole} />
 

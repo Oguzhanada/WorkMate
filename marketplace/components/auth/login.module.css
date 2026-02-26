@@ -156,6 +156,44 @@
   color: var(--text-gray);
 }
 
+.guidelinesCard {
+  margin-top: 14px;
+  border: 1px solid #d7e2eb;
+  border-radius: 12px;
+  background: #f8fcff;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.guidelinesTitle {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1f2f4a;
+}
+
+.guidelinesList {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 3px;
+  color: #4d5a72;
+  font-size: 0.84rem;
+}
+
+.guidelinesLink {
+  justify-self: flex-start;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #0066cc;
+  text-decoration: none;
+}
+
+.guidelinesLink:hover {
+  text-decoration: underline;
+}
+
 .formMuted {
   margin: 8px 0 0;
   color: #7b848c;

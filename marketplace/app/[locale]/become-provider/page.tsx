@@ -509,6 +509,18 @@ export default function BecomeProviderPage() {
         {message ? <div className={styles.toast}>{message}</div> : null}
         {!isSubmitted && prefillNotice ? <div className={styles.toast}>{prefillNotice}</div> : null}
         {error ? <div className={styles.error}>{error}</div> : null}
+        <div className={styles.guidelinesCard}>
+          <p className={styles.guidelinesTitle}>Provider rules snapshot</p>
+          <ul className={styles.guidelinesList}>
+            <li>Use one account and keep your profile details accurate.</li>
+            <li>Only offer legal services you are qualified to perform in Ireland.</li>
+            <li>No off-platform payment or contact sharing for active jobs.</li>
+            <li>Accepted offers must keep the agreed total price.</li>
+          </ul>
+          <a href="/community-guidelines" className={styles.guidelinesLink}>
+            Read full Community Guidelines
+          </a>
+        </div>
 
         {isSubmitted ? (
           <div className={styles.field}>

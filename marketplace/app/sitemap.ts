@@ -18,6 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/contact',
     '/faq',
     '/privacy-policy',
+    '/community-guidelines',
     '/terms',
     '/cookie-policy',
     '/data-retention'

@@ -59,6 +59,7 @@ export default function SiteFooter() {
 
           <div className={styles.footerLegal}>
             <Link href={localized('/privacy-policy')}>{t('privacy')}</Link>
+            <Link href={localized('/community-guidelines')}>Community Guidelines</Link>
             <Link href={localized('/terms')}>{t('terms')}</Link>
             <Link href={localized('/cookie-policy')}>{t('cookie')}</Link>
             <Link href={localized('/data-retention')}>{t('retention')}</Link>

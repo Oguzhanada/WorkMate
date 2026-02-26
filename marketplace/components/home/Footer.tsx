@@ -46,6 +46,7 @@ export default function Footer() {
               <ul className="mt-3 space-y-2 text-sm text-[#4B5563]">
                 <li><Link href="/privacy-policy">Privacy Policy</Link></li>
                 <li><Link href="/terms">Terms of Service</Link></li>
+                <li><Link href="/community-guidelines">Community Guidelines</Link></li>
                 <li><Link href="/cookies">Cookie Policy</Link></li>
               </ul>
             </div>

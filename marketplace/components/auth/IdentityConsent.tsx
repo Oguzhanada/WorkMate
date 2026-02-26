@@ -43,6 +43,10 @@ export function IdentityConsent({checked, onChange}: IdentityConsentProps) {
           I agree to identity verification processing and the{' '}
           <Link href="/privacy-policy" onClick={(event) => event.stopPropagation()}>
             Privacy Policy
+          </Link>{' '}
+          and{' '}
+          <Link href="/community-guidelines" onClick={(event) => event.stopPropagation()}>
+            Community Guidelines
           </Link>
           .{' '}
           <Link href="/gdpr-compliance" target="_blank" onClick={(event) => event.stopPropagation()}>
