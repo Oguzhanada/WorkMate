@@ -79,9 +79,27 @@ export default function BecomeProviderPage() {
       setIsEmailLocked(Boolean(userEmail));
 
       const {data} = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      const metadata = (user.user_metadata ?? {}) as Record<string, unknown>;
       if (data) {
-        setFullName(data.full_name ?? '');
-        setPhone(data.phone ?? '');
+        const prefilledName =
+          (typeof data.full_name === 'string' && data.full_name.trim()) ||
+          (typeof metadata.full_name === 'string' && metadata.full_name.trim()) ||
+          (typeof metadata.name === 'string' && metadata.name.trim()) ||
+          '';
+        const prefilledPhone =
+          (typeof data.phone === 'string' && data.phone.trim()) ||
+          (typeof metadata.phone === 'string' && metadata.phone.trim()) ||
+          '';
+        const fallbackEmail =
+          userEmail ||
+          (typeof metadata.email === 'string' ? metadata.email : '');
+
+        setFullName(prefilledName);
+        setPhone(prefilledPhone);
+        if (fallbackEmail) {
+          setEmail(fallbackEmail);
+          setIsEmailLocked(true);
+        }
         setHasVerifiedIdentity(data.is_verified === true && data.verification_status === 'verified');
 
         const requirements = (data.stripe_requirements_due ?? {}) as {
@@ -94,7 +112,10 @@ export default function BecomeProviderPage() {
           areas_served?: { radius?: string | null };
         };
 
-        const primaryCityValue = requirements.personal_info?.primary_city?.trim() ?? '';
+        const primaryCityValue =
+          requirements.personal_info?.primary_city?.trim() ||
+          (typeof data.city === 'string' ? data.city.trim() : '') ||
+          (typeof data.locality === 'string' ? data.locality.trim() : '');
         if (primaryCityValue) {
           if (IRISH_CITIES.includes(primaryCityValue)) {
             setPrimaryCity(primaryCityValue);
@@ -116,10 +137,10 @@ export default function BecomeProviderPage() {
         setRadius(requirements.areas_served?.radius ?? '');
 
         const hasValidPrefill =
-          Boolean(data.full_name?.trim()) &&
-          isValidEnglishFullName(data.full_name ?? '') &&
-          hasAtLeastTwoNameParts(data.full_name ?? '') &&
-          isValidIrishPhone(data.phone ?? '') &&
+          Boolean(prefilledName) &&
+          isValidEnglishFullName(prefilledName) &&
+          hasAtLeastTwoNameParts(prefilledName) &&
+          isValidIrishPhone(prefilledPhone) &&
           Boolean(primaryCityValue);
 
         if (hasValidPrefill) {
@@ -128,6 +149,14 @@ export default function BecomeProviderPage() {
             'Your profile details were auto-filled. Please review and continue with provider details.'
           );
         }
+      } else {
+        const prefilledName =
+          (typeof metadata.full_name === 'string' && metadata.full_name.trim()) ||
+          (typeof metadata.name === 'string' && metadata.name.trim()) ||
+          '';
+        const prefilledPhone = typeof metadata.phone === 'string' ? metadata.phone.trim() : '';
+        if (prefilledName) setFullName(prefilledName);
+        if (prefilledPhone) setPhone(prefilledPhone);
       }
 
       const { data: existingDocs } = await supabase
