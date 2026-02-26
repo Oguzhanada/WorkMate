@@ -28,6 +28,8 @@ type ApplicationDetail = {
   phone: string | null;
   role: string;
   verification_status: string;
+  id_verification_method?: string | null;
+  stripe_identity_status?: string | null;
   created_at: string;
   stripe_requirements_due: {
     application_status?: string;
@@ -174,6 +176,12 @@ export default function AdminApplicationDetail({ profileId }: { profileId: strin
           {isProviderApplication ? 'Provider application' : 'Customer identity review'}
         </p>
         <p className={styles.meta}>Phone: {application.phone ?? '-'} | Status: {application.verification_status}</p>
+        <p className={styles.meta}>
+          Identity method: {application.id_verification_method ?? 'document_upload'}{' '}
+          {application.id_verification_method === 'stripe_identity' && application.stripe_identity_status === 'verified'
+            ? '• Stripe Verified'
+            : ''}
+        </p>
         <p className={styles.meta}>City: {application.stripe_requirements_due?.personal_info?.primary_city ?? '-'}</p>
         <p className={styles.meta}>
           Services: {(application.stripe_requirements_due?.services_and_skills?.services ?? []).join(', ') || '-'}

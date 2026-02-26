@@ -23,12 +23,24 @@ function getNotificationText(item: NotificationItem) {
   if (item.type === 'admin_document_update') {
     return `Document review updated: ${String(item.payload.decision ?? 'updated')}`;
   }
+  if (item.type === 'job_pending_review') return 'A new job is waiting for admin review.';
+  if (item.type === 'job_review_approved') return 'Your job was approved and published.';
+  if (item.type === 'job_review_rejected') return `Your job was rejected: ${String(item.payload.reason ?? 'Please update and resubmit.')}`;
+  if (item.type === 'dispute_opened') return 'A dispute was opened for one of your jobs.';
+  if (item.type === 'dispute_response_received') return 'New provider response added to your dispute.';
+  if (item.type === 'dispute_resolved') return 'A dispute has been resolved by admin.';
+  if (item.type === 'dispute_escalated') return 'A dispute was escalated due to deadline.';
+  if (item.type === 'payment_auto_released') return 'Payment was auto-released for a completed job.';
+  if (item.type === 'payment_release_reminder') return 'Provider requested payment release confirmation.';
   return 'New notification';
 }
 
 function getNotificationHref(item: NotificationItem) {
   if (item.type === 'new_quote') return '/dashboard/customer';
   if (item.type === 'new_message') return '/messages';
+  if (item.type.startsWith('dispute_')) return '/dashboard/disputes';
+  if (item.type.startsWith('job_review_')) return '/dashboard/customer';
+  if (item.type === 'payment_auto_released' || item.type === 'payment_release_reminder') return '/dashboard/customer';
   return '/profile';
 }
 

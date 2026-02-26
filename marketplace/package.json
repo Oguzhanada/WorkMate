@@ -2,6 +2,8 @@
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.97.0",
+    "framer-motion": "^12.34.3",
+    "lucide-react": "^0.575.0",
     "next": "^16.1.6",
     "next-intl": "^4.8.3",
     "react": "^19.2.4",
@@ -10,20 +12,24 @@
     "zod": "^4.3.6"
   },
   "scripts": {
+    "check:english": "node scripts/check-english-only.mjs",
     "preflight": "node scripts/preflight.mjs",
     "health-check": "node scripts/health-check.mjs",
     "dev": "next dev",
-    "dev:checked": "npm run preflight && next dev",
-    "build": "next build",
+    "dev:checked": "npm run check:english && npm run preflight && next dev",
+    "build": "npm run check:english && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "npm run check:english && npx tsc --noEmit"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.1",
     "@types/node": "^25.3.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.1.6",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.2.1",
     "typescript": "^5.9.3"
   }
 }

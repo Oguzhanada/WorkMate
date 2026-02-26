@@ -41,7 +41,8 @@
 }
 
 .wrap:hover .bubble,
-.wrap:focus-within .bubble {
+.wrap:focus-within .bubble,
+.open .bubble {
   opacity: 1;
   visibility: visible;
 }

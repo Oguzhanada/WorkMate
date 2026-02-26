@@ -4,7 +4,7 @@ import {useEffect, useMemo, useRef, useState} from 'react';
 import {useRouter} from 'next/navigation';
 import {getSupabaseBrowserClient} from '@/lib/supabase/client';
 import {hasAtLeastTwoNameParts, isValidEnglishFullName} from '@/lib/validation/name';
-import {isValidIrishPhone, sanitizePhoneInput} from '@/lib/validation/phone';
+import {isValidIrishPhone, normalizeIrishPhone, sanitizePhoneInput} from '@/lib/validation/phone';
 import styles from './profile-basic.module.css';
 
 type Props = {
@@ -58,7 +58,7 @@ export default function ProfileBasicInfoPanel({
       return;
     }
     if (!isValidIrishPhone(phone)) {
-      setError('Enter a valid Irish phone number.');
+      setError('Enter a valid Irish mobile number (830446082, 0830446082, or +353830446082).');
       return;
     }
 
@@ -74,7 +74,7 @@ export default function ProfileBasicInfoPanel({
       }
       const {error: updateError} = await supabase
         .from('profiles')
-        .upsert({id: user.id, full_name: fullName.trim(), phone: sanitizePhoneInput(phone)}, {onConflict: 'id'});
+        .upsert({id: user.id, full_name: fullName.trim(), phone: normalizeIrishPhone(phone)}, {onConflict: 'id'});
       if (updateError) {
         setError(updateError.message);
         return;
@@ -137,7 +137,7 @@ export default function ProfileBasicInfoPanel({
                 className={styles.input}
                 value={phone}
                 onChange={(event) => setPhone(sanitizePhoneInput(event.target.value))}
-                placeholder="+353871234567"
+                placeholder="830446082"
               />
             ) : (
               <p>{phone || '-'}</p>

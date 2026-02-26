@@ -227,6 +227,8 @@ export default async function ProfilePage({
                 rejectedReason={profile?.id_verification_rejected_reason ?? ''}
                 showRedirectHint={query.verification === 'required' || query.message === 'identity_required'}
                 autoFocusTarget={query.focus === 'id' || query.focus === 'proof' ? query.focus : null}
+                stripeIdentityStatus={profile?.stripe_identity_status ?? 'not_started'}
+                idVerificationMethod={profile?.id_verification_method ?? 'document_upload'}
               />
             </div>
             <div id="address-information" className={pageStyles.card}>

@@ -1,0 +1,110 @@
+.wrap {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  padding: 0.8rem;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+  border-bottom: 1px solid #f3f4f6;
+  padding: 0.55rem 0;
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.btn,
+.primary,
+.danger,
+.secondary {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 10px;
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+}
+
+.primary {
+  background: #00b894;
+  border-color: #00b894;
+  color: #fff;
+}
+
+.danger {
+  border-color: #ff7675;
+  color: #b42318;
+}
+
+.secondary {
+  border-color: #6c5ce7;
+  color: #4b3ac8;
+}
+
+.muted {
+  color: #6b7280;
+  font-size: 0.92rem;
+}
+
+.feedback {
+  color: #b42318;
+  margin-top: 0.45rem;
+}
+
+.ok {
+  color: #166534;
+  margin-top: 0.45rem;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.45);
+  display: grid;
+  place-items: center;
+  z-index: 60;
+}
+
+.modal {
+  width: min(680px, 95vw);
+  background: #fff;
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 28px 60px rgba(2, 6, 23, 0.25);
+}
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.6rem 0;
+}
+
+.field input,
+.field textarea,
+.field select {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0.55rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: #fff4d6;
+  color: #8a5a00;
+  font-weight: 600;
+}
+
+.grid {
+  display: grid;
+  gap: 0.8rem;
+}

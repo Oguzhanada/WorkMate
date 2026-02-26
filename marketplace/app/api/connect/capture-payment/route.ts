@@ -76,8 +76,13 @@ export async function POST(request: NextRequest) {
 
   const { error: updateError } = await serviceSupabase
     .from('payments')
-    .update({ status: 'captured' })
+    .update({ status: 'captured', auto_release_processed_at: new Date().toISOString() })
     .eq('stripe_payment_intent_id', payment_intent_id);
+
+  await serviceSupabase
+    .from('jobs')
+    .update({ payment_released_at: new Date().toISOString(), payment_on_hold: false })
+    .eq('id', payment.job_id);
 
   if (updateError) {
     return NextResponse.json({ error: updateError.message }, { status: 400 });

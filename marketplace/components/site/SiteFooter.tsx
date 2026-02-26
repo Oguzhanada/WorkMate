@@ -38,16 +38,16 @@ export default function SiteFooter() {
           <div>
             <h4>{t('social')}</h4>
             <div className={styles.socials}>
-              <a href="#" aria-label="Instagram">
+              <a href="/" title="Coming soon" aria-label="Instagram (coming soon)">
                 <i className="fa-brands fa-instagram" />
               </a>
-              <a href="#" aria-label="Facebook">
+              <a href="/" title="Coming soon" aria-label="Facebook (coming soon)">
                 <i className="fa-brands fa-facebook-f" />
               </a>
-              <a href="#" aria-label="LinkedIn">
+              <a href="/" title="Coming soon" aria-label="LinkedIn (coming soon)">
                 <i className="fa-brands fa-linkedin-in" />
               </a>
-              <a href="#" aria-label="X">
+              <a href="/" title="Coming soon" aria-label="X (coming soon)">
                 <i className="fa-brands fa-x-twitter" />
               </a>
             </div>

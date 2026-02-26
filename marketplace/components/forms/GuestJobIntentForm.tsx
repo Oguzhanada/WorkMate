@@ -4,15 +4,9 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
 import { JOB_BUDGET_OPTIONS, JOB_SCOPE_OPTIONS, JOB_TITLE_OPTIONS, JOB_URGENCY_OPTIONS } from '@/lib/constants/job';
-import EircodeAddressForm from './EircodeAddressForm';
+import EircodeAddressForm, { type Address } from './EircodeAddressForm';
 import InfoTooltip from '@/components/ui/InfoTooltip';
 import styles from './forms.module.css';
-
-type Address = {
-  eircode: string;
-  county?: string;
-  locality?: string;
-};
 
 type Category = {
   id: string;
@@ -31,7 +25,14 @@ export default function GuestJobIntentForm() {
   const [urgency, setUrgency] = useState<(typeof JOB_URGENCY_OPTIONS)[number] | ''>('');
   const [details, setDetails] = useState('');
   const [budgetRange, setBudgetRange] = useState<(typeof JOB_BUDGET_OPTIONS)[number]>(JOB_BUDGET_OPTIONS[2]);
-  const [address, setAddress] = useState<Address | null>(null);
+  const [address, setAddress] = useState<Address>({
+    address_line_1: '',
+    address_line_2: '',
+    eircode: '',
+    county: '',
+    locality: '',
+    eircode_valid: false,
+  });
   const [email, setEmail] = useState('');
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState('');
@@ -69,8 +70,12 @@ export default function GuestJobIntentForm() {
   };
 
   const nextFromStep2 = () => {
-    if (!scope || !urgency || !address?.eircode || !address?.county || !address?.locality) {
+    if (!scope || !urgency || !address.eircode || !address.county || !address.locality || !address.address_line_1) {
       setError('Please complete scope, urgency, and address fields.');
+      return;
+    }
+    if (!address.eircode_valid) {
+      setError('Please enter a valid Eircode. This is important for local provider matching.');
       return;
     }
     setError('');
@@ -87,7 +92,7 @@ export default function GuestJobIntentForm() {
       .filter(Boolean)
       .join(' | ');
 
-    if (!email.trim() || !title || !description || !address?.eircode || !address?.county || !address?.locality || !categoryId) {
+    if (!email.trim() || !title || !description || !address.eircode || !address.county || !address.locality || !categoryId) {
       setError('Please fill all required fields.');
       return;
     }
@@ -188,7 +193,7 @@ export default function GuestJobIntentForm() {
           <div className={styles.field}>
             <span>
               Budget{' '}
-              <InfoTooltip text="Set your estimated range. Providers can still send their own offers." />
+              <InfoTooltip text="Set an estimated budget. Providers can send custom offers based on scope, urgency, and materials." />
             </span>
           </div>
           <select value={budgetRange} onChange={(event) => setBudgetRange(event.target.value as (typeof JOB_BUDGET_OPTIONS)[number])} className={styles.select}>
@@ -198,7 +203,7 @@ export default function GuestJobIntentForm() {
               </option>
             ))}
           </select>
-          <EircodeAddressForm onAddressSelect={setAddress} />
+          <EircodeAddressForm value={address} onChange={setAddress} />
           <div className={styles.buttonRow}>
             <button type="button" className={styles.secondary} onClick={() => setStep(1)}>
               Back

@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import EircodeAddressForm from './EircodeAddressForm';
+import EircodeAddressForm, { type Address } from './EircodeAddressForm';
 import {
   JOB_BUDGET_OPTIONS,
   JOB_SCOPE_OPTIONS,
@@ -12,14 +13,6 @@ import {
 import InfoTooltip from '@/components/ui/InfoTooltip';
 import styles from './forms.module.css';
 
-type Address = {
-  address_line_1?: string;
-  address_line_2?: string;
-  eircode: string;
-  county?: string;
-  locality?: string;
-};
-
 type Category = {
   id: string;
   name: string;
@@ -27,6 +20,7 @@ type Category = {
 };
 
 export default function JobMultiStepForm({ customerId }: { customerId: string }) {
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [categoryId, setCategoryId] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
@@ -36,7 +30,14 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
   const [urgency, setUrgency] = useState<(typeof JOB_URGENCY_OPTIONS)[number] | ''>('');
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [budgetRange, setBudgetRange] = useState<(typeof JOB_BUDGET_OPTIONS)[number]>(JOB_BUDGET_OPTIONS[2]);
-  const [address, setAddress] = useState<Address | null>(null);
+  const [address, setAddress] = useState<Address>({
+    address_line_1: '',
+    address_line_2: '',
+    eircode: '',
+    county: '',
+    locality: '',
+    eircode_valid: false,
+  });
   const [photos, setPhotos] = useState<File[]>([]);
   const [isPending, setIsPending] = useState(false);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
@@ -118,19 +119,22 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
       return;
     }
 
-    setFeedback('Your job request was created successfully. Quotes should start arriving shortly.');
-    setStep(1);
-    setTitleOption('');
-    setCustomTitle('');
-    setScope('');
-    setUrgency('');
-    setAdditionalDetails('');
-    setPhotos([]);
+    if (!payload?.job?.id) {
+      setError('Job was created but result summary could not be opened. Please check My posted jobs.');
+      return;
+    }
+
+    setFeedback('Your job request was created successfully.');
+    router.push(`/post-job/result/${payload.job.id}`);
   };
 
   const nextFromStep2 = () => {
-    if (!address?.eircode || !address?.county || !address?.locality) {
-      setError('Please validate Eircode and complete county/city/address before continuing.');
+    if (!address.eircode || !address.county || !address.locality || !address.address_line_1) {
+      setError('Please complete street, county, city and Eircode. Eircode is important for accurate provider matching.');
+      return;
+    }
+    if (!address.eircode_valid) {
+      setError('Eircode is not validated. Please correct it before continuing.');
       return;
     }
     setError('');
@@ -209,11 +213,11 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
       {step === 2 ? (
         <div className={styles.field}>
           <h2 className={styles.title}>2) Address and Budget</h2>
-          <EircodeAddressForm onAddressSelect={setAddress} />
+          <EircodeAddressForm value={address} onChange={setAddress} />
           <div className={styles.field}>
             <span>
               Budget{' '}
-              <InfoTooltip text="Set your estimated range. Providers can still send their own offers." />
+              <InfoTooltip text="Set an estimated budget. Providers can send custom offers based on scope, urgency, and materials." />
             </span>
           </div>
           <select value={budgetRange} onChange={(e) => setBudgetRange(e.target.value as (typeof JOB_BUDGET_OPTIONS)[number])} className={styles.select}>

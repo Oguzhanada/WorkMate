@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import ProOnboardingForm from '@/components/forms/ProOnboardingForm';
 import JobMessagePanel from '@/components/dashboard/JobMessagePanel';
+import ProviderDocumentStatusCards from '@/components/dashboard/ProviderDocumentStatusCards';
+import ReleaseReminderButton from '@/components/payments/ReleaseReminderButton';
+import AutoReleaseCountdown from '@/components/payments/AutoReleaseCountdown';
 import styles from './dashboard.module.css';
 
 type Profile = {
@@ -44,6 +47,21 @@ type Notification = {
   created_at: string;
 };
 
+type ProviderDocument = {
+  id: string;
+  document_type: string;
+  verification_status: string;
+  expires_at?: string | null;
+  rejection_reason?: string | null;
+  created_at: string;
+};
+
+type CompletedAssignedJob = {
+  id: string;
+  title: string;
+  auto_release_at: string | null;
+};
+
 export default function ProDashboard({ profileId }: { profileId: string }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [leads, setLeads] = useState<JobLead[]>([]);
@@ -57,64 +75,102 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
   const [serviceAreas, setServiceAreas] = useState<string[]>([]);
   const [leadActionsByJob, setLeadActionsByJob] = useState<Map<string, 'saved' | 'hidden' | 'declined'>>(new Map());
   const [leadFilter, setLeadFilter] = useState<'all' | 'saved'>('all');
+  const [documents, setDocuments] = useState<ProviderDocument[]>([]);
+  const [completedAssignedJobs, setCompletedAssignedJobs] = useState<CompletedAssignedJob[]>([]);
 
-  useEffect(() => {
-    async function loadDashboardData() {
-      const [{ data: profileData }, { data: quoteData }, { data: notificationsData }, { data: proServicesData }, { data: proAreasData }, { data: leadActionData }] = await Promise.all([
-        supabase.from('profiles').select('id,is_verified,verification_status,created_at').eq('id', profileId).single(),
-        supabase.from('quotes').select('id,job_id').eq('pro_id', profileId),
-        supabase
-          .from('notifications')
-          .select('id,type,payload,created_at')
-          .eq('user_id', profileId)
-          .is('read_at', null)
-          .order('created_at', { ascending: false })
-          .limit(5),
-        supabase.from('pro_services').select('category_id').eq('profile_id', profileId),
-        supabase.from('pro_service_areas').select('county').eq('profile_id', profileId),
-        supabase.from('pro_lead_actions').select('job_id,action').eq('pro_id', profileId),
-      ]);
+  const loadDashboardData = async () => {
+    const [
+      { data: profileData },
+      { data: quoteData },
+      { data: notificationsData },
+      { data: proServicesData },
+      { data: proAreasData },
+      { data: leadActionData },
+      { data: docsData },
+    ] = await Promise.all([
+      supabase.from('profiles').select('id,is_verified,verification_status,created_at').eq('id', profileId).single(),
+      supabase.from('quotes').select('id,job_id').eq('pro_id', profileId),
+      supabase
+        .from('notifications')
+        .select('id,type,payload,created_at')
+        .eq('user_id', profileId)
+        .is('read_at', null)
+        .order('created_at', { ascending: false })
+        .limit(5),
+      supabase.from('pro_services').select('category_id').eq('profile_id', profileId),
+      supabase.from('pro_service_areas').select('county').eq('profile_id', profileId),
+      supabase.from('pro_lead_actions').select('job_id,action').eq('pro_id', profileId),
+      supabase
+        .from('pro_documents')
+        .select('id,document_type,verification_status,expires_at,rejection_reason,created_at')
+        .eq('profile_id', profileId)
+        .order('created_at', { ascending: false }),
+    ]);
 
-      const categories = (proServicesData ?? []).map((row: { category_id: string }) => row.category_id);
-      const counties = (proAreasData ?? []).map((row: { county: string }) => row.county);
-      setServiceCategoryIds(categories);
-      setServiceAreas(counties);
+    const categories = (proServicesData ?? []).map((row: { category_id: string }) => row.category_id);
+    const counties = (proAreasData ?? []).map((row: { county: string }) => row.county);
+    setServiceCategoryIds(categories);
+    setServiceAreas(counties);
 
-      let jobsData: JobLead[] | null = [];
-      if (categories.length > 0 && counties.length > 0) {
-        let jobsQuery = supabase
-          .from('jobs')
-          .select('id,customer_id,title,category,category_id,description,eircode,county,budget_range,created_at')
-          .eq('status', 'open')
-          .in('category_id', categories)
-          .order('created_at', { ascending: false })
-          .limit(30);
+    let jobsData: JobLead[] | null = [];
+    if (categories.length > 0 && counties.length > 0) {
+      let jobsQuery = supabase
+        .from('jobs')
+        .select('id,customer_id,title,category,category_id,description,eircode,county,budget_range,created_at')
+        .eq('status', 'open')
+        .eq('review_status', 'approved')
+        .in('category_id', categories)
+        .order('created_at', { ascending: false })
+        .limit(30);
 
-        if (!counties.includes('Ireland-wide')) {
-          jobsQuery = jobsQuery.in('county', counties);
-        }
-
-        const result = await jobsQuery;
-        jobsData = (result.data as JobLead[] | null) ?? [];
+      if (!counties.includes('Ireland-wide')) {
+        jobsQuery = jobsQuery.in('county', counties);
       }
 
-      setProfile((profileData as Profile | null) ?? null);
-      const actionMap = new Map<string, 'saved' | 'hidden' | 'declined'>(
-        (leadActionData ?? []).map((item: { job_id: string; action: 'saved' | 'hidden' | 'declined' }) => [item.job_id, item.action])
-      );
-      setLeadActionsByJob(actionMap);
-
-      const visibleLeads = ((jobsData as JobLead[] | null) ?? []).filter((job) => {
-        const action = actionMap.get(job.id);
-        return action !== 'hidden' && action !== 'declined';
-      });
-
-      setLeads(visibleLeads);
-      setQuotedJobIds(new Set((quoteData ?? []).map((item: { job_id: string }) => item.job_id)));
-      setQuoteIdByJobId(new Map((quoteData ?? []).map((item: { id: string; job_id: string }) => [item.job_id, item.id])));
-      setNotifications((notificationsData as Notification[] | null) ?? []);
+      const result = await jobsQuery;
+      jobsData = (result.data as JobLead[] | null) ?? [];
     }
 
+    setProfile((profileData as Profile | null) ?? null);
+    const actionMap = new Map<string, 'saved' | 'hidden' | 'declined'>(
+      (leadActionData ?? []).map((item: { job_id: string; action: 'saved' | 'hidden' | 'declined' }) => [item.job_id, item.action])
+    );
+    setLeadActionsByJob(actionMap);
+
+    const visibleLeads = ((jobsData as JobLead[] | null) ?? []).filter((job) => {
+      const action = actionMap.get(job.id);
+      return action !== 'hidden' && action !== 'declined';
+    });
+
+    setLeads(visibleLeads);
+    setQuotedJobIds(new Set((quoteData ?? []).map((item: { job_id: string }) => item.job_id)));
+    setQuoteIdByJobId(new Map((quoteData ?? []).map((item: { id: string; job_id: string }) => [item.job_id, item.id])));
+    setNotifications((notificationsData as Notification[] | null) ?? []);
+    setDocuments((docsData as ProviderDocument[] | null) ?? []);
+
+    const acceptedQuoteIds = (quoteData ?? []).map((row: { id: string }) => row.id);
+    if (acceptedQuoteIds.length > 0) {
+      const { data: completedRows } = await supabase
+        .from('jobs')
+        .select('id,title,auto_release_at,accepted_quote_id,status')
+        .eq('status', 'completed')
+        .in('accepted_quote_id', acceptedQuoteIds)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      setCompletedAssignedJobs(
+        (completedRows ?? []).map((item: { id: string; title: string; auto_release_at: string | null }) => ({
+          id: item.id,
+          title: item.title,
+          auto_release_at: item.auto_release_at,
+        }))
+      );
+    } else {
+      setCompletedAssignedJobs([]);
+    }
+  };
+
+  useEffect(() => {
     loadDashboardData();
   }, [profileId]);
 
@@ -208,7 +264,17 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
   };
 
   if (!profile?.is_verified) {
-    return <ProOnboardingForm profileId={profileId} />;
+    return (
+      <div className={styles.stack}>
+        <ProviderDocumentStatusCards documents={documents} />
+        <ProOnboardingForm
+          profileId={profileId}
+          accountRole="provider"
+          existingDocuments={documents}
+          onSubmitted={loadDashboardData}
+        />
+      </div>
+    );
   }
 
   const createdAt = profile?.created_at ? new Date(profile.created_at).getTime() : Date.now();
@@ -228,6 +294,7 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
       <p className={styles.meta}>
         Matching leads are listed here. You can submit one quote per listing.
       </p>
+      <ProviderDocumentStatusCards documents={documents} />
       {notifications.length > 0 ? (
         <div className={styles.notice}>
           <p className={styles.title}>New notifications</p>
@@ -241,6 +308,18 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
         </div>
       ) : null}
       {feedback ? <p className={styles.feedback}>{feedback}</p> : null}
+      {completedAssignedJobs.length > 0 ? (
+        <div className={styles.card}>
+          <p className={styles.title}>Completed jobs awaiting release</p>
+          {completedAssignedJobs.map((job) => (
+            <div key={job.id} className={styles.card}>
+              <p className={styles.meta}>{job.title}</p>
+              <AutoReleaseCountdown autoReleaseAt={job.auto_release_at} />
+              <ReleaseReminderButton jobId={job.id} />
+            </div>
+          ))}
+        </div>
+      ) : null}
       <div className={styles.card}>
         <p className={styles.title}>Commission and Earnings Estimate</p>
         <p className={styles.meta}>

@@ -6,7 +6,7 @@ import {useTranslations} from 'next-intl';
 
 import {getSupabaseBrowserClient} from '@/lib/supabase/client';
 import {IRISH_COUNTIES} from '@/lib/ireland-locations';
-import {isValidIrishPhone, sanitizePhoneInput} from '@/lib/validation/phone';
+import {isValidIrishPhone, normalizeIrishPhone, sanitizePhoneInput} from '@/lib/validation/phone';
 import {hasAtLeastTwoNameParts, isValidEnglishFullName} from '@/lib/validation/name';
 import MultiSelectDropdown from '@/components/forms/MultiSelectDropdown';
 import styles from '../inner.module.css';
@@ -172,7 +172,7 @@ export default function BecomeProviderPage() {
         return 'Enter at least first name and last name.';
       }
       if (!isValidIrishPhone(phone)) {
-        return 'Enter a valid Irish phone number (e.g. +353871234567 or 0871234567).';
+        return 'Enter a valid Irish mobile number (830446082, 0830446082, or +353830446082).';
       }
       if (!resolvedPrimaryCity) {
         return t('errors.cityRequired');
@@ -299,8 +299,8 @@ export default function BecomeProviderPage() {
       const {error: profileError} = await supabase
         .from('profiles')
         .update({
-          full_name: fullName.trim(),
-          phone: sanitizePhoneInput(phone),
+            full_name: fullName.trim(),
+            phone: normalizeIrishPhone(phone),
           verification_status: hasVerifiedIdentity ? 'verified' : 'pending',
           id_verification_status: hasVerifiedIdentity ? 'approved' : 'pending',
           id_verification_document_url: uploadedIdPath,
@@ -311,9 +311,9 @@ export default function BecomeProviderPage() {
             application_status: 'submitted',
             submitted_at: new Date().toISOString(),
             personal_info: {
-              full_name: fullName.trim() || null,
-              email,
-              phone: sanitizePhoneInput(phone),
+                full_name: fullName.trim() || null,
+                email,
+                phone: normalizeIrishPhone(phone),
               primary_city: resolvedPrimaryCity
             },
             services_and_skills: {
@@ -434,12 +434,12 @@ export default function BecomeProviderPage() {
                   </label>
                   <label className={styles.field}>
                     <span>{t('form.phone')}</span>
-                    <input
-                      value={phone}
-                      onChange={(event) => setPhone(sanitizePhoneInput(event.target.value))}
-                      inputMode="tel"
-                      placeholder="+353871234567"
-                    />
+                      <input
+                        value={phone}
+                        onChange={(event) => setPhone(sanitizePhoneInput(event.target.value))}
+                        inputMode="tel"
+                        placeholder="830446082"
+                      />
                   </label>
                   <label className={styles.field}>
                     <span>{t('form.primaryCity')}</span>

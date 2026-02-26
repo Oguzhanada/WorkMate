@@ -92,6 +92,7 @@ export async function POST(request: NextRequest) {
         amount_cents: amountCents,
         commission_cents: commissionCents,
         status: 'authorized',
+        auto_release_eligible: true,
       },
       { onConflict: 'stripe_payment_intent_id' }
     );

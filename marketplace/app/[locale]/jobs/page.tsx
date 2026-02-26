@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { getSupabaseServerClient } from '@/lib/supabase/server';
 import styles from '../inner.module.css';
 
 type JobRow = {
@@ -11,15 +11,17 @@ type JobRow = {
   locality: string | null;
   budget_range: string;
   status: string;
+  review_status: string;
   created_at: string;
 };
 
 export default async function JobsPage() {
-  const supabase = getSupabaseServiceClient();
+  const supabase = await getSupabaseServerClient();
   const { data, error } = await supabase
     .from('jobs')
-    .select('id,title,category,county,locality,budget_range,status,created_at')
+    .select('id,title,category,county,locality,budget_range,status,review_status,created_at')
     .in('status', ['open', 'quoted', 'accepted', 'in_progress'])
+    .eq('review_status', 'approved')
     .order('created_at', { ascending: false })
     .limit(100);
 

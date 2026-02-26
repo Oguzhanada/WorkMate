@@ -39,12 +39,21 @@ export async function PATCH(
     );
   }
 
-  let query = supabase.from('jobs').update({ status: parsed.data.status }).eq('id', jobId);
+  const patch: Record<string, unknown> = { status: parsed.data.status };
+  if (parsed.data.status === 'completed') {
+    const nowIso = new Date().toISOString();
+    patch.complete_marked_at = nowIso;
+    patch.completed_at = nowIso;
+    patch.auto_release_at = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+    patch.payment_released_at = null;
+  }
+
+  let query = supabase.from('jobs').update(patch).eq('id', jobId);
   if (!isAdmin) {
     query = query.eq('customer_id', user.id);
   }
 
-  const { data, error } = await query.select('id,status').single();
+  const { data, error } = await query.select('id,status,completed_at,auto_release_at,payment_released_at').single();
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }

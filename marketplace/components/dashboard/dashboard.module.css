@@ -137,8 +137,31 @@
   border: 1px solid #b8e9c4;
 }
 
+.docStatusWrap {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.docStatusCard {
+  border: 1px solid #dfe3ea;
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px;
+  box-shadow: 0 8px 22px rgba(16, 37, 31, 0.06);
+}
+
+.docStatusCard h4 {
+  margin: 0 0 6px;
+  color: #12223c;
+}
+
 @media (max-width: 760px) {
   .grid2 {
+    grid-template-columns: 1fr;
+  }
+
+  .docStatusWrap {
     grid-template-columns: 1fr;
   }
 }

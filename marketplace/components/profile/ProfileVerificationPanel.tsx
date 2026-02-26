@@ -5,6 +5,9 @@ import {useRouter} from 'next/navigation';
 
 import {getSupabaseBrowserClient} from '@/lib/supabase/client';
 import InfoTooltip from '@/components/ui/InfoTooltip';
+import IdentityMethodSelector from './IdentityMethodSelector';
+import StripeIdentityVerification from './StripeIdentityVerification';
+import VerificationBadge from './VerificationBadge';
 
 import styles from './profile-verification.module.css';
 
@@ -19,6 +22,8 @@ type Props = {
   rejectedReason?: string;
   showRedirectHint: boolean;
   autoFocusTarget?: 'id' | 'proof' | null;
+  stripeIdentityStatus?: string;
+  idVerificationMethod?: 'document_upload' | 'stripe_identity' | string;
 };
 
 function getErrorMessage(error: unknown, fallback: string) {
@@ -40,6 +45,8 @@ export default function ProfileVerificationPanel({
   rejectedReason = '',
   showRedirectHint,
   autoFocusTarget = null,
+  stripeIdentityStatus = 'not_started',
+  idVerificationMethod = 'document_upload',
 }: Props) {
   const router = useRouter();
   const idInputRef = useRef<HTMLInputElement | null>(null);
@@ -53,6 +60,9 @@ export default function ProfileVerificationPanel({
   const [isUploading, setIsUploading] = useState(false);
   const [identityConsent, setIdentityConsent] = useState(false);
   const [isDragOverId, setIsDragOverId] = useState(false);
+  const [method, setMethod] = useState<'document_upload' | 'stripe_identity'>(
+    idVerificationMethod === 'stripe_identity' ? 'stripe_identity' : 'document_upload'
+  );
 
   const missing = useMemo(
     () => ({
@@ -149,6 +159,18 @@ export default function ProfileVerificationPanel({
 
     setIsUploading(true);
     try {
+      const supabase = getSupabaseBrowserClient();
+      const {
+        data: {user}
+      } = await supabase.auth.getUser();
+
+      if (!user) throw new Error('Please log in again.');
+
+      await supabase
+        .from('profiles')
+        .update({ id_verification_method: method })
+        .eq('id', user.id);
+
       let uploadedSomething = false;
       if (idFile) {
         await uploadDoc(idFile, 'id_verification');
@@ -162,11 +184,6 @@ export default function ProfileVerificationPanel({
       }
 
       if (uploadedSomething) {
-        const supabase = getSupabaseBrowserClient();
-        const {
-          data: {user}
-        } = await supabase.auth.getUser();
-
         if (user) {
           const {error: profileUpdateError} = await supabase
             .from('profiles')
@@ -218,6 +235,10 @@ export default function ProfileVerificationPanel({
         >
           {idVerificationStatus || 'none'}
         </span>
+        <VerificationBadge
+          idVerificationMethod={method}
+          stripeIdentityStatus={stripeIdentityStatus}
+        />
       </div>
       {idVerificationStatus === 'approved' ? (
         <p className={styles.ok}>Your identity has been verified.</p>
@@ -233,6 +254,10 @@ export default function ProfileVerificationPanel({
         </p>
       ) : null}
       <p className={styles.hint}>Use the profile section above to update your full name and phone.</p>
+      <IdentityMethodSelector value={method} onChange={setMethod} />
+      {method === 'stripe_identity' ? (
+        <StripeIdentityVerification stripeIdentityStatus={stripeIdentityStatus} />
+      ) : null}
 
       <p className={missing.idDocument || missing.insuranceDocument ? styles.missing : styles.ok}>
         {missing.idDocument || missing.insuranceDocument
@@ -241,7 +266,7 @@ export default function ProfileVerificationPanel({
       </p>
       <div className={styles.fileRow}>
         <p className={styles.hint}>Supported file types: PDF, PNG, JPG, JPEG.</p>
-        {missing.idDocument ? (
+        {method === 'document_upload' && missing.idDocument ? (
           <div className={styles.uploadBox}>
             <label className={styles.field}>
               <span>
@@ -290,7 +315,7 @@ export default function ProfileVerificationPanel({
           </div>
         ) : null}
 
-        {missing.insuranceDocument ? (
+        {method === 'document_upload' && missing.insuranceDocument ? (
           <div className={styles.uploadBox}>
             <label className={styles.field}>
               <span>Insurance document (required for providers)</span>
@@ -313,7 +338,11 @@ export default function ProfileVerificationPanel({
           type="button"
           className={styles.secondary}
           onClick={uploadMissingDocuments}
-          disabled={isUploading || (!idFile && !insuranceFile)}
+          disabled={
+            method !== 'document_upload' ||
+            isUploading ||
+            (!idFile && !insuranceFile)
+          }
         >
           {isUploading ? 'Uploading...' : 'Upload selected documents'}
         </button>

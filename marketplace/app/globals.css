@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+:root {
+  --wm-primary: #00b894;
+  --wm-primary-dark: #008b74;
+  --wm-accent: #0066cc;
+  --wm-bg: #f9fafb;
+  --wm-text: #1f2937;
+  --wm-muted: #4b5563;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  color: var(--wm-text);
+  background: #fff;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+a {
+  color: inherit;
+}

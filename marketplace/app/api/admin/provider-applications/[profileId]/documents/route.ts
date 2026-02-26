@@ -3,6 +3,7 @@ import { ensureAdminRoute } from '@/lib/auth/admin';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { logAdminAudit } from '@/lib/admin/audit';
 import { adminDocumentDecisionSchema } from '@/lib/validation/api';
+import { PROVIDER_REQUIRED_DOCUMENTS } from '@/lib/provider-documents';
 
 export async function GET(
   _request: NextRequest,
@@ -16,7 +17,7 @@ export async function GET(
 
   const { data: docs, error } = await supabase
     .from('pro_documents')
-    .select('id,document_type,storage_path,verification_status,created_at')
+    .select('id,document_type,storage_path,verification_status,expires_at,rejection_reason,metadata,created_at')
     .eq('profile_id', profileId)
     .order('created_at', { ascending: false });
 
@@ -31,9 +32,12 @@ export async function GET(
         .from('pro-documents')
         .createSignedUrl(doc.storage_path, 60 * 2);
 
+      const lower = doc.storage_path.toLowerCase();
+      const isImage = lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg');
       return {
         ...doc,
         signed_url: signedError ? null : signed?.signedUrl ?? null,
+        preview_url: signedError || !isImage ? null : signed?.signedUrl ?? null,
       };
     })
   );
@@ -75,6 +79,7 @@ export async function PATCH(
       verification_status: mappedStatus,
       reviewed_by: auth.user?.id ?? null,
       reviewed_at: new Date().toISOString(),
+      rejection_reason: decision === 'approve' ? null : note || 'Please update this document and re-upload.',
     })
     .eq('id', document_id)
     .eq('profile_id', profileId)
@@ -143,16 +148,16 @@ export async function PATCH(
 
   if (decision !== 'approve') {
     if (doc.document_type === 'id_verification' && doc.storage_path) {
-      await serviceClient.storage.from('pro-documents').remove([doc.storage_path]);
+      await serviceClient
+        .from('pro_documents')
+        .update({ archived_at: new Date().toISOString() })
+        .eq('id', document_id)
+        .eq('profile_id', profileId);
+
       await serviceClient
         .from('profiles')
         .update({ id_verification_document_url: null })
         .eq('id', profileId);
-      await serviceClient
-        .from('pro_documents')
-        .delete()
-        .eq('id', document_id)
-        .eq('profile_id', profileId);
     }
 
     const { error: removeRoleError } = await serviceClient
@@ -199,4 +204,85 @@ export async function PATCH(
   });
 
   return NextResponse.json({ document: doc });
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ profileId: string }> }
+) {
+  const auth = await ensureAdminRoute();
+  if (auth.error) return auth.error;
+
+  const { profileId } = await params;
+  const serviceClient = getSupabaseServiceClient();
+
+  let body: unknown = {};
+  try {
+    body = await request.json();
+  } catch {
+    // optional body
+  }
+  const note =
+    typeof body === 'object' && body !== null && 'note' in body && typeof (body as { note?: unknown }).note === 'string'
+      ? ((body as { note: string }).note ?? '')
+      : 'All required documents verified in bulk.';
+
+  const { data: docs, error: docsError } = await serviceClient
+    .from('pro_documents')
+    .select('id,document_type')
+    .eq('profile_id', profileId);
+
+  if (docsError) {
+    return NextResponse.json({ error: docsError.message }, { status: 400 });
+  }
+
+  const required = new Set(PROVIDER_REQUIRED_DOCUMENTS);
+  const targetDocIds = (docs ?? [])
+    .filter((doc) => required.has(doc.document_type as (typeof PROVIDER_REQUIRED_DOCUMENTS)[number]))
+    .map((doc) => doc.id);
+
+  if (targetDocIds.length === 0) {
+    return NextResponse.json({ error: 'No required documents found for this profile.' }, { status: 400 });
+  }
+
+  const { error: updateError } = await serviceClient
+    .from('pro_documents')
+    .update({
+      verification_status: 'verified',
+      reviewed_by: auth.user?.id ?? null,
+      reviewed_at: new Date().toISOString(),
+      rejection_reason: null,
+    })
+    .in('id', targetDocIds)
+    .eq('profile_id', profileId);
+
+  if (updateError) {
+    return NextResponse.json({ error: updateError.message }, { status: 400 });
+  }
+
+  await serviceClient.from('notifications').insert({
+    user_id: profileId,
+    type: 'admin_document_update',
+    payload: {
+      decision: 'approve_all',
+      note,
+      reviewed_at: new Date().toISOString(),
+      document_count: targetDocIds.length,
+    },
+  });
+
+  await logAdminAudit({
+    adminUserId: auth.user?.id ?? null,
+    adminEmail: auth.user?.email ?? null,
+    action: 'documents_bulk_approved',
+    targetType: 'document_review',
+    targetProfileId: profileId,
+    details: {
+      note,
+      document_ids: targetDocIds,
+      reviewed_at: new Date().toISOString(),
+    },
+  });
+
+  return NextResponse.json({ updated: targetDocIds.length });
 }

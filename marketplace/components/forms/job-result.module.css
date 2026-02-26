@@ -1,0 +1,100 @@
+.wrap {
+  width: min(980px, calc(100% - 32px));
+  margin: 28px auto 48px;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #dfe3ea;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 10px 28px rgba(16, 37, 31, 0.1);
+}
+
+.muted {
+  color: #5c6378;
+}
+
+.row {
+  margin-bottom: 8px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.field input,
+.field textarea,
+.field select {
+  border: 1px solid #d2d6dd;
+  border-radius: 10px;
+  font: inherit;
+  padding: 10px 12px;
+}
+
+.field input:disabled,
+.field textarea:disabled,
+.field select:disabled {
+  background: #f8f9fc;
+  color: #44506a;
+}
+
+.grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.primary,
+.secondary {
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.primary {
+  border: 1px solid #00b894;
+  background: #00b894;
+  color: #fff;
+}
+
+.secondary {
+  border: 1px solid #cfd5df;
+  background: #fff;
+  color: #1c3d34;
+}
+
+.error {
+  margin-top: 10px;
+  background: #fff2f2;
+  border: 1px solid #f5cccc;
+  color: #8c1f1f;
+  border-radius: 10px;
+  padding: 9px 12px;
+}
+
+.ok {
+  margin-top: 10px;
+  background: #e8f8ec;
+  border: 1px solid #b8e9c4;
+  color: #166a2a;
+  border-radius: 10px;
+  padding: 9px 12px;
+}
+
+@media (max-width: 860px) {
+  .grid3 {
+    grid-template-columns: 1fr;
+  }
+}

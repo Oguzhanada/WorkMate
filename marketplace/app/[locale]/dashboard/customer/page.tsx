@@ -6,6 +6,10 @@ import JobMessagePanel from '@/components/dashboard/JobMessagePanel';
 import JobPhotoUploader from '@/components/dashboard/JobPhotoUploader';
 import JobStatusUpdater from '@/components/dashboard/JobStatusUpdater';
 import QuoteActions from '@/components/dashboard/QuoteActions';
+import DisputeButton from '@/components/disputes/DisputeButton';
+import DisputeAlert from '@/components/disputes/DisputeAlert';
+import AutoReleaseCountdown from '@/components/payments/AutoReleaseCountdown';
+import CustomerReleaseWarning from '@/components/payments/CustomerReleaseWarning';
 import styles from '../../inner.module.css';
 
 export default async function CustomerDashboardPage({
@@ -30,7 +34,7 @@ export default async function CustomerDashboardPage({
 
   const { data: jobs, error } = await supabase
     .from('jobs')
-    .select('id,title,category,category_id,status,accepted_quote_id,budget_range,eircode,photo_urls,created_at')
+    .select('id,title,category,category_id,status,review_status,accepted_quote_id,budget_range,eircode,photo_urls,created_at,auto_release_at,payment_released_at')
     .eq('customer_id', user.id)
     .order('created_at', { ascending: false })
     .limit(100);
@@ -46,6 +50,14 @@ export default async function CustomerDashboardPage({
   }
 
   const jobIds = (jobs ?? []).map((job) => job.id);
+  const { data: activeDisputes } =
+    jobIds.length > 0
+      ? await supabase
+          .from('disputes')
+          .select('id,job_id,status')
+          .in('job_id', jobIds)
+          .in('status', ['open', 'under_review'])
+      : { data: [] as Array<{ id: string; job_id: string; status: string }> };
   const { data: quotes } =
     jobIds.length > 0
       ? await supabase
@@ -174,7 +186,11 @@ export default async function CustomerDashboardPage({
           <Link className={styles.primary} href={`/post-job`}>
             Create new job request
           </Link>
+          <Link className={styles.secondaryLink} href={`/${locale}/dashboard/disputes`}>
+            View disputes
+          </Link>
         </article>
+        <DisputeAlert count={(activeDisputes ?? []).length} />
       </section>
       <section className={styles.container}>
         <article className={styles.card}>
@@ -218,8 +234,11 @@ export default async function CustomerDashboardPage({
             <article key={job.id} className={styles.card}>
               <h3>{job.title}</h3>
               <p className={styles.muted}>{job.category} • {job.eircode}</p>
-              <p className={styles.muted}>Status: {job.status}</p>
+              <p className={styles.muted}>Status: {job.status} • Review: {job.review_status ?? 'approved'}</p>
               <p className={styles.muted}>Budget: {job.budget_range}</p>
+              {job.status === 'completed' ? <CustomerReleaseWarning /> : null}
+              <AutoReleaseCountdown autoReleaseAt={job.auto_release_at ?? null} />
+              {job.status === 'completed' ? <DisputeButton jobId={job.id} /> : null}
               <JobStatusUpdater jobId={job.id} initialStatus={job.status} />
               <JobPhotoUploader
                 jobId={job.id}

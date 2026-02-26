@@ -50,6 +50,16 @@
   resize: vertical;
 }
 
+.inputError {
+  border-color: #ff7675;
+  box-shadow: 0 0 0 3px rgba(255, 118, 117, 0.15);
+}
+
+.inputOk {
+  border-color: #00b894;
+  box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.15);
+}
+
 .buttonRow {
   display: flex;
   gap: 10px;

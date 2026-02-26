@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Fragment, useEffect, useMemo, useOptimistic, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { PROVIDER_DOCUMENT_LABELS, PROVIDER_REQUIRED_DOCUMENTS } from '@/lib/provider-documents';
 import styles from './admin-panel.module.css';
 
 type ReviewType = 'provider_application' | 'customer_identity_review' | 'other';
@@ -42,6 +43,9 @@ type Application = {
     document_type: string;
     verification_status?: string;
     preview_url?: string | null;
+    expires_at?: string | null;
+    rejection_reason?: string | null;
+    metadata?: Record<string, unknown>;
     created_at: string;
   }>;
   review_type?: ReviewType;
@@ -83,7 +87,7 @@ const IRISH_COUNTIES = [
   'Wexford', 'Wicklow',
 ];
 
-const REQUIRED_PROVIDER_DOCS = ['id_verification', 'safe_pass', 'public_liability_insurance', 'tax_clearance_number'];
+const REQUIRED_PROVIDER_DOCS = PROVIDER_REQUIRED_DOCUMENTS;
 const OPTIONAL_PROVIDER_DOCS = ['safe_electric', 'reci', 'rgi'];
 const REQUIRED_CUSTOMER_DOCS = ['id_verification'];
 
@@ -101,6 +105,7 @@ function formatDate(value: string) {
 }
 
 function mapDocLabel(type: string) {
+  if (type in PROVIDER_DOCUMENT_LABELS) return PROVIDER_DOCUMENT_LABELS[type as keyof typeof PROVIDER_DOCUMENT_LABELS];
   if (type === 'id_verification') return 'ID uploaded';
   if (type === 'public_liability_insurance') return 'Insurance';
   if (type === 'tax_clearance' || type === 'tax_clearance_number') return 'Tax Clearance Number';
@@ -109,6 +114,22 @@ function mapDocLabel(type: string) {
   if (type === 'reci') return 'RECI';
   if (type === 'rgi') return 'RGI';
   return type.replaceAll('_', ' ');
+}
+
+function docStatusMarker(
+  doc?: { verification_status?: string; expires_at?: string | null } | undefined
+) {
+  if (!doc) return '❌';
+  if (doc.verification_status === 'rejected') return '❌';
+  if (doc.verification_status === 'pending') return '⏳';
+  if (doc.verification_status === 'verified') {
+    if (doc.expires_at) {
+      const days = Math.ceil((new Date(doc.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      if (days <= 30) return '⚠️';
+    }
+    return '✅';
+  }
+  return '❌';
 }
 
 function hasDoc(documents: Application['documents'], expectedType: string) {
@@ -470,6 +491,24 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
     await loadApplications(filtersApplied);
   };
 
+  const approveAllDocuments = async (profileId: string) => {
+    const note = window.prompt('Bulk approval note', 'All required documents verified.');
+    if (note === null) return;
+
+    const response = await fetch(`/api/admin/provider-applications/${profileId}/documents`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ note }),
+    });
+    const payload = await response.json();
+    if (!response.ok) {
+      setFeedback(payload.error || 'Bulk document approval failed.');
+      return;
+    }
+    setFeedback(`Approved ${payload.updated} required documents.`);
+    await loadApplications(filtersApplied);
+  };
+
   const logout = async () => {
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signOut();
@@ -791,8 +830,7 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
                                                 item.document_type === 'tax_clearance'
                                             )
                                           : application.documents.find((item) => item.document_type === docType);
-                                        const isVerified = doc?.verification_status === 'verified';
-                                        const marker = isVerified ? '✅' : doc ? '⏳' : '❌';
+                                        const marker = docStatusMarker(doc);
                                         return (
                                           <button key={docType} type="button" className={styles.btn} onClick={() => runChecklistItem(application, docType)}>
                                             {marker} {mapDocLabel(docType)}
@@ -830,6 +868,7 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
                                 <div className={styles.filterActions}>
                                   <button className={`${styles.btn} ${styles.btnApprove}`} type="button" onClick={() => runDecision(application.id, 'approve')}>✅ Approve</button>
                                   <button className={`${styles.btn} ${styles.btnReject}`} type="button" onClick={() => runDecision(application.id, 'reject')}>❌ Reject</button>
+                                  <button className={styles.btn} type="button" onClick={() => approveAllDocuments(application.id)}>✅ Approve all docs</button>
                                   <Link href={`/dashboard/admin/applications/${application.id}`} className={styles.btn}>📝 Edit</Link>
                                   <button className={styles.btn} type="button" onClick={async () => {
                                     const message = window.prompt('Message to user', 'Please update your profile details and documents.');

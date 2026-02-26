@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canPostJob, canPostJobWithIdentity, getUserRoles } from '@/lib/auth/rbac';
 import { isValidEircode, normalizeEircode } from '@/lib/eircode';
 import { createJobSchema } from '@/lib/validation/api';
@@ -78,8 +79,31 @@ export async function POST(request: NextRequest) {
     budget_range: body.budget_range,
     photo_urls: body.photo_urls,
     requires_verified_id: true,
+    review_status: 'pending_review',
   }).select('*').single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  const serviceSupabase = getSupabaseServiceClient();
+  const { data: adminRows } = await serviceSupabase
+    .from('user_roles')
+    .select('user_id')
+    .eq('role', 'admin');
+
+  if ((adminRows ?? []).length > 0) {
+    await serviceSupabase.from('notifications').insert(
+      (adminRows ?? []).map((row) => ({
+        user_id: row.user_id,
+        type: 'job_pending_review',
+        payload: {
+          job_id: data.id,
+          title: data.title,
+          customer_id: user.id,
+          created_at: data.created_at,
+        },
+      }))
+    );
+  }
+
   return NextResponse.json({ job: data }, { status: 201 });
 }

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import AdminApplicationsPanel from '@/components/dashboard/AdminApplicationsPanel';
+import AdminDashboardShell from '@/components/dashboard/AdminDashboardShell';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import styles from '../../[locale]/inner.module.css';
@@ -22,7 +22,7 @@ export default async function AdminDashboardPage() {
   return (
     <main className={styles.section}>
       <section className={styles.container}>
-        <AdminApplicationsPanel adminEmail={user.email ?? 'Admin'} />
+        <AdminDashboardShell adminEmail={user.email ?? 'Admin'} />
       </section>
     </main>
   );

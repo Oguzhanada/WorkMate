@@ -41,6 +41,22 @@ export async function POST(request: NextRequest) {
   }
 
   const body = parsed.data;
+  const { data: job, error: jobError } = await supabase
+    .from('jobs')
+    .select('id,status,review_status')
+    .eq('id', body.job_id)
+    .maybeSingle();
+
+  if (jobError || !job) {
+    return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+  }
+
+  if (job.status !== 'open' || job.review_status !== 'approved') {
+    return NextResponse.json(
+      { error: 'This job is not available for quoting yet.' },
+      { status: 400 }
+    );
+  }
 
   const { data, error } = await supabase.from('quotes').insert({
     job_id: body.job_id,

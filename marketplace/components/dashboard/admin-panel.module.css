@@ -5,6 +5,28 @@
   animation: fadeIn 320ms ease;
 }
 
+.tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.tab {
+  border: 1px solid #d8dfeb;
+  background: #fff;
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.tabActive {
+  border-color: #6c5ce7;
+  background: #f1efff;
+  color: #4b3dc9;
+}
+
 .sidebar {
   background: #fff;
   border: 1px solid #e2e8f0;

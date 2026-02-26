@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     const [{ data: docs }, { data: addresses }] = await Promise.all([
       supabase
         .from('pro_documents')
-        .select('id,profile_id,document_type,verification_status,storage_path,created_at')
+        .select('id,profile_id,document_type,verification_status,storage_path,expires_at,rejection_reason,metadata,created_at')
         .in('profile_id', profileIds)
         .order('created_at', { ascending: false }),
       supabase
@@ -77,10 +77,13 @@ export async function GET(request: NextRequest) {
         document_type: row.document_type,
         verification_status: row.verification_status,
         storage_path: row.storage_path,
+        expires_at: row.expires_at ?? null,
+        rejection_reason: row.rejection_reason ?? null,
+        metadata: row.metadata ?? {},
         created_at: row.created_at,
       });
       return acc;
-    }, {} as Record<string, Array<{ id: string; document_type: string; verification_status: string; storage_path?: string; preview_url?: string | null; created_at: string }>>);
+    }, {} as Record<string, Array<{ id: string; document_type: string; verification_status: string; storage_path?: string; preview_url?: string | null; expires_at?: string | null; rejection_reason?: string | null; metadata?: Record<string, unknown>; created_at: string }>>);
 
     const storageClient = getSupabaseServiceClient();
     for (const [profileId, profileDocs] of Object.entries(docsByProfile)) {
@@ -349,14 +352,14 @@ export async function PATCH(request: NextRequest) {
         .eq('profile_id', profile_id)
         .eq('document_type', 'id_verification');
 
-      const paths = (idDocs ?? []).map((item) => item.storage_path).filter(Boolean);
-      if (paths.length > 0) {
-        await serviceSupabase.storage.from('pro-documents').remove(paths);
+      if ((idDocs ?? []).length > 0) {
         await serviceSupabase
           .from('pro_documents')
-          .delete()
-          .eq('profile_id', profile_id)
-          .eq('document_type', 'id_verification');
+          .update({ archived_at: new Date().toISOString() })
+          .in(
+            'id',
+            (idDocs ?? []).map((item) => item.id)
+          );
         await serviceSupabase
           .from('profiles')
           .update({ id_verification_document_url: null })

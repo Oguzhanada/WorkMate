@@ -1,0 +1,33 @@
+import { NextResponse } from 'next/server';
+import { ensureAdminRoute } from '@/lib/auth/admin';
+
+export async function GET() {
+  const auth = await ensureAdminRoute();
+  if (auth.error) return auth.error;
+
+  const { supabase } = auth;
+
+  const { data, error } = await supabase
+    .from('jobs')
+    .select('id,title,description,category,county,locality,budget_range,status,review_status,rejection_reason,created_at,customer_id')
+    .eq('review_status', 'pending_review')
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
+  const customerIds = Array.from(new Set((data ?? []).map((row) => row.customer_id)));
+  const { data: customers } =
+    customerIds.length > 0
+      ? await supabase.from('profiles').select('id,full_name').in('id', customerIds)
+      : { data: [] as Array<{ id: string; full_name: string | null }> };
+
+  const customerNameById = new Map((customers ?? []).map((row) => [row.id, row.full_name]));
+  const jobs = (data ?? []).map((row) => ({
+    ...row,
+    customer_name: customerNameById.get(row.customer_id) ?? null,
+  }));
+
+  return NextResponse.json({ jobs }, { status: 200 });
+}

@@ -95,6 +95,7 @@ export async function POST(request: NextRequest) {
       budget_range: intent.budget_range,
       photo_urls: intent.photo_urls ?? [],
       status: 'open',
+      review_status: 'pending_review',
     })
     .select('id')
     .single();
@@ -115,6 +116,26 @@ export async function POST(request: NextRequest) {
 
   if (updateError) {
     return NextResponse.json({ error: updateError.message }, { status: 400 });
+  }
+
+  const { data: adminRows } = await serviceClient
+    .from('user_roles')
+    .select('user_id')
+    .eq('role', 'admin');
+
+  if ((adminRows ?? []).length > 0) {
+    await serviceClient.from('notifications').insert(
+      (adminRows ?? []).map((row) => ({
+        user_id: row.user_id,
+        type: 'job_pending_review',
+        payload: {
+          job_id: jobRow.id,
+          title: intent.title,
+          customer_id: user.id,
+          source: 'guest_claim',
+        },
+      }))
+    );
   }
 
   return NextResponse.json({ job_id: jobRow.id, status: 'published' }, { status: 200 });
