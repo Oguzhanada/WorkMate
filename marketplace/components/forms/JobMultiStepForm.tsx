@@ -56,8 +56,13 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
       }
       const all = (payload.categories ?? []) as Category[];
       const leaf = all.filter((item) => item.parent_id !== null);
-      setCategories(leaf);
-      if (leaf.length > 0) setCategoryId(leaf[0].id);
+      const usable = leaf.length > 0 ? leaf : all;
+      setCategories(usable);
+      if (usable.length > 0) {
+        setCategoryId(usable[0].id);
+      } else {
+        setError('No active categories are available. Please contact support.');
+      }
     }
     loadCategories();
   }, []);

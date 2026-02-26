@@ -207,12 +207,14 @@ export default async function CustomerDashboardPage({
         <article className={styles.card}>
           <h1>My Listings</h1>
           <p className={styles.muted}>Track all your job requests from here.</p>
-          <Link className={styles.primary} href={`/post-job`}>
-            Create new job request
-          </Link>
-          <Link className={styles.secondaryLink} href={`/${locale}/dashboard/disputes`}>
-            View disputes
-          </Link>
+          <div className={styles.actions}>
+            <Link className={styles.primary} href={`/post-job`}>
+              Create new job request
+            </Link>
+            <Link className={styles.secondaryLink} href={`/${locale}/dashboard/disputes`}>
+              View disputes
+            </Link>
+          </div>
         </article>
         <DisputeAlert count={(activeDisputes ?? []).length} />
       </section>
