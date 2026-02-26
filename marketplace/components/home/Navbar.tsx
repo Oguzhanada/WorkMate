@@ -56,23 +56,28 @@ export default function Navbar() {
     const supabase = getSupabaseBrowserClient();
     let active = true;
 
+    const resetAuthState = () => {
+      if (!active) return;
+      setIsAuthenticated(false);
+      setHasAdminRole(false);
+      setHasProviderRole(false);
+      setProfileName('');
+    };
+
     const loadAuthState = async () => {
       try {
         setLoadingAuth(true);
-        const {data: sessionData} = await supabase.auth.getSession();
-        const sessionUser = sessionData?.session?.user ?? null;
+        const {
+          data: {user: sessionUser}
+        } = await supabase.auth.getUser();
         if (!active) return;
 
         if (!sessionUser) {
-          setIsAuthenticated(false);
-          setHasAdminRole(false);
-          setHasProviderRole(false);
-          setProfileName('');
+          resetAuthState();
           return;
         }
 
         setIsAuthenticated(true);
-        setLoadingAuth(false);
 
         const [{data: roles}, {data: profile}] = await Promise.all([
           supabase.from('user_roles').select('role').eq('user_id', sessionUser.id),
@@ -85,10 +90,7 @@ export default function Navbar() {
         setHasProviderRole(roleList.includes('verified_pro'));
         setProfileName(profile?.full_name?.trim() || '');
       } catch {
-        setIsAuthenticated(false);
-        setHasAdminRole(false);
-        setHasProviderRole(false);
-        setProfileName('');
+        resetAuthState();
       } finally {
         if (active) setLoadingAuth(false);
       }
@@ -98,28 +100,8 @@ export default function Navbar() {
 
     const {
       data: {subscription}
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!session?.user) {
-        setIsAuthenticated(false);
-        setHasAdminRole(false);
-        setHasProviderRole(false);
-        setProfileName('');
-        setLoadingAuth(false);
-        return;
-      }
-
-      setIsAuthenticated(true);
-      setLoadingAuth(false);
-      const [{data: roles}, {data: profile}] = await Promise.all([
-        supabase.from('user_roles').select('role').eq('user_id', session.user.id),
-        supabase.from('profiles').select('full_name').eq('id', session.user.id).maybeSingle()
-      ]);
-
-      const roleList = (roles ?? []).map((item) => item.role);
-      setHasAdminRole(roleList.includes('admin'));
-      setHasProviderRole(roleList.includes('verified_pro'));
-      setProfileName(profile?.full_name?.trim() || '');
-      setLoadingAuth(false);
+    } = supabase.auth.onAuthStateChange(async () => {
+      await loadAuthState();
     });
 
     return () => {
@@ -161,16 +143,20 @@ export default function Navbar() {
         })
       ]);
     try {
-      await withTimeout(supabase.auth.signOut({scope: 'local'}), 5000);
-      await withTimeout(fetch('/api/auth/logout', {method: 'POST', cache: 'no-store'}), 5000);
       await withTimeout(supabase.auth.signOut({scope: 'global'}), 5000);
-    } catch {
-      // fallback redirect below will force fresh auth state
-    }
+    } catch {}
+    try {
+      await withTimeout(fetch('/api/auth/logout', {method: 'POST', cache: 'no-store'}), 5000);
+    } catch {}
+    try {
+      await withTimeout(supabase.auth.signOut({scope: 'local'}), 5000);
+    } catch {}
     clearSupabaseCookies();
     clearSupabaseStorage();
     const target = withLocalePrefix(localeRoot, `/login?logged_out=1&t=${Date.now()}`);
-    window.location.replace(target);
+    router.replace(target);
+    router.refresh();
+    setTimeout(() => window.location.assign(target), 120);
   };
 
   const handleHashLink = (hash: string) => {

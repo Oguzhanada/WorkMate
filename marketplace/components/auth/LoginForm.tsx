@@ -18,30 +18,6 @@ type FieldErrors = {
   password?: string;
 };
 
-const AUTH_TIMEOUT_MS = 15000;
-const AUTH_PING_TIMEOUT_MS = 5000;
-
-async function canReachAuthServer() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const apikey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !apikey) return false;
-
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), AUTH_PING_TIMEOUT_MS);
-  try {
-    const response = await fetch(`${url}/auth/v1/health`, {
-      method: 'GET',
-      headers: {apikey},
-      signal: controller.signal
-    });
-    return response.ok || response.status === 401;
-  } catch {
-    return false;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 function validateEmail(email: string): string | undefined {
   if (!email.trim()) {
     return 'Email is required.';
@@ -101,22 +77,11 @@ export function LoginForm() {
 
     setIsPending(true);
     try {
-      const reachable = await canReachAuthServer();
-      if (!reachable) {
-        setFormError('Cannot reach authentication server. Check VPN/ad blocker and try again.');
-        return;
-      }
-
       const supabase = getSupabaseBrowserClient();
-      const {error} = await Promise.race([
-        supabase.auth.signInWithPassword({
-          email: sanitizedEmail,
-          password
-        }),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Authentication request timed out. Please try again.')), AUTH_TIMEOUT_MS)
-        )
-      ]);
+      const {error} = await supabase.auth.signInWithPassword({
+        email: sanitizedEmail,
+        password
+      });
 
       if (error) {
         setFormError(error.message);

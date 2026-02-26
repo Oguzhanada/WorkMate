@@ -35,6 +35,7 @@ export default function BecomeProviderPage() {
   const [prefillNotice, setPrefillNotice] = useState('');
   const [isPending, setIsPending] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [skipPersonalInfoStep, setSkipPersonalInfoStep] = useState(false);
 
   const [email, setEmail] = useState('');
   const [isEmailLocked, setIsEmailLocked] = useState(true);
@@ -136,14 +137,11 @@ export default function BecomeProviderPage() {
 
         setRadius(requirements.areas_served?.radius ?? '');
 
-        const hasValidPrefill =
-          Boolean(prefilledName) &&
-          isValidEnglishFullName(prefilledName) &&
-          hasAtLeastTwoNameParts(prefilledName) &&
-          isValidIrishPhone(prefilledPhone) &&
-          Boolean(primaryCityValue);
+        const hasReusablePersonalInfo =
+          Boolean(prefilledName) && Boolean(prefilledPhone) && Boolean(fallbackEmail);
 
-        if (hasValidPrefill) {
+        if (hasReusablePersonalInfo) {
+          setSkipPersonalInfoStep(true);
           setStep(2);
           setPrefillNotice(
             'Your profile details were auto-filled. Please review and continue with provider details.'
@@ -267,6 +265,7 @@ export default function BecomeProviderPage() {
 
   const getStepValidationError = (targetStep: Step) => {
     if (targetStep === 1) {
+      if (skipPersonalInfoStep) return '';
       if (!fullName.trim()) {
         return 'Please enter your full name.';
       }
@@ -340,7 +339,10 @@ export default function BecomeProviderPage() {
   };
   const back = () => {
     setError('');
-    setStep((prev) => (prev > 1 ? ((prev - 1) as Step) : prev));
+    setStep((prev) => {
+      if (skipPersonalInfoStep && prev === 2) return 2;
+      return prev > 1 ? ((prev - 1) as Step) : prev;
+    });
   };
 
   const uploadDocument = async (
@@ -376,7 +378,13 @@ export default function BecomeProviderPage() {
     setError('');
     setMessage('');
 
-    if (!validateStep(1) || !validateStep(2) || !validateStep(3) || !validateStep(4)) return;
+    if (
+      (!skipPersonalInfoStep && !validateStep(1)) ||
+      !validateStep(2) ||
+      !validateStep(3) ||
+      !validateStep(4)
+    )
+      return;
 
     const supabase = getSupabaseBrowserClient();
     const {
