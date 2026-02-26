@@ -1,7 +1,7 @@
 'use client';
 
 import {motion} from 'framer-motion';
-import {MapPin, Search, ShieldCheck, CircleDollarSign, BadgeCheck} from 'lucide-react';
+import {MapPin, Search, ShieldCheck, CircleDollarSign, BadgeCheck, X} from 'lucide-react';
 import {useEffect, useState} from 'react';
 import {useRouter} from 'next/navigation';
 
@@ -48,6 +48,19 @@ const stats = [
   {value: 100, suffix: '%', label: 'Secure Payments', icon: CircleDollarSign}
 ];
 
+const serviceSuggestions = [
+  'Home Cleaning',
+  'Deep Cleaning',
+  'Office Cleaning',
+  'Painting and Decorating',
+  'Plumbing Repair',
+  'Electrical Repair',
+  'Local Moving',
+  'Intercity Moving',
+  'AC Service',
+  'Handyman Service'
+];
+
 function Counter({target, suffix = ''}: {target: number; suffix?: string}) {
   const [value, setValue] = useState(0);
 
@@ -81,11 +94,17 @@ export default function HeroSection() {
   const router = useRouter();
   const [county, setCounty] = useState('Dublin');
   const [serviceQuery, setServiceQuery] = useState('');
+  const [suggestOpen, setSuggestOpen] = useState(false);
+
+  const filteredSuggestions = serviceSuggestions
+    .filter((item) => item.toLowerCase().includes(serviceQuery.trim().toLowerCase()))
+    .slice(0, 6);
 
   const onFindService = () => {
     const params = new URLSearchParams();
     if (serviceQuery.trim()) params.set('q', serviceQuery.trim());
     if (county) params.set('county', county);
+    setSuggestOpen(false);
     router.push(`/search?${params.toString()}`);
   };
 
@@ -110,16 +129,64 @@ export default function HeroSection() {
             variants={heroItemVariants}
             className="grid gap-3 rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-lg md:grid-cols-[1fr_220px_160px]"
           >
-            <label className="flex items-center gap-2 rounded-xl border border-[#E5E7EB] px-3 py-3">
-              <Search className="h-4 w-4 text-[#6B7280]" />
-              <input
-                type="text"
-                placeholder="What service do you need?"
-                value={serviceQuery}
-                onChange={(event) => setServiceQuery(event.target.value)}
-                className="w-full border-none bg-transparent text-sm outline-none"
-              />
-            </label>
+            <div className="relative">
+              <label className="flex items-center gap-2 rounded-xl border border-[#E5E7EB] px-3 py-3">
+                <Search className="h-4 w-4 text-[#6B7280]" />
+                <input
+                  type="text"
+                  placeholder="What service do you need?"
+                  value={serviceQuery}
+                  onFocus={() => setSuggestOpen(true)}
+                  onBlur={() => window.setTimeout(() => setSuggestOpen(false), 120)}
+                  onChange={(event) => {
+                    setServiceQuery(event.target.value);
+                    setSuggestOpen(true);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      onFindService();
+                    }
+                  }}
+                  className="w-full border-none bg-transparent text-sm outline-none"
+                />
+                {serviceQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setServiceQuery('');
+                      setSuggestOpen(false);
+                    }}
+                    className="rounded-full p-1 text-[#6B7280] transition hover:bg-[#F3F4F6] hover:text-[#1F2937]"
+                    aria-label="Clear search"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                ) : null}
+              </label>
+              {suggestOpen && filteredSuggestions.length > 0 ? (
+                <div className="absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-xl border border-[#D7E2EB] bg-white p-2 shadow-lg">
+                  <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-[#6B7280]">
+                    Suggested services
+                  </p>
+                  <div className="grid gap-1">
+                    {filteredSuggestions.map((item) => (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => {
+                          setServiceQuery(item);
+                          setSuggestOpen(false);
+                        }}
+                        className="rounded-lg px-2 py-2 text-left text-sm text-[#1F2937] transition hover:bg-[#ECFDF5]"
+                      >
+                        {item}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
 
             <label className="flex items-center gap-2 rounded-xl border border-[#E5E7EB] px-3 py-3">
               <MapPin className="h-4 w-4 text-[#6B7280]" />
