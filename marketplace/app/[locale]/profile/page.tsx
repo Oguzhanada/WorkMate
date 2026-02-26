@@ -198,7 +198,7 @@ export default async function ProfilePage({
               />
             </div>
             <div className={pageStyles.card}>
-              <ProfileCompletionCard items={completionItems} />
+              <ProfileCompletionCard items={completionItems} showProviderCta={!hasProviderRole} />
             </div>
           </div>
 

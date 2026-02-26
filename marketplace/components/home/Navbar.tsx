@@ -192,6 +192,15 @@ export default function Navbar() {
             <div className="h-10 w-56 animate-pulse rounded-xl bg-[#E5E7EB]" />
           ) : isAuthenticated ? (
             <>
+              {!hasProviderRole && !hasAdminRole ? (
+                <Link
+                  href={withLocalePrefix(localeRoot, '/become-provider')}
+                  className="flex items-center gap-2 rounded-xl bg-[#00B894] px-4 py-2 text-sm font-semibold text-white transition hover:scale-[1.03] hover:bg-[#008B74]"
+                >
+                  <BriefcaseBusiness className="h-4 w-4" />
+                  Become a Pro
+                </Link>
+              ) : null}
               <Link
                 href={withLocalePrefix(localeRoot, '/profile')}
                 className="rounded-xl border border-[#D1D5DB] px-4 py-2 text-sm font-semibold text-[#1F2937] transition hover:border-[#00B894] hover:text-[#00B894]"
@@ -281,6 +290,15 @@ export default function Navbar() {
                 <div className="h-10 w-full animate-pulse rounded-xl bg-[#E5E7EB] sm:col-span-2" />
               ) : isAuthenticated ? (
                 <>
+                  {!hasProviderRole && !hasAdminRole ? (
+                    <Link
+                      href={withLocalePrefix(localeRoot, '/become-provider')}
+                      onClick={() => setMobileOpen(false)}
+                      className="rounded-lg bg-[#00B894] px-3 py-2 text-center text-sm font-semibold text-white sm:col-span-2"
+                    >
+                      Become a Pro
+                    </Link>
+                  ) : null}
                   <Link
                     href={withLocalePrefix(localeRoot, '/profile')}
                     onClick={() => setMobileOpen(false)}

@@ -18,6 +18,7 @@ type CompletionItem = {
 
 type Props = {
   items: CompletionItem[];
+  showProviderCta?: boolean;
 };
 
 function icon(status: CompletionStatus) {
@@ -26,7 +27,7 @@ function icon(status: CompletionStatus) {
   return '⭕';
 }
 
-export default function ProfileCompletionCard({items}: Props) {
+export default function ProfileCompletionCard({items, showProviderCta = false}: Props) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [animatedPercent, setAnimatedPercent] = useState(0);
   const completeCount = useMemo(() => items.filter((item) => item.status === 'complete').length, [items]);
@@ -130,6 +131,18 @@ export default function ProfileCompletionCard({items}: Props) {
       <button type="button" className={styles.remind}>
         Remind Me Later
       </button>
+
+      {showProviderCta ? (
+        <div className={styles.providerCta}>
+          <div>
+            <strong>Want to work as a provider?</strong>
+            <p>Complete provider verification to unlock leads and quoting access.</p>
+          </div>
+          <Link href="/become-provider" className={styles.providerCtaButton}>
+            Become a Provider
+          </Link>
+        </div>
+      ) : null}
     </article>
   );
 }

@@ -153,10 +153,10 @@ export default function HeroSection() {
               How it works
             </a>
             <a
-              href="/become-provider"
+              href="/search"
               className="rounded-xl bg-[#00B894] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#008B74]"
             >
-              Become a Pro
+              Explore Services
             </a>
           </motion.div>
         </motion.div>

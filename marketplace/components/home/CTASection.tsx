@@ -14,14 +14,14 @@ export default function CTASection() {
 
         <div className="mt-7 flex flex-wrap gap-3">
           <motion.div whileHover={{scale: 1.03}} whileTap={{scale: 0.98}} animate={{scale: [1, 1.02, 1]}} transition={{duration: 1.8, repeat: Infinity}}>
-            <Link href="/become-provider" className="inline-flex rounded-xl bg-white px-5 py-3 text-sm font-semibold text-[#008B74]">
-              Become a Pro
+            <Link href="/post-job" className="inline-flex rounded-xl bg-white px-5 py-3 text-sm font-semibold text-[#008B74]">
+              Post a Job
             </Link>
           </motion.div>
 
           <motion.div whileHover={{scale: 1.03}} whileTap={{scale: 0.98}} animate={{scale: [1, 1.02, 1]}} transition={{duration: 1.8, repeat: Infinity, delay: 0.2}}>
-            <Link href="/jobs" className="inline-flex rounded-xl border border-white px-5 py-3 text-sm font-semibold text-white">
-              Find Service Now
+            <Link href="/search" className="inline-flex rounded-xl border border-white px-5 py-3 text-sm font-semibold text-white">
+              Find Services
             </Link>
           </motion.div>
         </div>
