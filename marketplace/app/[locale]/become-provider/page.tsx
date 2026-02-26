@@ -32,6 +32,7 @@ export default function BecomeProviderPage() {
   const [step, setStep] = useState<Step>(1);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [prefillNotice, setPrefillNotice] = useState('');
   const [isPending, setIsPending] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -113,6 +114,20 @@ export default function BecomeProviderPage() {
         setOtherAvailability(customAvailability ?? '');
 
         setRadius(requirements.areas_served?.radius ?? '');
+
+        const hasValidPrefill =
+          Boolean(data.full_name?.trim()) &&
+          isValidEnglishFullName(data.full_name ?? '') &&
+          hasAtLeastTwoNameParts(data.full_name ?? '') &&
+          isValidIrishPhone(data.phone ?? '') &&
+          Boolean(primaryCityValue);
+
+        if (hasValidPrefill) {
+          setStep(2);
+          setPrefillNotice(
+            'Your profile details were auto-filled. Please review and continue with provider details.'
+          );
+        }
       }
 
       const { data: existingDocs } = await supabase
@@ -449,6 +464,7 @@ export default function BecomeProviderPage() {
 
       <section className={styles.formWrap}>
         {message ? <div className={styles.toast}>{message}</div> : null}
+        {!isSubmitted && prefillNotice ? <div className={styles.toast}>{prefillNotice}</div> : null}
         {error ? <div className={styles.error}>{error}</div> : null}
 
         {isSubmitted ? (
