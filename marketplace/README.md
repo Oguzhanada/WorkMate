@@ -61,3 +61,42 @@ Development recommendation:
 - Verified Pros are enforced at DB trigger level before quote creation.
 - Stripe flow uses `capture_method=manual` for secure hold and captures on completion.
 - Commission is configurable via `PLATFORM_COMMISSION_RATE` (default `0` for launch/test mode).
+
+## Test automation baseline
+
+### Local commands
+
+```bash
+npm run test:unit
+npm run test:integration
+npm run test:e2e:smoke
+npm run test:e2e
+```
+
+### Required E2E environment variables
+
+```bash
+E2E_CUSTOMER_EMAIL=customer@example.com
+E2E_CUSTOMER_PASSWORD=REPLACE_ME
+E2E_ADMIN_EMAIL=admin@example.com
+E2E_ADMIN_PASSWORD=REPLACE_ME
+```
+
+If these are missing, credential-based smoke tests are skipped automatically.
+
+### Test folders
+
+```text
+tests/
+├─ e2e/
+│  └─ smoke/
+├─ integration/
+├─ setup/
+└─ unit/
+```
+
+### CI workflows
+
+- `.github/workflows/workmate-english-only.yml`
+- `.github/workflows/workmate-ci-tests.yml`
+- `.github/workflows/workmate-nightly-e2e.yml`

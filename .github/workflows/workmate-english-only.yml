@@ -1,15 +1,16 @@
-name: English Only Guard
+name: WorkMate English Only Guard
 
 on:
   pull_request:
   push:
-    branches:
-      - main
-      - master
+    branches: [main, master]
 
 jobs:
   english-only:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: marketplace
 
     steps:
       - name: Checkout
@@ -19,12 +20,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: npm
+          cache-dependency-path: marketplace/package-lock.json
 
       - name: Install dependencies
         run: npm ci
-        working-directory: marketplace
 
       - name: Run english-only check
         run: npm run check:english
-        working-directory: marketplace

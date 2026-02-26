@@ -1,0 +1,54 @@
+name: WorkMate CI Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+jobs:
+  quality-and-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: marketplace
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: marketplace/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint and type-check
+        run: npm run lint
+
+      - name: Run unit and integration tests
+        run: npm run test
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E smoke
+        run: npm run test:e2e:smoke
+        env:
+          E2E_CUSTOMER_EMAIL: ${{ secrets.E2E_CUSTOMER_EMAIL }}
+          E2E_CUSTOMER_PASSWORD: ${{ secrets.E2E_CUSTOMER_PASSWORD }}
+          E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-smoke-report
+          path: |
+            marketplace/playwright-report
+            marketplace/test-results
+          if-no-files-found: ignore

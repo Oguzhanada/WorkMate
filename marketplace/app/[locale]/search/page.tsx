@@ -353,7 +353,7 @@ export default function SearchPage() {
               </h2>
               {isRefreshing ? <p className={pageStyles.refreshLabel}>Updating results...</p> : null}
               {isRefreshing ? (
-                <div className={pageStyles.resultsGrid}>
+                <div className={pageStyles.resultsGrid} aria-label="Loading results">
                   {[1, 2, 3].map((item) => (
                     <div key={item} className={pageStyles.resultSkeleton} />
                   ))}
