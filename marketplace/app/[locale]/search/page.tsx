@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import {usePathname, useRouter, useSearchParams} from 'next/navigation';
-import {FormEvent, useEffect, useMemo, useState} from 'react';
+import {FormEvent, ReactNode, useEffect, useMemo, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
+import {AnimatePresence, motion, useReducedMotion} from 'framer-motion';
 
 import {professionals, services} from '@/lib/marketplace-data';
 import VerifiedNavigationLink from '@/components/site/VerifiedNavigationLink';
@@ -12,9 +13,28 @@ import {COUNTY_CITIES} from '@/lib/ireland-locations';
 import styles from '../inner.module.css';
 import pageStyles from './search-page.module.css';
 
+const entryVariants = {
+  hidden: {opacity: 0, y: 10},
+  visible: (delay = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: {duration: 0.24, delay}
+  })
+};
+
+const cardVariants = {
+  hidden: {opacity: 0, y: 10},
+  visible: (index: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: {duration: 0.2, delay: Math.min(index * 0.035, 0.2)}
+  })
+};
+
 export default function SearchPage() {
   const router = useRouter();
   const pathname = usePathname();
+  const prefersReducedMotion = useReducedMotion();
   const t = useTranslations('search');
   const common = useTranslations('common');
   const home = useTranslations('home');
@@ -29,6 +49,10 @@ export default function SearchPage() {
   const [mode, setMode] = useState<'services' | 'providers'>(initialMode);
   const [maxPriceFilter, setMaxPriceFilter] = useState('');
   const [minRatingFilter, setMinRatingFilter] = useState('');
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const mountedRef = useRef(false);
+  const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setKeyword((params.get('q') ?? '').trim());
@@ -47,6 +71,22 @@ export default function SearchPage() {
     );
     return Array.from(values).sort((a, b) => a.localeCompare(b));
   }, []);
+
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
+    }
+    setIsRefreshing(true);
+    if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
+    refreshTimeoutRef.current = setTimeout(() => {
+      setIsRefreshing(false);
+    }, 280);
+    return () => {
+      if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
+    };
+  }, [query, cityFilter, maxPriceFilter, minRatingFilter, mode, prefersReducedMotion]);
 
   const matchedServices = useMemo(
     () =>
@@ -121,14 +161,76 @@ export default function SearchPage() {
     router.push(`${pathname}?${nextParams.toString()}`);
   };
 
+  const primaryCount = mode === 'services' ? matchedServices.length : matchedPros.length;
+  const secondaryCount = mode === 'services' ? matchedPros.length : matchedServices.length;
+
+  const filterControls = (footerAction?: ReactNode) => (
+    <>
+      <div className={pageStyles.filterGrid}>
+        <label className={pageStyles.field}>
+          <span>{t('maxPrice')}</span>
+          <select value={maxPriceFilter} onChange={(event) => setMaxPriceFilter(event.target.value)}>
+            <option value="">{t('allPrices')}</option>
+            <option value="100">EUR100</option>
+            <option value="200">EUR200</option>
+            <option value="400">EUR400</option>
+            <option value="1000">EUR1000</option>
+          </select>
+        </label>
+        <label className={pageStyles.field}>
+          <span>{t('minRating')}</span>
+          <select value={minRatingFilter} onChange={(event) => setMinRatingFilter(event.target.value)}>
+            <option value="">{t('allRatings')}</option>
+            <option value="4.5">4.5+</option>
+            <option value="4.7">4.7+</option>
+            <option value="4.8">4.8+</option>
+            <option value="4.9">4.9+</option>
+          </select>
+        </label>
+      </div>
+      <div className={pageStyles.filterActions}>
+        <button
+          type="button"
+          className={`${styles.secondary} ${pageStyles.clearButton}`}
+          onClick={() => {
+            setMaxPriceFilter('');
+            setMinRatingFilter('');
+          }}
+        >
+          {t('clear')}
+        </button>
+        {footerAction}
+      </div>
+    </>
+  );
+
   return (
     <main className={styles.section}>
       <div className={styles.container}>
-        <h1>{t('title')}</h1>
-        <p className={pageStyles.subtitle}>
+        <motion.h1
+          variants={entryVariants}
+          initial={prefersReducedMotion ? false : 'hidden'}
+          animate={prefersReducedMotion ? undefined : 'visible'}
+          custom={0}
+        >
+          {t('title')}
+        </motion.h1>
+        <motion.p
+          className={pageStyles.subtitle}
+          variants={entryVariants}
+          initial={prefersReducedMotion ? false : 'hidden'}
+          animate={prefersReducedMotion ? undefined : 'visible'}
+          custom={0.04}
+        >
           {t('subtitle')} <strong>{query || '-'}</strong>
-        </p>
-        <section className={pageStyles.modeToggle}>
+        </motion.p>
+        <motion.section
+          className={pageStyles.modeToggle}
+          variants={entryVariants}
+          initial={prefersReducedMotion ? false : 'hidden'}
+          animate={prefersReducedMotion ? undefined : 'visible'}
+          custom={0.08}
+        >
           <button
             type="button"
             onClick={() => onModeChange('services')}
@@ -143,8 +245,17 @@ export default function SearchPage() {
           >
             Providers
           </button>
-        </section>
-        <section className={`${styles.card} ${pageStyles.cardShell}`}>
+          <button type="button" className={pageStyles.mobileFilterToggle} onClick={() => setShowMobileFilters(true)}>
+            Filters
+          </button>
+        </motion.section>
+        <motion.section
+          className={`${styles.card} ${pageStyles.cardShell}`}
+          variants={entryVariants}
+          initial={prefersReducedMotion ? false : 'hidden'}
+          animate={prefersReducedMotion ? undefined : 'visible'}
+          custom={0.12}
+        >
           <form onSubmit={onKeywordSearch} className={pageStyles.searchRow}>
             <label className={pageStyles.field}>
               <span>Keyword</span>
@@ -171,42 +282,58 @@ export default function SearchPage() {
               </button>
             </div>
           </form>
-        </section>
-        <section className={`${styles.card} ${pageStyles.cardShell}`}>
+        </motion.section>
+        <motion.section
+          className={`${styles.card} ${pageStyles.cardShell} ${pageStyles.desktopFilters}`}
+          variants={entryVariants}
+          initial={prefersReducedMotion ? false : 'hidden'}
+          animate={prefersReducedMotion ? undefined : 'visible'}
+          custom={0.16}
+        >
           <h3>{t('filtersTitle')}</h3>
-          <div className={pageStyles.filterGrid}>
-            <label className={pageStyles.field}>
-              <span>{t('maxPrice')}</span>
-              <select value={maxPriceFilter} onChange={(event) => setMaxPriceFilter(event.target.value)}>
-                <option value="">{t('allPrices')}</option>
-                <option value="100">EUR100</option>
-                <option value="200">EUR200</option>
-                <option value="400">EUR400</option>
-                <option value="1000">EUR1000</option>
-              </select>
-            </label>
-            <label className={pageStyles.field}>
-              <span>{t('minRating')}</span>
-              <select value={minRatingFilter} onChange={(event) => setMinRatingFilter(event.target.value)}>
-                <option value="">{t('allRatings')}</option>
-                <option value="4.5">4.5+</option>
-                <option value="4.7">4.7+</option>
-                <option value="4.8">4.8+</option>
-                <option value="4.9">4.9+</option>
-              </select>
-            </label>
-          </div>
-          <button
-            type="button"
-            className={`${styles.secondary} ${pageStyles.clearButton}`}
-            onClick={() => {
-              setMaxPriceFilter('');
-              setMinRatingFilter('');
-            }}
-          >
-            {t('clear')}
-          </button>
-        </section>
+          {filterControls()}
+        </motion.section>
+
+        <AnimatePresence>
+          {showMobileFilters ? (
+            <motion.div
+              className={pageStyles.mobileFilterOverlay}
+              initial={prefersReducedMotion ? false : {opacity: 0}}
+              animate={prefersReducedMotion ? undefined : {opacity: 1}}
+              exit={prefersReducedMotion ? undefined : {opacity: 0}}
+              onClick={() => setShowMobileFilters(false)}
+            >
+              <motion.div
+                className={pageStyles.mobileFilterSheet}
+                initial={prefersReducedMotion ? false : {y: 24, opacity: 0}}
+                animate={prefersReducedMotion ? undefined : {y: 0, opacity: 1}}
+                exit={prefersReducedMotion ? undefined : {y: 24, opacity: 0}}
+                transition={{duration: 0.2}}
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className={pageStyles.mobileFilterHeader}>
+                  <h3>{t('filtersTitle')}</h3>
+                  <button
+                    type="button"
+                    className={styles.secondary}
+                    onClick={() => setShowMobileFilters(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+                {filterControls(
+                  <button
+                    type="button"
+                    className={styles.primary}
+                    onClick={() => setShowMobileFilters(false)}
+                  >
+                    Apply
+                  </button>
+                )}
+              </motion.div>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
 
         {!matchedServices.length && !matchedPros.length ? (
           <div className={`${styles.card} ${pageStyles.emptyState}`}>{t('noResults')}</div>
@@ -215,11 +342,41 @@ export default function SearchPage() {
             <section>
               <h2 className={pageStyles.sectionTitle}>
                 {mode === 'services' ? 'Matching services' : 'Matching providers'}
+                <motion.span
+                  key={`${mode}-${primaryCount}`}
+                  initial={prefersReducedMotion ? false : {opacity: 0, y: -4}}
+                  animate={prefersReducedMotion ? undefined : {opacity: 1, y: 0}}
+                  className={pageStyles.resultCount}
+                >
+                  {primaryCount}
+                </motion.span>
               </h2>
-              <div className={pageStyles.resultsGrid}>
+              {isRefreshing ? <p className={pageStyles.refreshLabel}>Updating results...</p> : null}
+              {isRefreshing ? (
+                <div className={pageStyles.resultsGrid}>
+                  {[1, 2, 3].map((item) => (
+                    <div key={item} className={pageStyles.resultSkeleton} />
+                  ))}
+                </div>
+              ) : (
+                <motion.div
+                  key={`${mode}-${query}-${cityFilter}-${maxPriceFilter}-${minRatingFilter}`}
+                  className={pageStyles.resultsGrid}
+                  initial={prefersReducedMotion ? false : 'hidden'}
+                  animate={prefersReducedMotion ? undefined : 'visible'}
+                >
                 {mode === 'services'
-                  ? matchedServices.map((service) => (
-                      <article className={pageStyles.resultCard} key={service.slug}>
+                  ? matchedServices.map((service, index) => (
+                      <motion.article
+                        className={pageStyles.resultCard}
+                        key={service.slug}
+                        variants={cardVariants}
+                        initial={prefersReducedMotion ? false : 'hidden'}
+                        animate={prefersReducedMotion ? undefined : 'visible'}
+                        custom={index}
+                        whileHover={prefersReducedMotion ? undefined : {y: -4}}
+                        viewport={{once: true, amount: 0.2}}
+                      >
                         <img src={service.heroImage} alt={localizedServiceName(service.slug)} />
                         <div className={pageStyles.cardBody}>
                           <h3>{localizedServiceName(service.slug)}</h3>
@@ -228,10 +385,19 @@ export default function SearchPage() {
                             {common('viewDetails')}
                           </Link>
                         </div>
-                      </article>
+                      </motion.article>
                     ))
-                  : matchedPros.map((pro) => (
-                      <article className={pageStyles.resultCard} key={pro.id}>
+                  : matchedPros.map((pro, index) => (
+                      <motion.article
+                        className={pageStyles.resultCard}
+                        key={pro.id}
+                        variants={cardVariants}
+                        initial={prefersReducedMotion ? false : 'hidden'}
+                        animate={prefersReducedMotion ? undefined : 'visible'}
+                        custom={index}
+                        whileHover={prefersReducedMotion ? undefined : {y: -4}}
+                        viewport={{once: true, amount: 0.2}}
+                      >
                         <img src={pro.image} alt={pro.name} />
                         <div className={pageStyles.cardBody}>
                           <h3>{pro.name}</h3>
@@ -248,18 +414,20 @@ export default function SearchPage() {
                             {common('requestQuote')}
                           </VerifiedNavigationLink>
                         </div>
-                      </article>
+                      </motion.article>
                     ))}
-              </div>
+                </motion.div>
+              )}
             </section>
             <section>
               <h3 className={pageStyles.secondaryTitle}>
                 {mode === 'services' ? 'Related providers' : 'Related services'}
+                <span className={pageStyles.resultCount}>{secondaryCount}</span>
               </h3>
               <div className={pageStyles.resultsGrid}>
                 {mode === 'services'
                   ? matchedPros.slice(0, 6).map((pro) => (
-                      <article className={pageStyles.resultCard} key={pro.id}>
+                      <article className={`${pageStyles.resultCard} ${pageStyles.secondaryCard}`} key={pro.id}>
                         <img src={pro.image} alt={pro.name} />
                         <div className={pageStyles.cardBody}>
                           <h3>{pro.name}</h3>
@@ -279,7 +447,7 @@ export default function SearchPage() {
                       </article>
                     ))
                   : matchedServices.slice(0, 6).map((service) => (
-                      <article className={pageStyles.resultCard} key={service.slug}>
+                      <article className={`${pageStyles.resultCard} ${pageStyles.secondaryCard}`} key={service.slug}>
                         <img src={service.heroImage} alt={localizedServiceName(service.slug)} />
                         <div className={pageStyles.cardBody}>
                           <h3>{localizedServiceName(service.slug)}</h3>
