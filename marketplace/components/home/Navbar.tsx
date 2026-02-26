@@ -58,11 +58,11 @@ export default function Navbar() {
     const loadAuthState = async () => {
       try {
         setLoadingAuth(true);
-        const {data: userData} = await supabase.auth.getUser();
-        const user = userData?.user ?? null;
+        const {data: sessionData} = await supabase.auth.getSession();
+        const sessionUser = sessionData?.session?.user ?? null;
         if (!active) return;
 
-        if (!user) {
+        if (!sessionUser) {
           setIsAuthenticated(false);
           setHasAdminRole(false);
           setHasProviderRole(false);
@@ -70,11 +70,12 @@ export default function Navbar() {
         }
 
         setIsAuthenticated(true);
+        setLoadingAuth(false);
 
         const {data: roles} = await supabase
           .from('user_roles')
           .select('role')
-          .eq('user_id', user.id);
+          .eq('user_id', sessionUser.id);
 
         if (!active) return;
         const roleList = (roles ?? []).map((item) => item.role);
@@ -103,6 +104,7 @@ export default function Navbar() {
       }
 
       setIsAuthenticated(true);
+      setLoadingAuth(false);
       const {data: roles} = await supabase
         .from('user_roles')
         .select('role')
