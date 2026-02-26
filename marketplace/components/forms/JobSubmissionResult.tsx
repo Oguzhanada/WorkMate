@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 
 import { JOB_BUDGET_OPTIONS } from '@/lib/constants/job';
+import { supabase } from '@/lib/supabase';
 import styles from './job-result.module.css';
 
 type JobSummary = {
@@ -17,14 +18,24 @@ type JobSummary = {
   status: string;
   review_status: 'pending_review' | 'approved' | 'rejected' | string;
   created_at: string;
+  photo_urls?: string[] | null;
 };
 
-export default function JobSubmissionResult({ initialJob }: { initialJob: JobSummary }) {
+export default function JobSubmissionResult({
+  initialJob,
+  customerId,
+}: {
+  initialJob: JobSummary;
+  customerId: string;
+}) {
   const [job, setJob] = useState(initialJob);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const [ok, setOk] = useState('');
+  const [uploadFiles, setUploadFiles] = useState<File[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [photoCount, setPhotoCount] = useState((initialJob.photo_urls ?? []).length);
 
   const [form, setForm] = useState({
     title: initialJob.title,
@@ -59,6 +70,61 @@ export default function JobSubmissionResult({ initialJob }: { initialJob: JobSum
     setOk('Job summary updated successfully.');
   };
 
+  const onUploadPhotos = async () => {
+    setError('');
+    setOk('');
+
+    if (uploadFiles.length === 0) {
+      setError('Please choose at least one image.');
+      return;
+    }
+
+    if (photoCount + uploadFiles.length > 20) {
+      setError(`You can upload up to ${20 - photoCount} more image(s).`);
+      return;
+    }
+
+    setIsUploading(true);
+    const uploadedPaths: string[] = [];
+
+    for (const file of uploadFiles) {
+      if (!file.type.startsWith('image/')) {
+        setIsUploading(false);
+        setError('Only image files are allowed.');
+        return;
+      }
+
+      const safeName = file.name.replace(/\s+/g, '-');
+      const path = `jobs/${customerId}/${job.id}/${Date.now()}-${safeName}`;
+      const { error: uploadError } = await supabase.storage.from('job-photos').upload(path, file, { upsert: false });
+
+      if (uploadError) {
+        setIsUploading(false);
+        setError(uploadError.message || 'Photo upload failed.');
+        return;
+      }
+
+      uploadedPaths.push(path);
+    }
+
+    const response = await fetch(`/api/jobs/${job.id}/photos`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ photo_urls: uploadedPaths }),
+    });
+    const payload = await response.json();
+    setIsUploading(false);
+
+    if (!response.ok) {
+      setError(payload.error || 'Job photos could not be updated.');
+      return;
+    }
+
+    setUploadFiles([]);
+    setPhotoCount(payload.total_count ?? photoCount);
+    setOk(`Photos uploaded successfully. Total photos: ${payload.total_count ?? photoCount}.`);
+  };
+
   return (
     <main className={styles.wrap}>
       <article className={styles.card}>
@@ -82,6 +148,9 @@ export default function JobSubmissionResult({ initialJob }: { initialJob: JobSum
         </div>
         <div className={styles.row}>
           <strong>Posted:</strong> <span>{new Date(job.created_at).toLocaleString()}</span>
+        </div>
+        <div className={styles.row}>
+          <strong>Photos:</strong> <span>{photoCount}/20</span>
         </div>
 
         <label className={styles.field}>
@@ -149,6 +218,24 @@ export default function JobSubmissionResult({ initialJob }: { initialJob: JobSum
             ))}
           </select>
         </label>
+
+        {isEditing ? (
+          <section className={styles.photoSection}>
+            <h3>Add photos</h3>
+            <p className={styles.muted}>You can upload before/after or issue photos for better provider quotes.</p>
+            <div className={styles.photoUploader}>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(event) => setUploadFiles(Array.from(event.target.files ?? []))}
+              />
+              <button type="button" onClick={onUploadPhotos} className={styles.secondary} disabled={isUploading}>
+                {isUploading ? 'Uploading...' : 'Upload selected photos'}
+              </button>
+            </div>
+          </section>
+        ) : null}
 
         {error ? <p className={styles.error}>{error}</p> : null}
         {ok ? <p className={styles.ok}>{ok}</p> : null}

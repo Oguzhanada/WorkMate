@@ -1,9 +1,9 @@
 .card {
-  background: #ffffff;
-  border: 1px solid #dfe3ea;
-  border-radius: 16px;
-  padding: 18px;
-  box-shadow: 0 8px 22px rgba(16, 37, 31, 0.08);
+  background: linear-gradient(165deg, #ffffff 0%, #f8fbff 100%);
+  border: 1px solid #d8e4ef;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 14px 30px rgba(9, 35, 57, 0.09);
 }
 
 .title {
@@ -13,7 +13,7 @@
 }
 
 .muted {
-  color: #59607a;
+  color: #4b5563;
   font-size: 0.95rem;
 }
 
@@ -36,13 +36,22 @@
 .input,
 .select,
 .textarea {
-  border: 1px solid #d2d6dd;
-  border-radius: 10px;
+  border: 1px solid #cfe0ee;
+  border-radius: 12px;
   font: inherit;
-  padding: 10px 12px;
+  padding: 11px 12px;
   background: #fff;
   width: 100%;
   box-sizing: border-box;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: #00b894;
+  box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.12);
+  outline: none;
 }
 
 .textarea {
@@ -70,20 +79,33 @@
   border: 1px solid #169b62;
   background: #169b62;
   color: #fff;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 10px 14px;
   font-weight: 600;
   cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.primary:hover {
+  background: #008b74;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(0, 184, 148, 0.24);
 }
 
 .secondary {
-  border: 1px solid #ccd2dd;
+  border: 1px solid #c5d5e3;
   background: #fff;
   color: #223149;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 10px 14px;
   font-weight: 600;
   cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease;
+}
+
+.secondary:hover {
+  border-color: #00b894;
+  transform: translateY(-1px);
 }
 
 .primary:disabled,

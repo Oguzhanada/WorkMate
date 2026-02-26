@@ -14,6 +14,7 @@ type Job = {
   status: string;
   review_status: string;
   created_at: string;
+  photo_urls: string[] | null;
 };
 
 export default async function JobResultPage({
@@ -34,7 +35,7 @@ export default async function JobResultPage({
 
   const { data, error } = await supabase
     .from('jobs')
-    .select('id,title,description,eircode,county,locality,budget_range,status,review_status,created_at')
+    .select('id,title,description,eircode,county,locality,budget_range,status,review_status,created_at,photo_urls')
     .eq('id', jobId)
     .eq('customer_id', user.id)
     .maybeSingle();
@@ -43,5 +44,5 @@ export default async function JobResultPage({
     notFound();
   }
 
-  return <JobSubmissionResult initialJob={data as Job} />;
+  return <JobSubmissionResult initialJob={data as Job} customerId={user.id} />;
 }
