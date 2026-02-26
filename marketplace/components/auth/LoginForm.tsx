@@ -124,10 +124,8 @@ export function LoginForm() {
       }
 
       setSuccessMessage(t('success'));
-      setTimeout(() => {
-        router.push('/?welcome=1');
-        router.refresh();
-      }, 550);
+      router.replace('/profile');
+      router.refresh();
     } catch (submitError) {
       const message = submitError instanceof Error ? submitError.message : 'Login failed. Please try again.';
       setFormError(message);
