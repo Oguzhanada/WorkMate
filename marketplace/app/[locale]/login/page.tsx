@@ -1,7 +1,7 @@
 "use client";
 
 import {useEffect} from 'react';
-import {useRouter} from 'next/navigation';
+import {useRouter, useSearchParams} from 'next/navigation';
 import {motion} from 'framer-motion';
 
 import {BrandColumn} from '@/components/auth/BrandColumn';
@@ -13,15 +13,19 @@ import styles from '@/components/auth/login.module.css';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
+    if (searchParams.get('logged_out') === '1') {
+      return;
+    }
     const supabase = getSupabaseBrowserClient();
     supabase.auth.getUser().then(({data}) => {
       if (data.user) {
         router.replace('/profile');
       }
     });
-  }, [router]);
+  }, [router, searchParams]);
 
   return (
     <main className={styles.page}>

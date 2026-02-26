@@ -128,6 +128,7 @@ export default function Navbar() {
     setIsAuthenticated(false);
     setHasAdminRole(false);
     setHasProviderRole(false);
+    setLoadingAuth(false);
     const clearSupabaseCookies = () => {
       if (typeof document === 'undefined') return;
       const cookies = document.cookie.split(';');
@@ -137,19 +138,32 @@ export default function Navbar() {
         document.cookie = `${cookieName}=; Max-Age=0; path=/;`;
       }
     };
+    const clearSupabaseStorage = () => {
+      if (typeof window === 'undefined') return;
+      const targets: Storage[] = [window.localStorage, window.sessionStorage];
+      for (const storage of targets) {
+        const keys = Object.keys(storage).filter((key) => key.startsWith('sb-'));
+        for (const key of keys) storage.removeItem(key);
+      }
+    };
+    const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number) =>
+      Promise.race([
+        promise,
+        new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('timeout')), timeoutMs);
+        })
+      ]);
     try {
-      await fetch('/api/auth/logout', {method: 'POST'});
-      await supabase.auth.signOut({scope: 'global'});
+      await withTimeout(supabase.auth.signOut({scope: 'local'}), 5000);
+      await withTimeout(fetch('/api/auth/logout', {method: 'POST', cache: 'no-store'}), 5000);
+      await withTimeout(supabase.auth.signOut({scope: 'global'}), 5000);
     } catch {
       // fallback redirect below will force fresh auth state
     }
     clearSupabaseCookies();
-    const target = withLocalePrefix(localeRoot, '/login');
-    router.replace(target);
-    router.refresh();
-    window.setTimeout(() => {
-      window.location.assign(target);
-    }, 120);
+    clearSupabaseStorage();
+    const target = withLocalePrefix(localeRoot, `/login?logged_out=1&t=${Date.now()}`);
+    window.location.replace(target);
   };
 
   const handleHashLink = (hash: string) => {
