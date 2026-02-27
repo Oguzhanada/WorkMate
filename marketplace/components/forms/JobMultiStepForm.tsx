@@ -10,15 +10,9 @@ import {
   JOB_TITLE_OPTIONS,
   JOB_URGENCY_OPTIONS,
 } from '@/lib/constants/job';
-import { getTaxonomyCategories } from '@/lib/service-taxonomy';
+import { useCategoriesWithFallback, type Category } from '@/lib/hooks/useCategoriesWithFallback';
 import InfoTooltip from '@/components/ui/InfoTooltip';
 import styles from './forms.module.css';
-
-type Category = {
-  id: string;
-  name: string;
-  parent_id: string | null;
-};
 
 const STEP_LABELS = ['Title and details', 'Location and budget', 'Photos and submit'] as const;
 
@@ -26,7 +20,9 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [categoryId, setCategoryId] = useState('');
-  const [categories, setCategories] = useState<Category[]>([]);
+  const {categories, isLoading: isLoadingCategories, notice: categoryNotice} = useCategoriesWithFallback({
+    leafOnly: true
+  });
   const [titleOption, setTitleOption] = useState<(typeof JOB_TITLE_OPTIONS)[number] | ''>('');
   const [customTitle, setCustomTitle] = useState('');
   const [scope, setScope] = useState<(typeof JOB_SCOPE_OPTIONS)[number] | ''>('');
@@ -43,51 +39,23 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
   });
   const [photos, setPhotos] = useState<File[]>([]);
   const [isPending, setIsPending] = useState(false);
-  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
-  const [categoryNotice, setCategoryNotice] = useState('');
   const [feedback, setFeedback] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
-    async function loadCategories() {
-      setIsLoadingCategories(true);
-      const fallbackCategories = (getTaxonomyCategories() as Category[]).filter(
-        (item) => item.parent_id !== null
-      );
-      try {
-        const response = await fetch('/api/categories', { cache: 'no-store' });
-        const payload = await response.json();
-        if (!response.ok) {
-          throw new Error(payload.error || 'Categories could not be loaded.');
-        }
+    setCategoryId((current) => {
+      if (current && categories.some((item) => item.id === current)) return current;
+      return categories[0]?.id || '';
+    });
+  }, [categories]);
 
-        const all = (payload.categories ?? []) as Category[];
-        const leaf = all.filter((item) => item.parent_id !== null);
-        const usable = leaf.length > 0 ? leaf : all;
-
-        if (usable.length === 0) {
-          setCategories(fallbackCategories);
-          setCategoryNotice('Service categories are temporarily unavailable. Showing fallback options.');
-          setError('');
-          setCategoryId((current) => current || fallbackCategories[0]?.id || '');
-          return;
-        }
-
-        setCategories(usable);
-        setCategoryNotice('');
-        setError('');
-        setCategoryId((current) => (current && usable.some((item) => item.id === current) ? current : usable[0].id));
-      } catch {
-        setCategories(fallbackCategories);
-        setCategoryNotice('Service categories are temporarily unavailable. Showing fallback options.');
-        setError('');
-        setCategoryId((current) => current || fallbackCategories[0]?.id || '');
-      } finally {
-        setIsLoadingCategories(false);
-      }
+  useEffect(() => {
+    if (categories.length === 0 && !isLoadingCategories) {
+      setError('No active categories are available right now. Please try again shortly.');
+    } else if (error.startsWith('No active categories')) {
+      setError('');
     }
-    loadCategories();
-  }, []);
+  }, [categories.length, error, isLoadingCategories]);
 
   const uploadPhotos = async () => {
     const urls: string[] = [];

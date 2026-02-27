@@ -8,7 +8,7 @@ import {getSupabaseBrowserClient} from '@/lib/supabase/client';
 import {IRISH_COUNTIES} from '@/lib/ireland-locations';
 import {isValidIrishPhone, normalizeIrishPhone, sanitizePhoneInput} from '@/lib/validation/phone';
 import {hasAtLeastTwoNameParts, isValidEnglishFullName} from '@/lib/validation/name';
-import {getTaxonomyCategories} from '@/lib/service-taxonomy';
+import {useCategoriesWithFallback, type Category} from '@/lib/hooks/useCategoriesWithFallback';
 import MultiSelectDropdown from '@/components/forms/MultiSelectDropdown';
 import styles from '../inner.module.css';
 
@@ -20,15 +20,13 @@ const AVAILABILITY_OPTIONS = ['Weekdays 08:00-12:00', 'Weekdays 12:00-18:00', 'W
 const RADIUS_OPTIONS = ['Up to 10 km', 'Up to 20 km', 'Up to 30 km', 'Up to 50 km', 'Ireland-wide'];
 const COUNTY_OPTIONS = [...IRISH_COUNTIES, 'Ireland-wide'];
 
-type Category = {
-  id: string;
-  name: string;
-  parent_id: string | null;
-};
-
 export default function BecomeProviderPage() {
   const router = useRouter();
   const t = useTranslations('becomeProvider');
+  const {categories, isLoading: isLoadingCategories, notice: categoryNotice} = useCategoriesWithFallback({
+    leafOnly: true,
+    fallbackNotice: 'Service list is temporarily unavailable. Showing fallback categories.'
+  });
 
   const [step, setStep] = useState<Step>(1);
   const [message, setMessage] = useState('');
@@ -48,8 +46,6 @@ export default function BecomeProviderPage() {
 
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
   const [otherService, setOtherService] = useState('');
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [categoryNotice, setCategoryNotice] = useState('');
   const [experienceRange, setExperienceRange] = useState('');
   const [optionalLink, setOptionalLink] = useState('');
   const [availabilitySelections, setAvailabilitySelections] = useState<string[]>([]);
@@ -191,36 +187,16 @@ export default function BecomeProviderPage() {
         .eq('profile_id', user.id);
       setSelectedAreas((existingAreas ?? []).map((area) => area.county).filter(Boolean));
 
-      const fallbackCategories = getTaxonomyCategories() as Category[];
-      const fallbackLeafCategories = fallbackCategories.filter((item) => item.parent_id !== null);
-
-      try {
-        const categoryResponse = await fetch('/api/categories', {cache: 'no-store'});
-        const categoryPayload = await categoryResponse.json();
-
-        if (!categoryResponse.ok) {
-          throw new Error('Category API returned non-OK response.');
-        }
-
-        const all = (categoryPayload.categories ?? []) as Category[];
-        const leaf = all.filter((item) => item.parent_id !== null);
-        const resolved = leaf.length > 0 ? leaf : all;
-
-        if (resolved.length === 0) {
-          setCategories(fallbackLeafCategories);
-          setCategoryNotice('Service list is temporarily unavailable. Showing fallback categories.');
-        } else {
-          setCategories(resolved);
-          setCategoryNotice('');
-        }
-      } catch {
-        setCategories(fallbackLeafCategories);
-        setCategoryNotice('Service list is temporarily unavailable. Showing fallback categories.');
-      }
     };
 
     run();
   }, [router]);
+
+  useEffect(() => {
+    setSelectedServiceIds((current) =>
+      current.filter((serviceId) => categories.some((item) => item.id === serviceId))
+    );
+  }, [categories]);
 
   const selectedServicesList = useMemo(() => {
     const selectedNames = categories
@@ -622,7 +598,7 @@ export default function BecomeProviderPage() {
                     options={serviceOptions}
                     selectedValues={selectedServiceIds}
                     placeholder="Select services"
-                    disabled={serviceOptions.length === 0}
+                    disabled={isLoadingCategories || serviceOptions.length === 0}
                     emptyMessage="No services are available right now. Please refresh and try again."
                     onToggle={(value) => toggleSelection(selectedServiceIds, value, setSelectedServiceIds)}
                   />
