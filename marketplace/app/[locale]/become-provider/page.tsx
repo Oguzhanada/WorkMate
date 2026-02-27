@@ -8,6 +8,7 @@ import {getSupabaseBrowserClient} from '@/lib/supabase/client';
 import {IRISH_COUNTIES} from '@/lib/ireland-locations';
 import {isValidIrishPhone, normalizeIrishPhone, sanitizePhoneInput} from '@/lib/validation/phone';
 import {hasAtLeastTwoNameParts, isValidEnglishFullName} from '@/lib/validation/name';
+import {getTaxonomyCategories} from '@/lib/service-taxonomy';
 import MultiSelectDropdown from '@/components/forms/MultiSelectDropdown';
 import styles from '../inner.module.css';
 
@@ -48,6 +49,7 @@ export default function BecomeProviderPage() {
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
   const [otherService, setOtherService] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
+  const [categoryNotice, setCategoryNotice] = useState('');
   const [experienceRange, setExperienceRange] = useState('');
   const [optionalLink, setOptionalLink] = useState('');
   const [availabilitySelections, setAvailabilitySelections] = useState<string[]>([]);
@@ -189,12 +191,31 @@ export default function BecomeProviderPage() {
         .eq('profile_id', user.id);
       setSelectedAreas((existingAreas ?? []).map((area) => area.county).filter(Boolean));
 
-      const categoryResponse = await fetch('/api/categories', {cache: 'no-store'});
-      const categoryPayload = await categoryResponse.json();
-      if (categoryResponse.ok) {
+      const fallbackCategories = getTaxonomyCategories() as Category[];
+      const fallbackLeafCategories = fallbackCategories.filter((item) => item.parent_id !== null);
+
+      try {
+        const categoryResponse = await fetch('/api/categories', {cache: 'no-store'});
+        const categoryPayload = await categoryResponse.json();
+
+        if (!categoryResponse.ok) {
+          throw new Error('Category API returned non-OK response.');
+        }
+
         const all = (categoryPayload.categories ?? []) as Category[];
         const leaf = all.filter((item) => item.parent_id !== null);
-        setCategories(leaf.length > 0 ? leaf : all);
+        const resolved = leaf.length > 0 ? leaf : all;
+
+        if (resolved.length === 0) {
+          setCategories(fallbackLeafCategories);
+          setCategoryNotice('Service list is temporarily unavailable. Showing fallback categories.');
+        } else {
+          setCategories(resolved);
+          setCategoryNotice('');
+        }
+      } catch {
+        setCategories(fallbackLeafCategories);
+        setCategoryNotice('Service list is temporarily unavailable. Showing fallback categories.');
       }
     };
 
@@ -517,6 +538,7 @@ export default function BecomeProviderPage() {
         {message ? <div className={styles.toast}>{message}</div> : null}
         {!isSubmitted && prefillNotice ? <div className={styles.toast}>{prefillNotice}</div> : null}
         {error ? <div className={styles.error}>{error}</div> : null}
+        {!isSubmitted && categoryNotice ? <p className={styles.muted}>{categoryNotice}</p> : null}
         <div className={styles.guidelinesCard}>
           <p className={styles.guidelinesTitle}>Provider rules snapshot</p>
           <ul className={styles.guidelinesList}>
@@ -600,6 +622,8 @@ export default function BecomeProviderPage() {
                     options={serviceOptions}
                     selectedValues={selectedServiceIds}
                     placeholder="Select services"
+                    disabled={serviceOptions.length === 0}
+                    emptyMessage="No services are available right now. Please refresh and try again."
                     onToggle={(value) => toggleSelection(selectedServiceIds, value, setSelectedServiceIds)}
                   />
 

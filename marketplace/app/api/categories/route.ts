@@ -1,35 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
-import { SERVICE_TAXONOMY } from '@/lib/service-taxonomy';
-
-function getFallbackCategories() {
-  let order = 1;
-
-  return SERVICE_TAXONOMY.flatMap((group, groupIndex) => {
-    const parentId = `fallback-parent-${groupIndex + 1}`;
-    const parent = {
-      id: parentId,
-      slug: group.slug,
-      name: group.name,
-      parent_id: null,
-      sort_order: order++
-    };
-
-    const children = group.subcategories.map((subcategory) => ({
-      id: `fallback-child-${subcategory.slug}`,
-      slug: subcategory.slug,
-      name: subcategory.name,
-      parent_id: parentId,
-      sort_order: order++
-    }));
-
-    return [parent, ...children];
-  });
-}
+import { getTaxonomyCategories } from '@/lib/service-taxonomy';
 
 export async function GET() {
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return NextResponse.json({ categories: getFallbackCategories() });
+    return NextResponse.json({ categories: getTaxonomyCategories() });
   }
 
   const supabase = getSupabaseServiceClient();
@@ -40,7 +15,14 @@ export async function GET() {
     .order('sort_order', { ascending: true });
 
   if (error) {
-    return NextResponse.json({ categories: getFallbackCategories(), warning: error.message });
+    return NextResponse.json({ categories: getTaxonomyCategories(), warning: error.message });
+  }
+
+  if (!data || data.length === 0) {
+    return NextResponse.json({
+      categories: getTaxonomyCategories(),
+      warning: 'Categories table is empty. Using taxonomy fallback.'
+    });
   }
 
   return NextResponse.json({ categories: data ?? [] });

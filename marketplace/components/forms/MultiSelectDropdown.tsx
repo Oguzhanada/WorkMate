@@ -15,6 +15,8 @@ type Props = {
   options: Option[];
   selectedValues: string[];
   placeholder: string;
+  disabled?: boolean;
+  emptyMessage?: string;
   onToggle: (value: string) => void;
 };
 
@@ -23,6 +25,8 @@ export default function MultiSelectDropdown({
   options,
   selectedValues,
   placeholder,
+  disabled = false,
+  emptyMessage = 'No options available.',
   onToggle
 }: Props) {
   const [open, setOpen] = useState(false);
@@ -43,6 +47,7 @@ export default function MultiSelectDropdown({
         type="button"
         className={styles.trigger}
         aria-expanded={open}
+        disabled={disabled}
         onClick={() => setOpen((value) => !value)}
       >
         <span className={selectedLabel ? styles.value : styles.placeholder}>
@@ -53,7 +58,9 @@ export default function MultiSelectDropdown({
 
       {open ? (
         <div className={styles.panel}>
-          {(() => {
+          {options.length === 0 ? (
+            <p className={styles.empty}>{emptyMessage}</p>
+          ) : (() => {
             const grouped = options.reduce<Record<string, Option[]>>((acc, option) => {
               const key = option.group?.trim() || '';
               if (!acc[key]) acc[key] = [];

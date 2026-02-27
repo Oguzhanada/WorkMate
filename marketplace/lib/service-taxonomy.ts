@@ -7,6 +7,14 @@ export type ServiceCategoryGroup = {
   }>;
 };
 
+export type TaxonomyCategoryRow = {
+  id: string;
+  slug: string;
+  name: string;
+  parent_id: string | null;
+  sort_order: number;
+};
+
 export const SERVICE_TAXONOMY: ServiceCategoryGroup[] = [
   {
     slug: 'home-cleaning',
@@ -122,4 +130,29 @@ export function getTaxonomySuggestions(limit = 12): string[] {
     0,
     limit
   );
+}
+
+export function getTaxonomyCategories(): TaxonomyCategoryRow[] {
+  let order = 1;
+
+  return SERVICE_TAXONOMY.flatMap((group, groupIndex) => {
+    const parentId = `fallback-parent-${groupIndex + 1}`;
+    const parent: TaxonomyCategoryRow = {
+      id: parentId,
+      slug: group.slug,
+      name: group.name,
+      parent_id: null,
+      sort_order: order++
+    };
+
+    const children: TaxonomyCategoryRow[] = group.subcategories.map((subcategory) => ({
+      id: `fallback-child-${subcategory.slug}`,
+      slug: subcategory.slug,
+      name: subcategory.name,
+      parent_id: parentId,
+      sort_order: order++
+    }));
+
+    return [parent, ...children];
+  });
 }
