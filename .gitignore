@@ -3,7 +3,6 @@ __pycache__/
 .env
 .venv/
 venv/
-inactive_users.csv
 marketplace/.env.local
 marketplace/.env.*
 !marketplace/.env.example
