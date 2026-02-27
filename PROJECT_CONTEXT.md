@@ -1,116 +1,207 @@
-# WorkMate - AI Context File
+# WorkMate (Ada Marketplace) - AI Context File
 > Last updated: 2026-02-27
-> Session: 2
+> Session: 3
+
+---
 
 ## 1. PROJECT IDENTITY
-- Name: WorkMate (Ireland service marketplace)
-- Stack: Next.js 16 (App Router) + React 19 + TypeScript + Supabase + Stripe
-- Repo: `github.com/Oguzhanada/Inactive_user_Report--Python-`
-- App folder: `marketplace/`
-- Status: Development
 
-## 2. ARCHITECTURE SUMMARY
+| Field | Value |
+|------|-------|
+| Name | WorkMate (code name: Ada Marketplace) |
+| Description | Ireland-focused services marketplace |
+| Repo | `github.com/Oguzhanada/Inactive_user_Report--Python-` |
+| Main folder | `marketplace/` |
+| Status | Development |
+| Target market | Ireland (26 counties, Eircode) |
+| Product language | English-only (UI, docs, errors, policy pages) |
+
+---
+
+## 2. TECH STACK
+
+- Frontend: Next.js 16.1.6 (App Router, Turbopack), React 19, TypeScript
+- Backend: Next.js API routes + Supabase Edge Functions
+- Database: Supabase PostgreSQL with RLS
+- Auth: Supabase Auth (Email/Password + Google/Facebook OAuth)
+- Payments: Stripe Connect (secure hold → capture/refund)
+- Styling/UI: Tailwind CSS, CSS modules, shadcn/ui primitives, Framer Motion
+- Validation: Zod + custom Ireland validators (Eircode, phone, name)
+- i18n: next-intl infrastructure, English content only
+
+---
+
+## 3. ARCHITECTURE SUMMARY
+
 ```text
 marketplace/
 ├── app/
-│   ├── [locale]/                  # pages (EN-only content policy)
-│   ├── api/                       # route handlers
-│   └── auth/callback              # OAuth callback
+│   ├── [locale]/                    # routed pages
+│   ├── api/                         # server endpoints
+│   ├── auth/callback/route.ts       # OAuth callback
+│   └── layout.tsx / globals.css
 ├── components/
-│   ├── auth/ dashboard/ forms/
-│   ├── home/ profile/ payments/
-│   ├── disputes/ site/ ui/
-│   └── jobs/ offers/              # new Airtasker-style UI blocks
+│   ├── auth/ dashboard/ disputes/
+│   ├── forms/ home/ payments/ profile/
+│   ├── site/ ui/
+│   ├── jobs/                        # Hybrid job mode selector
+│   └── offers/                      # Offer card UI
 ├── lib/
-│   ├── auth/ validation/ hooks/
-│   ├── supabase/                  # browser/server/route/service clients
-│   ├── ranking/ pricing/ types/   # new feature layer
-│   └── constants/
-├── migrations/                    # SQL migrations (001..036)
-├── supabase/functions/            # edge functions
-└── messages/en.json               # translations
+│   ├── auth/                        # RBAC helpers
+│   ├── supabase/                    # browser/server/route/service clients
+│   ├── validation/                  # Zod + custom validators
+│   ├── ranking/ pricing/ types/     # Airtasker-style feature layer
+│   └── constants/ hooks/
+├── migrations/                      # 001..036
+├── supabase/functions/              # edge functions
+└── messages/en.json
 ```
 
-## 3. DATABASE SCHEMA (CORE)
-- `profiles` (identity + verification + provider priority)
-- `user_roles` (customer, verified_pro, admin; multi-role)
-- `jobs` (posting flow + approval + identity tier + task mode/type)
-- `quotes` (offers + ranking score + expiry)
-- `reviews` (rating, public visibility, provider response)
-- `pro_documents` (ID + insurance + safe pass + tax clearance workflow)
-- `notifications` (in-app, payload JSON)
-- `payments` (secure hold / capture / refund lifecycle)
+---
+
+## 4. DATABASE SCHEMA
+
+### Core tables
+- `profiles`, `user_roles`
+- `jobs`, `quotes`, `reviews`
+- `pro_documents`, `pro_services`, `pro_service_areas`
+- `notifications`, `payments`, `job_messages`
+- `categories`, `addresses`, `job_intents`
 - `disputes`, `dispute_logs`, `dispute_evidence`
-- `task_alerts` (new)
-- `customer_provider_history` (new)
-- `quote_daily_limits` (progressive verification limits)
-- `job_intents` (guest flow)
-- `provider_rankings` (materialized view, new)
 
-## 4. COMPLETED TASKS
-- [x] Identity-first layer + retention cron (`027`, `028`)
-- [x] Provider document workflow expansion (`029`)
-- [x] Job approval flow (`030`)
-- [x] Dispute system (`031`)
-- [x] Auto-release payment flow + cron (`032`, `034`)
-- [x] Stripe identity base integration (`033`)
+### New/extended feature tables
+- `task_alerts`
+- `customer_provider_history`
+- `quote_daily_limits`
+- Materialized view: `provider_rankings`
+
+### Verification states (active model)
+- `profiles.id_verification_status`: `none | pending | approved | rejected`
+- `profiles.verification_status`: provider workflow status layer
+- `pro_documents.verification_status`: `pending | verified | rejected | request_resubmission`
+
+---
+
+## 5. COMPLETED FEATURES
+
+- [x] Auth system (login/signup/OAuth/reset)
+- [x] Multi-role RBAC (customer + provider + admin)
+- [x] Job posting flow (guest + authenticated)
+- [x] Provider onboarding and document upload
+- [x] Admin review panel (job approval + provider docs)
+- [x] Stripe secure hold flow + capture + webhook route
+- [x] Disputes and payment release escalation base
 - [x] Progressive verification tiers (`035`)
-- [x] Airtasker feature layer migration (`036`)
-- [x] Offer ranking + fee calculation utilities
-- [x] Task alert edge function scaffold (`match-task-alerts`)
+- [x] Airtasker-style feature foundation (`036`)
+  - quote expiry + ranking score columns
+  - task alerts table + RLS
+  - customer/provider history + RPC increment
+  - provider rankings materialized view + refresh function
 
-## 5. ACTIVE TASK
-**Current focus:** Provider onboarding submission failure in `/become-provider`
-- Task: Fix category fallback vs UUID mismatch and confirm provider submission path
-- Status: In progress
-- Last done:
-  - Added fallback-aware category hook behavior
-  - Added validation to block fallback IDs in provider submit step
-  - Improved error surface on provider submit
+---
+
+## 6. ACTIVE TASK
+
+**Current task:** Provider onboarding consistency after verified ID.
+
+- Task name: Prevent redundant ID request when user is already ID-verified.
+- Status: In progress (code fix pushed, verification pending).
+- Last completed:
+  - Reused approved identity state in `become-provider` flow.
+  - Avoided accidental downgrade from approved to pending.
+  - Improved fallback-category behavior and error details.
 - Next step:
-  - Re-test with user `oguzhanadaa5334@gmail.com`
-  - Capture exact DB/API error if still failing
-  - Complete RLS smoke checks for `task_alerts`
+  - Re-test onboarding for `oguzhanadaa5334@gmail.com`.
+  - Run RLS smoke test for `task_alerts`.
+  - Integrate `OfferCard` and task alerts UI into active dashboards.
 
-## 6. PENDING TASKS (PRIORITY)
-1. [ ] Finish provider onboarding bug fix verification (UI + DB)
-2. [ ] Integrate `OfferCard` into customer quote surfaces
-3. [ ] Integrate task alert settings into provider dashboard UI
-4. [ ] Deploy `match-task-alerts` function and set function secret
-5. [ ] Add provider ranking refresh monitor/health check
-6. [ ] Expand automated tests for new ranking/alerts flow
+---
 
-## 7. KNOWN ISSUES
-- Provider onboarding can fail when categories API falls back to non-UUID IDs.
-- Category source may be unavailable intermittently (fallback warning appears).
-- Full RLS smoke test for new `task_alerts` not yet completed.
+## 7. PENDING TASKS (PRIORITY ORDER)
 
-## 8. IMPORTANT DECISIONS
-- English-only policy is mandatory across UI/content/code strings.
-- Ireland-first legal/compliance context is mandatory for product decisions.
-- Do not add non-Ireland legal terms (for example TIN-only wording); use Ireland-appropriate equivalents.
-- Use existing project schema names; avoid copy-paste schema names from external examples.
-- Keep security-first posture: RLS + server-side verification gates + minimal broad policies.
+1. [ ] Verify provider onboarding final behavior end-to-end.
+2. [ ] Add task alerts UI in provider dashboard.
+3. [ ] Integrate offer ranking badges into customer quote list.
+4. [ ] Deploy `match-task-alerts` edge function and set required secret.
+5. [ ] Add monitoring/health check for `provider_rankings` refresh.
+6. [ ] Expand tests for ranking, task alerts, and onboarding regressions.
 
-## 9. API / ENDPOINT LIST (KEY)
+---
+
+## 8. KNOWN ISSUES
+
+- Category API fallback can block provider submission if DB categories are unavailable.
+- Provider onboarding had redundant ID path; patched but requires UI verification pass.
+- `task_alerts` RLS still needs explicit smoke-test confirmation in DB session.
+
+---
+
+## 9. IMPORTANT DECISIONS
+
+- Ireland-only product/legal context is mandatory.
+- English-only content is mandatory across product and docs.
+- Use existing schema names and enums; do not copy external schema names blindly.
+- Keep RLS strict and scoped (no open `FOR ALL USING (true)` patterns).
+- Do not use competitor-negative language in public pages; use neutral product positioning.
+
+---
+
+## 10. API / ENDPOINT LIST (KEY)
+
 | Endpoint | Method | Purpose |
-|---|---|---|
-| `/api/jobs` | POST | Create job (review + identity tier metadata) |
-| `/api/quotes` | POST | Submit quote (limits/visibility/expiry/ranking) |
-| `/api/categories` | GET | Category list with fallback behavior |
-| `/api/admin/pending-jobs` | GET | Admin review queue |
-| `/api/admin/jobs/[jobId]/approve` | PATCH | Approve pending job |
-| `/api/admin/jobs/[jobId]/reject` | PATCH | Reject pending job |
+|----------|--------|---------|
+| `/api/jobs` | POST | Create job with review + tier metadata |
+| `/api/quotes` | POST | Submit quote with limits/expiry/ranking |
+| `/api/categories` | GET | Categories with fallback |
+| `/api/admin/pending-jobs` | GET | Admin queue |
+| `/api/admin/jobs/[jobId]/approve` | PATCH | Approve job |
+| `/api/admin/jobs/[jobId]/reject` | PATCH | Reject job |
 | `/api/disputes` | POST | Create dispute |
-| `/api/webhooks/stripe` | POST | Stripe webhook handling |
-| `/functions/v1/id-verification-retention` | POST | Retention cleanup |
-| `/functions/v1/auto-release-payments` | POST | Auto capture flow |
+| `/api/webhooks/stripe` | POST | Stripe events |
+| `/functions/v1/id-verification-retention` | POST | ID retention cleanup |
+| `/functions/v1/auto-release-payments` | POST | Auto payment release |
 | `/functions/v1/escalate-stale-disputes` | POST | Escalate stale disputes |
-| `/functions/v1/match-task-alerts` | POST | Alert matching for new jobs |
+| `/functions/v1/match-task-alerts` | POST | Match jobs to task alerts |
 
-## 10. LAST CHANGES (TOP 5)
-1. `marketplace/migrations/036_airtasker_feature_layer.sql` - reviews expansion, task alerts, customer-provider history, provider rankings, cron jobs.
-2. `marketplace/lib/ranking/offer-ranking.ts` - scoring + provider ranking mapping.
-3. `marketplace/lib/pricing/fee-calculator.ts` - rebooking-aware fee logic and history update RPC usage.
-4. `marketplace/app/api/jobs/route.ts` & `marketplace/app/api/quotes/route.ts` - task mode/type, quote expiry, ranking update, alert trigger call.
-5. `marketplace/app/[locale]/become-provider/page.tsx` & `marketplace/lib/hooks/useCategoriesWithFallback.ts` - fallback handling hardening and clearer submit error details.
+---
+
+## 11. IRELAND COMPLIANCE BASELINE
+
+- Provider docs: ID, Public Liability Insurance, Safe Pass, Tax Clearance (where applicable).
+- Eircode validation enforced in posting flows.
+- Irish phone validation enforced in onboarding/profile.
+- No forced PPSN collection in baseline app flow.
+
+---
+
+## 12. WORKING PROTOCOL
+
+- Context health statuses:
+  - `OK`
+  - `High usage`
+  - `Save checkpoint now`
+- Create checkpoint when:
+  - a major feature block is completed,
+  - context usage is high,
+  - user asks for checkpoint.
+- Day summary generated only when user asks (`"day finished"`).
+
+---
+
+## 13. REFERENCE LINKS
+
+- Repo: `https://github.com/Oguzhanada/Inactive_user_Report--Python-`
+- Supabase docs: `https://supabase.com/docs`
+- Stripe Connect docs: `https://stripe.com/docs/connect`
+- Next.js docs: `https://nextjs.org/docs`
+- Eircode: `https://www.eircode.ie`
+
+---
+
+## 14. LAST CHANGES (TOP 5)
+
+1. `marketplace/migrations/036_airtasker_feature_layer.sql` added and applied.
+2. `marketplace/lib/types/airtasker.ts`, `marketplace/lib/ranking/offer-ranking.ts`, `marketplace/lib/pricing/fee-calculator.ts` added.
+3. `marketplace/app/api/jobs/route.ts`, `marketplace/app/api/quotes/route.ts` extended (mode/type/expiry/ranking/alert trigger).
+4. `marketplace/app/[locale]/become-provider/page.tsx` fixed to reuse approved ID state.
+5. `PROJECT_CONTEXT.md` standardized and updated for session continuity.
