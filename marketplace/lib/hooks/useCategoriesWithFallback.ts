@@ -23,6 +23,7 @@ export function useCategoriesWithFallback(options: Options = {}) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [notice, setNotice] = useState('');
+  const [isFallback, setIsFallback] = useState(false);
 
   const fallbackCategories = useMemo(() => {
     const all = getTaxonomyCategories() as Category[];
@@ -44,15 +45,19 @@ export function useCategoriesWithFallback(options: Options = {}) {
         }
 
         const all = (payload.categories ?? []) as Category[];
-        const selectable = leafOnly ? all.filter((item) => item.parent_id !== null) : all;
-        const resolved = selectable.length > 0 ? selectable : fallbackCategories;
+        const leafRows = all.filter((item) => item.parent_id !== null);
+        const selectableFromApi = leafOnly ? (leafRows.length > 0 ? leafRows : all) : all;
+        const resolved = selectableFromApi.length > 0 ? selectableFromApi : fallbackCategories;
+        const fallbackUsed = selectableFromApi.length === 0;
 
         if (!active) return;
         setCategories(resolved);
-        setNotice(payload.warning || selectable.length === 0 ? fallbackNotice : '');
+        setIsFallback(fallbackUsed);
+        setNotice(fallbackUsed || payload.warning ? fallbackNotice : '');
       } catch {
         if (!active) return;
         setCategories(fallbackCategories);
+        setIsFallback(true);
         setNotice(fallbackNotice);
       } finally {
         if (active) setIsLoading(false);
@@ -66,5 +71,5 @@ export function useCategoriesWithFallback(options: Options = {}) {
     };
   }, [fallbackCategories, fallbackNotice, leafOnly]);
 
-  return {categories, isLoading, notice};
+  return {categories, isLoading, notice, isFallback};
 }

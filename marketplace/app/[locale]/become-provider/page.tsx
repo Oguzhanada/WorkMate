@@ -19,11 +19,13 @@ const EXPERIENCE_OPTIONS = ['0-1 years', '1-2 years', '3-5 years', '5-10 years',
 const AVAILABILITY_OPTIONS = ['Weekdays 08:00-12:00', 'Weekdays 12:00-18:00', 'Weekdays 18:00-22:00', 'Weekend mornings', 'Weekend afternoons', 'Weekend evenings', 'Other'];
 const RADIUS_OPTIONS = ['Up to 10 km', 'Up to 20 km', 'Up to 30 km', 'Up to 50 km', 'Ireland-wide'];
 const COUNTY_OPTIONS = [...IRISH_COUNTIES, 'Ireland-wide'];
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export default function BecomeProviderPage() {
   const router = useRouter();
   const t = useTranslations('becomeProvider');
-  const {categories, isLoading: isLoadingCategories, notice: categoryNotice} = useCategoriesWithFallback({
+  const {categories, isLoading: isLoadingCategories, notice: categoryNotice, isFallback} = useCategoriesWithFallback({
     leafOnly: true,
     fallbackNotice: 'Service list is temporarily unavailable. Showing fallback categories.'
   });
@@ -284,6 +286,9 @@ export default function BecomeProviderPage() {
       if (selectedServiceIds.length === 0) {
         return t('errors.serviceRequired');
       }
+      if (isFallback || selectedServiceIds.some((value) => !UUID_PATTERN.test(value))) {
+        return 'Service categories are temporarily unavailable. Please retry in a moment.';
+      }
       if (!experienceRange) {
         return t('errors.experienceRequired');
       }
@@ -475,7 +480,12 @@ export default function BecomeProviderPage() {
       setMessage(t('submitSuccess'));
       setStep(1);
     } catch (err) {
-      const details = err instanceof Error ? err.message : '';
+      const details =
+        err instanceof Error
+          ? err.message
+          : typeof err === 'object' && err !== null && 'message' in err
+            ? String((err as {message: unknown}).message)
+            : '';
       setError(details ? `${t('submitError')} (${details})` : t('submitError'));
     } finally {
       setIsPending(false);
