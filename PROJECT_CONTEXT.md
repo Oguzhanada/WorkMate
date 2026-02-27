@@ -176,15 +176,17 @@ marketplace/
 
 ## 12. WORKING PROTOCOL
 
-- Context health statuses:
-  - `OK`
-  - `High usage`
-  - `Save checkpoint now`
-- Create checkpoint when:
+- Do not auto-create checkpoints every 5 messages.
+- Create `CHECKPOINT_*.md` only when:
   - a major feature block is completed,
-  - context usage is high,
-  - user asks for checkpoint.
-- Day summary generated only when user asks (`"day finished"`).
+  - context health is high,
+  - user explicitly says: `checkpoint al`.
+- Do not prepend a fixed stack line to every response.
+- Day summary is generated only when user says: `gün bitti`.
+- Context warning format is fixed:
+  - `Context health: OK`
+  - `Context health: High usage`
+  - `Context health: Save checkpoint now`
 
 ---
 
