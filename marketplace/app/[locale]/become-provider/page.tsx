@@ -61,6 +61,9 @@ export default function BecomeProviderPage() {
   const [hasVerifiedIdentity, setHasVerifiedIdentity] = useState(false);
   const [hasExistingIdDocument, setHasExistingIdDocument] = useState(false);
   const [hasExistingInsuranceDocument, setHasExistingInsuranceDocument] = useState(false);
+  const [currentVerificationStatus, setCurrentVerificationStatus] = useState<string>('unverified');
+  const [currentIdVerificationStatus, setCurrentIdVerificationStatus] = useState<string>('none');
+  const [currentIdDocumentUrl, setCurrentIdDocumentUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const run = async () => {
@@ -102,6 +105,9 @@ export default function BecomeProviderPage() {
           setIsEmailLocked(true);
         }
         setHasVerifiedIdentity(data.is_verified === true && data.verification_status === 'verified');
+        setCurrentVerificationStatus(data.verification_status ?? 'unverified');
+        setCurrentIdVerificationStatus(data.id_verification_status ?? 'none');
+        setCurrentIdDocumentUrl(data.id_verification_document_url ?? null);
 
         const requirements = (data.stripe_requirements_due ?? {}) as {
           personal_info?: { primary_city?: string | null };
@@ -169,6 +175,9 @@ export default function BecomeProviderPage() {
             (doc.verification_status === 'pending' || doc.verification_status === 'verified')
         )
       );
+      const hasVerifiedIdDoc = (existingDocs ?? []).some(
+        (doc) => doc.document_type === 'id_verification' && doc.verification_status === 'verified'
+      );
       setHasExistingInsuranceDocument(
         (existingDocs ?? []).some(
           (doc) =>
@@ -176,6 +185,11 @@ export default function BecomeProviderPage() {
             (doc.verification_status === 'pending' || doc.verification_status === 'verified')
         )
       );
+
+      if ((data?.id_verification_status ?? 'none') === 'approved' || hasVerifiedIdDoc) {
+        setHasVerifiedIdentity(true);
+        setCurrentIdVerificationStatus('approved');
+      }
 
       const { data: existingServices } = await supabase
         .from('pro_services')
@@ -411,17 +425,29 @@ export default function BecomeProviderPage() {
         await uploadDocument(user.id, insuranceDocument, 'public_liability_insurance');
       }
 
+      const nextIdVerificationStatus =
+        hasVerifiedIdentity || currentIdVerificationStatus === 'approved'
+          ? 'approved'
+          : uploadedIdPath
+            ? 'pending'
+            : currentIdVerificationStatus;
+
+      const nextProviderVerificationStatus =
+        hasVerifiedIdentity || currentVerificationStatus === 'verified'
+          ? 'verified'
+          : 'pending';
+
       const {error: profileError} = await supabase
         .from('profiles')
         .update({
-            full_name: fullName.trim(),
-            phone: normalizeIrishPhone(phone),
-          verification_status: hasVerifiedIdentity ? 'verified' : 'pending',
-          id_verification_status: hasVerifiedIdentity ? 'approved' : 'pending',
-          id_verification_document_url: uploadedIdPath,
-          id_verification_submitted_at: idDocument ? new Date().toISOString() : null,
+          full_name: fullName.trim(),
+          phone: normalizeIrishPhone(phone),
+          verification_status: nextProviderVerificationStatus,
+          id_verification_status: nextIdVerificationStatus,
+          id_verification_document_url: uploadedIdPath ?? currentIdDocumentUrl,
+          id_verification_submitted_at: uploadedIdPath ? new Date().toISOString() : undefined,
           id_verification_rejected_reason: null,
-          is_verified: hasVerifiedIdentity,
+          is_verified: hasVerifiedIdentity || currentVerificationStatus === 'verified',
           stripe_requirements_due: {
             application_status: 'submitted',
             submitted_at: new Date().toISOString(),
