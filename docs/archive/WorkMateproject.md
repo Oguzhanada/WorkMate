@@ -4,8 +4,8 @@ This file is a full handover for another AI/dev to continue coding safely and co
 
 ## 1) Project Identity
 - Product: **WorkMate** (Ireland-first service marketplace)
-- Repository root: `c:\Users\Ada\Git\Python\Inactive_user_Report`
-- App root: `c:\Users\Ada\Git\Python\Inactive_user_Report\marketplace`
+- Repository root: `c:\Users\Ada\Git\Python\WorkMate`
+- App root: `c:\Users\Ada\Git\Python\WorkMate\marketplace`
 - Current architecture: Next.js App Router + Supabase + Stripe Connect
 
 ## 2) Tech Stack
