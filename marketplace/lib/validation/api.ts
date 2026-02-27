@@ -9,6 +9,8 @@ export const createJobSchema = z.object({
   county: z.string().trim().min(2).max(120),
   locality: z.string().trim().min(2).max(120),
   budget_range: z.enum(JOB_BUDGET_OPTIONS),
+  task_type: z.enum(['in_person', 'remote', 'flexible']).optional().default('in_person'),
+  job_mode: z.enum(['quick_hire', 'direct_request', 'get_quotes']).optional().default('get_quotes'),
   photo_urls: z.array(z.string().trim().min(1)).max(20).optional().default([]),
 });
 
@@ -108,6 +110,8 @@ export const createGuestJobIntentSchema = z.object({
   county: z.string().trim().min(2).max(120),
   locality: z.string().trim().min(2).max(120),
   budget_range: z.enum(JOB_BUDGET_OPTIONS),
+  task_type: z.enum(['in_person', 'remote', 'flexible']).optional().default('in_person'),
+  job_mode: z.enum(['quick_hire', 'direct_request', 'get_quotes']).optional().default('get_quotes'),
   photo_urls: z.array(z.string().trim().min(1)).max(20).optional().default([]),
 });
 

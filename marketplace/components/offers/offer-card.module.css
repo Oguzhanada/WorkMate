@@ -1,0 +1,243 @@
+.card {
+  border: 1px solid #d1d5db;
+  border-radius: 1rem;
+  padding: 1rem;
+  background: #fff;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.cardTop {
+  border-color: #f59e0b;
+  box-shadow: 0 10px 26px rgba(245, 158, 11, 0.15);
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.badge {
+  font-size: 0.72rem;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  font-weight: 600;
+}
+
+.badgeTop {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badgeTrusted {
+  background: #dbeafe;
+  color: #1d4ed8;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.badgeFast {
+  background: #d1fae5;
+  color: #065f46;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.badgeRebook {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.badgeIcon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.main {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.avatar {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  border: 1px solid #cbd5e1;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.provider {
+  min-width: 0;
+}
+
+.providerName {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.providerName:hover {
+  color: #00b894;
+}
+
+.meta {
+  margin: 0.2rem 0 0;
+  color: #475569;
+  font-size: 0.84rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.metaIconStar {
+  width: 0.85rem;
+  height: 0.85rem;
+  color: #f59e0b;
+  fill: currentColor;
+}
+
+.docBadges {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.docBadge {
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #1e293b;
+  font-size: 0.72rem;
+  padding: 0.2rem 0.45rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+}
+
+.docIcon {
+  width: 0.72rem;
+  height: 0.72rem;
+}
+
+.priceBlock {
+  text-align: right;
+}
+
+.price {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.expiry {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.82rem;
+}
+
+.toggle {
+  border: 0;
+  background: transparent;
+  color: #334155;
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.toggleIcon {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.details {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  background: #f8fafc;
+  padding: 0.65rem;
+}
+
+.description {
+  margin: 0;
+  color: #1f2937;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.score {
+  margin: 0.45rem 0 0;
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.accept {
+  flex: 1;
+  border: 0;
+  background: #00b894;
+  color: #fff;
+  border-radius: 0.65rem;
+  padding: 0.6rem 0.8rem;
+  font-weight: 700;
+}
+
+.accept:hover {
+  background: #008b74;
+}
+
+.message {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #1f2937;
+  border-radius: 0.65rem;
+  padding: 0.6rem 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.messageIcon {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+@media (max-width: 740px) {
+  .main {
+    grid-template-columns: auto 1fr;
+  }
+
+  .priceBlock {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
+}

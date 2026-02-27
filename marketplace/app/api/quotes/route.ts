@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canQuoteJob, getUserRoles, isIdVerified } from '@/lib/auth/rbac';
 import { createQuoteSchema } from '@/lib/validation/api';
+import { calculateOfferScore } from '@/lib/ranking/offer-ranking';
 
 export async function POST(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
@@ -44,7 +46,7 @@ export async function POST(request: NextRequest) {
   const body = parsed.data;
   const { data: job, error: jobError } = await supabase
     .from('jobs')
-    .select('id,status,review_status,county,job_visibility_tier')
+    .select('id,status,review_status,county,job_visibility_tier,category_id,created_at')
     .eq('id', body.job_id)
     .maybeSingle();
 
@@ -101,6 +103,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase.from('quotes').insert({
     job_id: body.job_id,
     pro_id: user.id,
@@ -110,9 +113,32 @@ export async function POST(request: NextRequest) {
     includes: body.includes,
     excludes: body.excludes,
     availability_slots: body.availability_slots,
+    expires_at: expiresAt,
   }).select('*').single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+  if (job.category_id && job.created_at) {
+    const ranking = await calculateOfferScore(
+      {
+        id: data.id,
+        priceCents: body.quote_amount_cents,
+        providerId: user.id,
+        createdAt: data.created_at,
+      },
+      {
+        id: job.id,
+        categoryId: job.category_id,
+        createdAt: job.created_at,
+      }
+    );
+
+    const serviceSupabase = getSupabaseServiceClient();
+    await serviceSupabase
+      .from('quotes')
+      .update({ ranking_score: ranking.score })
+      .eq('id', data.id);
+  }
 
   let remainingQuotes: number | null = null;
   if (!providerIsVerified) {

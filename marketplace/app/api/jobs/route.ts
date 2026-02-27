@@ -71,6 +71,8 @@ export async function POST(request: NextRequest) {
     county: body.county,
     locality: body.locality,
     budget_range: body.budget_range,
+    task_type: body.task_type,
+    job_mode: body.job_mode,
     photo_urls: body.photo_urls,
     requires_verified_id: customerIsVerified,
     created_by_verified_id: customerIsVerified,
@@ -99,6 +101,21 @@ export async function POST(request: NextRequest) {
         },
       }))
     );
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (supabaseUrl && serviceKey) {
+    fetch(`${supabaseUrl}/functions/v1/match-task-alerts`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify({ jobId: data.id }),
+    }).catch(() => {
+      // Non-blocking best-effort notification trigger.
+    });
   }
 
   return NextResponse.json(

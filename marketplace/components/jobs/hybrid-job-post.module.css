@@ -1,0 +1,129 @@
+.wrapper {
+  display: grid;
+  gap: 1rem;
+}
+
+.header {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.subtitle {
+  margin: 0;
+  color: #4b5563;
+}
+
+.grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.card {
+  position: relative;
+  border: 1px solid #d1d5db;
+  border-radius: 0.9rem;
+  padding: 1rem;
+  text-align: left;
+  background: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  border-color: #00b894;
+  box-shadow: 0 8px 24px rgba(0, 184, 148, 0.12);
+}
+
+.cardSelected {
+  border-color: #00b894;
+  box-shadow: 0 8px 24px rgba(0, 184, 148, 0.16);
+  background: linear-gradient(180deg, #ffffff 0%, #f2fffb 100%);
+}
+
+.modeIcon {
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+}
+
+.modeIconSvg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.modeIconQuick {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.modeIconDirect {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.modeIconQuotes {
+  color: #065f46;
+  background: #d1fae5;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.cardDescription {
+  margin: 0.45rem 0 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: #4b5563;
+}
+
+.cardHint {
+  margin: 0.75rem 0 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.selectedBadge {
+  position: absolute;
+  right: 0.65rem;
+  top: 0.65rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 999px;
+  background: #00b894;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.selectedBadgeIcon {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.arrow {
+  position: absolute;
+  right: 0.8rem;
+  bottom: 0.8rem;
+  color: #00b894;
+}
+
+.arrowIcon {
+  width: 1rem;
+  height: 1rem;
+}

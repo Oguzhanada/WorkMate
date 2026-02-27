@@ -10,8 +10,10 @@ import {
   JOB_TITLE_OPTIONS,
   JOB_URGENCY_OPTIONS,
 } from '@/lib/constants/job';
+import type { JobMode, TaskType } from '@/lib/types/airtasker';
 import { useCategoriesWithFallback, type Category } from '@/lib/hooks/useCategoriesWithFallback';
 import InfoTooltip from '@/components/ui/InfoTooltip';
+import HybridJobPost from '@/components/jobs/HybridJobPost';
 import styles from './forms.module.css';
 
 const STEP_LABELS = ['Title and details', 'Location and budget', 'Photos and submit'] as const;
@@ -25,6 +27,8 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
   });
   const [titleOption, setTitleOption] = useState<(typeof JOB_TITLE_OPTIONS)[number] | ''>('');
   const [customTitle, setCustomTitle] = useState('');
+  const [jobMode, setJobMode] = useState<JobMode>('get_quotes');
+  const [taskType, setTaskType] = useState<TaskType>('in_person');
   const [scope, setScope] = useState<(typeof JOB_SCOPE_OPTIONS)[number] | ''>('');
   const [urgency, setUrgency] = useState<(typeof JOB_URGENCY_OPTIONS)[number] | ''>('');
   const [additionalDetails, setAdditionalDetails] = useState('');
@@ -105,6 +109,8 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
           county: address.county,
           locality: address.locality,
           budget_range: budgetRange,
+          job_mode: jobMode,
+          task_type: taskType,
           photo_urls: photoUrls,
         }),
       });
@@ -179,6 +185,28 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
             <div className={styles.field}>
               <h2 className={styles.title}>Let&apos;s start with the basics</h2>
               <p className={styles.sectionLead}>Tell providers what you need and when you need it.</p>
+
+              <HybridJobPost selectedMode={jobMode} onModeSelect={setJobMode} />
+
+              <div className={styles.field}>
+                <span>Task type</span>
+                <div className={styles.chipRow}>
+                  {(['in_person', 'remote', 'flexible'] as TaskType[]).map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      className={`${styles.chip} ${taskType === value ? styles.chipActive : ''}`}
+                      onClick={() => setTaskType(value)}
+                    >
+                      {value === 'in_person'
+                        ? 'In person'
+                        : value === 'remote'
+                          ? 'Remote'
+                          : 'Flexible'}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               <label className={styles.field}>
                 <span>Service category</span>
