@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
 import { JOB_BUDGET_OPTIONS, JOB_SCOPE_OPTIONS, JOB_TITLE_OPTIONS, JOB_URGENCY_OPTIONS } from '@/lib/constants/job';
+import { getTaxonomyCategories } from '@/lib/service-taxonomy';
 import EircodeAddressForm, { type Address } from './EircodeAddressForm';
 import InfoTooltip from '@/components/ui/InfoTooltip';
 import styles from './forms.module.css';
@@ -37,26 +38,50 @@ export default function GuestJobIntentForm() {
   });
   const [email, setEmail] = useState('');
   const [isPending, setIsPending] = useState(false);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [categoryNotice, setCategoryNotice] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [intentId, setIntentId] = useState('');
 
   useEffect(() => {
     async function loadCategories() {
-      const response = await fetch('/api/categories', { cache: 'no-store' });
-      const payload = await response.json();
-      if (!response.ok) {
-        setError(payload.error || 'Categories could not be loaded.');
-        return;
-      }
-      const all = (payload.categories ?? []) as Category[];
-      const leaf = all.filter((item) => item.parent_id !== null);
-      const selectable = leaf.length > 0 ? leaf : all;
-      setCategories(selectable);
-      if (selectable.length > 0) {
-        setCategoryId(selectable[0].id);
-      } else {
-        setError('No active categories found. Please add categories in the admin panel.');
+      setIsLoadingCategories(true);
+      const fallbackCategories = (getTaxonomyCategories() as Category[]).filter(
+        (item) => item.parent_id !== null
+      );
+      try {
+        const response = await fetch('/api/categories', { cache: 'no-store' });
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.error || 'Categories could not be loaded.');
+        }
+
+        const all = (payload.categories ?? []) as Category[];
+        const leaf = all.filter((item) => item.parent_id !== null);
+        const selectable = leaf.length > 0 ? leaf : all;
+
+        if (selectable.length === 0) {
+          setCategories(fallbackCategories);
+          setCategoryNotice('Service categories are temporarily unavailable. Showing fallback options.');
+          setCategoryId((current) => current || fallbackCategories[0]?.id || '');
+          setError('');
+          return;
+        }
+
+        setCategories(selectable);
+        setCategoryNotice('');
+        setCategoryId((current) =>
+          current && selectable.some((item) => item.id === current) ? current : selectable[0].id
+        );
+        setError('');
+      } catch {
+        setCategories(fallbackCategories);
+        setCategoryNotice('Service categories are temporarily unavailable. Showing fallback options.');
+        setCategoryId((current) => current || fallbackCategories[0]?.id || '');
+        setError('');
+      } finally {
+        setIsLoadingCategories(false);
       }
     }
     loadCategories();
@@ -168,14 +193,20 @@ export default function GuestJobIntentForm() {
 
               <label className={styles.field}>
                 <span>Service category</span>
-                <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)} className={styles.select}>
-                  <option value="">Select category</option>
+                <select
+                  value={categoryId}
+                  onChange={(event) => setCategoryId(event.target.value)}
+                  className={styles.select}
+                  disabled={isLoadingCategories || categories.length === 0}
+                >
+                  <option value="">{isLoadingCategories ? 'Loading categories...' : 'Select category'}</option>
                   {categories.map((item) => (
                     <option key={item.id} value={item.id}>
                       {item.name}
                     </option>
                   ))}
                 </select>
+                {categoryNotice ? <small className={styles.muted}>{categoryNotice}</small> : null}
               </label>
 
               <label className={styles.field}>

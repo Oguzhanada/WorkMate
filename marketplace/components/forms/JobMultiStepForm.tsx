@@ -10,6 +10,7 @@ import {
   JOB_TITLE_OPTIONS,
   JOB_URGENCY_OPTIONS,
 } from '@/lib/constants/job';
+import { getTaxonomyCategories } from '@/lib/service-taxonomy';
 import InfoTooltip from '@/components/ui/InfoTooltip';
 import styles from './forms.module.css';
 
@@ -43,27 +44,46 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
   const [photos, setPhotos] = useState<File[]>([]);
   const [isPending, setIsPending] = useState(false);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [categoryNotice, setCategoryNotice] = useState('');
   const [feedback, setFeedback] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
     async function loadCategories() {
       setIsLoadingCategories(true);
-      const response = await fetch('/api/categories', { cache: 'no-store' });
-      const payload = await response.json();
-      setIsLoadingCategories(false);
-      if (!response.ok) {
-        setError(payload.error || 'Categories could not be loaded.');
-        return;
-      }
-      const all = (payload.categories ?? []) as Category[];
-      const leaf = all.filter((item) => item.parent_id !== null);
-      const usable = leaf.length > 0 ? leaf : all;
-      setCategories(usable);
-      if (usable.length > 0) {
-        setCategoryId(usable[0].id);
-      } else {
-        setError('No active categories are available. Please contact support.');
+      const fallbackCategories = (getTaxonomyCategories() as Category[]).filter(
+        (item) => item.parent_id !== null
+      );
+      try {
+        const response = await fetch('/api/categories', { cache: 'no-store' });
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.error || 'Categories could not be loaded.');
+        }
+
+        const all = (payload.categories ?? []) as Category[];
+        const leaf = all.filter((item) => item.parent_id !== null);
+        const usable = leaf.length > 0 ? leaf : all;
+
+        if (usable.length === 0) {
+          setCategories(fallbackCategories);
+          setCategoryNotice('Service categories are temporarily unavailable. Showing fallback options.');
+          setError('');
+          setCategoryId((current) => current || fallbackCategories[0]?.id || '');
+          return;
+        }
+
+        setCategories(usable);
+        setCategoryNotice('');
+        setError('');
+        setCategoryId((current) => (current && usable.some((item) => item.id === current) ? current : usable[0].id));
+      } catch {
+        setCategories(fallbackCategories);
+        setCategoryNotice('Service categories are temporarily unavailable. Showing fallback options.');
+        setError('');
+        setCategoryId((current) => current || fallbackCategories[0]?.id || '');
+      } finally {
+        setIsLoadingCategories(false);
       }
     }
     loadCategories();
@@ -194,7 +214,12 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
 
               <label className={styles.field}>
                 <span>Service category</span>
-                <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={styles.select} disabled={isLoadingCategories}>
+                <select
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  className={styles.select}
+                  disabled={isLoadingCategories || categories.length === 0}
+                >
                   <option value="">{isLoadingCategories ? 'Loading categories...' : 'Select category'}</option>
                   {categories.map((item) => (
                     <option key={item.id} value={item.id}>
@@ -202,6 +227,7 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
                     </option>
                   ))}
                 </select>
+                {categoryNotice ? <small className={styles.muted}>{categoryNotice}</small> : null}
               </label>
 
               <label className={styles.field}>
