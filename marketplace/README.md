@@ -60,6 +60,7 @@ Use `.env.example` as the template and keep real values in `.env.local`.
 Security note:
 - Never commit `.env.local`, service keys, bearer tokens, or private webhook secrets.
 - If any secret is ever shared in chat/screenshots, rotate it immediately.
+- Run `npm run check:prepublic-security` before making the repository public.
 
 Development recommendation:
 - Use `ADDRESS_PROVIDER=none` to validate only Eircode format and collect county/city from dropdown lists.

@@ -13,6 +13,7 @@
   },
   "scripts": {
     "check:english": "node scripts/check-english-only.mjs",
+    "check:prepublic-security": "node scripts/pre-public-security-check.mjs",
     "preflight": "node scripts/preflight.mjs",
     "health-check": "node scripts/health-check.mjs",
     "dev": "next dev",
