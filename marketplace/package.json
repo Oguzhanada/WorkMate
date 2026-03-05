@@ -1,5 +1,8 @@
 {
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.97.0",
     "framer-motion": "^12.34.3",
@@ -8,11 +11,13 @@
     "next-intl": "^4.8.3",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "resend": "^6.9.3",
     "stripe": "^20.3.1",
     "zod": "^4.3.6"
   },
   "scripts": {
     "check:english": "node scripts/check-english-only.mjs",
+    "check:pr-guardrails": "pwsh -File scripts/check-pr-guardrails.ps1",
     "check:prepublic-security": "node scripts/pre-public-security-check.mjs",
     "preflight": "node scripts/preflight.mjs",
     "health-check": "node scripts/health-check.mjs",

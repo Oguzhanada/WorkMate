@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
+import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
 import styles from '@/app/[locale]/inner.module.css';
 
 type Props = {
@@ -31,6 +32,8 @@ export default function ProfileModeSwitch({
   providerStartNowCta,
 }: Props) {
   const router = useRouter();
+  const pathname = usePathname() || '/';
+  const localeRoot = getLocaleRoot(pathname);
   const [mode, setMode] = useState<'customer' | 'provider'>('customer');
 
   return (
@@ -55,27 +58,29 @@ export default function ProfileModeSwitch({
 
       <div className={styles.actions}>
         {mode === 'customer' ? (
-          <button type="button" className={styles.primary} onClick={() => router.push('/dashboard/customer')}>
+          <button type="button" className={styles.primary} onClick={() => router.push(withLocalePrefix(localeRoot, '/dashboard/customer'))}>
             {customerDashboardCta}
           </button>
         ) : hasProviderRole ? (
-          <button type="button" className={styles.primary} onClick={() => router.push('/dashboard/pro')}>
+          <button type="button" className={styles.primary} onClick={() => router.push(withLocalePrefix(localeRoot, '/dashboard/pro'))}>
             {providerDashboardCta}
           </button>
         ) : (
           <>
             <p className={styles.muted}>{providerHint}</p>
-            <button type="button" className={styles.secondary} onClick={() => router.push('/become-provider')}>
+            <button type="button" className={styles.secondary} onClick={() => router.push(withLocalePrefix(localeRoot, '/become-provider'))}>
               {providerInfoCta}
             </button>
             <button
               type="button"
               className={styles.primary}
-              onClick={() => router.push('/profile?message=identity_required#identity-verification')}
+              onClick={() =>
+                router.push(withLocalePrefix(localeRoot, '/profile?message=identity_required#identity-verification'))
+              }
             >
               {providerStartNowCta}
             </button>
-            <button type="button" className={styles.secondary} onClick={() => router.push('/become-provider')}>
+            <button type="button" className={styles.secondary} onClick={() => router.push(withLocalePrefix(localeRoot, '/become-provider'))}>
               {providerSetupCta}
             </button>
           </>

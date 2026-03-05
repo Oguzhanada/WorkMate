@@ -83,6 +83,12 @@ npm run test:e2e:smoke
 npm run test:e2e
 ```
 
+### Manual UI smoke checks (required for shell/nav changes)
+
+- Keep the homepage open for 30-60 seconds after load.
+- Confirm no auth placeholder/skeleton flicker appears in the navbar during token refresh.
+- Confirm navigation actions remain visible and stable throughout that interval.
+
 ### Required E2E environment variables
 
 ```bash

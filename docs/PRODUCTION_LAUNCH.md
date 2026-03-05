@@ -1,0 +1,292 @@
+# WorkMate — Production Launch Guide
+> Last updated: 2026-03-05 (session 9)
+> This file is the single source of truth for everything that must be done before
+> and during production launch. Update it as steps are completed.
+
+---
+
+## Overview — Launch Phases
+
+```
+Phase 1 → Technical verification  (no cost, do in dev/staging first)
+Phase 2 → Account & service setup (accounts, API keys — low cost)
+Phase 3 → Business & legal setup  (company, domain, GDPR — real cost + time)
+Phase 4 → Go-live switch          (flip from test to production)
+Phase 5 → Post-launch monitoring  (ongoing)
+```
+
+---
+
+## Phase 1 — Technical Verification (Test Environment)
+
+Verify the full happy-path before spending any money.
+
+### Core flows to test manually
+- [ ] Customer sign-up (email + Google OAuth)
+- [ ] Provider sign-up + Eircode validation
+- [ ] ID verification via Stripe Identity (test mode)
+- [ ] Job posting (both `get_quotes` and `quick_hire` modes)
+- [ ] Quote submission (provider) → ranking badge visible on customer dashboard
+- [ ] Quote acceptance (customer)
+- [ ] Stripe secure hold → payment capture (test card `4242 4242 4242 4242`)
+- [ ] Time tracking: provider starts/stops timer → customer approves → Stripe invoice created → paid
+- [ ] Provider availability slots → customer appointment booking
+- [ ] Admin: job approval, provider document review, API key management
+- [ ] Task alerts: alert created → job posted → alert matched → notification received
+- [ ] Dashboard widgets: add/remove/reorder via drag-drop
+- [ ] Email notifications: check Resend test logs for quote_received, quote_accepted, payment_released
+
+### Automated tests to pass
+- [ ] `npm run test:unit` — all unit tests green
+- [ ] `npm run test:e2e:smoke` — all smoke tests green
+- [ ] `npm run lint` — 0 TypeScript errors, English-only check passes
+
+### Supabase (dev project) checks
+- [ ] All migrations 001–049 applied and no errors
+- [ ] RLS enabled on all tables — no `FOR ALL USING (true)` policies
+- [ ] `pg_cron` jobs registered and running (provider_rankings refresh, automation rules)
+- [ ] Edge functions deployed and responding:
+  - `match-task-alerts`
+  - `auto-release-payments`
+  - `escalate-stale-disputes`
+  - `id-verification-retention`
+
+---
+
+## Phase 2 — Account & Service Setup
+
+Set up third-party accounts. Most have free tiers to start.
+
+### Resend (Email)
+- [ ] Create Resend account at resend.com
+- [ ] Generate production API key → save as `RESEND_API_KEY`
+- [ ] Add domain `workmate.ie` in Resend → verify DNS records (SPF, DKIM, DMARC)
+  - Add records to DNS provider (Cloudflare recommended)
+  - Wait for verification (usually < 1 hour)
+- [ ] Test a real send from production domain before go-live
+- **Cost:** Free tier = 3,000 emails/month. Pro = $20/month for 50k.
+
+### Supabase (Production project — separate from dev)
+- [ ] Create a new Supabase project for production (do NOT use dev project)
+- [ ] Note: production URL + anon key + service role key
+- [ ] Apply all migrations 001–049 in Supabase SQL Editor (production)
+- [ ] Enable `pg_cron` extension on production project
+- [ ] Set Auth → Site URL: `https://workmate.ie`
+- [ ] Set Auth → Redirect URLs: `https://workmate.ie/auth/callback`
+- [ ] Enable email confirmation (Auth → Email → Confirm email: ON)
+- [ ] Configure Supabase Auth SMTP to use Resend:
+  - Host: `smtp.resend.com`, Port: 465
+  - Username: `resend`
+  - Password: `RESEND_API_KEY`
+  - Sender: `noreply@workmate.ie`
+- [ ] Deploy edge functions to production project:
+  ```bash
+  supabase functions deploy match-task-alerts --project-ref <prod-ref>
+  supabase functions deploy auto-release-payments --project-ref <prod-ref>
+  supabase functions deploy escalate-stale-disputes --project-ref <prod-ref>
+  supabase functions deploy id-verification-retention --project-ref <prod-ref>
+  ```
+- [ ] Set edge function secrets on production:
+  ```
+  TASK_ALERT_SECRET=<generate a random 32-char secret>
+  SUPABASE_SERVICE_ROLE_KEY=<production service role key>
+  RESEND_API_KEY=<production resend key>
+  ```
+- **Cost:** Free tier (500MB DB, 50k MAU). Pro = $25/month. Start free.
+
+### Stripe (Production account)
+- [ ] Complete Stripe business verification (company/individual — needs legal entity)
+- [ ] Switch Stripe Dashboard from Test Mode to Live Mode
+- [ ] Get live keys: `sk_live_*` and `pk_live_*`
+- [ ] Enable Stripe Identity on live account (requires Stripe approval — submit request in Dashboard)
+- [ ] Enable Stripe Connect (requires Stripe approval for platform — already done in test?)
+- [ ] Create production webhook endpoint in Stripe Dashboard:
+  - URL: `https://workmate.ie/api/webhooks/stripe`
+  - Events to register:
+    - `payment_intent.succeeded`
+    - `payment_intent.payment_failed`
+    - `payment_intent.canceled`
+    - `charge.dispute.created`
+    - `account.updated`
+    - `identity.verification_session.verified`
+    - `identity.verification_session.requires_input`
+    - `invoice.paid`
+    - `invoice.payment_succeeded`
+  - Copy webhook signing secret → `STRIPE_WEBHOOK_SECRET=whsec_live_*`
+- [ ] Set `STRIPE_CONNECT_CLIENT_ID` to live Connect app client ID
+- **Cost:** Stripe is pay-per-transaction (1.5% + 25c for EU cards). No monthly fee.
+
+### Vercel (Hosting)
+- [ ] Create Vercel account (or use existing)
+- [ ] Connect GitHub repo → import `WorkMate` project
+- [ ] Set root directory to `marketplace/`
+- [ ] Set all environment variables (see Phase 4 env var list)
+- [ ] Configure custom domain `workmate.ie` in Vercel settings
+- **Cost:** Hobby = free (personal use). Pro = $20/month (commercial use, team features, higher limits). Use Pro for production.
+
+### Sentry (Error Monitoring)
+- [ ] Create Sentry project (Next.js)
+- [ ] Install: `npm install @sentry/nextjs`
+- [ ] Run: `npx @sentry/wizard@latest -i nextjs`
+- [ ] Add `SENTRY_DSN` to env vars
+- **Cost:** Free tier = 5k errors/month.
+
+### UptimeRobot / BetterUptime (Uptime monitoring)
+- [ ] Create account and add monitor: `https://workmate.ie`
+- [ ] Add alert email/Slack for downtime
+- **Cost:** UptimeRobot free = 50 monitors, 5-minute checks.
+
+---
+
+## Phase 3 — Business & Legal Setup
+
+These require real-world actions and take the most time.
+
+### Domain Name
+- [ ] Purchase `workmate.ie` (or chosen domain) from an Irish registrar
+  - Recommended: 123-ie.com, Register365, or Cloudflare Registrar
+  - `.ie` domain: requires Irish presence (company or personal address)
+  - **Cost:** ~€15-35/year for `.ie`
+- [ ] Point domain nameservers to Cloudflare (free CDN + DNS management)
+- [ ] In Cloudflare: add Vercel DNS records (A/CNAME), Resend DNS records
+
+### Company Registration (Ireland)
+- [ ] Register a private limited company (Ltd) with the Companies Registration Office (CRO)
+  - Visit cro.ie or use an agent
+  - Requires: company name, registered address, 1+ directors, constitution
+  - **Cost:** €50 online registration fee + agent fees if used (~€200-400)
+  - **Time:** 3-10 business days
+- [ ] Get a PPS number (directors) if not already held
+- [ ] Set up a business bank account (AIB, BOI, Revolut Business, etc.)
+- [ ] Register for VAT if annual turnover will exceed €37,500 (services)
+  - **Cost:** Free to register, but you collect/remit VAT (23% standard rate)
+- [ ] Get an accountant (especially for VAT + payroll if employees)
+
+### Stripe Business Verification
+- [ ] After company is registered: complete Stripe business verification
+  - Required: company registration number, director PPS, company address
+  - Stripe may ask for bank statements or proof of address
+  - **Time:** Can take 1-7 days for Stripe to review
+
+### Stripe Identity (Stripe Approval)
+- [ ] Submit Stripe Identity access request (in Stripe Dashboard → Identity)
+  - Required: description of use case (ID verification for service marketplace)
+  - **Time:** Usually approved in 1-3 business days
+
+### Legal Pages (GDPR Required)
+- [ ] Create `/terms` page (Terms of Service)
+  - Must cover: user responsibilities, payment terms, dispute process, Irish law
+- [ ] Create `/privacy` page (Privacy Policy)
+  - GDPR compliant: what data collected, why, retention periods, right to erasure
+  - Reference: Data Protection Commission guidelines (dataprotection.ie)
+- [ ] Create `/cookies` page (Cookie Policy)
+- [ ] Add cookie consent banner to site (required for EU/Ireland)
+  - Options: CookieYes (free tier), Cookiebot, or build custom
+- [ ] Register with Data Protection Commission if processing personal data at scale
+  - **Cost:** ~€100/year for notification
+
+### Content Pages
+- [ ] Create `/about` page
+- [ ] Create `/how-it-works` page
+- [ ] Create `/community-guidelines` page (linked from sign-up form)
+- [ ] Create `/forgot-password` page (auth flow references it)
+- [ ] Seed production `categories` table with real Irish service categories
+  - Cleaning, Plumbing, Electrical, Gardening, Painting, Moving, etc.
+
+---
+
+## Phase 4 — Go-Live Switch
+
+When Phase 1-3 are complete, flip to production.
+
+### Full Environment Variables (Production)
+```
+# Supabase (production project)
+NEXT_PUBLIC_SUPABASE_URL=https://<prod-ref>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<prod-anon-key>
+SUPABASE_SERVICE_ROLE_KEY=<prod-service-role-key>
+
+# Stripe (LIVE keys)
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_live_...
+STRIPE_CONNECT_CLIENT_ID=ca_live_...
+
+# Email
+RESEND_API_KEY=re_live_...
+
+# Platform
+NEXT_PUBLIC_PLATFORM_BASE_URL=https://workmate.ie
+TASK_ALERT_SECRET=<random 32-char hex string>
+
+# Monitoring
+SENTRY_DSN=https://...@sentry.io/...
+```
+
+### Deployment steps
+- [ ] Push all code to `main` branch
+- [ ] Vercel auto-deploys → confirm deployment succeeds in Vercel dashboard
+- [ ] Run health check: `curl https://workmate.ie/api/health` (if health endpoint exists)
+- [ ] Test Stripe webhook: use Stripe CLI `stripe trigger payment_intent.succeeded` against prod endpoint
+- [ ] Send a test email via Resend dashboard → confirm delivery
+- [ ] Create a test account on production site → walk through full customer + provider flow
+- [ ] Enable Supabase Row Level Security audit in Dashboard → confirm no violations
+
+### DNS / CDN setup
+- [ ] Cloudflare: set SSL/TLS mode to "Full (strict)"
+- [ ] Cloudflare: enable "Always Use HTTPS"
+- [ ] Cloudflare: add Vercel IPs / CNAME for `workmate.ie` and `www.workmate.ie`
+- [ ] Add Resend SPF/DKIM/DMARC records in Cloudflare
+- [ ] Verify email sending works after DNS propagation
+
+---
+
+## Phase 5 — Post-Launch Monitoring
+
+### First 24 hours
+- [ ] Monitor Vercel Functions logs for errors
+- [ ] Monitor Supabase Dashboard → Logs → API logs
+- [ ] Check Sentry for any runtime errors
+- [ ] Check UptimeRobot — should be green
+- [ ] Monitor Stripe Dashboard → Payments (confirm test payment through full flow)
+- [ ] Check Resend activity log — emails delivering
+
+### Ongoing
+- [ ] Review Supabase `pg_cron` job logs weekly (provider_rankings refresh)
+- [ ] Review Stripe webhook delivery logs (Dashboard → Webhooks → Recent deliveries)
+- [ ] Check `profiles.api_key` rate limit usage monthly
+- [ ] Rotate `TASK_ALERT_SECRET` every 6 months
+- [ ] Review RLS policies after each schema migration
+
+---
+
+## Cost Summary (Estimated Monthly)
+
+| Service | Free tier | Production estimate |
+|---------|-----------|---------------------|
+| Vercel (hosting) | Free (hobby) | $20/month (Pro) |
+| Supabase (DB + auth) | Free (dev) | $25/month (Pro) |
+| Resend (email) | 3k/month free | $20/month (50k) |
+| Stripe | Pay-per-tx | 1.5% + 25c per transaction |
+| Cloudflare (DNS + CDN) | Free | Free |
+| Sentry (errors) | 5k errors free | Free → $26/month |
+| UptimeRobot | Free | Free |
+| Domain `.ie` | — | ~€25/year |
+| Company registration | — | €50 + ~€300 agent (one-time) |
+| Accountant | — | ~€1,000-2,000/year |
+
+**Minimum monthly running cost (small scale):** ~€45-70/month
+**Minimum one-time startup cost (company + domain):** ~€350-500
+
+---
+
+## What Can Be Activated Without Spending Money First
+
+These can be set up before any business cost is committed:
+1. Resend account (free) — email working
+2. Supabase production project (free tier) — DB live
+3. Vercel deployment (hobby plan) — site accessible at `.vercel.app` URL
+4. Stripe test mode → full test with real browser, fake cards
+5. All migrations applied and flows tested end-to-end
+
+Only commit to domain + company after you are satisfied the product works correctly.

@@ -211,6 +211,141 @@
   margin-top: 10px;
 }
 
+.dashboardTopBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.metricCard {
+  background: #fff;
+  border: 1px solid #dfe5ed;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 8px 20px rgba(16, 37, 31, 0.08);
+}
+
+.metricValue {
+  margin: 8px 0 0;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #163429;
+}
+
+.listingGrid {
+  display: grid;
+  gap: 16px;
+}
+
+.listingCard {
+  border: 1px solid #e1e7ee;
+  border-radius: 16px;
+  box-shadow: 0 10px 26px rgba(16, 37, 31, 0.08);
+}
+
+.listingHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.listingBudget {
+  margin: 8px 0;
+  font-weight: 700;
+  color: #17372f;
+}
+
+.thumbnailRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 8px 0 2px;
+}
+
+.thumbnail {
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid #d6dee8;
+}
+
+.manageBlock {
+  border: 1px solid #e3e9f1;
+  border-radius: 12px;
+  padding: 10px;
+  margin-top: 10px;
+  background: #fbfdff;
+}
+
+.manageBlock summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: #1d3557;
+}
+
+.quoteGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.quoteCard {
+  padding: 14px;
+  border-radius: 12px;
+}
+
+.badgeOpen,
+.badgePending,
+.badgeCompleted,
+.badgeAssigned,
+.badgeNeutral {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.badgeOpen {
+  background: #e8f8ec;
+  color: #166a2a;
+  border-color: #b8e9c4;
+}
+
+.badgePending {
+  background: #fff7e6;
+  color: #7a5817;
+  border-color: #f3ddab;
+}
+
+.badgeCompleted {
+  background: #e6f6ff;
+  color: #0f5c87;
+  border-color: #b4ddf5;
+}
+
+.badgeAssigned {
+  background: #edf0ff;
+  color: #2d3aad;
+  border-color: #aab4f7;
+}
+
+.badgeNeutral {
+  background: #f4f6f9;
+  color: #4b5563;
+  border-color: #d6dbe3;
+}
+
 .primary {
   border: 1px solid #169b62;
   background: #169b62;
@@ -462,6 +597,43 @@
   gap: 14px;
 }
 
+.cardTopOffer {
+  border: 1.5px solid #fbbf24;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.15), 0 10px 28px rgba(16, 37, 31, 0.08);
+}
+
+.modeBadgeQuick {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fff7e0;
+  border: 1px solid #f5c842;
+  color: #9a6800;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.modeBadgeDirect {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #edf0ff;
+  border: 1px solid #aab4f7;
+  color: #2d3aad;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.hireNowHint {
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #fffbe6;
+  border: 1px solid #f5c842;
+  color: #7a5200;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
 .passwordPanel {
   background: #f8f9fb;
   border: 1px solid #d9dde4;
@@ -567,6 +739,14 @@
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .metricGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .quoteGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 680px) {
@@ -579,6 +759,11 @@
 
   .cardGrid {
     grid-template-columns: 1fr;
+  }
+
+  .dashboardTopBar {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .proCard {

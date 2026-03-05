@@ -17,12 +17,12 @@ export default async function AdminApplicationDetailPage({
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(`/login`);
+    redirect(`/${locale}/login`);
   }
 
   const roles = await getUserRoles(supabase, user.id);
   if (!canAccessAdmin(roles)) {
-    redirect(`/profile`);
+    redirect(`/${locale}/profile`);
   }
 
   return (
@@ -31,7 +31,7 @@ export default async function AdminApplicationDetailPage({
         <div className={styles.card}>
           <h1>Application Details</h1>
           <p className={styles.muted}>Profile ID: {id}</p>
-          <Link className={styles.primary} href={`/dashboard/admin`}>
+          <Link className={styles.primary} href={`/${locale}/dashboard/admin`}>
             Back to dashboard
           </Link>
         </div>

@@ -1,14 +1,16 @@
 "use client";
 
 import {FormEvent, useEffect, useMemo, useState} from 'react';
-import {useRouter} from 'next/navigation';
+import {usePathname, useRouter} from 'next/navigation';
 import {useTranslations} from 'next-intl';
 
+import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
 import {getSupabaseBrowserClient} from '@/lib/supabase/client';
 import {IRISH_COUNTIES} from '@/lib/ireland-locations';
 import {isValidIrishPhone, normalizeIrishPhone, sanitizePhoneInput} from '@/lib/validation/phone';
 import {hasAtLeastTwoNameParts, isValidEnglishFullName} from '@/lib/validation/name';
 import {useCategoriesWithFallback, type Category} from '@/lib/hooks/useCategoriesWithFallback';
+import {resolveProviderVerificationState} from '@/lib/onboarding/provider-verification';
 import MultiSelectDropdown from '@/components/forms/MultiSelectDropdown';
 import styles from '../inner.module.css';
 
@@ -22,9 +24,18 @@ const COUNTY_OPTIONS = [...IRISH_COUNTIES, 'Ireland-wide'];
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+const STEP_GOALS: Record<Step, string> = {
+  1: 'Confirm your personal details so customers can trust your profile.',
+  2: 'Set your services and availability so matching jobs are relevant.',
+  3: 'Define where you work and your service radius across Ireland.',
+  4: 'Upload required documents so admin review can approve your profile quickly.',
+};
+
 export default function BecomeProviderPage() {
   const router = useRouter();
+  const pathname = usePathname() || '/';
   const t = useTranslations('becomeProvider');
+  const localeRoot = useMemo(() => getLocaleRoot(pathname), [pathname]);
   const {categories, isLoading: isLoadingCategories, notice: categoryNotice, isFallback} = useCategoriesWithFallback({
     leafOnly: true,
     fallbackNotice: 'Service list is temporarily unavailable. Showing fallback categories.'
@@ -74,7 +85,7 @@ export default function BecomeProviderPage() {
 
       if (!user) {
         setError(t('needLogin'));
-        router.replace(`/login`);
+        router.replace(withLocalePrefix(localeRoot, '/login'));
         return;
       }
 
@@ -409,7 +420,7 @@ export default function BecomeProviderPage() {
 
     if (!user) {
       setError(t('needLogin'));
-      router.replace(`/login`);
+      router.replace(withLocalePrefix(localeRoot, '/login'));
       return;
     }
 
@@ -425,17 +436,16 @@ export default function BecomeProviderPage() {
         await uploadDocument(user.id, insuranceDocument, 'public_liability_insurance');
       }
 
-      const nextIdVerificationStatus =
-        hasVerifiedIdentity || currentIdVerificationStatus === 'approved'
-          ? 'approved'
-          : uploadedIdPath
-            ? 'pending'
-            : currentIdVerificationStatus;
-
-      const nextProviderVerificationStatus =
-        hasVerifiedIdentity || currentVerificationStatus === 'verified'
-          ? 'verified'
-          : 'pending';
+      const {
+        nextIdVerificationStatus,
+        nextProviderVerificationStatus,
+        nextIsVerified,
+        shouldSetIdSubmittedAt
+      } = resolveProviderVerificationState({
+        currentVerificationStatus,
+        currentIdVerificationStatus,
+        uploadedIdPath
+      });
 
       const {error: profileError} = await supabase
         .from('profiles')
@@ -445,9 +455,9 @@ export default function BecomeProviderPage() {
           verification_status: nextProviderVerificationStatus,
           id_verification_status: nextIdVerificationStatus,
           id_verification_document_url: uploadedIdPath ?? currentIdDocumentUrl,
-          id_verification_submitted_at: uploadedIdPath ? new Date().toISOString() : undefined,
+          id_verification_submitted_at: shouldSetIdSubmittedAt ? new Date().toISOString() : undefined,
           id_verification_rejected_reason: null,
-          is_verified: hasVerifiedIdentity || currentVerificationStatus === 'verified',
+          is_verified: nextIsVerified,
           stripe_requirements_due: {
             application_status: 'submitted',
             submitted_at: new Date().toISOString(),
@@ -512,13 +522,20 @@ export default function BecomeProviderPage() {
           : typeof err === 'object' && err !== null && 'message' in err
             ? String((err as {message: unknown}).message)
             : '';
-      setError(details ? `${t('submitError')} (${details})` : t('submitError'));
+      if (details.toLowerCase().includes('duplicate key')) {
+        setError('Your provider profile was already submitted. Refresh the page and review your latest status.');
+      } else if (details.toLowerCase().includes('permission')) {
+        setError('We could not submit your profile due to a permission check. Please sign out and sign in again.');
+      } else {
+        setError(details ? `${t('submitError')} Please review your details and try again.` : t('submitError'));
+      }
     } finally {
       setIsPending(false);
     }
   };
 
   const currentStepError = getStepValidationError(step);
+  const progressPercent = Math.round((step / 4) * 100);
 
   return (
     <main>
@@ -559,7 +576,7 @@ export default function BecomeProviderPage() {
             <li>No off-platform payment or contact sharing for active jobs.</li>
             <li>Accepted offers must keep the agreed total price.</li>
           </ul>
-          <a href="/community-guidelines" className={styles.guidelinesLink}>
+          <a href={withLocalePrefix(localeRoot, '/community-guidelines')} className={styles.guidelinesLink}>
             Read full Community Guidelines
           </a>
         </div>
@@ -572,14 +589,23 @@ export default function BecomeProviderPage() {
             <p className={styles.muted}>{t('applicationFlow3')}</p>
             <p className={styles.muted}>{t('prodReminder')}</p>
             <div className={styles.actions}>
-              <button type="button" className={styles.primary} onClick={() => router.push(`/profile`)}>
+              <button type="button" className={styles.primary} onClick={() => router.push(withLocalePrefix(localeRoot, '/profile'))}>
                 {t('goProfile')}
               </button>
             </div>
           </div>
         ) : (
           <>
+            <p className={styles.muted}>Step {step} of 4</p>
+            <div className={styles.progressTrack}>
+              <div className={styles.progressFill} style={{width: `${progressPercent}%`}} />
+            </div>
+            <p className={styles.muted}>Progress: {progressPercent}% complete</p>
             <h2>{t(`steps.${step === 1 ? 'one' : step === 2 ? 'two' : step === 3 ? 'three' : 'four'}`)}</h2>
+            <p className={styles.muted}>{STEP_GOALS[step]}</p>
+            {skipPersonalInfoStep && step === 2 ? (
+              <p className={styles.muted}>Step 1 was auto-completed from your existing profile details.</p>
+            ) : null}
 
             <form onSubmit={onSubmit}>
               {step === 1 ? (

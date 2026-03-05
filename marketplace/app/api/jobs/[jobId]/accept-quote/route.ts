@@ -3,6 +3,8 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canAccessAdmin, canPostJob, getUserRoles } from '@/lib/auth/rbac';
 import { acceptQuoteSchema } from '@/lib/validation/api';
+import { sendWebhookEvent } from '@/lib/webhook/send';
+import { sendTransactionalEmail } from '@/lib/email/send';
 
 export async function PATCH(
   request: NextRequest,
@@ -46,7 +48,7 @@ export async function PATCH(
 
   const { data: job, error: jobError } = await serviceSupabase
     .from('jobs')
-    .select('id,customer_id,accepted_quote_id')
+    .select('id,title,customer_id,accepted_quote_id')
     .eq('id', jobId)
     .maybeSingle();
 
@@ -72,7 +74,7 @@ export async function PATCH(
 
   const { data: quote, error: quoteError } = await serviceSupabase
     .from('quotes')
-    .select('id,job_id')
+    .select('id,job_id,pro_id,quote_amount_cents')
     .eq('id', quoteId)
     .eq('job_id', jobId)
     .maybeSingle();
@@ -115,6 +117,37 @@ export async function PATCH(
 
   if (jobUpdateError) {
     return NextResponse.json({ error: jobUpdateError.message }, { status: 400 });
+  }
+
+  void sendWebhookEvent('quote.accepted', {
+    job_id: jobId,
+    quote_id: quoteId,
+    accepted_by: user.id,
+    accepted_at: new Date().toISOString(),
+  });
+
+  // Notify provider their quote was accepted — non-blocking, best-effort
+  if (quote.pro_id) {
+    void (async () => {
+      try {
+        const [{ data: providerProfile }, { data: customerProfile }] = await Promise.all([
+          serviceSupabase.from('profiles').select('email,full_name').eq('id', quote.pro_id!).maybeSingle(),
+          serviceSupabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle(),
+        ]);
+        if (providerProfile?.email) {
+          sendTransactionalEmail({
+            type: 'quote_accepted',
+            to: providerProfile.email,
+            jobTitle: job.title ?? 'the job',
+            customerName: customerProfile?.full_name ?? 'The customer',
+            amountEur: ((quote.quote_amount_cents ?? 0) / 100).toFixed(2),
+            jobId,
+          });
+        }
+      } catch {
+        // Non-blocking — email lookup failure is swallowed.
+      }
+    })();
   }
 
   return NextResponse.json({ job: updatedJob }, { status: 200 });

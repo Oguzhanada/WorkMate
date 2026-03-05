@@ -3,8 +3,10 @@
 import Link from 'next/link';
 import {motion, AnimatePresence} from 'framer-motion';
 import {ChevronLeft, ChevronRight, BadgeCheck, Star} from 'lucide-react';
+import {usePathname} from 'next/navigation';
 import {useEffect, useMemo, useState} from 'react';
 
+import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
 import {useFeaturedProviders} from '@/lib/api/home';
 
 function initialsFromName(name: string) {
@@ -15,6 +17,8 @@ function initialsFromName(name: string) {
 
 export default function FeaturedProviders() {
   const {providers, loading, error} = useFeaturedProviders();
+  const pathname = usePathname() || '/';
+  const localeRoot = useMemo(() => getLocaleRoot(pathname), [pathname]);
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
@@ -108,7 +112,10 @@ export default function FeaturedProviders() {
                     </span>
                   </div>
 
-                  <Link href={`/profile/public/${active.id}`} className="inline-flex rounded-xl bg-[#00B894] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#008B74]">
+                  <Link
+                    href={withLocalePrefix(localeRoot, `/profile/public/${active.id}`)}
+                    className="inline-flex rounded-xl bg-[#00B894] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#008B74]"
+                  >
                     View profile
                   </Link>
                 </motion.article>

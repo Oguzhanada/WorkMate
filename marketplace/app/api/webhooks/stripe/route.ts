@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { stripe } from '@/lib/stripe';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { sendWebhookEvent } from '@/lib/webhook/send';
+import { sendTransactionalEmail } from '@/lib/email/send';
 
 export async function POST(request: NextRequest) {
   const signature = request.headers.get('stripe-signature');
@@ -23,6 +25,178 @@ export async function POST(request: NextRequest) {
 
   const supabase = getSupabaseServiceClient();
 
+  // ── Payment Intent failure / cancellation ─────────────────────────────────
+  if (
+    event.type === 'payment_intent.payment_failed' ||
+    event.type === 'payment_intent.canceled'
+  ) {
+    const intent = event.data.object as Stripe.PaymentIntent;
+
+    const { data: paymentRow } = await supabase
+      .from('payments')
+      .select('id,job_id,customer_id')
+      .eq('stripe_payment_intent_id', intent.id)
+      .maybeSingle();
+
+    if (paymentRow) {
+      await supabase
+        .from('payments')
+        .update({ status: 'cancelled' })
+        .eq('id', paymentRow.id);
+
+      if (paymentRow.customer_id) {
+        await supabase.from('notifications').insert({
+          user_id: paymentRow.customer_id,
+          type: 'payment_failed',
+          payload: {
+            job_id: paymentRow.job_id,
+            payment_intent_id: intent.id,
+            reason:
+              event.type === 'payment_intent.payment_failed'
+                ? (intent.last_payment_error?.message ?? 'Payment failed.')
+                : 'Payment was cancelled.',
+          },
+        });
+      }
+    }
+
+    return NextResponse.json({ received: true }, { status: 200 });
+  }
+
+  // ── Dispute / chargeback created ───────────────────────────────────────────
+  if (event.type === 'charge.dispute.created') {
+    const dispute = event.data.object as Stripe.Dispute;
+
+    const paymentIntentId =
+      typeof dispute.payment_intent === 'string'
+        ? dispute.payment_intent
+        : (dispute.payment_intent as Stripe.PaymentIntent | null)?.id ?? null;
+
+    const { data: paymentRow } = paymentIntentId
+      ? await supabase
+          .from('payments')
+          .select('id,job_id,customer_id,pro_id')
+          .eq('stripe_payment_intent_id', paymentIntentId)
+          .maybeSingle()
+      : { data: null };
+
+    const { data: adminRows } = await supabase
+      .from('user_roles')
+      .select('user_id')
+      .eq('role', 'admin');
+
+    if ((adminRows ?? []).length > 0) {
+      await supabase.from('notifications').insert(
+        (adminRows ?? []).map((row) => ({
+          user_id: row.user_id,
+          type: 'dispute_chargeback',
+          payload: {
+            stripe_dispute_id: dispute.id,
+            amount_cents: dispute.amount,
+            reason: dispute.reason,
+            job_id: paymentRow?.job_id ?? null,
+            payment_intent_id: paymentIntentId,
+          },
+        }))
+      );
+    }
+
+    return NextResponse.json({ received: true }, { status: 200 });
+  }
+
+  // ── Stripe Connect account updated ────────────────────────────────────────
+  if (event.type === 'account.updated') {
+    const account = event.data.object as Stripe.Account;
+
+    await supabase
+      .from('profiles')
+      .update({
+        stripe_charges_enabled: account.charges_enabled === true,
+        stripe_payouts_enabled: account.payouts_enabled === true,
+      })
+      .eq('stripe_account_id', account.id);
+
+    return NextResponse.json({ received: true }, { status: 200 });
+  }
+
+  // ── Stripe invoice paid (hourly invoicing flow) ───────────────────────────
+  if (event.type === 'invoice.paid' || event.type === 'invoice.payment_succeeded') {
+    const invoice = event.data.object as Stripe.Invoice;
+    const jobId = String(invoice.metadata?.workmate_job_id ?? '');
+    const customerId = String(invoice.metadata?.workmate_customer_id ?? '');
+
+    if (jobId) {
+      await supabase
+        .from('jobs')
+        .update({ payment_released_at: new Date().toISOString() })
+        .eq('id', jobId);
+    }
+
+    if (customerId) {
+      await supabase.from('notifications').insert({
+        user_id: customerId,
+        type: 'invoice_paid',
+        payload: {
+          job_id: jobId || null,
+          stripe_invoice_id: invoice.id,
+          amount_paid_cents: invoice.amount_paid ?? 0,
+        },
+      });
+    }
+
+    void sendWebhookEvent('payment.completed', {
+      stripe_invoice_id: invoice.id,
+      job_id: jobId || null,
+      customer_id: customerId || null,
+      amount_paid_cents: invoice.amount_paid ?? 0,
+      paid_at: new Date().toISOString(),
+    });
+
+    // Email the provider when payment is released — non-blocking, best-effort
+    if (jobId && invoice.amount_paid) {
+      void (async () => {
+        try {
+          const { data: jobRow } = await supabase
+            .from('jobs')
+            .select('title,accepted_quote_id')
+            .eq('id', jobId)
+            .maybeSingle();
+
+          if (jobRow?.accepted_quote_id) {
+            const { data: quoteRow } = await supabase
+              .from('quotes')
+              .select('pro_id')
+              .eq('id', jobRow.accepted_quote_id)
+              .maybeSingle();
+
+            if (quoteRow?.pro_id) {
+              const { data: providerProfile } = await supabase
+                .from('profiles')
+                .select('email')
+                .eq('id', quoteRow.pro_id)
+                .maybeSingle();
+
+              if (providerProfile?.email) {
+                sendTransactionalEmail({
+                  type: 'payment_released',
+                  to: providerProfile.email,
+                  jobTitle: jobRow.title ?? 'the job',
+                  amountEur: (invoice.amount_paid / 100).toFixed(2),
+                  jobId,
+                });
+              }
+            }
+          }
+        } catch {
+          // Non-blocking — email lookup failure is swallowed.
+        }
+      })();
+    }
+
+    return NextResponse.json({ received: true }, { status: 200 });
+  }
+
+  // ── Stripe Identity ────────────────────────────────────────────────────────
   if (event.type.startsWith('identity.verification_session')) {
     const session = event.data.object as Stripe.Identity.VerificationSession;
 

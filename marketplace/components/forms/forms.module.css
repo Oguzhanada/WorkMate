@@ -233,6 +233,64 @@
   color: #36415d;
 }
 
+.stepDetail {
+  margin: 4px 0 8px;
+  font-size: 0.86rem;
+  color: #5f6b7f;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: #dde4ed;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(120deg, #00b894 0%, #0a8fda 100%);
+  transition: width 220ms ease;
+}
+
+.goalCard {
+  margin-top: 14px;
+  border: 1px solid #d6e2ef;
+  background: #f5fbff;
+  border-radius: 12px;
+  padding: 10px;
+  display: grid;
+  gap: 5px;
+}
+
+.goalTitle {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #2d466a;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.goalText {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #3f5270;
+  line-height: 1.4;
+}
+
+.inlineCta {
+  margin-top: 8px;
+  border: 1px dashed #c9d8ea;
+  background: #f8fcff;
+  border-radius: 12px;
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
 @media (max-width: 760px) {
   .wizardLayout {
     grid-template-columns: 1fr;

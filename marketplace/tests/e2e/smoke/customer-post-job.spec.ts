@@ -9,22 +9,22 @@ test.describe('Customer post job flow', () => {
   test('customer can create a job and sees pending review state', async ({page}) => {
     await page.goto('/login');
     await page.getByLabel('Email').fill(email as string);
-    await page.getByLabel('Password').fill(password as string);
-    await page.getByRole('button', {name: /log in|sign in/i}).click();
+    await page.locator('#login-password').fill(password as string);
+    await page.locator('form button[type="submit"]').click();
 
     await page.goto('/post-job');
     await page.getByRole('heading', {name: 'Create Job Request'}).waitFor();
 
-    await page.locator('select').first().selectOption({index: 1});
+    await page.getByRole('combobox').first().selectOption({index: 1});
     await page.getByRole('combobox').nth(1).selectOption({index: 1});
     await page.getByRole('combobox').nth(2).selectOption({index: 1});
-    await page.getByRole('combobox').nth(3).selectOption({index: 1});
+    await page.getByRole('button', {name: /asap|today|this week/i}).first().click();
     await page.getByRole('button', {name: 'Continue'}).click();
 
     await page.getByPlaceholder('D02 X285').fill('D02X285');
     await page.getByPlaceholder('D02 X285').blur();
-    await page.getByRole('combobox').nth(4).selectOption('Dublin');
-    await page.getByRole('combobox').nth(5).selectOption({index: 1});
+    await page.getByRole('combobox').first().selectOption('Dublin');
+    await page.getByRole('combobox').nth(1).selectOption({index: 1});
     await page.getByLabel('Address line 1').fill('1 Main Street');
     await page.getByRole('button', {name: 'Continue'}).click();
 

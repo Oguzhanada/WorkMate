@@ -33,6 +33,11 @@ function isAuthMutationPath(pathname: string) {
   return /^\/(login|sign-up)\/?$/.test(pathname);
 }
 
+function isProtectedPath(pathname: string) {
+  if (/^\/profile\/public(?:\/|$)/.test(pathname)) return false;
+  return /^\/(profile|dashboard)(?:\/|$)/.test(pathname);
+}
+
 function allowRequest(key: string) {
   const now = Date.now();
   const bucket = rateLimitStore.get(key);
@@ -89,7 +94,16 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  await supabase.auth.getUser();
+  const {
+    data: {user}
+  } = await supabase.auth.getUser();
+
+  if (!user && isProtectedPath(request.nextUrl.pathname)) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = '/login';
+    loginUrl.searchParams.set('next', request.nextUrl.pathname + request.nextUrl.search);
+    return NextResponse.redirect(loginUrl);
+  }
 
   return response;
 }

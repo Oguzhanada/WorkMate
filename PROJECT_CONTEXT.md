@@ -1,6 +1,6 @@
 # WorkMate (Ada Marketplace) - AI Context File
-> Last updated: 2026-02-27
-> Session: 3
+> Last updated: 2026-03-05
+> Session: 7
 
 ---
 
@@ -10,7 +10,7 @@
 |------|-------|
 | Name | WorkMate (code name: Ada Marketplace) |
 | Description | Ireland-focused services marketplace |
-| Repo | `github.com/Oguzhanada/Inactive_user_Report--Python-` |
+| Repo | `github.com/Oguzhanada/WorkMate` |
 | Main folder | `marketplace/` |
 | Status | Development |
 | Target market | Ireland (26 counties, Eircode) |
@@ -52,7 +52,7 @@ marketplace/
 │   ├── validation/                  # Zod + custom validators
 │   ├── ranking/ pricing/ types/     # Airtasker-style feature layer
 │   └── constants/ hooks/
-├── migrations/                      # 001..036
+├── migrations/                      # 001..047
 ├── supabase/functions/              # edge functions
 └── messages/en.json
 ```
@@ -97,42 +97,49 @@ marketplace/
   - task alerts table + RLS
   - customer/provider history + RPC increment
   - provider rankings materialized view + refresh function
+- [x] Offer ranking badges in customer quote list (`OfferRankingBadge`, framer-motion, amber glow)
+- [x] Task alerts UI in provider dashboard (`TaskAlertsPanel` + `/api/task-alerts` GET/POST/DELETE)
+- [x] Customer dashboard refactored — data extracted to `lib/queries/customer-dashboard.ts`, parallel queries
+- [x] Stripe webhook expanded — payment failure, chargeback admin notify, Connect account sync (`038`)
+- [x] provider_rankings cartesian join bug fixed (`037`) — `completed_jobs` now correct per-provider
+- [x] Stripe account status columns on profiles (`stripe_charges_enabled`, `stripe_payouts_enabled`)
+- [x] Public API v1 layer + API key management + webhook subscribe/revoke routes (`045`, `046`, `/api/public/v1/*`)
+- [x] Webhook event delivery integration for `job.created`, `quote.accepted`, `payment.completed`
+- [x] Time tracking + invoicing foundation (`047`)
+  - `time_entries` table + strict RLS
+  - provider timer APIs + customer approval flow
+  - Stripe invoice creation route + job `stripe_invoice_id` persistence
 
 ---
 
 ## 6. ACTIVE TASK
 
-**Current task:** Provider onboarding consistency after verified ID.
+**Current task:** Session 7 checkpoint and handoff completed.
 
-- Task name: Prevent redundant ID request when user is already ID-verified.
-- Status: In progress (code fix pushed, verification pending).
-- Last completed:
-  - Reused approved identity state in `become-provider` flow.
-  - Avoided accidental downgrade from approved to pending.
-  - Improved fallback-category behavior and error details.
-- Next step:
-  - Re-test onboarding for `oguzhanadaa5334@gmail.com`.
-  - Run RLS smoke test for `task_alerts`.
-  - Integrate `OfferCard` and task alerts UI into active dashboards.
+- Prompt 5 and Prompt 6 shipped.
+- API-only smoke flow for time tracking/invoice passed.
+- TypeScript and lint checks green.
 
 ---
 
 ## 7. PENDING TASKS (PRIORITY ORDER)
 
-1. [ ] Verify provider onboarding final behavior end-to-end.
-2. [ ] Add task alerts UI in provider dashboard.
-3. [ ] Integrate offer ranking badges into customer quote list.
-4. [ ] Deploy `match-task-alerts` edge function and set required secret.
-5. [ ] Add monitoring/health check for `provider_rankings` refresh.
-6. [ ] Expand tests for ranking, task alerts, and onboarding regressions.
+1. [ ] Apply and verify migration `047_time_tracking_and_invoicing.sql` across all envs.
+2. [ ] Add automated tests for time-entry permission and invoice edge cases.
+3. [ ] Add webhook delivery observability and failed-delivery monitoring.
+4. [ ] Implement API key scopes and key rotation audit trail.
+5. [ ] E2E smoke tests: task alerts, offer ranking, time tracking + invoice flow.
+6. [ ] provider_rankings nightly pg_cron health check — alert if refresh fails silently.
+7. [ ] Verify provider onboarding end-to-end for pre-verified ID user.
 
 ---
 
 ## 8. KNOWN ISSUES
 
 - Category API fallback can block provider submission if DB categories are unavailable.
-- Provider onboarding had redundant ID path; patched but requires UI verification pass.
-- `task_alerts` RLS still needs explicit smoke-test confirmation in DB session.
+- Stripe Dashboard production webhook: when deploying, register `account.updated`, `charge.dispute.created`, `payment_intent.payment_failed`, `payment_intent.canceled` events.
+- Stripe Dashboard not yet updated to send `account.updated` / `charge.dispute.created` events — webhook handlers are ready on our side but will not receive these events until registered.
+- `provider_rankings` mat view is empty (dev environment has no verified_pro users yet) — ranking scores will be 0 until real data exists.
 
 ---
 
@@ -192,7 +199,7 @@ marketplace/
 
 ## 13. REFERENCE LINKS
 
-- Repo: `https://github.com/Oguzhanada/Inactive_user_Report--Python-`
+- Repo: `https://github.com/Oguzhanada/WorkMate`
 - Supabase docs: `https://supabase.com/docs`
 - Stripe Connect docs: `https://stripe.com/docs/connect`
 - Next.js docs: `https://nextjs.org/docs`
@@ -200,10 +207,76 @@ marketplace/
 
 ---
 
-## 14. LAST CHANGES (TOP 5)
+## 14. PRODUCTION LAUNCH CHECKLIST
 
-1. `marketplace/migrations/036_airtasker_feature_layer.sql` added and applied.
-2. `marketplace/lib/types/airtasker.ts`, `marketplace/lib/ranking/offer-ranking.ts`, `marketplace/lib/pricing/fee-calculator.ts` added.
-3. `marketplace/app/api/jobs/route.ts`, `marketplace/app/api/quotes/route.ts` extended (mode/type/expiry/ranking/alert trigger).
-4. `marketplace/app/[locale]/become-provider/page.tsx` fixed to reuse approved ID state.
-5. `PROJECT_CONTEXT.md` standardized and updated for session continuity.
+### 🔴 Blocker — must be done before go-live
+
+**Infrastructure**
+- [ ] Deploy to production host (Vercel recommended — zero-config Next.js)
+- [ ] Set all env vars on host (`SUPABASE_*`, `STRIPE_*`, `TASK_ALERT_SECRET`, `NEXT_PUBLIC_PLATFORM_BASE_URL=https://yourdomain.ie`)
+- [ ] Point custom domain, configure SSL
+
+**Supabase**
+- [ ] Confirm all migrations 001–039 applied on production Supabase project (separate from dev)
+- [ ] Enable `pg_cron` extension on production project
+- [ ] Set Supabase Auth → Site URL + Redirect URLs to production domain
+- [ ] Confirm OAuth redirect URIs updated in Google/Facebook app consoles
+- [ ] Deploy all edge functions to production project: `match-task-alerts`, `auto-release-payments`, `escalate-stale-disputes`, `id-verification-retention`, `message-retention`
+- [ ] Set edge function secrets on production: `TASK_ALERT_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`
+
+**Stripe**
+- [ ] Switch from test keys (`sk_test_*`) to live keys (`sk_live_*`) in production env
+- [ ] Update `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` to `pk_live_*`
+- [ ] Create production webhook endpoint in Stripe Dashboard → `https://yourdomain.ie/api/webhooks/stripe`
+- [ ] Register all required events: `payment_intent.payment_failed`, `payment_intent.canceled`, `charge.dispute.created`, `account.updated`, `identity.verification_session.verified`, `identity.verification_session.requires_input`, `payment_intent.succeeded`
+- [ ] Update `STRIPE_WEBHOOK_SECRET` to production webhook signing secret (`whsec_live_*`)
+- [ ] Set `STRIPE_CONNECT_CLIENT_ID` to live Connect app client ID
+- [ ] Enable Stripe Identity on live account (requires Stripe approval)
+- [ ] Complete Stripe business verification to accept live payments
+
+**Security**
+- [ ] Confirm `.env.local` is in `.gitignore` — never commit secrets
+- [ ] Review all RLS policies with production data volume in mind
+- [ ] Enable Supabase email confirmation (Auth → Email → Confirm email enabled)
+- [ ] Set rate limiting on `/api/jobs`, `/api/quotes` (Vercel Edge Config or middleware)
+
+---
+
+### 🟡 Important — do before first real users
+
+**Content**
+- [ ] Terms of Service page (`/terms`)
+- [ ] Privacy Policy page (`/privacy`) — GDPR compliant (Ireland/EU)
+- [ ] Cookie consent banner (required for EU)
+- [ ] About / How it works page
+
+**Email**
+- [ ] Configure Supabase Auth SMTP (custom domain email, e.g. SendGrid or Resend) — avoid Supabase default `@supabase.io` sender
+- [ ] Test auth emails: confirm, reset password, magic link
+
+**Monitoring**
+- [ ] Set up error tracking (Sentry or similar)
+- [ ] Supabase Dashboard → Logs → confirm no RLS violations or 500 errors post-launch
+- [ ] Set up uptime monitoring (UptimeRobot or BetterUptime)
+
+**Categories**
+- [ ] Seed production `categories` table with real Irish service categories (currently only dev data)
+
+---
+
+### 🟢 Nice to have before scale
+
+- [ ] CDN for job photos (Supabase Storage CDN or Cloudflare)
+- [ ] Admin analytics dashboard (job/quote/payment volume)
+- [ ] Email notifications for key events (job matched, quote received, payment released)
+- [ ] App Store / Play Store (if React Native wrapper planned)
+
+---
+
+## 15. LAST CHANGES (SESSION 4 — 2026-03-05)
+
+1. `marketplace/migrations/037` + `038` written and confirmed live in DB (provider_rankings fix + Stripe account status).
+2. `marketplace/components/offers/OfferRankingBadge.tsx` + CSS — amber TOP OFFER badge with framer-motion spring animation.
+3. `marketplace/lib/queries/customer-dashboard.ts` — extracted all queries from customer page; parallel fetch, ranking sort.
+4. `marketplace/app/api/task-alerts/route.ts` + `TaskAlertsPanel.tsx` + wired into ProDashboard.
+5. `marketplace/app/api/webhooks/stripe/route.ts` — added payment failure, chargeback, and Connect account sync handlers.

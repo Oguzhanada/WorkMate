@@ -129,6 +129,13 @@
   cursor: pointer;
 }
 
+.primary:disabled,
+.danger:disabled,
+.secondaryLink:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .okTag {
   border-radius: 10px;
   padding: 8px 10px;
@@ -156,6 +163,51 @@
   color: #12223c;
 }
 
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+  z-index: 80;
+  padding: 16px;
+}
+
+.modalCard {
+  width: min(94vw, 560px);
+  background: #fff;
+  border: 1px solid #dfe3ea;
+  border-radius: 14px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2);
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.countyGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px 12px;
+}
+
+.countyLabel {
+  font-size: 0.88rem;
+  color: #3a4560;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.toggleRow {
+  font-size: 0.92rem;
+  color: #3a4560;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
 @media (max-width: 760px) {
   .grid2 {
     grid-template-columns: 1fr;
@@ -163,5 +215,9 @@
 
   .docStatusWrap {
     grid-template-columns: 1fr;
+  }
+
+  .countyGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

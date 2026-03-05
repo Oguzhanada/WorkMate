@@ -2,6 +2,8 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+// TASK_ALERT_SECRET is an optional extra secret checked via x-task-secret header.
+// Supabase gateway already validates the JWT in the Authorization header.
 const TASK_ALERT_SECRET = Deno.env.get('TASK_ALERT_SECRET') ?? '';
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
@@ -43,9 +45,10 @@ Deno.serve(async (request) => {
     });
   }
 
+  // Optional extra secret via x-task-secret header (in addition to Supabase gateway JWT auth).
   if (TASK_ALERT_SECRET) {
-    const authHeader = request.headers.get('authorization') ?? '';
-    if (authHeader !== `Bearer ${TASK_ALERT_SECRET}` && authHeader !== `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`) {
+    const taskSecret = request.headers.get('x-task-secret') ?? '';
+    if (taskSecret !== TASK_ALERT_SECRET) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },

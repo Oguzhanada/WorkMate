@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import {FormEvent, useEffect, useMemo, useState} from 'react';
-import {useRouter} from 'next/navigation';
+import {usePathname, useRouter} from 'next/navigation';
 import {motion} from 'framer-motion';
 import {
   CheckCircle2,
@@ -13,12 +13,12 @@ import {
   Mail,
   MapPin,
   Phone,
-  UploadCloud,
   UserRound
 } from 'lucide-react';
 import {z} from 'zod';
 
 import {getSupabaseBrowserClient} from '@/lib/supabase/client';
+import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
 import {getCitiesByCounty} from '@/lib/ireland-locations';
 import {isValidIrishPhone, normalizeIrishPhone} from '@/lib/validation/phone';
 import {formItemVariants, formListVariants, rightColumnVariants} from '@/styles/animations';
@@ -87,9 +87,7 @@ const commonSchema = z.object({
     .regex(/[0-9]/, 'Password needs at least one number.')
     .regex(/[^A-Za-z0-9]/, 'Password needs at least one special character.'),
   confirmPassword: z.string(),
-  identityConsent: z.boolean().refine((value) => value === true, {
-    message: 'You must accept identity verification consent.'
-  })
+  identityConsent: z.boolean().refine((v) => v === true, {message: 'You must accept the terms to continue.'})
 });
 
 const providerOnlySchema = z.object({
@@ -114,7 +112,7 @@ type SignUpFormData = {
   identityConsent: boolean;
 };
 
-type FieldErrors = Partial<Record<keyof SignUpFormData | 'idDocument' | 'providerDocument', string>>;
+type FieldErrors = Partial<Record<keyof SignUpFormData, string>>;
 
 type EircodeStatus = 'idle' | 'validating' | 'valid' | 'invalid';
 
@@ -164,7 +162,7 @@ function toRawIrishNumber(masked: string) {
 
 function formatIrishPhone(value: string) {
   const digits = value.replace(/\D/g, '');
-  const local = digits.startsWith('353') ? digits.slice(3) : digits;
+  const local = digits.startsWith('353') ? digits.slice(3) : digits.startsWith('0') ? digits.slice(1) : digits;
   const maxLocal = local.slice(0, 9);
 
   const p1 = maxLocal.slice(0, 2);
@@ -181,7 +179,7 @@ function formatIrishPhone(value: string) {
 
 function validatePhone(masked: string) {
   if (!isValidIrishPhone(masked)) {
-    return 'Use a valid Irish mobile number: 830446082, 0830446082, or +353830446082.';
+    return 'Use a valid Irish mobile number (for example: 0830446082 or +353830446082).';
   }
   return undefined;
 }
@@ -229,6 +227,8 @@ function validateByRole(role: AccountRole, form: SignUpFormData, eircodeStatus: 
 
 export function SignUpForm() {
   const router = useRouter();
+  const pathname = usePathname() || '/';
+  const localeRoot = useMemo(() => getLocaleRoot(pathname), [pathname]);
   const [intentId, setIntentId] = useState('');
   const [intentEmail, setIntentEmail] = useState('');
 
@@ -251,8 +251,6 @@ export function SignUpForm() {
     identityConsent: false
   });
 
-  const [idDocument, setIdDocument] = useState<File | null>(null);
-  const [providerDocument, setProviderDocument] = useState<File | null>(null);
   const [countyQuery, setCountyQuery] = useState('');
 
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -362,12 +360,6 @@ export function SignUpForm() {
     setSuccess('');
 
     const validationErrors = validateByRole(role, form, eircodeStatus);
-    if (!idDocument) {
-      validationErrors.idDocument = 'ID document is required.';
-    }
-    if (role === 'provider' && !providerDocument) {
-      validationErrors.providerDocument = 'Professional proof document is required.';
-    }
 
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -401,9 +393,7 @@ export function SignUpForm() {
               address_line_1: role === 'provider' ? form.address1 : '',
               address_line_2: role === 'provider' ? form.address2 : '',
               locality: role === 'provider' ? form.city : '',
-              role,
-              id_document_name: idDocument?.name,
-              provider_document_name: providerDocument?.name ?? ''
+              role
             }
           }
         }),
@@ -417,13 +407,20 @@ export function SignUpForm() {
         return;
       }
 
-      setSuccess('🎉 Account created! Check your email to verify. Redirecting to login...');
-      setTimeout(() => {
-        const nextQuery = intentId
-          ? `?intent=${encodeURIComponent(intentId)}${intentEmail ? `&email=${encodeURIComponent(intentEmail)}` : ''}`
-          : '';
-        router.push(`/login${nextQuery}`);
-      }, 5000);
+      const nextQuery = intentId
+        ? `?intent=${encodeURIComponent(intentId)}${intentEmail ? `&email=${encodeURIComponent(intentEmail)}` : ''}`
+        : '';
+      let remaining = 5;
+      setSuccess(`🎉 Account created! Check your email to verify. Redirecting in ${remaining}s...`);
+      const countdownTimer = setInterval(() => {
+        remaining -= 1;
+        if (remaining <= 0) {
+          clearInterval(countdownTimer);
+          router.push(withLocalePrefix(localeRoot, '/login') + nextQuery);
+        } else {
+          setSuccess(`🎉 Account created! Check your email to verify. Redirecting in ${remaining}s...`);
+        }
+      }, 1000);
     } catch {
       setFormError('❌ Something went wrong. Please try again.');
     } finally {
@@ -458,7 +455,7 @@ export function SignUpForm() {
           <li>Keep payments and communication on WorkMate.</li>
           <li>No illegal or prohibited services.</li>
         </ul>
-        <Link href="/community-guidelines" className={styles.guidelinesLink}>
+        <Link href={withLocalePrefix(localeRoot, '/community-guidelines')} className={styles.guidelinesLink}>
           Read full Community Guidelines
         </Link>
       </section>
@@ -500,17 +497,9 @@ export function SignUpForm() {
                     : raw.startsWith('0')
                       ? raw.slice(1)
                       : raw;
-
-                  if (localDigits.length > 9) {
-                    setErrors((prev) => ({
-                      ...prev,
-                      phone: 'Phone number must be 9 digits (without 0 or +353).'
-                    }));
-                    return;
-                  }
-
-                  updateField('phone', formatIrishPhone(event.target.value));
+                  updateField('phone', formatIrishPhone(localDigits));
                 }}
+                onBlur={() => updateField('phone', formatIrishPhone(normalizeIrishPhone(form.phone)))}
                 placeholder="+353 87 123 4567"
               />
             </div>
@@ -529,15 +518,6 @@ export function SignUpForm() {
               />
             </div>
             {errors.email ? <p className={styles.fieldError}>{errors.email}</p> : null}
-          </label>
-
-          <label className={styles.field}>
-            <span>ID document</span>
-            <div className={styles.inputWrap}>
-              <UploadCloud size={16} aria-hidden="true" />
-              <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(event) => setIdDocument(event.target.files?.[0] ?? null)} />
-            </div>
-            {errors.idDocument ? <p className={styles.fieldError}>{errors.idDocument}</p> : null}
           </label>
 
           {role === 'provider' ? (
@@ -644,14 +624,6 @@ export function SignUpForm() {
                 {errors.eircode ? <p className={styles.fieldError}>{errors.eircode}</p> : null}
               </label>
 
-              <label className={styles.field}>
-                <span>Professional proof document</span>
-                <div className={styles.inputWrap}>
-                  <UploadCloud size={16} aria-hidden="true" />
-                  <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(event) => setProviderDocument(event.target.files?.[0] ?? null)} />
-                </div>
-                {errors.providerDocument ? <p className={styles.fieldError}>{errors.providerDocument}</p> : null}
-              </label>
             </>
           ) : null}
 
@@ -706,11 +678,10 @@ export function SignUpForm() {
               checked={form.identityConsent}
               onChange={(checked) => updateField('identityConsent', checked)}
             />
-            {errors.identityConsent ? <p className={styles.fieldError}>{errors.identityConsent}</p> : null}
           </div>
 
           <div className={styles.fullWidth}>
-            <button type="submit" className={styles.primaryButton} disabled={loading || !form.identityConsent}>
+            <button type="submit" className={styles.primaryButton} disabled={loading}>
               {isPending ? (
                 <>
                   <Loader2 size={18} className={styles.spinner} /> Creating account...
@@ -723,7 +694,7 @@ export function SignUpForm() {
         </motion.form>
 
         <motion.p variants={formItemVariants} className={styles.linkRow}>
-          Already have an account? <Link href="/login">Log in</Link>
+          Already have an account? <Link href={withLocalePrefix(localeRoot, '/login')}>Log in</Link>
         </motion.p>
 
         <motion.div variants={formItemVariants}>

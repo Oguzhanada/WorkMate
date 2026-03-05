@@ -9,4 +9,9 @@ marketplace/.env.*
 marketplace/node_modules/
 marketplace/.next/
 marketplace/tsconfig.tsbuildinfo
+marketplace/playwright-report/
+marketplace/test-results/
 marketplace/supabase/.temp/
+.claude/
+.vscode/
+docs/memory/

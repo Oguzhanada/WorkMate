@@ -11,6 +11,7 @@ export const createJobSchema = z.object({
   budget_range: z.enum(JOB_BUDGET_OPTIONS),
   task_type: z.enum(['in_person', 'remote', 'flexible']).optional().default('in_person'),
   job_mode: z.enum(['quick_hire', 'direct_request', 'get_quotes']).optional().default('get_quotes'),
+  target_provider_id: z.string().uuid().optional().nullable().default(null),
   photo_urls: z.array(z.string().trim().min(1)).max(20).optional().default([]),
 });
 
@@ -86,10 +87,18 @@ export const adminProviderFiltersSchema = z.object({
     .default('all'),
   category: z.string().trim().max(120).optional().default('all'),
   county: z.string().trim().max(120).optional().default('all'),
-  date_range: z.enum(['7d', '30d', '90d', 'all']).optional().default('7d'),
+  date_range: z.enum(['7d', '30d', '90d', 'all']).optional().default('all'),
   city: z.string().trim().max(120).optional().default(''),
   service: z.string().trim().max(120).optional().default(''),
   q: z.string().trim().max(120).optional().default(''),
+  // Advanced filter additions
+  start_date: z.string().trim().max(32).optional().default(''),
+  end_date: z.string().trim().max(32).optional().default(''),
+  id_verification_status: z
+    .enum(['none', 'pending', 'approved', 'rejected', 'all'])
+    .optional()
+    .default('all'),
+  has_documents: z.enum(['any', 'yes', 'no']).optional().default('any'),
 });
 
 export const adminRunVerificationSchema = z.object({
@@ -189,4 +198,141 @@ export const disputeProcessPaymentSchema = z.object({
 
 export const createStripeIdentitySchema = z.object({
   return_url: z.string().trim().url().optional(),
+});
+
+export const createTimeEntrySchema = z.discriminatedUnion('action', [
+  z.object({
+    action: z.literal('start'),
+    description: z.string().trim().max(2000).optional().default(''),
+    hourly_rate: z.number().int().min(1).max(100_000_000).optional().nullable().default(null),
+    started_at: z.string().datetime({ offset: true }).optional(),
+  }),
+  z.object({
+    action: z.literal('stop'),
+    entry_id: z.string().uuid().optional(),
+    ended_at: z.string().datetime({ offset: true }).optional(),
+    description: z.string().trim().max(2000).optional(),
+  }),
+]);
+
+export const patchTimeEntrySchema = z
+  .object({
+    description: z.string().trim().max(2000).optional(),
+    hourly_rate: z.number().int().min(1).max(100_000_000).nullable().optional(),
+    started_at: z.string().datetime({ offset: true }).optional(),
+    ended_at: z.string().datetime({ offset: true }).nullable().optional(),
+    approved: z.boolean().optional(),
+  })
+  .refine((payload) => Object.keys(payload).length > 0, { message: 'At least one field required' });
+
+const scheduleTimeSchema = z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Use HH:MM format');
+
+export const createProviderAvailabilitySchema = z
+  .object({
+    is_recurring: z.boolean().optional().default(true),
+    day_of_week: z.number().int().min(0).max(6).optional().nullable(),
+    specific_date: z.string().date().optional().nullable(),
+    start_time: scheduleTimeSchema,
+    end_time: scheduleTimeSchema,
+  })
+  .superRefine((payload, ctx) => {
+    if (payload.start_time >= payload.end_time) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'end_time must be after start_time',
+        path: ['end_time'],
+      });
+    }
+
+    if (payload.is_recurring) {
+      if (payload.day_of_week == null) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'day_of_week is required for recurring availability',
+          path: ['day_of_week'],
+        });
+      }
+      if (payload.specific_date != null) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'specific_date must be empty for recurring availability',
+          path: ['specific_date'],
+        });
+      }
+    } else {
+      if (!payload.specific_date) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'specific_date is required for one-time availability',
+          path: ['specific_date'],
+        });
+      }
+      if (payload.day_of_week != null) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'day_of_week must be empty for one-time availability',
+          path: ['day_of_week'],
+        });
+      }
+    }
+  });
+
+export const createAppointmentSchema = z
+  .object({
+    start_time: z.string().datetime({ offset: true }),
+    end_time: z.string().datetime({ offset: true }),
+  })
+  .superRefine((payload, ctx) => {
+    if (new Date(payload.end_time).getTime() <= new Date(payload.start_time).getTime()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'end_time must be after start_time',
+        path: ['end_time'],
+      });
+    }
+  });
+
+export const patchAppointmentSchema = z.object({
+  status: z.enum(['scheduled', 'completed', 'cancelled']),
+});
+
+const widgetPositionSchema = z.object({
+  x: z.number().int().min(0).max(24),
+  y: z.number().int().min(0).max(100),
+  w: z.number().int().min(1).max(12),
+  h: z.number().int().min(1).max(12),
+});
+
+const widgetTypeSchema = z.enum([
+  'active_jobs',
+  'pending_quotes',
+  'recent_messages',
+  'task_alerts',
+  'admin_pending_jobs',
+  'admin_applications',
+  'admin_stats',
+  'admin_api_keys',
+]);
+
+export const createDashboardWidgetSchema = z.object({
+  widget_type: widgetTypeSchema,
+  position: widgetPositionSchema.optional(),
+  settings: z.record(z.string(), z.unknown()).optional(),
+});
+
+export const patchDashboardWidgetSchema = z
+  .object({
+    position: widgetPositionSchema.optional(),
+    settings: z.record(z.string(), z.unknown()).optional(),
+  })
+  .refine((payload) => Object.keys(payload).length > 0, { message: 'At least one field required' });
+
+export const createReviewSchema = z.object({
+  job_id: z.string().uuid(),
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().trim().max(2000).optional().default(''),
+  quality_rating: z.number().int().min(1).max(5).optional().nullable(),
+  communication_rating: z.number().int().min(1).max(5).optional().nullable(),
+  punctuality_rating: z.number().int().min(1).max(5).optional().nullable(),
+  value_rating: z.number().int().min(1).max(5).optional().nullable(),
 });

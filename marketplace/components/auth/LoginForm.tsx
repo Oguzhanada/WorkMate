@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import {FormEvent, useMemo, useState} from 'react';
-import {useRouter} from 'next/navigation';
+import {usePathname, useRouter} from 'next/navigation';
 import {motion} from 'framer-motion';
 import {Eye, EyeOff, Loader2, Lock, Mail} from 'lucide-react';
 import {useTranslations} from 'next-intl';
 
 import {getSupabaseBrowserClient} from '@/lib/supabase/client';
+import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
 import {formItemVariants, formListVariants, rightColumnVariants} from '@/styles/animations';
 import {SecurityDropdown} from '@/components/auth/SecurityDropdown';
 import {SocialButtons} from '@/components/auth/SocialButtons';
@@ -40,6 +41,7 @@ function validatePassword(password: string): string | undefined {
 
 export function LoginForm() {
   const router = useRouter();
+  const pathname = usePathname() || '/';
   const t = useTranslations('login');
 
   const [email, setEmail] = useState('');
@@ -54,6 +56,7 @@ export function LoginForm() {
 
   const hasAnyLoading = isPending || Boolean(oauthPending);
 
+  const localeRoot = useMemo(() => getLocaleRoot(pathname), [pathname]);
   const sanitizedEmail = useMemo(() => email.trim(), [email]);
 
   const validateAll = (): boolean => {
@@ -89,7 +92,7 @@ export function LoginForm() {
       }
 
       setSuccessMessage(t('success'));
-      router.replace('/profile');
+      router.replace(withLocalePrefix(localeRoot, '/profile'));
       router.refresh();
     } catch (submitError) {
       const message = submitError instanceof Error ? submitError.message : 'Login failed. Please try again.';
@@ -196,7 +199,7 @@ export function LoginForm() {
           </motion.div>
 
           <motion.div variants={formItemVariants} className={styles.formActions}>
-            <Link className={styles.forgotLink} href="/forgot-password">
+            <Link className={styles.forgotLink} href={withLocalePrefix(localeRoot, '/forgot-password')}>
               {t('forgotLink')}
             </Link>
           </motion.div>
@@ -215,7 +218,7 @@ export function LoginForm() {
         </form>
 
         <motion.p variants={formItemVariants} className={styles.linkRow}>
-          Don&apos;t have an account? <Link href="/sign-up">Sign up</Link>
+          Don&apos;t have an account? <Link href={withLocalePrefix(localeRoot, '/sign-up')}>Sign up</Link>
         </motion.p>
 
         <motion.div variants={formItemVariants}>

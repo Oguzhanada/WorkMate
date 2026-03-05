@@ -1,6 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import {useMemo, useState} from 'react';
+import {usePathname} from 'next/navigation';
+
+import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
 import styles from './profile-verification.module.css';
 
 type Props = {
@@ -8,6 +11,8 @@ type Props = {
 };
 
 export default function StripeIdentityVerification({ stripeIdentityStatus }: Props) {
+  const pathname = usePathname() || '/';
+  const localeRoot = useMemo(() => getLocaleRoot(pathname), [pathname]);
   const [status, setStatus] = useState(stripeIdentityStatus || 'not_started');
   const [feedback, setFeedback] = useState('');
   const [isPending, setIsPending] = useState(false);
@@ -18,7 +23,9 @@ export default function StripeIdentityVerification({ stripeIdentityStatus }: Pro
     const response = await fetch('/api/connect/create-identity-verification', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ return_url: `${window.location.origin}/profile` }),
+      body: JSON.stringify({
+        return_url: `${window.location.origin}${withLocalePrefix(localeRoot, '/profile')}`
+      }),
     });
     const payload = await response.json();
     setIsPending(false);

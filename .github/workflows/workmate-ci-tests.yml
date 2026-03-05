@@ -29,6 +29,9 @@ jobs:
       - name: Run lint and type-check
         run: npm run lint
 
+      - name: Run PR guardrail checks
+        run: npm run check:pr-guardrails
+
       - name: Run unit and integration tests
         run: npm run test
 

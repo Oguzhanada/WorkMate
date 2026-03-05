@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import {useMemo, useState} from 'react';
+import {usePathname} from 'next/navigation';
+import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
 import {getSupabaseBrowserClient} from '@/lib/supabase/client';
 import styles from './notifications-inbox.module.css';
 
@@ -35,16 +37,20 @@ function getNotificationText(item: NotificationItem) {
   return 'New notification';
 }
 
-function getNotificationHref(item: NotificationItem) {
-  if (item.type === 'new_quote') return '/dashboard/customer';
-  if (item.type === 'new_message') return '/messages';
-  if (item.type.startsWith('dispute_')) return '/dashboard/disputes';
-  if (item.type.startsWith('job_review_')) return '/dashboard/customer';
-  if (item.type === 'payment_auto_released' || item.type === 'payment_release_reminder') return '/dashboard/customer';
-  return '/profile';
+function getNotificationHref(item: NotificationItem, localeRoot: string) {
+  if (item.type === 'new_quote') return withLocalePrefix(localeRoot, '/dashboard/customer');
+  if (item.type === 'new_message') return withLocalePrefix(localeRoot, '/messages');
+  if (item.type.startsWith('dispute_')) return withLocalePrefix(localeRoot, '/dashboard/disputes');
+  if (item.type.startsWith('job_review_')) return withLocalePrefix(localeRoot, '/dashboard/customer');
+  if (item.type === 'payment_auto_released' || item.type === 'payment_release_reminder') {
+    return withLocalePrefix(localeRoot, '/dashboard/customer');
+  }
+  return withLocalePrefix(localeRoot, '/profile');
 }
 
 export default function NotificationsInbox({initialItems}: {initialItems: NotificationItem[]}) {
+  const pathname = usePathname() || '/';
+  const localeRoot = useMemo(() => getLocaleRoot(pathname), [pathname]);
   const [items, setItems] = useState(initialItems);
   const unreadCount = useMemo(() => items.filter((item) => !item.read_at).length, [items]);
 
@@ -86,7 +92,7 @@ export default function NotificationsInbox({initialItems}: {initialItems: Notifi
           ) : null}
           <p className={styles.meta}>{new Date(item.created_at).toLocaleString()}</p>
           <div className={styles.actions}>
-            <Link href={getNotificationHref(item)} className={styles.btnGhost}>
+            <Link href={getNotificationHref(item, localeRoot)} className={styles.btnGhost}>
               Open
             </Link>
             {!item.read_at ? (

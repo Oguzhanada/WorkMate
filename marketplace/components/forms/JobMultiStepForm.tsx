@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import EircodeAddressForm, { type Address } from './EircodeAddressForm';
+import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
 import {
   JOB_BUDGET_OPTIONS,
   JOB_SCOPE_OPTIONS,
@@ -17,17 +18,30 @@ import HybridJobPost from '@/components/jobs/HybridJobPost';
 import styles from './forms.module.css';
 
 const STEP_LABELS = ['Title and details', 'Location and budget', 'Photos and submit'] as const;
+const STEP_GOALS: Record<number, string> = {
+  1: 'Define what needs to be done and how you want providers to respond.',
+  2: 'Confirm location details so only relevant providers can see your request.',
+  3: 'Add optional photos and submit your request for review.'
+};
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export default function JobMultiStepForm({ customerId }: { customerId: string }) {
   const router = useRouter();
+  const pathname = usePathname() || '/';
+  const localeRoot = getLocaleRoot(pathname);
+  const searchParams = useSearchParams();
+  const urlMode = (searchParams.get('mode') as JobMode | null) ?? 'get_quotes';
+  const urlProviderId = searchParams.get('provider_id');
+
   const [step, setStep] = useState(1);
   const [categoryId, setCategoryId] = useState('');
-  const {categories, isLoading: isLoadingCategories, notice: categoryNotice} = useCategoriesWithFallback({
+  const {categories, isLoading: isLoadingCategories, notice: categoryNotice, isFallback} = useCategoriesWithFallback({
     leafOnly: true
   });
   const [titleOption, setTitleOption] = useState<(typeof JOB_TITLE_OPTIONS)[number] | ''>('');
   const [customTitle, setCustomTitle] = useState('');
-  const [jobMode, setJobMode] = useState<JobMode>('get_quotes');
+  const [jobMode, setJobMode] = useState<JobMode>(urlMode);
+  const [targetProviderId] = useState<string | null>(urlProviderId);
   const [taskType, setTaskType] = useState<TaskType>('in_person');
   const [scope, setScope] = useState<(typeof JOB_SCOPE_OPTIONS)[number] | ''>('');
   const [urgency, setUrgency] = useState<(typeof JOB_URGENCY_OPTIONS)[number] | ''>('');
@@ -45,6 +59,22 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
   const [isPending, setIsPending] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [error, setError] = useState('');
+  const progressPercent = Math.round((step / 3) * 100);
+
+  const getFriendlyApiError = (payload: any) => {
+    const apiError = String(payload?.error ?? '').trim().toLowerCase();
+    if (!apiError) return 'We could not create your request. Please review the highlighted fields and try again.';
+    if (apiError.includes('valid eircode')) {
+      return 'Your Eircode looks invalid. Use a valid 7-character Irish Eircode (for example: D02 Y006).';
+    }
+    if (apiError.includes('invalid category')) {
+      return 'The selected service category is no longer available. Please pick another category and retry.';
+    }
+    if (apiError.includes('direct request requires')) {
+      return 'Direct Request needs a selected provider. Choose a provider from the Providers page and try again.';
+    }
+    return payload.error || 'We could not create your request. Please review the highlighted fields and try again.';
+  };
 
   useEffect(() => {
     setCategoryId((current) => {
@@ -91,6 +121,10 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
       setError('Please complete category, job type, scope, urgency, county, city, and Eircode.');
       return;
     }
+    if (isFallback || !UUID_PATTERN.test(categoryId)) {
+      setError('Service categories are still syncing. Please refresh and try again in a moment.');
+      return;
+    }
 
     try {
       setError('');
@@ -111,6 +145,7 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
           budget_range: budgetRange,
           job_mode: jobMode,
           task_type: taskType,
+          target_provider_id: targetProviderId ?? null,
           photo_urls: photoUrls,
         }),
       });
@@ -119,10 +154,18 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
 
       if (!response.ok) {
         if (payload?.error === 'identity_required') {
-          window.location.href = payload?.redirect_to || '/profile?message=identity_required';
+          window.location.href =
+            payload?.redirect_to || withLocalePrefix(localeRoot, '/profile?message=identity_required');
           return;
         }
-        setError(payload.error || 'Job request could not be created.');
+        if (payload?.error === 'Validation failed' && payload?.details?.fieldErrors) {
+          const firstFieldError = Object.values(payload.details.fieldErrors)
+            .flat()
+            .find((item): item is string => typeof item === 'string' && item.trim().length > 0);
+          setError(firstFieldError || 'Some required details are missing. Please review this step and try again.');
+          return;
+        }
+        setError(getFriendlyApiError(payload));
         return;
       }
 
@@ -132,7 +175,7 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
       }
 
       setFeedback('Your job request was created successfully.');
-      router.push(`/post-job/result/${payload.job.id}`);
+      router.push(withLocalePrefix(localeRoot, `/post-job/result/${payload.job.id}`));
     } catch (submitError) {
       const message = submitError instanceof Error ? submitError.message : 'Job request could not be created.';
       setError(message);
@@ -141,13 +184,40 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
     }
   };
 
-  const nextFromStep2 = () => {
-    if (!address.eircode || !address.county || !address.locality || !address.address_line_1) {
-      setError('Please complete street, county, city and Eircode. Eircode is important for accurate provider matching.');
-      return;
+  const getStepValidationError = (targetStep: number) => {
+    if (targetStep === 1) {
+      if (!categoryId) return 'Choose a service category to continue.';
+      if (!titleOption) return 'Choose the job type that best matches your request.';
+      if (titleOption === 'Other' && !customTitle.trim()) return 'Enter a short custom title for your request.';
+      if (!scope) return 'Select the job scope to continue.';
+      if (!urgency) return 'Select when you need this done.';
+      return '';
     }
-    if (!address.eircode_valid) {
-      setError('Eircode is not validated. Please correct it before continuing.');
+
+    if (targetStep === 2) {
+      if (!address.eircode) return 'Enter your Eircode so providers can match your location.';
+      if (!address.eircode_valid) return 'Please enter a valid Eircode before continuing.';
+      if (!address.county || !address.locality || !address.address_line_1) {
+        return 'Complete county, city, and address line 1 to continue.';
+      }
+      return '';
+    }
+
+    if (targetStep === 3) {
+      if (isFallback || !UUID_PATTERN.test(categoryId)) {
+        return 'Service categories are still syncing. Refresh in a moment and try again.';
+      }
+    }
+
+    return '';
+  };
+
+  const currentStepError = getStepValidationError(step);
+
+  const nextFromStep2 = () => {
+    const validationError = getStepValidationError(2);
+    if (validationError) {
+      setError(validationError);
       return;
     }
     setError('');
@@ -157,6 +227,10 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
   return (
     <div className={styles.card}>
       <p className={styles.step}>Step {step}/3</p>
+      <div className={styles.progressTrack}>
+        <div className={styles.progressFill} style={{ width: `${progressPercent}%` }} />
+      </div>
+      <p className={styles.stepDetail}>Progress: {progressPercent}% complete</p>
       {feedback ? <p className={`${styles.feedback} ${styles.ok}`}>{feedback}</p> : null}
       {error ? <p className={`${styles.feedback} ${styles.error}`}>{error}</p> : null}
       <div className={styles.wizardLayout}>
@@ -178,6 +252,10 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
               );
             })}
           </ol>
+          <div className={styles.goalCard}>
+            <p className={styles.goalTitle}>Step goal</p>
+            <p className={styles.goalText}>{STEP_GOALS[step]}</p>
+          </div>
         </aside>
 
         <div className={styles.wizardMain}>
@@ -187,6 +265,23 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
               <p className={styles.sectionLead}>Tell providers what you need and when you need it.</p>
 
               <HybridJobPost selectedMode={jobMode} onModeSelect={setJobMode} />
+
+              {jobMode === 'direct_request' && targetProviderId ? (
+                <p className={styles.notice}>
+                  This job will be sent directly to the selected provider. Only they can respond to it.
+                </p>
+              ) : (
+                <div className={styles.inlineCta}>
+                  <p className={styles.muted}>Want faster responses from one trusted provider?</p>
+                  <button
+                    type="button"
+                    className={styles.secondary}
+                    onClick={() => router.push(withLocalePrefix(localeRoot, '/providers'))}
+                  >
+                    Browse providers for Direct Request
+                  </button>
+                </div>
+              )}
 
               <div className={styles.field}>
                 <span>Task type</span>
@@ -283,7 +378,7 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
                 rows={4}
               />
               <div className={styles.buttonRow}>
-                <button type="button" onClick={() => setStep(2)} className={styles.primary}>
+                <button type="button" onClick={() => setStep(2)} className={styles.primary} disabled={Boolean(currentStepError)}>
                   Continue
                 </button>
               </div>
@@ -328,7 +423,12 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
                 <button type="button" onClick={() => setStep(2)} className={styles.secondary}>
                   Back
                 </button>
-                <button type="button" onClick={submitJob} disabled={isPending} className={styles.primary}>
+                <button
+                  type="button"
+                  onClick={submitJob}
+                  disabled={isPending || Boolean(currentStepError)}
+                  className={styles.primary}
+                >
                   {isPending ? 'Submitting...' : 'Create Job Request'}
                 </button>
               </div>

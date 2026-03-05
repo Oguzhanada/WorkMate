@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation';
-import AdminDashboardShell from '@/components/dashboard/AdminDashboardShell';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
-import styles from '../../[locale]/inner.module.css';
+import Shell from '@/components/ui/Shell';
+import Card from '@/components/ui/Card';
+import DashboardShell from '@/components/dashboard/DashboardShell';
 
 export default async function AdminDashboardPage() {
   const supabase = await getSupabaseServerClient();
@@ -11,20 +12,30 @@ export default async function AdminDashboardPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/login');
+    redirect('/en/login');
   }
 
   const roles = await getUserRoles(supabase, user.id);
   if (!canAccessAdmin(roles)) {
-    redirect('/profile');
+    redirect('/en/profile');
   }
 
   return (
-    <main className={styles.section}>
-      <section className={styles.container}>
-        <AdminDashboardShell adminEmail={user.email ?? 'Admin'} />
-      </section>
-    </main>
+    <Shell
+      header={(
+        <Card className="rounded-3xl">
+          <h1>Admin Dashboard</h1>
+          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+            Customize your moderation and operations widgets.
+          </p>
+        </Card>
+      )}
+    >
+      <DashboardShell
+        mode="admin"
+        title="Admin Dashboard"
+        description="Configure review, analytics, and operations widgets for your workflow."
+      />
+    </Shell>
   );
 }
-

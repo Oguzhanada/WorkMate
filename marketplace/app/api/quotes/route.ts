@@ -3,7 +3,9 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canQuoteJob, getUserRoles, isIdVerified } from '@/lib/auth/rbac';
 import { createQuoteSchema } from '@/lib/validation/api';
+import { fireAutomationEvent } from '@/lib/automation/engine';
 import { calculateOfferScore } from '@/lib/ranking/offer-ranking';
+import { sendTransactionalEmail } from '@/lib/email/send';
 
 export async function POST(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
@@ -46,7 +48,7 @@ export async function POST(request: NextRequest) {
   const body = parsed.data;
   const { data: job, error: jobError } = await supabase
     .from('jobs')
-    .select('id,status,review_status,county,job_visibility_tier,category_id,created_at')
+    .select('id,title,customer_id,status,review_status,county,job_visibility_tier,category_id,created_at,job_mode,target_provider_id')
     .eq('id', body.job_id)
     .maybeSingle();
 
@@ -59,6 +61,16 @@ export async function POST(request: NextRequest) {
       { error: 'This job is not available for quoting yet.' },
       { status: 400 }
     );
+  }
+
+  // direct_request: only the targeted provider may quote
+  if (job.job_mode === 'direct_request' && job.target_provider_id) {
+    if (job.target_provider_id !== user.id) {
+      return NextResponse.json(
+        { error: 'This job is a direct request to another provider.' },
+        { status: 403 }
+      );
+    }
   }
 
   if (!providerIsVerified && job.job_visibility_tier !== 'basic') {
@@ -140,6 +152,15 @@ export async function POST(request: NextRequest) {
       .eq('id', data.id);
   }
 
+  // Fire automation rules for quote_received — non-blocking
+  void fireAutomationEvent('quote_received', {
+    quoteId: data.id,
+    jobId: body.job_id,
+    proId: user.id,
+    amountCents: body.quote_amount_cents,
+    category: job.category_id ?? '',
+  });
+
   let remainingQuotes: number | null = null;
   if (!providerIsVerified) {
     const quoteDate = new Date().toISOString().slice(0, 10);
@@ -176,6 +197,31 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     remainingQuotes = Math.max(0, 3 - (finalLimit?.used_count ?? used));
+  }
+
+  // Notify customer of new quote — non-blocking, best-effort
+  if (job.customer_id) {
+    void (async () => {
+      try {
+        const serviceSupabase = getSupabaseServiceClient();
+        const [{ data: customerProfile }, { data: providerProfile }] = await Promise.all([
+          serviceSupabase.from('profiles').select('email,full_name').eq('id', job.customer_id!).maybeSingle(),
+          serviceSupabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle(),
+        ]);
+        if (customerProfile?.email) {
+          sendTransactionalEmail({
+            type: 'quote_received',
+            to: customerProfile.email,
+            jobTitle: job.title ?? 'your job',
+            providerName: providerProfile?.full_name ?? 'A provider',
+            amountEur: (body.quote_amount_cents / 100).toFixed(2),
+            jobId: body.job_id,
+          });
+        }
+      } catch {
+        // Non-blocking — email lookup failure is swallowed.
+      }
+    })();
   }
 
   return NextResponse.json(

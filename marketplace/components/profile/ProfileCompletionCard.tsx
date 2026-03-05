@@ -1,10 +1,13 @@
 "use client";
 
 import Link from 'next/link';
+import {usePathname} from 'next/navigation';
 import {useEffect, useMemo, useState} from 'react';
+
+import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
 import styles from './profile-completion.module.css';
 
-type CompletionStatus = 'missing' | 'pending' | 'complete';
+type CompletionStatus = 'missing' | 'pending' | 'complete' | 'optional';
 
 type CompletionItem = {
   id: string;
@@ -24,13 +27,19 @@ type Props = {
 function icon(status: CompletionStatus) {
   if (status === 'complete') return '✅';
   if (status === 'pending') return '⏳';
+  if (status === 'optional') return 'ℹ️';
   return '⭕';
 }
 
 export default function ProfileCompletionCard({items, showProviderCta = false}: Props) {
+  const pathname = usePathname() || '/';
+  const localeRoot = useMemo(() => getLocaleRoot(pathname), [pathname]);
   const [openId, setOpenId] = useState<string | null>(null);
   const [animatedPercent, setAnimatedPercent] = useState(0);
-  const completeCount = useMemo(() => items.filter((item) => item.status === 'complete').length, [items]);
+  const completeCount = useMemo(
+    () => items.filter((item) => item.status === 'complete' || item.status === 'optional').length,
+    [items]
+  );
   const targetPercent = useMemo(
     () => (items.length ? Math.round((completeCount / items.length) * 100) : 0),
     [items.length, completeCount]
@@ -61,7 +70,10 @@ export default function ProfileCompletionCard({items, showProviderCta = false}: 
           <h2>Profile Completion</h2>
           <p>Keep your profile up to date to improve trust and response quality.</p>
         </div>
-        <Link className={styles.completeButton} href={items.find((item) => item.status !== 'complete')?.href ?? '/profile'}>
+        <Link
+          className={styles.completeButton}
+          href={withLocalePrefix(localeRoot, items.find((item) => item.status === 'missing' || item.status === 'pending')?.href ?? '/profile')}
+        >
           Complete Profile
         </Link>
       </div>
@@ -99,18 +111,26 @@ export default function ProfileCompletionCard({items, showProviderCta = false}: 
                         ? styles.doneText
                         : item.status === 'pending'
                         ? styles.pendingText
+                        : item.status === 'optional'
+                        ? styles.pendingText
                         : styles.missingText
                     }
                   >
-                    {item.status === 'complete'
-                      ? 'Completed'
-                      : item.status === 'pending'
-                      ? 'Pending review'
-                      : 'Not added yet'}
+                      {item.status === 'complete'
+                        ? 'Completed'
+                        : item.status === 'pending'
+                        ? 'Pending review'
+                        : item.status === 'optional'
+                        ? 'Optional'
+                        : 'Not added yet'}
                   </small>
                 </span>
                 <span className={styles.actionWrap}>
-                  <Link href={item.href} className={styles.addBtn} onClick={(event) => event.stopPropagation()}>
+                  <Link
+                    href={withLocalePrefix(localeRoot, item.href)}
+                    className={styles.addBtn}
+                    onClick={(event) => event.stopPropagation()}
+                  >
                     {item.status === 'complete' ? 'Edit' : 'Add'}
                   </Link>
                 </span>
@@ -118,7 +138,7 @@ export default function ProfileCompletionCard({items, showProviderCta = false}: 
               {isOpen ? (
                 <div className={styles.miniForm}>
                   <p>{item.formHint}</p>
-                  <Link href={item.href} className={styles.miniOpen}>
+                  <Link href={withLocalePrefix(localeRoot, item.href)} className={styles.miniOpen}>
                     Open
                   </Link>
                 </div>
@@ -128,17 +148,13 @@ export default function ProfileCompletionCard({items, showProviderCta = false}: 
         })}
       </div>
 
-      <button type="button" className={styles.remind}>
-        Remind Me Later
-      </button>
-
       {showProviderCta ? (
         <div className={styles.providerCta}>
           <div>
             <strong>Want to work as a provider?</strong>
             <p>Complete provider verification to unlock leads and quoting access.</p>
           </div>
-          <Link href="/become-provider" className={styles.providerCtaButton}>
+          <Link href={withLocalePrefix(localeRoot, '/become-provider')} className={styles.providerCtaButton}>
             Become a Provider
           </Link>
         </div>

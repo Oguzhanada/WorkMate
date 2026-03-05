@@ -1,27 +1,30 @@
 "use client";
 
 import {useEffect} from 'react';
-import {useRouter} from 'next/navigation';
+import {usePathname, useRouter} from 'next/navigation';
 import {motion} from 'framer-motion';
 
 import {BrandColumn} from '@/components/auth/BrandColumn';
 import {SignUpForm} from '@/components/auth/SignUpForm';
 import {TrustBadges} from '@/components/auth/TrustBadges';
+import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
 import {getSupabaseBrowserClient} from '@/lib/supabase/client';
 import {pageContainerVariants} from '@/styles/animations';
 import styles from '@/components/auth/login.module.css';
 
 export default function SignupPage() {
   const router = useRouter();
+  const pathname = usePathname() || '/';
+  const localeRoot = getLocaleRoot(pathname);
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
     supabase.auth.getUser().then(({data}) => {
       if (data.user) {
-        router.replace('/profile');
+        router.replace(withLocalePrefix(localeRoot, '/profile'));
       }
     });
-  }, [router]);
+  }, [localeRoot, router]);
 
   return (
     <main className={styles.page}>

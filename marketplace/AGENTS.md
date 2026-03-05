@@ -38,3 +38,7 @@ These rules are mandatory for every change in this project.
   - Provide a compliant alternative,
   - Ask for confirmation only if needed.
 
+## 8) UI architecture rule
+- No new raw page-level CSS for visual redesign work unless shared tokens/components are insufficient.
+- Prefer centralized design tokens in `app/globals.css` and shared primitives in `components/ui/*`.
+- If a new visual primitive is required, add it once to the shared layer and reuse it across pages.

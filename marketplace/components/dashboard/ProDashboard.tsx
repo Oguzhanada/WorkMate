@@ -1,10 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
 import { supabase } from '@/lib/supabase';
 import ProOnboardingForm from '@/components/forms/ProOnboardingForm';
 import JobMessagePanel from '@/components/dashboard/JobMessagePanel';
 import ProviderDocumentStatusCards from '@/components/dashboard/ProviderDocumentStatusCards';
+import ProReviewsPanel from '@/components/dashboard/ProReviewsPanel';
+import TaskAlertsPanel from '@/components/dashboard/TaskAlertsPanel';
 import ReleaseReminderButton from '@/components/payments/ReleaseReminderButton';
 import AutoReleaseCountdown from '@/components/payments/AutoReleaseCountdown';
 import styles from './dashboard.module.css';
@@ -64,7 +68,20 @@ type CompletedAssignedJob = {
   auto_release_at: string | null;
 };
 
+type ActiveJob = {
+  id: string;
+  title: string;
+  category: string;
+  county: string | null;
+  budget_range: string;
+  customer_id: string;
+  accepted_quote_id: string | null;
+};
+
 export default function ProDashboard({ profileId }: { profileId: string }) {
+  const router = useRouter();
+  const pathname = usePathname() || '/';
+  const localeRoot = getLocaleRoot(pathname);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [leads, setLeads] = useState<JobLead[]>([]);
   const [quotedJobIds, setQuotedJobIds] = useState<Set<string>>(new Set());
@@ -79,6 +96,7 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
   const [leadFilter, setLeadFilter] = useState<'all' | 'saved'>('all');
   const [documents, setDocuments] = useState<ProviderDocument[]>([]);
   const [completedAssignedJobs, setCompletedAssignedJobs] = useState<CompletedAssignedJob[]>([]);
+  const [activeJobs, setActiveJobs] = useState<ActiveJob[]>([]);
   const [quotesUsedToday, setQuotesUsedToday] = useState(0);
 
   const loadDashboardData = async () => {
@@ -188,8 +206,20 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
           auto_release_at: item.auto_release_at,
         }))
       );
+
+      // Active jobs: accepted (won) but not yet completed
+      const { data: activeRows } = await supabase
+        .from('jobs')
+        .select('id,title,category,county,budget_range,customer_id,accepted_quote_id')
+        .eq('status', 'accepted')
+        .in('accepted_quote_id', acceptedQuoteIds)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      setActiveJobs((activeRows as ActiveJob[] | null) ?? []);
     } else {
       setCompletedAssignedJobs([]);
+      setActiveJobs([]);
     }
   };
 
@@ -278,7 +308,16 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
     setIsSubmitting((current) => ({ ...current, [jobId]: false }));
 
     if (!response.ok) {
-      setFeedback(payload.error || 'Quote could not be submitted.');
+      const apiError = String(payload?.error ?? '').toLowerCase();
+      if (apiError.includes('direct request')) {
+        setFeedback('This job was sent to a different provider, so your quote cannot be submitted.');
+      } else if (apiError.includes('outside your current basic-tier county access')) {
+        setFeedback('This job is outside your current county access. Update your service areas or verify your ID.');
+      } else if (apiError.includes('daily quote limit')) {
+        setFeedback('You reached today\'s quote limit for basic tier. Verify your ID to unlock unlimited quotes.');
+      } else {
+        setFeedback(payload.error || 'Quote could not be submitted. Please review the form and try again.');
+      }
       return;
     }
 
@@ -319,6 +358,33 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
     return true;
   });
   const savedCount = Array.from(leadActionsByJob.values()).filter((action) => action === 'saved').length;
+  const nextAction = serviceCategoryIds.length === 0 || serviceAreas.length === 0
+    ? {
+        title: 'Complete your service setup',
+        detail: 'Add service categories and counties to start receiving relevant leads.',
+        href: withLocalePrefix(localeRoot, '/become-provider'),
+        cta: 'Update provider setup',
+      }
+    : !providerIsIdVerified
+      ? {
+          title: 'Verify your ID to unlock more leads',
+          detail: 'Verified providers get wider lead access, unlimited quotes, and higher matching priority.',
+          href: withLocalePrefix(localeRoot, '/profile?message=identity_upgrade'),
+          cta: 'Start ID verification',
+        }
+      : visibleLeads.length > 0
+        ? {
+            title: 'Respond to fresh leads',
+            detail: 'Submitting an early quote improves your response score and conversion chance.',
+            href: '#lead-list',
+            cta: 'Review leads',
+          }
+        : {
+            title: 'Set your task alerts',
+            detail: 'Enable alerts so matching jobs appear in your notifications immediately.',
+            href: '#task-alerts',
+            cta: 'Configure alerts',
+          };
 
   return (
     <div className={styles.stack}>
@@ -326,6 +392,16 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
       <p className={styles.meta}>
         Matching leads are listed here. You can submit one quote per listing.
       </p>
+      <div className={styles.card}>
+        <p className={styles.title}>Next best action</p>
+        <p className={styles.meta}><strong>{nextAction.title}</strong></p>
+        <p className={styles.meta}>{nextAction.detail}</p>
+        <div className={styles.buttons}>
+          <a className={styles.primary} href={nextAction.href}>
+            {nextAction.cta}
+          </a>
+        </div>
+      </div>
       <ProviderDocumentStatusCards documents={documents} />
       {!providerIsIdVerified ? (
         <div className={styles.notice}>
@@ -339,7 +415,9 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
           <p className={styles.meta}>Today: {quotesUsedToday} / 3 quotes used • {basicQuotesRemaining} remaining.</p>
           <button
             className={styles.primary}
-            onClick={() => (window.location.href = '/profile?message=identity_upgrade')}
+            onClick={() =>
+              router.push(withLocalePrefix(localeRoot, '/profile?message=identity_upgrade'))
+            }
           >
             Verify now
           </button>
@@ -386,6 +464,47 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
           Payment visibility target: marked as ready in dashboard within 24 hours after completion.
         </p>
       </div>
+      {activeJobs.length > 0 ? (
+        <div className={styles.card}>
+          <p className={styles.title}>Active Jobs — In Progress ({activeJobs.length})</p>
+          <p className={styles.meta}>These jobs have accepted your quote. Complete the work and wait for the customer to release payment.</p>
+          <div className={styles.stack}>
+            {activeJobs.map((job) => {
+              const myQuoteId = quoteIdByJobId.get(job.id);
+              return (
+                <div key={job.id} className={styles.card}>
+                  <p className={styles.title}>{job.title}</p>
+                  <p className={styles.meta}>{job.category} • {job.county ?? '-'} • {job.budget_range}</p>
+                  <p className={styles.okTag}>Quote accepted — work in progress</p>
+                  <div className={styles.buttons}>
+                    <a
+                      className={styles.primary}
+                      href={withLocalePrefix(localeRoot, `/jobs/${job.id}`)}
+                    >
+                      Open Workspace
+                    </a>
+                  </div>
+                  <JobMessagePanel
+                    jobId={job.id}
+                    quoteId={myQuoteId}
+                    receiverId={job.customer_id}
+                    visibility="private"
+                    title="Private chat with customer"
+                  />
+                  <JobMessagePanel
+                    jobId={job.id}
+                    visibility="public"
+                    title="Public job discussion"
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+      <div id="task-alerts">
+        <TaskAlertsPanel />
+      </div>
       <div className={styles.buttons}>
         <button
           className={leadFilter === 'all' ? styles.primary : styles.secondaryLink}
@@ -403,7 +522,22 @@ export default function ProDashboard({ profileId }: { profileId: string }) {
       {serviceCategoryIds.length === 0 || serviceAreas.length === 0 ? (
         <p className={styles.meta}>To receive leads, complete service category and county selections first.</p>
       ) : null}
-      {visibleLeads.length === 0 ? <p className={styles.meta}>No open leads for this filter.</p> : null}
+      {visibleLeads.length === 0 ? (
+        <div className={styles.card}>
+          <p className={styles.title}>No open leads yet</p>
+          <p className={styles.meta}>
+            We will show new matching jobs here. Keep task alerts on so you get notified when a suitable job appears.
+          </p>
+          <div className={styles.buttons}>
+            <a className={styles.primary} href="#task-alerts">Set task alerts</a>
+            <a className={styles.secondaryLink} href={withLocalePrefix(localeRoot, '/become-provider')}>
+              Update services and areas
+            </a>
+          </div>
+        </div>
+      ) : null}
+      <ProReviewsPanel proId={profileId} />
+      <div id="lead-list" />
       {visibleLeads.map((job) => (
         <div key={job.id} className={styles.card}>
           <p className={styles.title}>{job.title}</p>

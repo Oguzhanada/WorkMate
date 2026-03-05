@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { logAdminAudit } from '@/lib/admin/audit';
 import { adminDocumentDecisionSchema } from '@/lib/validation/api';
 import { PROVIDER_REQUIRED_DOCUMENTS } from '@/lib/provider-documents';
+import { fireAutomationEvent } from '@/lib/automation/engine';
 
 export async function GET(
   _request: NextRequest,
@@ -30,13 +31,19 @@ export async function GET(
     (docs ?? []).map(async (doc) => {
       const { data: signed, error: signedError } = await serviceClient.storage
         .from('pro-documents')
-        .createSignedUrl(doc.storage_path, 60 * 2);
+        .createSignedUrl(doc.storage_path, 60 * 10);
 
       const lower = doc.storage_path.toLowerCase();
       const isImage = lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg');
+      const fileName = doc.storage_path.split('/').pop() ?? `${doc.document_type}.pdf`;
+      const downloadUrl =
+        signedError || !signed?.signedUrl
+          ? null
+          : `${signed.signedUrl}${signed.signedUrl.includes('?') ? '&' : '?'}download=${encodeURIComponent(fileName)}`;
       return {
         ...doc,
         signed_url: signedError ? null : signed?.signedUrl ?? null,
+        download_url: downloadUrl,
         preview_url: signedError || !isImage ? null : signed?.signedUrl ?? null,
       };
     })
@@ -202,6 +209,18 @@ export async function PATCH(
       reviewed_at: new Date().toISOString(),
     },
   });
+
+  // Fire automation rules — non-blocking
+  void fireAutomationEvent(
+    decision === 'approve' ? 'document_verified' : 'document_rejected',
+    {
+      profileId,
+      documentId: document_id,
+      documentType: doc.document_type,
+      decision,
+      rejectionReason: decision !== 'approve' ? (note ?? '') : undefined,
+    }
+  );
 
   return NextResponse.json({ document: doc });
 }

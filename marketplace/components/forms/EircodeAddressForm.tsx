@@ -48,23 +48,10 @@ export default function EircodeAddressForm({
       onChange({...value, eircode_valid: false});
       return;
     }
-
-    setLoading(true);
     setError('');
     setSuccess('');
-
-    const res = await fetch(`/api/address-lookup?eircode=${encodeURIComponent(eircode)}`);
-    const data = await res.json();
-    setLoading(false);
-
-    if (!res.ok) {
-      setError(data.error || 'Invalid Eircode format');
-      onChange({...value, eircode_valid: false});
-      return;
-    }
-
-    const normalized = data?.address?.eircode ?? eircode;
-    setSuccess('Eircode format validated.');
+    const normalized = eircode.length === 7 ? `${eircode.slice(0, 3)} ${eircode.slice(3)}` : eircode;
+    setSuccess('Eircode format looks valid.');
     onChange({
       ...value,
       eircode: normalized,

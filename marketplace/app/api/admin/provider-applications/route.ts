@@ -13,10 +13,14 @@ export async function GET(request: NextRequest) {
     review_type: request.nextUrl.searchParams.get('review_type') ?? 'all',
     category: request.nextUrl.searchParams.get('category') ?? 'all',
     county: request.nextUrl.searchParams.get('county') ?? 'all',
-    date_range: request.nextUrl.searchParams.get('date_range') ?? '7d',
+    date_range: request.nextUrl.searchParams.get('date_range') ?? 'all',
     city: request.nextUrl.searchParams.get('city') ?? '',
     service: request.nextUrl.searchParams.get('service') ?? '',
     q: request.nextUrl.searchParams.get('q') ?? '',
+    start_date: request.nextUrl.searchParams.get('start_date') ?? '',
+    end_date: request.nextUrl.searchParams.get('end_date') ?? '',
+    id_verification_status: request.nextUrl.searchParams.get('id_verification_status') ?? 'all',
+    has_documents: request.nextUrl.searchParams.get('has_documents') ?? 'any',
   });
 
   if (!parsedFilters.success) {
@@ -32,6 +36,23 @@ export async function GET(request: NextRequest) {
 
   if (filters.status !== 'all') {
     query = query.eq('verification_status', filters.status);
+  }
+
+  // id_verification_status filter — applied at DB level
+  if (filters.id_verification_status !== 'all') {
+    query = query.eq('id_verification_status', filters.id_verification_status);
+  }
+
+  // Custom date range — takes precedence over preset date_range if both set
+  if (filters.start_date) {
+    query = query.gte('created_at', filters.start_date);
+  }
+  if (filters.end_date) {
+    // Include the entire end_date day by going to end-of-day
+    const endOfDay = filters.end_date.length === 10
+      ? `${filters.end_date}T23:59:59.999Z`
+      : filters.end_date;
+    query = query.lte('created_at', endOfDay);
   }
 
   const { data: profiles, error } = await query;
@@ -52,6 +73,8 @@ export async function GET(request: NextRequest) {
       document_type: string;
       verification_status: string;
       storage_path?: string;
+      signed_url?: string | null;
+      download_url?: string | null;
       preview_url?: string | null;
       created_at: string;
     }>
@@ -77,27 +100,43 @@ export async function GET(request: NextRequest) {
         document_type: row.document_type,
         verification_status: row.verification_status,
         storage_path: row.storage_path,
+        signed_url: null,
+        download_url: null,
         expires_at: row.expires_at ?? null,
         rejection_reason: row.rejection_reason ?? null,
         metadata: row.metadata ?? {},
         created_at: row.created_at,
       });
       return acc;
-    }, {} as Record<string, Array<{ id: string; document_type: string; verification_status: string; storage_path?: string; preview_url?: string | null; expires_at?: string | null; rejection_reason?: string | null; metadata?: Record<string, unknown>; created_at: string }>>);
+    }, {} as Record<string, Array<{ id: string; document_type: string; verification_status: string; storage_path?: string; signed_url?: string | null; download_url?: string | null; preview_url?: string | null; expires_at?: string | null; rejection_reason?: string | null; metadata?: Record<string, unknown>; created_at: string }>>);
 
     const storageClient = getSupabaseServiceClient();
     for (const [profileId, profileDocs] of Object.entries(docsByProfile)) {
       docsByProfile[profileId] = await Promise.all(
         profileDocs.map(async (doc) => {
-          if (doc.document_type !== 'id_verification' || !doc.storage_path) {
-            return { ...doc, preview_url: null };
+          if (!doc.storage_path) {
+            return { ...doc, signed_url: null, download_url: null, preview_url: null };
           }
-          const { data: signed } = await storageClient.storage
+
+          const { data: signed, error: signedError } = await storageClient.storage
             .from('pro-documents')
             .createSignedUrl(doc.storage_path, 60 * 10);
+
+          if (signedError || !signed?.signedUrl) {
+            return { ...doc, signed_url: null, download_url: null, preview_url: null };
+          }
+
+          const lower = doc.storage_path.toLowerCase();
+          const isImage = lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg');
+          const fileName = doc.storage_path.split('/').pop() ?? `${doc.document_type}.pdf`;
+          const separator = signed.signedUrl.includes('?') ? '&' : '?';
+          const downloadUrl = `${signed.signedUrl}${separator}download=${encodeURIComponent(fileName)}`;
+
           return {
             ...doc,
-            preview_url: signed?.signedUrl ?? null,
+            signed_url: signed.signedUrl,
+            download_url: downloadUrl,
+            preview_url: isImage ? signed.signedUrl : null,
           };
         })
       );
@@ -140,8 +179,9 @@ export async function GET(request: NextRequest) {
     applications = applications.filter((item) => {
       const name = item.full_name?.toLowerCase() ?? '';
       const phone = item.phone?.toLowerCase() ?? '';
+      const email = String(item.stripe_requirements_due?.personal_info?.email ?? '').toLowerCase();
       const id = item.id.toLowerCase();
-      return name.includes(q) || phone.includes(q) || id.includes(q);
+      return name.includes(q) || phone.includes(q) || email.includes(q) || id.includes(q);
     });
   }
 
@@ -177,11 +217,19 @@ export async function GET(request: NextRequest) {
     applications = applications.filter((item) => item.review_type === filters.review_type);
   }
 
-  if (filters.date_range !== 'all') {
+  // Preset date_range only applies when no custom start_date/end_date is set
+  if (filters.date_range !== 'all' && !filters.start_date && !filters.end_date) {
     const days = filters.date_range === '7d' ? 7 : filters.date_range === '30d' ? 30 : 90;
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
     applications = applications.filter((item) => new Date(item.created_at) >= cutoff);
+  }
+
+  // has_documents filter
+  if (filters.has_documents === 'yes') {
+    applications = applications.filter((item) => item.documents.length > 0);
+  } else if (filters.has_documents === 'no') {
+    applications = applications.filter((item) => item.documents.length === 0);
   }
 
   const { data: auditLogs } = await supabase

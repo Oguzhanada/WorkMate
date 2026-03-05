@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import {AnimatePresence, motion} from 'framer-motion';
 import {Menu, X, Hammer, BriefcaseBusiness} from 'lucide-react';
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {usePathname, useRouter} from 'next/navigation';
 
 import {getSupabaseBrowserClient} from '@/lib/supabase/client';
@@ -11,6 +11,15 @@ import {getSupabaseBrowserClient} from '@/lib/supabase/client';
 type NavItem = {
   label: string;
   href: string;
+};
+
+const NAV_AUTH_CACHE_KEY = 'workmate.nav.auth.snapshot';
+
+type NavAuthSnapshot = {
+  isAuthenticated: boolean;
+  hasAdminRole: boolean;
+  hasProviderRole: boolean;
+  profileName: string;
 };
 
 const navItems: NavItem[] = [
@@ -30,17 +39,49 @@ function withLocalePrefix(localeRoot: string, path: string) {
   return `${localeRoot}${path}`;
 }
 
+function readAuthSnapshot(): NavAuthSnapshot | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(NAV_AUTH_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<NavAuthSnapshot>;
+    if (!parsed || typeof parsed !== 'object') return null;
+    return {
+      isAuthenticated: Boolean(parsed.isAuthenticated),
+      hasAdminRole: Boolean(parsed.hasAdminRole),
+      hasProviderRole: Boolean(parsed.hasProviderRole),
+      profileName: typeof parsed.profileName === 'string' ? parsed.profileName : ''
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeAuthSnapshot(snapshot: NavAuthSnapshot) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(NAV_AUTH_CACHE_KEY, JSON.stringify(snapshot));
+  } catch {}
+}
+
+function clearAuthSnapshot() {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.removeItem(NAV_AUTH_CACHE_KEY);
+  } catch {}
+}
+
 export default function Navbar() {
   const pathname = usePathname() || '/';
   const router = useRouter();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [loadingAuth, setLoadingAuth] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [hasAdminRole, setHasAdminRole] = useState(false);
   const [hasProviderRole, setHasProviderRole] = useState(false);
   const [profileName, setProfileName] = useState('');
+  const hasResolvedInitialAuthRef = useRef(false);
 
   const localeRoot = useMemo(() => getLocaleRoot(pathname), [pathname]);
   const isHome = pathname === localeRoot || pathname === `${localeRoot}/`;
@@ -53,8 +94,31 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
+    const cached = readAuthSnapshot();
+    if (cached?.isAuthenticated) {
+      setIsAuthenticated(true);
+      setHasAdminRole(cached.hasAdminRole);
+      setHasProviderRole(cached.hasProviderRole);
+      setProfileName(cached.profileName);
+    }
+
     const supabase = getSupabaseBrowserClient();
     let active = true;
+    const AUTH_TIMEOUT_MS = 4500;
+
+    const withTimeout = async <T,>(promise: Promise<T>, timeoutMs = AUTH_TIMEOUT_MS) => {
+      let timer: ReturnType<typeof setTimeout> | null = null;
+      try {
+        return await Promise.race([
+          promise,
+          new Promise<T>((_, reject) => {
+            timer = setTimeout(() => reject(new Error('auth_timeout')), timeoutMs);
+          })
+        ]);
+      } finally {
+        if (timer) clearTimeout(timer);
+      }
+    };
 
     const resetAuthState = () => {
       if (!active) return;
@@ -62,14 +126,26 @@ export default function Navbar() {
       setHasAdminRole(false);
       setHasProviderRole(false);
       setProfileName('');
+      clearAuthSnapshot();
     };
 
     const loadAuthState = async () => {
       try {
-        setLoadingAuth(true);
-        const {
-          data: {user: sessionUser}
-        } = await supabase.auth.getUser();
+        let sessionUser: { id: string } | null = null;
+        let quickDisplayName = '';
+        const sessionResult = await withTimeout<Awaited<ReturnType<typeof supabase.auth.getSession>>>(
+          supabase.auth.getSession()
+        );
+        const sessionData = sessionResult.data;
+        quickDisplayName = sessionData.session?.user?.user_metadata?.full_name?.trim() || '';
+        sessionUser = (sessionData.session?.user as { id: string } | null) ?? null;
+
+        if (!sessionUser) {
+          const userResult = await withTimeout<any>(supabase.auth.getUser());
+          sessionUser = (userResult?.data?.user as { id: string } | null) ?? null;
+          quickDisplayName = userResult?.data?.user?.user_metadata?.full_name?.trim() || quickDisplayName;
+        }
+
         if (!active) return;
 
         if (!sessionUser) {
@@ -78,21 +154,32 @@ export default function Navbar() {
         }
 
         setIsAuthenticated(true);
+        if (quickDisplayName) setProfileName(quickDisplayName);
 
-        const [{data: roles}, {data: profile}] = await Promise.all([
-          supabase.from('user_roles').select('role').eq('user_id', sessionUser.id),
-          supabase.from('profiles').select('full_name').eq('id', sessionUser.id).maybeSingle()
-        ]);
+        const [{data: roles}, {data: profile}] = await withTimeout(
+          Promise.all([
+            supabase.from('user_roles').select('role').eq('user_id', sessionUser.id),
+            supabase.from('profiles').select('full_name').eq('id', sessionUser.id).maybeSingle()
+          ])
+        );
 
         if (!active) return;
         const roleList = (roles ?? []).map((item) => item.role);
+        const nextProfileName = profile?.full_name?.trim() || quickDisplayName || '';
         setHasAdminRole(roleList.includes('admin'));
         setHasProviderRole(roleList.includes('verified_pro'));
-        setProfileName(profile?.full_name?.trim() || '');
+        setProfileName(nextProfileName);
+        writeAuthSnapshot({
+          isAuthenticated: true,
+          hasAdminRole: roleList.includes('admin'),
+          hasProviderRole: roleList.includes('verified_pro'),
+          profileName: nextProfileName
+        });
       } catch {
-        resetAuthState();
+        // Keep existing UI state after the initial auth bootstrap to avoid refresh flicker.
+        if (!hasResolvedInitialAuthRef.current) resetAuthState();
       } finally {
-        if (active) setLoadingAuth(false);
+        if (active && !hasResolvedInitialAuthRef.current) hasResolvedInitialAuthRef.current = true;
       }
     };
 
@@ -100,7 +187,7 @@ export default function Navbar() {
 
     const {
       data: {subscription}
-    } = supabase.auth.onAuthStateChange(async () => {
+    } = supabase.auth.onAuthStateChange(async (_event) => {
       await loadAuthState();
     });
 
@@ -117,7 +204,7 @@ export default function Navbar() {
     setHasAdminRole(false);
     setHasProviderRole(false);
     setProfileName('');
-    setLoadingAuth(false);
+    clearAuthSnapshot();
     const clearSupabaseCookies = () => {
       if (typeof document === 'undefined') return;
       const cookies = document.cookie.split(';');
@@ -219,9 +306,7 @@ export default function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-2 lg:flex">
-          {loadingAuth ? (
-            <div className="h-10 w-56 animate-pulse rounded-xl bg-[#E5E7EB]" />
-          ) : isAuthenticated ? (
+          {isAuthenticated ? (
             <>
               {!hasProviderRole && !hasAdminRole ? (
                 <Link
@@ -317,9 +402,7 @@ export default function Navbar() {
               ))}
             </div>
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
-              {loadingAuth ? (
-                <div className="h-10 w-full animate-pulse rounded-xl bg-[#E5E7EB] sm:col-span-2" />
-              ) : isAuthenticated ? (
+          {isAuthenticated ? (
                 <>
                   {!hasProviderRole && !hasAdminRole ? (
                     <Link

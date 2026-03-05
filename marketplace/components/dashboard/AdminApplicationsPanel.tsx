@@ -4,8 +4,11 @@
 import Link from 'next/link';
 import { Fragment, useEffect, useMemo, useOptimistic, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { PROVIDER_DOCUMENT_LABELS, PROVIDER_REQUIRED_DOCUMENTS } from '@/lib/provider-documents';
+import AdvancedSearchFilters, { DEFAULT_ADVANCED_FILTERS } from '@/components/dashboard/AdvancedSearchFilters';
+import type { AdvancedFilters } from '@/components/dashboard/AdvancedSearchFilters';
 import styles from './admin-panel.module.css';
 
 type ReviewType = 'provider_application' | 'customer_identity_review' | 'other';
@@ -42,6 +45,8 @@ type Application = {
     id?: string;
     document_type: string;
     verification_status?: string;
+    signed_url?: string | null;
+    download_url?: string | null;
     preview_url?: string | null;
     expires_at?: string | null;
     rejection_reason?: string | null;
@@ -78,7 +83,53 @@ type Filters = {
   category: string;
   county: string;
   date_range: '7d' | '30d' | '90d' | 'all';
+  start_date: string;
+  end_date: string;
+  id_verification_status: 'all' | 'none' | 'pending' | 'approved' | 'rejected';
+  has_documents: 'any' | 'yes' | 'no';
 };
+
+type Decision = 'approve' | 'reject' | 'request_changes';
+type DashboardStats = {
+  totalUsers: number;
+  pendingApps: number;
+  approvedApps: number;
+  rejectedApps: number;
+  revenue: number;
+  approvalRate: number;
+};
+
+type ActionModalState =
+  | {
+      kind: 'single_decision';
+      profileId: string;
+      decision: Decision;
+      title: string;
+      submitLabel: string;
+      defaultValue: string;
+    }
+  | {
+      kind: 'bulk_decision';
+      profileIds: string[];
+      decision: 'approve' | 'reject';
+      title: string;
+      submitLabel: string;
+      defaultValue: string;
+    }
+  | {
+      kind: 'message';
+      profileIds: string[];
+      title: string;
+      submitLabel: string;
+      defaultValue: string;
+    }
+  | {
+      kind: 'approve_all_documents';
+      profileId: string;
+      title: string;
+      submitLabel: string;
+      defaultValue: string;
+    };
 
 const IRISH_COUNTIES = [
   'Antrim', 'Armagh', 'Carlow', 'Cavan', 'Clare', 'Cork', 'Derry', 'Donegal', 'Down', 'Dublin', 'Fermanagh',
@@ -89,15 +140,19 @@ const IRISH_COUNTIES = [
 
 const REQUIRED_PROVIDER_DOCS = PROVIDER_REQUIRED_DOCUMENTS;
 const OPTIONAL_PROVIDER_DOCS = ['safe_electric', 'reci', 'rgi'];
-const REQUIRED_CUSTOMER_DOCS = ['id_verification'];
+const REQUIRED_CUSTOMER_DOCS: string[] = [];
 
 const DEFAULT_FILTERS: Filters = {
   q: '',
-  status: 'pending',
-  review_type: 'all',
+  status: 'all',
+  review_type: 'customer_identity_review',
   category: 'all',
   county: 'all',
-  date_range: '7d',
+  date_range: 'all',
+  start_date: '',
+  end_date: '',
+  id_verification_status: 'all',
+  has_documents: 'any',
 };
 
 function formatDate(value: string) {
@@ -141,6 +196,15 @@ function hasDoc(documents: Application['documents'], expectedType: string) {
   return documents.some((doc) => doc.document_type === expectedType);
 }
 
+function findDocument(documents: Application['documents'], expectedType: string) {
+  if (expectedType === 'tax_clearance_number') {
+    return documents.find(
+      (doc) => doc.document_type === 'tax_clearance_number' || doc.document_type === 'tax_clearance'
+    );
+  }
+  return documents.find((doc) => doc.document_type === expectedType);
+}
+
 function statusClass(status: string) {
   if (status === 'verified') return `${styles.status} ${styles.approved}`;
   if (status === 'rejected') return `${styles.status} ${styles.rejected}`;
@@ -167,10 +231,20 @@ function isValidIrishEircode(code: string | null | undefined) {
 }
 
 export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { adminEmail?: string }) {
+  const locale = useLocale();
   const [applications, setApplications] = useState<Application[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [feedback, setFeedback] = useState('');
   const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
+    totalUsers: 0,
+    pendingApps: 0,
+    approvedApps: 0,
+    rejectedApps: 0,
+    revenue: 0,
+    approvalRate: 0,
+  });
   const [filtersDraft, setFiltersDraft] = useState<Filters>(DEFAULT_FILTERS);
   const [filtersApplied, setFiltersApplied] = useState<Filters>(DEFAULT_FILTERS);
   const [sortField, setSortField] = useState<SortField>('created_at');
@@ -182,7 +256,12 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
   const [pageSize, setPageSize] = useState(20);
   const [activeTab, setActiveTab] = useState<'applications' | 'reports' | 'activity'>('applications');
   const [previewDocUrl, setPreviewDocUrl] = useState<string | null>(null);
+  const [actionModal, setActionModal] = useState<ActionModalState | null>(null);
+  const [actionInput, setActionInput] = useState('');
+  const [submittingModal, setSubmittingModal] = useState(false);
+  const [pendingActionKeys, setPendingActionKeys] = useState<Record<string, boolean>>({});
   const router = useRouter();
+  const adminBasePath = `/${locale}/dashboard/admin`;
   const [optimisticApplications, applyOptimistic] = useOptimistic(
     applications,
     (
@@ -214,7 +293,12 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
       return;
     }
 
-    setFeedback('');
+    const resultCount = Array.isArray(payload.applications) ? payload.applications.length : 0;
+    setFeedback(
+      resultCount > 0
+        ? `📊 Filters applied - ${resultCount} results found`
+        : 'ℹ️ No applications match your filters'
+    );
     setApplications(payload.applications ?? []);
     setAuditLogs(payload.audit_logs ?? []);
     setSelectedIds([]);
@@ -227,6 +311,42 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
     loadApplications(filtersApplied);
   }, [filtersApplied]);
 
+  const loadStats = async () => {
+    setStatsLoading(true);
+    try {
+      const response = await fetch('/api/admin/stats', { cache: 'no-store' });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setFeedback(payload.error || 'Stats could not be loaded.');
+        return;
+      }
+      setDashboardStats({
+        totalUsers: Number(payload.totalUsers ?? 0),
+        pendingApps: Number(payload.pendingApps ?? 0),
+        approvedApps: Number(payload.approvedApps ?? 0),
+        rejectedApps: Number(payload.rejectedApps ?? 0),
+        revenue: Number(payload.revenue ?? 0),
+        approvalRate: Number(payload.approvalRate ?? 0),
+      });
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (filtersDraft.q !== filtersApplied.q) {
+        setFiltersApplied((current) => ({ ...current, q: filtersDraft.q }));
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [filtersDraft.q, filtersApplied.q]);
+
   const serviceOptions = useMemo(() => {
     const set = new Set<string>();
     for (const item of optimisticApplications) {
@@ -236,6 +356,18 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
     }
     return ['all', ...Array.from(set).sort((a, b) => a.localeCompare(b))];
   }, [optimisticApplications]);
+
+  const advancedActiveCount = useMemo(() => {
+    let count = 0;
+    if (filtersDraft.start_date) count++;
+    if (filtersDraft.end_date) count++;
+    if (filtersDraft.id_verification_status !== 'all') count++;
+    if (filtersDraft.has_documents !== 'any') count++;
+    if (filtersDraft.status !== 'all') count++;
+    if (filtersDraft.review_type !== 'all' && filtersDraft.review_type !== 'customer_identity_review') count++;
+    if (filtersDraft.county !== 'all') count++;
+    return count;
+  }, [filtersDraft]);
 
   const stats = useMemo(() => {
     const total = optimisticApplications.length;
@@ -259,6 +391,11 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
     return { total, pending, approved, rejected, todayPending, approvedThisWeek, rejectedThisWeek };
   }, [optimisticApplications]);
 
+  const applyStatusFilter = (status: Filters['status']) => {
+    setFiltersDraft((current) => ({ ...current, status }));
+    setFiltersApplied((current) => ({ ...current, status }));
+  };
+
   const activities = useMemo(() => {
     return auditLogs.map((log) => ({
       id: log.id,
@@ -276,7 +413,13 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
     };
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpenMenuId(null);
+      if (event.key !== 'Escape') return;
+      setOpenMenuId(null);
+      if (previewDocUrl) setPreviewDocUrl(null);
+      if (!submittingModal) {
+        setActionModal(null);
+        setActionInput('');
+      }
     };
 
     document.addEventListener('mousedown', onDocumentPointerDown);
@@ -285,7 +428,7 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
       document.removeEventListener('mousedown', onDocumentPointerDown);
       document.removeEventListener('keydown', onKeyDown);
     };
-  }, []);
+  }, [previewDocUrl, submittingModal]);
   const sortedApplications = useMemo(() => {
     const list = [...optimisticApplications];
     list.sort((a, b) => {
@@ -334,88 +477,79 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
     setSortDirection('asc');
   };
 
-  const runDecision = async (profileId: string, decision: 'approve' | 'reject' | 'request_changes') => {
-    const defaultNote =
-      decision === 'approve'
-        ? 'Approved by admin'
-        : decision === 'request_changes'
-        ? 'Please update the missing items.'
-        : 'Rejected by admin';
-    const note = window.prompt('Admin note', defaultNote);
-    if (note === null) return;
-
-    const optimisticStatus = decision === 'approve' ? 'verified' : decision === 'reject' ? 'rejected' : 'pending';
-    applyOptimistic({ type: 'set_status', profileId, status: optimisticStatus });
-
-    const response = await fetch('/api/admin/provider-applications', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ profile_id: profileId, decision, note }),
+  const setPendingAction = (key: string, pending: boolean) => {
+    setPendingActionKeys((current) => {
+      if (pending) return { ...current, [key]: true };
+      if (!(key in current)) return current;
+      const next = { ...current };
+      delete next[key];
+      return next;
     });
-
-    const payload = await response.json();
-    if (!response.ok) {
-      setFeedback(payload.error || 'Action failed.');
-      return;
-    }
-
-    setFeedback(decision === 'approve' ? '🎉 Application approved.' : decision === 'reject' ? '⚠️ Application rejected.' : 'Changes requested.');
-    await loadApplications(filtersApplied);
   };
 
-  const runBulkDecision = async (decision: 'approve' | 'reject') => {
+  const isActionPending = (key: string) => Boolean(pendingActionKeys[key]);
+
+  const isProfileBusy = (profileId: string) =>
+    Object.keys(pendingActionKeys).some((key) => key.startsWith(`profile:${profileId}:`));
+
+  const decisionDefaultNote = (decision: Decision) =>
+    decision === 'approve'
+      ? 'Approved by admin'
+      : decision === 'request_changes'
+      ? 'Please update the missing items.'
+      : 'Rejected by admin';
+
+  const openActionModal = (nextModal: ActionModalState) => {
+    setActionModal(nextModal);
+    setActionInput(nextModal.defaultValue);
+  };
+
+  const closeActionModal = (force = false) => {
+    if (!force && submittingModal) return;
+    setActionModal(null);
+    setActionInput('');
+  };
+
+  const runDecision = (profileId: string, decision: Decision) => {
+    openActionModal({
+      kind: 'single_decision',
+      profileId,
+      decision,
+      title: decision === 'approve' ? 'Approve Application' : decision === 'reject' ? 'Reject Application' : 'Request Changes',
+      submitLabel: decision === 'approve' ? 'Approve' : decision === 'reject' ? 'Reject' : 'Request Changes',
+      defaultValue: decisionDefaultNote(decision),
+    });
+  };
+
+  const runBulkDecision = (decision: 'approve' | 'reject') => {
     if (selectedIds.length === 0) {
       setFeedback('Select at least one record.');
       return;
     }
 
-    const note = window.prompt('Bulk admin note', decision === 'approve' ? 'Approved in bulk' : 'Rejected in bulk');
-    if (note === null) return;
-
-    applyOptimistic({
-      type: 'bulk_set_status',
+    openActionModal({
+      kind: 'bulk_decision',
       profileIds: selectedIds,
-      status: decision === 'approve' ? 'verified' : 'rejected',
+      decision,
+      title: decision === 'approve' ? 'Bulk Approve Applications' : 'Bulk Reject Applications',
+      submitLabel: decision === 'approve' ? 'Approve selected' : 'Reject selected',
+      defaultValue: decision === 'approve' ? 'Approved in bulk' : 'Rejected in bulk',
     });
-
-    const results = await Promise.allSettled(
-      selectedIds.map((profileId) =>
-        fetch('/api/admin/provider-applications', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ profile_id: profileId, decision, note }),
-        }).then((res) => res.json().then((body) => ({ ok: res.ok, body })))
-      )
-    );
-
-    const failed = results.filter((item) => item.status === 'fulfilled' && !item.value.ok).length;
-    const succeeded = results.length - failed;
-    setFeedback(failed > 0 ? `${succeeded} updated, ${failed} failed.` : `${succeeded} applications updated.`);
-    await loadApplications(filtersApplied);
   };
 
-  const sendBulkNotice = async () => {
+  const sendBulkNotice = () => {
     if (selectedIds.length === 0) {
       setFeedback('Select at least one provider/customer.');
       return;
     }
 
-    const message = window.prompt('Notification message', 'Please update your profile information.');
-    if (!message) return;
-
-    const response = await fetch('/api/admin/provider-applications/bulk', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ profile_ids: selectedIds, message }),
+    openActionModal({
+      kind: 'message',
+      profileIds: selectedIds,
+      title: 'Send Notification',
+      submitLabel: 'Send notification',
+      defaultValue: 'Please update your profile information.',
     });
-
-    const payload = await response.json();
-    if (!response.ok) {
-      setFeedback(payload.error || 'Bulk notification failed.');
-      return;
-    }
-
-    setFeedback(`Notification sent to ${payload.count} users.`);
   };
 
   const exportCsv = () => {
@@ -462,57 +596,171 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
   };
 
   const runChecklistItem = async (application: Application, documentType: string) => {
-    const found =
-      documentType === 'tax_clearance_number'
-        ? application.documents.find(
-            (doc) =>
-              doc.id &&
-              (doc.document_type === 'tax_clearance_number' || doc.document_type === 'tax_clearance')
-          )
-        : application.documents.find((doc) => doc.document_type === documentType && doc.id);
+    const found = findDocument(application.documents, documentType);
     if (!found?.id) {
       setFeedback(`${mapDocLabel(documentType)} is missing. Ask user to upload this document.`);
       return;
     }
 
-    const response = await fetch(`/api/admin/provider-applications/${application.id}/documents`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ document_id: found.id, decision: 'approve', note: `${mapDocLabel(documentType)} verified.` }),
-    });
+    const actionKey = `profile:${application.id}:checklist:${documentType}`;
+    setPendingAction(actionKey, true);
+    try {
+      const response = await fetch(`/api/admin/provider-applications/${application.id}/documents`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ document_id: found.id, decision: 'approve', note: `${mapDocLabel(documentType)} verified.` }),
+      });
 
-    const payload = await response.json();
-    if (!response.ok) {
-      setFeedback(payload.error || 'Checklist update failed.');
-      return;
+      const payload = await response.json();
+      if (!response.ok) {
+        setFeedback(payload.error || 'Checklist update failed.');
+        return;
+      }
+
+      setFeedback(`${mapDocLabel(documentType)} marked as verified.`);
+      await loadApplications(filtersApplied);
+      await loadStats();
+    } finally {
+      setPendingAction(actionKey, false);
     }
-
-    setFeedback(`${mapDocLabel(documentType)} marked as verified.`);
-    await loadApplications(filtersApplied);
   };
 
-  const approveAllDocuments = async (profileId: string) => {
-    const note = window.prompt('Bulk approval note', 'All required documents verified.');
-    if (note === null) return;
-
-    const response = await fetch(`/api/admin/provider-applications/${profileId}/documents`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ note }),
+  const approveAllDocuments = (profileId: string) => {
+    openActionModal({
+      kind: 'approve_all_documents',
+      profileId,
+      title: 'Approve All Required Documents',
+      submitLabel: 'Approve all docs',
+      defaultValue: 'All required documents verified.',
     });
-    const payload = await response.json();
-    if (!response.ok) {
-      setFeedback(payload.error || 'Bulk document approval failed.');
+  };
+
+  const submitActionModal = async () => {
+    if (!actionModal) return;
+
+    const value = actionInput.trim();
+    if (!value) {
+      setFeedback(actionModal.kind === 'message' ? 'Message is required.' : 'Review note is required.');
       return;
     }
-    setFeedback(`Approved ${payload.updated} required documents.`);
-    await loadApplications(filtersApplied);
+
+    const actionKey =
+      actionModal.kind === 'single_decision'
+        ? `profile:${actionModal.profileId}:decision`
+        : actionModal.kind === 'approve_all_documents'
+        ? `profile:${actionModal.profileId}:approve_all_documents`
+        : actionModal.kind === 'bulk_decision'
+        ? `global:bulk_decision:${actionModal.decision}`
+        : actionModal.profileIds.length === 1
+        ? `profile:${actionModal.profileIds[0]}:message`
+        : 'global:bulk_notice';
+
+    setSubmittingModal(true);
+    setPendingAction(actionKey, true);
+
+    try {
+      if (actionModal.kind === 'single_decision') {
+        const optimisticStatus =
+          actionModal.decision === 'approve'
+            ? 'verified'
+            : actionModal.decision === 'reject'
+            ? 'rejected'
+            : 'pending';
+        applyOptimistic({ type: 'set_status', profileId: actionModal.profileId, status: optimisticStatus });
+
+        const response = await fetch('/api/admin/provider-applications', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profile_id: actionModal.profileId, decision: actionModal.decision, note: value }),
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          setFeedback(payload.error || 'Action failed.');
+          return;
+        }
+
+        setFeedback(
+          actionModal.decision === 'approve'
+            ? 'Application approved.'
+            : actionModal.decision === 'reject'
+            ? 'Application rejected.'
+            : 'Changes requested.'
+        );
+        closeActionModal(true);
+        await loadApplications(filtersApplied);
+        await loadStats();
+        return;
+      }
+
+      if (actionModal.kind === 'bulk_decision') {
+        applyOptimistic({
+          type: 'bulk_set_status',
+          profileIds: actionModal.profileIds,
+          status: actionModal.decision === 'approve' ? 'verified' : 'rejected',
+        });
+
+        const results = await Promise.allSettled(
+          actionModal.profileIds.map((profileId) =>
+            fetch('/api/admin/provider-applications', {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ profile_id: profileId, decision: actionModal.decision, note: value }),
+            }).then((res) => res.json().then((body) => ({ ok: res.ok, body })))
+          )
+        );
+
+        const failed = results.filter((item) => item.status === 'fulfilled' && !item.value.ok).length;
+        const succeeded = results.length - failed;
+        setFeedback(failed > 0 ? `${succeeded} updated, ${failed} failed.` : `${succeeded} applications updated.`);
+        closeActionModal(true);
+        await loadApplications(filtersApplied);
+        await loadStats();
+        return;
+      }
+
+      if (actionModal.kind === 'message') {
+        const response = await fetch('/api/admin/provider-applications/bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profile_ids: actionModal.profileIds, message: value }),
+        });
+
+        const payload = await response.json();
+        if (!response.ok) {
+          setFeedback(payload.error || 'Notification failed.');
+          return;
+        }
+
+        setFeedback(`Notification sent to ${payload.count} users.`);
+        closeActionModal(true);
+        return;
+      }
+
+      const response = await fetch(`/api/admin/provider-applications/${actionModal.profileId}/documents`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ note: value }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        setFeedback(payload.error || 'Bulk document approval failed.');
+        return;
+      }
+
+      setFeedback(`Approved ${payload.updated} required documents.`);
+      closeActionModal(true);
+      await loadApplications(filtersApplied);
+      await loadStats();
+    } finally {
+      setPendingAction(actionKey, false);
+      setSubmittingModal(false);
+    }
   };
 
   const logout = async () => {
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signOut();
-    router.push('/login');
+    router.push(`/${locale}/login`);
     router.refresh();
   };
 
@@ -632,10 +880,9 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
                     value={filtersDraft.review_type}
                     onChange={(e) => setFiltersDraft((current) => ({ ...current, review_type: e.target.value }))}
                   >
-                    <option value="all">All</option>
-                    <option value="provider_application">Provider</option>
                     <option value="customer_identity_review">Customer</option>
-                    <option value="other">Other</option>
+                    <option value="provider_application">Provider</option>
+                    <option value="all">All</option>
                   </select>
                 </div>
                 <div className={styles.field}>
@@ -701,14 +948,103 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
                 <button className={styles.btn} type="button" onClick={exportCsv}>
                   Export CSV
                 </button>
+                <button
+                  className={styles.btn}
+                  type="button"
+                  onClick={async () => {
+                    await Promise.all([loadApplications(filtersApplied), loadStats()]);
+                    setFeedback('✅ Data refreshed');
+                  }}
+                >
+                  Refresh
+                </button>
+              </div>
+
+              <div className="mt-4">
+                <AdvancedSearchFilters
+                  value={{
+                    start_date: filtersDraft.start_date,
+                    end_date: filtersDraft.end_date,
+                    id_verification_status: filtersDraft.id_verification_status,
+                    has_documents: filtersDraft.has_documents,
+                    status: filtersDraft.status as AdvancedFilters['status'],
+                    county: filtersDraft.county,
+                    review_type: filtersDraft.review_type as AdvancedFilters['review_type'],
+                  }}
+                  onChange={(adv) =>
+                    setFiltersDraft((c) => ({
+                      ...c,
+                      start_date: adv.start_date,
+                      end_date: adv.end_date,
+                      id_verification_status: adv.id_verification_status,
+                      has_documents: adv.has_documents,
+                      status: adv.status,
+                      county: adv.county,
+                      review_type: adv.review_type,
+                    }))
+                  }
+                  onApply={(adv) => {
+                    const merged: Filters = {
+                      ...filtersDraft,
+                      start_date: adv.start_date,
+                      end_date: adv.end_date,
+                      id_verification_status: adv.id_verification_status,
+                      has_documents: adv.has_documents,
+                      status: adv.status,
+                      county: adv.county,
+                      review_type: adv.review_type,
+                    };
+                    setFiltersDraft(merged);
+                    setFiltersApplied(merged);
+                  }}
+                  onReset={() => {
+                    setFiltersDraft((c) => ({
+                      ...c,
+                      start_date: DEFAULT_FILTERS.start_date,
+                      end_date: DEFAULT_FILTERS.end_date,
+                      id_verification_status: DEFAULT_FILTERS.id_verification_status,
+                      has_documents: DEFAULT_FILTERS.has_documents,
+                      status: DEFAULT_FILTERS.status,
+                      county: DEFAULT_FILTERS.county,
+                      review_type: DEFAULT_FILTERS.review_type,
+                    }));
+                    setFiltersApplied((c) => ({
+                      ...c,
+                      start_date: DEFAULT_FILTERS.start_date,
+                      end_date: DEFAULT_FILTERS.end_date,
+                      id_verification_status: DEFAULT_FILTERS.id_verification_status,
+                      has_documents: DEFAULT_FILTERS.has_documents,
+                      status: DEFAULT_FILTERS.status,
+                      county: DEFAULT_FILTERS.county,
+                      review_type: DEFAULT_FILTERS.review_type,
+                    }));
+                  }}
+                  activeCount={advancedActiveCount}
+                />
               </div>
             </section>
 
             <section className={styles.statGrid}>
-              <article className={styles.stat}><h4>⏳ Pending</h4><strong>{stats.pending}</strong><p className={styles.muted}>+{stats.todayPending} today</p></article>
-              <article className={styles.stat}><h4>✅ Approved</h4><strong>{stats.approved}</strong><p className={styles.muted}>This week +{stats.approvedThisWeek}</p></article>
-              <article className={styles.stat}><h4>❌ Rejected</h4><strong>{stats.rejected}</strong><p className={styles.muted}>This week +{stats.rejectedThisWeek}</p></article>
-              <article className={styles.stat}><h4>📝 Total</h4><strong>{stats.total}</strong><p className={styles.muted}>All applications</p></article>
+              <button type="button" className={styles.stat} onClick={() => applyStatusFilter('pending')}>
+                <h4>⏳ Pending</h4>
+                <strong>{statsLoading ? '...' : dashboardStats.pendingApps}</strong>
+                <p className={styles.muted}>Click to filter</p>
+              </button>
+              <button type="button" className={styles.stat} onClick={() => applyStatusFilter('verified')}>
+                <h4>✅ Approved</h4>
+                <strong>{statsLoading ? '...' : dashboardStats.approvedApps}</strong>
+                <p className={styles.muted}>Click to filter</p>
+              </button>
+              <button type="button" className={styles.stat} onClick={() => applyStatusFilter('rejected')}>
+                <h4>❌ Rejected</h4>
+                <strong>{statsLoading ? '...' : dashboardStats.rejectedApps}</strong>
+                <p className={styles.muted}>Click to filter</p>
+              </button>
+              <button type="button" className={styles.stat} onClick={() => applyStatusFilter('all')}>
+                <h4>📝 Total</h4>
+                <strong>{statsLoading ? '...' : dashboardStats.totalUsers}</strong>
+                <p className={styles.muted}>All applications</p>
+              </button>
             </section>
 
             <section className={styles.card}>
@@ -718,12 +1054,34 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
                     type="checkbox"
                     checked={pageItems.length > 0 && pageItems.every((item) => selectedIds.includes(item.id))}
                     onChange={toggleSelectAll}
+                    disabled={loading}
                   />{' '}
                   Select page
                 </label>
-                <button type="button" className={`${styles.btn} ${styles.btnApprove}`} onClick={() => runBulkDecision('approve')}>Bulk Approve</button>
-                <button type="button" className={`${styles.btn} ${styles.btnReject}`} onClick={() => runBulkDecision('reject')}>Bulk Reject</button>
-                <button type="button" className={styles.btn} onClick={sendBulkNotice}>Send Notification</button>
+                <button
+                  type="button"
+                  className={`${styles.btn} ${styles.btnApprove}`}
+                  onClick={() => runBulkDecision('approve')}
+                  disabled={loading || selectedIds.length === 0 || isActionPending('global:bulk_decision:approve')}
+                >
+                  Bulk Approve
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.btn} ${styles.btnReject}`}
+                  onClick={() => runBulkDecision('reject')}
+                  disabled={loading || selectedIds.length === 0 || isActionPending('global:bulk_decision:reject')}
+                >
+                  Bulk Reject
+                </button>
+                <button
+                  type="button"
+                  className={styles.btn}
+                  onClick={sendBulkNotice}
+                  disabled={loading || selectedIds.length === 0 || isActionPending('global:bulk_notice')}
+                >
+                  Send Notification
+                </button>
               </div>
 
               {loading ? <p className={styles.muted}>Loading...</p> : null}
@@ -750,15 +1108,28 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
                       const completedRequired = requiredDocs.filter((docType) => hasDoc(application.documents, docType)).length;
                       const services = application.stripe_requirements_due?.services_and_skills?.services ?? [];
                       const county = application.address?.county ?? application.stripe_requirements_due?.personal_info?.primary_city ?? '-';
-                      const idPreview = application.documents.find((doc) => doc.document_type === 'id_verification')?.preview_url;
+                      const idPreview = findDocument(application.documents, 'id_verification')?.preview_url;
+                      const profileBusy = isProfileBusy(application.id);
 
                       return (
                         <Fragment key={application.id}>
                           <tr key={application.id} className={`${index % 2 ? styles.rowAlt : ''} ${styles.rowHover}`}>
-                            <td><input type="checkbox" checked={selectedIds.includes(application.id)} onChange={() => toggleSelect(application.id)} /></td>
+                            <td>
+                              <input
+                                type="checkbox"
+                                checked={selectedIds.includes(application.id)}
+                                onChange={() => toggleSelect(application.id)}
+                                disabled={profileBusy}
+                              />
+                            </td>
                             <td>{badgeForRow(application)}</td>
                             <td>
-                              <button type="button" className={styles.btn} onClick={() => setExpandedId((current) => (current === application.id ? null : application.id))}>
+                              <button
+                                type="button"
+                                className={styles.btn}
+                                onClick={() => setExpandedId((current) => (current === application.id ? null : application.id))}
+                                disabled={profileBusy}
+                              >
                                 {application.full_name ?? 'Unnamed'}
                               </button>
                               <p className={styles.muted}>{application.id.slice(0, 8)}</p>
@@ -781,27 +1152,47 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
                                 ) : null}
                               </div>
                             </td>
-                            <td><span className={statusClass(application.verification_status)}>{statusLabel(application.verification_status)}</span></td>
+                            <td>
+                              <button
+                                type="button"
+                                className={statusClass(application.verification_status)}
+                                onClick={() => applyStatusFilter(application.verification_status as Filters['status'])}
+                              >
+                                {statusLabel(application.verification_status)}
+                              </button>
+                            </td>
                             <td>
                               <div className={styles.menuWrap} data-admin-menu-root="true">
-                                <button type="button" className={styles.menuBtn} onClick={() => setOpenMenuId((current) => (current === application.id ? null : application.id))}>⋮</button>
+                                <button
+                                  type="button"
+                                  className={styles.menuBtn}
+                                  onClick={() => setOpenMenuId((current) => (current === application.id ? null : application.id))}
+                                  disabled={profileBusy}
+                                >
+                                  ⋮
+                                </button>
                                 {openMenuId === application.id ? (
                                   <div className={styles.menu}>
                                     <button type="button" onClick={() => { setExpandedId(application.id); setOpenMenuId(null); }}>View detail</button>
-                                    <button type="button" onClick={() => { runDecision(application.id, 'approve'); setOpenMenuId(null); }}>Approve</button>
-                                    <button type="button" onClick={() => { runDecision(application.id, 'reject'); setOpenMenuId(null); }}>Reject</button>
-                                    <button type="button" onClick={() => { router.push(`/dashboard/admin/applications/${application.id}`); }}>Edit</button>
-                                    <button type="button" onClick={async () => {
-                                      const message = window.prompt('Message to user', 'Please update missing documents.');
-                                      if (!message) return;
-                                      await fetch('/api/admin/provider-applications/bulk', {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ profile_ids: [application.id], message }),
-                                      });
-                                      setFeedback('Message sent.');
-                                      setOpenMenuId(null);
-                                    }}>Send message</button>
+                                    <button type="button" onClick={() => { runDecision(application.id, 'approve'); setOpenMenuId(null); }} disabled={profileBusy}>Approve</button>
+                                    <button type="button" onClick={() => { runDecision(application.id, 'reject'); setOpenMenuId(null); }} disabled={profileBusy}>Reject</button>
+                                    <button type="button" onClick={() => { router.push(`${adminBasePath}/applications/${application.id}`); }} disabled={profileBusy}>Edit</button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        openActionModal({
+                                          kind: 'message',
+                                          profileIds: [application.id],
+                                          title: `Send Message to ${application.full_name ?? 'User'}`,
+                                          submitLabel: 'Send message',
+                                          defaultValue: 'Please update missing documents.',
+                                        });
+                                        setOpenMenuId(null);
+                                      }}
+                                      disabled={profileBusy}
+                                    >
+                                      Send message
+                                    </button>
                                     <button type="button" onClick={() => { setFeedback(`${application.full_name ?? 'User'} flagged.`); setOpenMenuId(null); }}>Mark ⚠️</button>
                                   </div>
                                 ) : null}
@@ -823,23 +1214,73 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
                                     <h4>Documents</h4>
                                     <div className={styles.checklist}>
                                       {(application.review_type === 'customer_identity_review' ? REQUIRED_CUSTOMER_DOCS : REQUIRED_PROVIDER_DOCS).map((docType) => {
-                                        const doc = docType === 'tax_clearance_number'
-                                          ? application.documents.find(
-                                              (item) =>
-                                                item.document_type === 'tax_clearance_number' ||
-                                                item.document_type === 'tax_clearance'
-                                            )
-                                          : application.documents.find((item) => item.document_type === docType);
+                                        const doc = findDocument(application.documents, docType);
                                         const marker = docStatusMarker(doc);
+                                        const checklistBusyKey = `profile:${application.id}:checklist:${docType}`;
                                         return (
-                                          <button key={docType} type="button" className={styles.btn} onClick={() => runChecklistItem(application, docType)}>
-                                            {marker} {mapDocLabel(docType)}
-                                          </button>
+                                          <div key={docType} className={styles.checkItem}>
+                                            <button
+                                              type="button"
+                                              className={styles.btn}
+                                              onClick={() => runChecklistItem(application, docType)}
+                                              disabled={isActionPending(checklistBusyKey)}
+                                            >
+                                              {marker} {mapDocLabel(docType)}
+                                            </button>
+                                            {doc?.signed_url ? (
+                                              <>
+                                                <a
+                                                  className={styles.docLink}
+                                                  href={doc.signed_url}
+                                                  target="_blank"
+                                                  rel="noreferrer"
+                                                >
+                                                  Open
+                                                </a>
+                                                <a
+                                                  className={styles.docLink}
+                                                  href={doc.download_url ?? doc.signed_url}
+                                                  target="_blank"
+                                                  rel="noreferrer"
+                                                >
+                                                  Download
+                                                </a>
+                                              </>
+                                            ) : (
+                                              <span className={styles.muted}>No file</span>
+                                            )}
+                                          </div>
                                         );
                                       })}
                                       {OPTIONAL_PROVIDER_DOCS.map((docType) => {
-                                        const hasOptional = application.documents.some((item) => item.document_type === docType);
-                                        return <p key={docType} className={styles.muted}>{hasOptional ? '✅' : '⬜'} {mapDocLabel(docType)} (optional)</p>;
+                                        const optionalDoc = findDocument(application.documents, docType);
+                                        return (
+                                          <div key={docType} className={styles.checkItem}>
+                                            <p className={styles.muted}>
+                                              {optionalDoc ? '✅' : '⬜'} {mapDocLabel(docType)} (optional)
+                                            </p>
+                                            {optionalDoc?.signed_url ? (
+                                              <>
+                                                <a
+                                                  className={styles.docLink}
+                                                  href={optionalDoc.signed_url}
+                                                  target="_blank"
+                                                  rel="noreferrer"
+                                                >
+                                                  Open
+                                                </a>
+                                                <a
+                                                  className={styles.docLink}
+                                                  href={optionalDoc.download_url ?? optionalDoc.signed_url}
+                                                  target="_blank"
+                                                  rel="noreferrer"
+                                                >
+                                                  Download
+                                                </a>
+                                              </>
+                                            ) : null}
+                                          </div>
+                                        );
                                       })}
                                     </div>
                                   </div>
@@ -866,25 +1307,47 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
                                 </div>
 
                                 <div className={styles.filterActions}>
-                                  <button className={`${styles.btn} ${styles.btnApprove}`} type="button" onClick={() => runDecision(application.id, 'approve')}>✅ Approve</button>
-                                  <button className={`${styles.btn} ${styles.btnReject}`} type="button" onClick={() => runDecision(application.id, 'reject')}>❌ Reject</button>
-                                  <button className={styles.btn} type="button" onClick={() => approveAllDocuments(application.id)}>✅ Approve all docs</button>
-                                  <Link href={`/dashboard/admin/applications/${application.id}`} className={styles.btn}>📝 Edit</Link>
-                                  <button className={styles.btn} type="button" onClick={async () => {
-                                    const message = window.prompt('Message to user', 'Please update your profile details and documents.');
-                                    if (!message) return;
-                                    const response = await fetch('/api/admin/provider-applications/bulk', {
-                                      method: 'POST',
-                                      headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({ profile_ids: [application.id], message }),
-                                    });
-                                    const payload = await response.json();
-                                    if (!response.ok) {
-                                      setFeedback(payload.error || 'Message could not be sent.');
-                                      return;
+                                  <button
+                                    className={`${styles.btn} ${styles.btnApprove}`}
+                                    type="button"
+                                    onClick={() => runDecision(application.id, 'approve')}
+                                    disabled={profileBusy}
+                                  >
+                                    ✅ Approve
+                                  </button>
+                                  <button
+                                    className={`${styles.btn} ${styles.btnReject}`}
+                                    type="button"
+                                    onClick={() => runDecision(application.id, 'reject')}
+                                    disabled={profileBusy}
+                                  >
+                                    ❌ Reject
+                                  </button>
+                                  <button
+                                    className={styles.btn}
+                                    type="button"
+                                    onClick={() => approveAllDocuments(application.id)}
+                                    disabled={isActionPending(`profile:${application.id}:approve_all_documents`)}
+                                  >
+                                    ✅ Approve all docs
+                                  </button>
+                                  <Link href={`${adminBasePath}/applications/${application.id}`} className={styles.btn}>📝 Edit</Link>
+                                  <button
+                                    className={styles.btn}
+                                    type="button"
+                                    onClick={() =>
+                                      openActionModal({
+                                        kind: 'message',
+                                        profileIds: [application.id],
+                                        title: `Send Message to ${application.full_name ?? 'User'}`,
+                                        submitLabel: 'Send message',
+                                        defaultValue: 'Please update your profile details and documents.',
+                                      })
                                     }
-                                    setFeedback('Message sent successfully.');
-                                  }}>💬 Send Message</button>
+                                    disabled={isActionPending(`profile:${application.id}:message`)}
+                                  >
+                                    💬 Send Message
+                                  </button>
                                 </div>
                               </td>
                             </tr>
@@ -897,18 +1360,21 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
               </div>
 
               <div className={styles.tableCards}>
-                {pageItems.map((application) => (
-                  <article key={`card-${application.id}`} className={styles.cardRow}>
-                    <p><strong>{application.full_name ?? 'Unnamed'}</strong> ({application.review_type ?? 'other'})</p>
-                    <p className={styles.muted}>{application.address?.county ?? '-'} • {formatDate(application.created_at)}</p>
-                    <p><span className={statusClass(application.verification_status)}>{statusLabel(application.verification_status)}</span></p>
-                    <div className={styles.filterActions}>
-                      <button className={styles.btn} onClick={() => setExpandedId((current) => (current === application.id ? null : application.id))}>Detail</button>
-                      <button className={`${styles.btn} ${styles.btnApprove}`} onClick={() => runDecision(application.id, 'approve')}>Approve</button>
-                      <button className={`${styles.btn} ${styles.btnReject}`} onClick={() => runDecision(application.id, 'reject')}>Reject</button>
-                    </div>
-                  </article>
-                ))}
+                {pageItems.map((application) => {
+                  const profileBusy = isProfileBusy(application.id);
+                  return (
+                    <article key={`card-${application.id}`} className={styles.cardRow}>
+                      <p><strong>{application.full_name ?? 'Unnamed'}</strong> ({application.review_type ?? 'other'})</p>
+                      <p className={styles.muted}>{application.address?.county ?? '-'} • {formatDate(application.created_at)}</p>
+                      <p><span className={statusClass(application.verification_status)}>{statusLabel(application.verification_status)}</span></p>
+                      <div className={styles.filterActions}>
+                        <button className={styles.btn} onClick={() => setExpandedId((current) => (current === application.id ? null : application.id))} disabled={profileBusy}>Detail</button>
+                        <button className={`${styles.btn} ${styles.btnApprove}`} onClick={() => runDecision(application.id, 'approve')} disabled={profileBusy}>Approve</button>
+                        <button className={`${styles.btn} ${styles.btnReject}`} onClick={() => runDecision(application.id, 'reject')} disabled={profileBusy}>Reject</button>
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
 
               <div className={styles.pagination}>
@@ -938,6 +1404,43 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
           </>
         ) : null}
       </section>
+
+      {actionModal ? (
+        <div className={styles.modalOverlay} onClick={() => closeActionModal()}>
+          <div className={`${styles.modalCard} ${styles.actionModalCard}`} onClick={(event) => event.stopPropagation()}>
+            <button type="button" className={styles.modalClose} onClick={() => closeActionModal()} disabled={submittingModal}>
+              ×
+            </button>
+            <h3 className={styles.modalTitle}>{actionModal.title}</h3>
+            <p className={styles.muted}>
+              {actionModal.kind === 'message'
+                ? 'Message will be sent to the selected user(s).'
+                : 'This note will be stored in the admin review trail.'}
+            </p>
+            <textarea
+              className={styles.modalTextarea}
+              value={actionInput}
+              onChange={(event) => setActionInput(event.target.value)}
+              rows={4}
+              placeholder={actionModal.kind === 'message' ? 'Enter notification message' : 'Enter review note'}
+              disabled={submittingModal}
+            />
+            <div className={styles.filterActions}>
+              <button type="button" className={styles.btn} onClick={() => closeActionModal()} disabled={submittingModal}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={`${styles.btn} ${actionModal.kind === 'message' ? styles.btnPrimary : styles.btnApprove}`}
+                onClick={submitActionModal}
+                disabled={submittingModal || !actionInput.trim()}
+              >
+                {submittingModal ? 'Submitting...' : actionModal.submitLabel}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {previewDocUrl ? (
         <div className={styles.modalOverlay} onClick={() => setPreviewDocUrl(null)}>

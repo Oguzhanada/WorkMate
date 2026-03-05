@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import {MouseEvent, ReactNode, useState} from 'react';
-import {useRouter} from 'next/navigation';
+import {usePathname, useRouter} from 'next/navigation';
 
+import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
 import {getSupabaseBrowserClient} from '@/lib/supabase/client';
 
 type Props = {
@@ -20,6 +21,8 @@ export default function VerifiedNavigationLink({
   requireIdentity = true
 }: Props) {
   const router = useRouter();
+  const pathname = usePathname() || '/';
+  const localeRoot = getLocaleRoot(pathname);
   const [isChecking, setIsChecking] = useState(false);
 
   const onClick = async (event: MouseEvent<HTMLAnchorElement>) => {
@@ -61,7 +64,7 @@ export default function VerifiedNavigationLink({
         return;
       }
 
-      router.push('/profile?message=identity_required');
+      router.push(withLocalePrefix(localeRoot, '/profile?message=identity_required'));
     } finally {
       setIsChecking(false);
     }

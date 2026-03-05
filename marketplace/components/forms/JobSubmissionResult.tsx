@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 import { JOB_BUDGET_OPTIONS } from '@/lib/constants/job';
+import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
 import { supabase } from '@/lib/supabase';
 import styles from './job-result.module.css';
 
@@ -28,6 +30,8 @@ export default function JobSubmissionResult({
   initialJob: JobSummary;
   customerId: string;
 }) {
+  const pathname = usePathname() || '/';
+  const localeRoot = getLocaleRoot(pathname);
   const [job, setJob] = useState(initialJob);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -255,7 +259,7 @@ export default function JobSubmissionResult({
               </button>
             </>
           )}
-          <Link href="/dashboard/customer" className={styles.secondary}>
+          <Link href={withLocalePrefix(localeRoot, '/dashboard/customer')} className={styles.secondary}>
             Go to my jobs
           </Link>
         </div>

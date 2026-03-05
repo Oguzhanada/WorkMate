@@ -76,12 +76,13 @@ export default function ProfileVerificationPanel({
     idVerificationMethod === 'stripe_identity' ? 'stripe_identity' : 'document_upload'
   );
 
+  const idDocumentRequired = hasProviderRole;
   const missing = useMemo(
     () => ({
-      idDocument: !hasIdDocument || idVerificationStatus === 'rejected',
-      insuranceDocument: hasProviderRole && !hasInsuranceDocument
+      idDocument: idDocumentRequired && (!hasIdDocument || idVerificationStatus === 'rejected'),
+      insuranceDocument: false
     }),
-    [hasIdDocument, hasInsuranceDocument, hasProviderRole, idVerificationStatus]
+    [hasIdDocument, hasInsuranceDocument, hasProviderRole, idVerificationStatus, idDocumentRequired]
   );
 
   const uploadDoc = async (file: File, type: 'id_verification' | 'public_liability_insurance') => {
@@ -273,15 +274,19 @@ export default function ProfileVerificationPanel({
       <p className={missing.idDocument || missing.insuranceDocument ? styles.missing : styles.ok}>
         {missing.idDocument || missing.insuranceDocument
           ? 'Missing verification document(s)'
-          : 'Required documents uploaded'}
+          : idDocumentRequired
+            ? 'ID is required. Additional documents are optional and can improve trust level and matching.'
+            : hasIdDocument
+              ? 'Identity document uploaded (optional)'
+              : 'Identity document is optional for customers'}
       </p>
       <div className={styles.fileRow}>
         <p className={styles.hint}>Supported file types: PDF, PNG, JPG, JPEG.</p>
-        {method === 'document_upload' && missing.idDocument ? (
+        {method === 'document_upload' && (missing.idDocument || !idDocumentRequired) ? (
           <div className={styles.uploadBox}>
             <label className={styles.field}>
               <span>
-                ID document (required){' '}
+                ID document ({idDocumentRequired ? 'required' : 'optional'}){' '}
                 <InfoTooltip text="Your ID will be reviewed by admin before verification is completed." />
               </span>
               <small className={styles.hint}>Note: Your ID document will be reviewed by admin.</small>
@@ -326,10 +331,13 @@ export default function ProfileVerificationPanel({
           </div>
         ) : null}
 
-        {method === 'document_upload' && missing.insuranceDocument ? (
+        {method === 'document_upload' && hasProviderRole && !hasInsuranceDocument ? (
           <div className={styles.uploadBox}>
             <label className={styles.field}>
-              <span>Insurance document (required for providers)</span>
+              <span>Insurance document (optional boost for providers)</span>
+              <small className={styles.hint}>
+                Optional: uploading professional documents can increase reliability signals and job matching priority.
+              </small>
               <div className={styles.uploadInner}>
                 <span className={styles.uploadIcon}>☁️</span>
                 <input

@@ -3,7 +3,9 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canPostJob, getUserRoles, isIdVerified } from '@/lib/auth/rbac';
 import { isValidEircode, normalizeEircode } from '@/lib/eircode';
+import { fireAutomationEvent } from '@/lib/automation/engine';
 import { createJobSchema } from '@/lib/validation/api';
+import { sendWebhookEvent } from '@/lib/webhook/send';
 
 export async function POST(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
@@ -61,6 +63,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid category selection' }, { status: 400 });
   }
 
+  // direct_request requires a valid target_provider_id
+  if (body.job_mode === 'direct_request' && !body.target_provider_id) {
+    return NextResponse.json({ error: 'Direct request requires a target provider.' }, { status: 400 });
+  }
+
   const { data, error } = await supabase.from('jobs').insert({
     customer_id: user.id,
     title: body.title,
@@ -73,6 +80,7 @@ export async function POST(request: NextRequest) {
     budget_range: body.budget_range,
     task_type: body.task_type,
     job_mode: body.job_mode,
+    target_provider_id: body.target_provider_id ?? null,
     photo_urls: body.photo_urls,
     requires_verified_id: customerIsVerified,
     created_by_verified_id: customerIsVerified,
@@ -103,20 +111,58 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Notify targeted provider for direct_request jobs
+  if (data.job_mode === 'direct_request' && data.target_provider_id) {
+    await serviceSupabase.from('notifications').insert({
+      user_id: data.target_provider_id,
+      type: 'direct_request',
+      payload: {
+        job_id: data.id,
+        title: data.title,
+        customer_id: user.id,
+        budget_range: data.budget_range,
+      },
+    });
+  }
+
+  // Fire automation rules for job_created — non-blocking
+  void fireAutomationEvent('job_created', {
+    jobId: data.id,
+    customerId: user.id,
+    category: data.category,
+    county: data.county ?? '',
+    jobMode: data.job_mode ?? 'get_quotes',
+  });
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const taskAlertSecret = process.env.TASK_ALERT_SECRET;
   if (supabaseUrl && serviceKey) {
     fetch(`${supabaseUrl}/functions/v1/match-task-alerts`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${serviceKey}`,
+        ...(taskAlertSecret ? { 'x-task-secret': taskAlertSecret } : {}),
       },
       body: JSON.stringify({ jobId: data.id }),
     }).catch(() => {
       // Non-blocking best-effort notification trigger.
     });
   }
+
+  // Public webhook fan-out (best-effort, non-blocking)
+  void sendWebhookEvent('job.created', {
+    job_id: data.id,
+    customer_id: user.id,
+    title: data.title,
+    category: data.category,
+    county: data.county,
+    locality: data.locality,
+    budget_range: data.budget_range,
+    status: data.status,
+    created_at: data.created_at,
+  });
 
   return NextResponse.json(
     {
