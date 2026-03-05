@@ -7,6 +7,7 @@ export type WidgetType =
   | 'pending_quotes'
   | 'recent_messages'
   | 'task_alerts'
+  | 'customer_stats'
   | 'admin_pending_jobs'
   | 'admin_applications'
   | 'admin_stats'
@@ -26,16 +27,17 @@ export type WidgetConfig = {
 };
 
 const ALLOWED_WIDGETS: Record<DashboardMode, WidgetType[]> = {
-  customer: ['active_jobs', 'pending_quotes', 'recent_messages'],
+  customer: ['customer_stats', 'active_jobs', 'pending_quotes', 'recent_messages'],
   provider: ['active_jobs', 'pending_quotes', 'recent_messages', 'task_alerts'],
   admin: ['admin_pending_jobs', 'admin_applications', 'admin_stats', 'admin_api_keys', 'recent_messages'],
 };
 
 const DEFAULT_WIDGETS: Record<DashboardMode, WidgetConfig[]> = {
   customer: [
-    { widget_type: 'active_jobs', position: { x: 0, y: 0, w: 6, h: 2 }, settings: {} },
-    { widget_type: 'pending_quotes', position: { x: 6, y: 0, w: 6, h: 2 }, settings: {} },
-    { widget_type: 'recent_messages', position: { x: 0, y: 1, w: 12, h: 2 }, settings: { limit: 6 } },
+    { widget_type: 'customer_stats', position: { x: 0, y: 0, w: 12, h: 2 }, settings: {} },
+    { widget_type: 'active_jobs', position: { x: 0, y: 1, w: 6, h: 2 }, settings: {} },
+    { widget_type: 'pending_quotes', position: { x: 6, y: 1, w: 6, h: 2 }, settings: {} },
+    { widget_type: 'recent_messages', position: { x: 0, y: 2, w: 12, h: 2 }, settings: { limit: 6 } },
   ],
   provider: [
     { widget_type: 'active_jobs', position: { x: 0, y: 0, w: 6, h: 2 }, settings: {} },
@@ -90,6 +92,8 @@ export function getWidgetLabel(widgetType: WidgetType) {
       return 'Recent Messages';
     case 'task_alerts':
       return 'Task Alerts';
+    case 'customer_stats':
+      return 'My Stats';
     case 'admin_pending_jobs':
       return 'Pending Job Reviews';
     case 'admin_applications':

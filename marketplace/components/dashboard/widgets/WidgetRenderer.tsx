@@ -9,6 +9,7 @@ import AdminPendingJobsWidget from './AdminPendingJobsWidget';
 import AdminApplicationsWidget from './AdminApplicationsWidget';
 import AdminStatsWidget from './AdminStatsWidget';
 import AdminApiKeysWidget from './AdminApiKeysWidget';
+import CustomerStatsWidget from './CustomerStatsWidget';
 
 type Props = {
   widgetType: WidgetType;
@@ -25,6 +26,8 @@ export default function WidgetRenderer({ widgetType, settings }: Props) {
       return <RecentMessagesWidget limit={Number(settings?.limit ?? 6)} />;
     case 'task_alerts':
       return <TaskAlertsWidget />;
+    case 'customer_stats':
+      return <CustomerStatsWidget />;
     case 'admin_pending_jobs':
       return <AdminPendingJobsWidget />;
     case 'admin_applications':

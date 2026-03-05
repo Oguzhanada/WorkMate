@@ -16,6 +16,7 @@ import {
   rectSortingStrategy,
   useSortable,
 } from '@dnd-kit/sortable';
+import { GripVertical, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Card from '@/components/ui/Card';
 import WidgetRenderer from '@/components/dashboard/widgets/WidgetRenderer';
@@ -64,20 +65,21 @@ function SortableWidgetCard({
             type="button"
             {...attributes}
             {...listeners}
-            className="rounded-lg border border-zinc-200 px-2 py-1 text-xs text-zinc-600 dark:border-zinc-700 dark:text-zinc-300"
+            className="cursor-grab rounded-lg p-1 text-zinc-400 hover:text-zinc-600 active:cursor-grabbing dark:text-zinc-500 dark:hover:text-zinc-300"
             disabled={disabled}
             aria-label={`Drag ${widget.widget_type}`}
           >
-            Drag
+            <GripVertical className="h-4 w-4" />
           </button>
           <p className="text-sm font-semibold">{getWidgetLabel(widget.widget_type as WidgetType)}</p>
           <button
             type="button"
-            className="rounded-lg border border-zinc-200 px-2 py-1 text-xs text-zinc-600 hover:border-zinc-300 dark:border-zinc-700 dark:text-zinc-300"
+            className="rounded-lg p-1 text-zinc-400 hover:text-red-500 dark:text-zinc-500 dark:hover:text-red-400"
             onClick={() => onRemove(widget.id)}
             disabled={disabled}
+            aria-label={`Remove ${widget.widget_type}`}
           >
-            Remove
+            <X className="h-4 w-4" />
           </button>
         </div>
         <WidgetRenderer widgetType={widget.widget_type as WidgetType} settings={widget.settings} />
