@@ -92,7 +92,7 @@ export function LoginForm() {
       }
 
       setSuccessMessage(t('success'));
-      router.replace(withLocalePrefix(localeRoot, '/profile'));
+      router.replace(withLocalePrefix(localeRoot, '/dashboard/customer'));
       router.refresh();
     } catch (submitError) {
       const message = submitError instanceof Error ? submitError.message : 'Login failed. Please try again.';

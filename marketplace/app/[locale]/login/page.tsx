@@ -25,7 +25,7 @@ export default function LoginPage() {
     const supabase = getSupabaseBrowserClient();
     supabase.auth.getUser().then(({data}) => {
       if (data.user) {
-        router.replace(withLocalePrefix(localeRoot, '/profile'));
+        router.replace(withLocalePrefix(localeRoot, '/dashboard/customer'));
       }
     });
   }, [localeRoot, router, searchParams]);

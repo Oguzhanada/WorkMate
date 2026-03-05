@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { canPostJob, getUserRoles } from '@/lib/auth/rbac';
+import { canAccessAdmin, canAccessProDashboard, canPostJob, getUserRoles } from '@/lib/auth/rbac';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import Shell from '@/components/ui/Shell';
 import DashboardShell from '@/components/dashboard/DashboardShell';
@@ -18,6 +18,8 @@ export default async function CustomerDashboardPage({
   if (!user) redirect(`/${locale}/login`);
 
   const roles = await getUserRoles(supabase, user.id);
+  if (canAccessAdmin(roles)) redirect(`/${locale}/dashboard/admin`);
+  if (canAccessProDashboard(roles)) redirect(`/${locale}/dashboard/pro`);
   if (!canPostJob(roles)) redirect(`/${locale}/profile`);
 
   return (

@@ -678,6 +678,9 @@ export function SignUpForm() {
               checked={form.identityConsent}
               onChange={(checked) => updateField('identityConsent', checked)}
             />
+            {errors.identityConsent ? (
+              <p className={styles.fieldError} style={{marginTop: '6px'}}>{errors.identityConsent}</p>
+            ) : null}
           </div>
 
           <div className={styles.fullWidth}>
