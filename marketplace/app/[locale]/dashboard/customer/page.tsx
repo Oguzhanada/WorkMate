@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation';
 import { canPostJob, getUserRoles } from '@/lib/auth/rbac';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import Shell from '@/components/ui/Shell';
-import Card from '@/components/ui/Card';
 import DashboardShell from '@/components/dashboard/DashboardShell';
 
 export default async function CustomerDashboardPage({
@@ -22,16 +21,7 @@ export default async function CustomerDashboardPage({
   if (!canPostJob(roles)) redirect(`/${locale}/profile`);
 
   return (
-    <Shell
-      header={(
-        <Card className="rounded-3xl">
-          <h1>Customer Dashboard</h1>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Build your own dashboard layout with draggable widgets.
-          </p>
-        </Card>
-      )}
-    >
+    <Shell>
       <DashboardShell
         mode="customer"
         title="Customer Dashboard"

@@ -309,13 +309,21 @@ export default function Navbar() {
           {isAuthenticated ? (
             <>
               {!hasProviderRole && !hasAdminRole ? (
-                <Link
-                  href={withLocalePrefix(localeRoot, '/become-provider')}
-                  className="flex items-center gap-2 rounded-xl bg-[#00B894] px-4 py-2 text-sm font-semibold text-white transition hover:scale-[1.03] hover:bg-[#008B74]"
-                >
-                  <BriefcaseBusiness className="h-4 w-4" />
-                  Become a Pro
-                </Link>
+                <>
+                  <Link
+                    href={withLocalePrefix(localeRoot, '/post-job')}
+                    className="rounded-xl bg-[#1a56db] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1343b8]"
+                  >
+                    Post a Job
+                  </Link>
+                  <Link
+                    href={withLocalePrefix(localeRoot, '/become-provider')}
+                    className="flex items-center gap-2 rounded-xl bg-[#00B894] px-4 py-2 text-sm font-semibold text-white transition hover:scale-[1.03] hover:bg-[#008B74]"
+                  >
+                    <BriefcaseBusiness className="h-4 w-4" />
+                    Become a Pro
+                  </Link>
+                </>
               ) : null}
               <Link
                 href={withLocalePrefix(localeRoot, '/profile')}
@@ -405,13 +413,22 @@ export default function Navbar() {
           {isAuthenticated ? (
                 <>
                   {!hasProviderRole && !hasAdminRole ? (
-                    <Link
-                      href={withLocalePrefix(localeRoot, '/become-provider')}
-                      onClick={() => setMobileOpen(false)}
-                      className="rounded-lg bg-[#00B894] px-3 py-2 text-center text-sm font-semibold text-white sm:col-span-2"
-                    >
-                      Become a Pro
-                    </Link>
+                    <>
+                      <Link
+                        href={withLocalePrefix(localeRoot, '/post-job')}
+                        onClick={() => setMobileOpen(false)}
+                        className="rounded-lg bg-[#1a56db] px-3 py-2 text-center text-sm font-semibold text-white sm:col-span-2"
+                      >
+                        Post a Job
+                      </Link>
+                      <Link
+                        href={withLocalePrefix(localeRoot, '/become-provider')}
+                        onClick={() => setMobileOpen(false)}
+                        className="rounded-lg bg-[#00B894] px-3 py-2 text-center text-sm font-semibold text-white sm:col-span-2"
+                      >
+                        Become a Pro
+                      </Link>
+                    </>
                   ) : null}
                   <Link
                     href={withLocalePrefix(localeRoot, '/profile')}

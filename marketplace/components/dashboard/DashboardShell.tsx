@@ -1,6 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import WidgetGrid from '@/components/dashboard/WidgetGrid';
 import type { DashboardWidgetRow } from '@/components/dashboard/widget-types';
@@ -17,7 +19,15 @@ type Props = {
   description: string;
 };
 
+function getLocaleRoot(pathname: string) {
+  const match = pathname.match(/^\/([a-z]{2}(?:-[A-Z]{2})?)(?:\/|$)/);
+  if (!match?.[1]) return '/';
+  return `/${match[1]}`;
+}
+
 export default function DashboardShell({ mode, title, description }: Props) {
+  const pathname = usePathname() || '/';
+  const localeRoot = getLocaleRoot(pathname);
   const [widgets, setWidgets] = useState<DashboardWidgetRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -135,8 +145,20 @@ export default function DashboardShell({ mode, title, description }: Props) {
   return (
     <section className="space-y-4">
       <div className="rounded-3xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-        <h1 className="text-xl font-semibold">{title}</h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{description}</p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-semibold">{title}</h1>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{description}</p>
+          </div>
+          {mode === 'customer' ? (
+            <Link
+              href={`${localeRoot}/post-job`}
+              className="shrink-0 rounded-xl bg-[#1a56db] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1343b8]"
+            >
+              + Post a Job
+            </Link>
+          ) : null}
+        </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
           <Button variant="secondary" onClick={loadWidgets} disabled={loading || saving}>
