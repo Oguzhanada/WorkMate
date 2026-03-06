@@ -28,6 +28,9 @@ export interface OfferRanking {
     responseScore: number;
     matchScore: number;
     trustScore: number;
+    matchPercentage: number;
+    smartScore: number;
+    complianceMultiplier: number;
   };
   badge?: 'TOP_OFFER' | 'TRUSTED_PRO' | 'FAST_RESPONDER';
 }
@@ -43,6 +46,7 @@ export interface ProviderRanking {
   insuranceScore: number;
   safePassScore: number;
   totalTrustScore: number;
+  complianceScore: number;
 }
 
 export interface RebookingInfo {

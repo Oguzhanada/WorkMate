@@ -26,16 +26,7 @@ export default async function LocalizedAdminDashboardPage({
   }
 
   return (
-    <Shell
-      header={(
-        <Card className="rounded-3xl">
-          <h1>Admin Dashboard</h1>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Customize your moderation and operations widgets.
-          </p>
-        </Card>
-      )}
-    >
+    <Shell>
       <DashboardShell
         mode="admin"
         title="Admin Dashboard"

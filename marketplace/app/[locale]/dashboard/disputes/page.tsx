@@ -1,23 +1,26 @@
 import { redirect } from 'next/navigation';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import Shell from '@/components/ui/Shell';
 import DisputeList from '@/components/disputes/DisputeList';
-import styles from '../../inner.module.css';
 
-export default async function DisputesPage() {
+export default async function DisputesPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   const supabase = await getSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/login');
+    redirect(`/${locale}/login`);
   }
 
   return (
-    <main className={styles.section}>
-      <section className={styles.container}>
-        <DisputeList />
-      </section>
-    </main>
+    <Shell>
+      <DisputeList />
+    </Shell>
   );
 }

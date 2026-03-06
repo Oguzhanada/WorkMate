@@ -1,13 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { FileText } from 'lucide-react';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import Skeleton from '@/components/ui/Skeleton';
+import EmptyState from '@/components/ui/EmptyState';
+import OfferRankingBadge from '@/components/offers/OfferRankingBadge';
 
 type Quote = {
   id: string;
   job_id: string;
   status: string;
   created_at: string;
+  ranking_score: number | null;
 };
 
 type Props = {
@@ -24,6 +29,7 @@ export default function PendingQuotesWidget({ limit = 8 }: Props) {
     const load = async () => {
       setLoading(true);
       setError('');
+      const supabase = getSupabaseBrowserClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -36,7 +42,7 @@ export default function PendingQuotesWidget({ limit = 8 }: Props) {
 
       const { data: providerQuotes } = await supabase
         .from('quotes')
-        .select('id,job_id,status,created_at')
+        .select('id,job_id,status,created_at,ranking_score')
         .eq('pro_id', user.id)
         .order('created_at', { ascending: false })
         .limit(limit);
@@ -72,7 +78,7 @@ export default function PendingQuotesWidget({ limit = 8 }: Props) {
 
       const { data: quotes, error: quotesError } = await supabase
         .from('quotes')
-        .select('id,job_id,status,created_at')
+        .select('id,job_id,status,created_at,ranking_score')
         .in('job_id', jobIds)
         .order('created_at', { ascending: false })
         .limit(limit);
@@ -80,7 +86,14 @@ export default function PendingQuotesWidget({ limit = 8 }: Props) {
       if (quotesError) {
         setError(quotesError.message);
       } else {
-        const pending = (quotes ?? []).filter((quote) => quote.status !== 'accepted' && quote.status !== 'rejected');
+        const pending = (quotes ?? [])
+          .filter((quote) => quote.status !== 'accepted' && quote.status !== 'rejected')
+          .sort((a, b) => {
+            const aScore = a.ranking_score ?? 0;
+            const bScore = b.ranking_score ?? 0;
+            if (bScore !== aScore) return bScore - aScore;
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          });
         setItems(pending);
         setCount(pending.length);
       }
@@ -95,16 +108,37 @@ export default function PendingQuotesWidget({ limit = 8 }: Props) {
     <div>
       <p className="text-sm font-semibold">Pending Quotes</p>
       <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Open quote activity waiting for next action.</p>
-      {loading ? <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">Loading...</p> : null}
+      {loading ? (
+        <div className="mt-3">
+          <Skeleton lines={3} height="h-10" />
+        </div>
+      ) : null}
       {error ? <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p> : null}
       {!loading && !error ? <p className="mt-2 text-lg font-semibold">{count}</p> : null}
+      {!loading && !error && items.length === 0 ? (
+        <EmptyState
+          icon={<FileText size={28} />}
+          title="No pending quotes"
+          description="Quotes awaiting action will appear here."
+        />
+      ) : null}
       <div className="mt-2 space-y-2">
-        {items.slice(0, 4).map((item) => (
-          <div key={item.id} className="rounded-lg border border-zinc-200 px-3 py-2 text-xs dark:border-zinc-700">
-            <p>Job: {item.job_id.slice(0, 8)}...</p>
-            <p className="text-zinc-500 dark:text-zinc-400">{item.status} · {new Date(item.created_at).toLocaleDateString('en-IE')}</p>
-          </div>
-        ))}
+        {(() => {
+          const seenJobs = new Set<string>();
+          return items.slice(0, 4).map((item) => {
+            const isTop = !seenJobs.has(item.job_id) && (item.ranking_score ?? 0) > 0;
+            seenJobs.add(item.job_id);
+            return (
+              <div key={item.id} className="rounded-lg border border-zinc-200 px-3 py-2 text-xs dark:border-zinc-700">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p>Job: {item.job_id.slice(0, 8)}...</p>
+                  {isTop ? <OfferRankingBadge score={item.ranking_score!} /> : null}
+                </div>
+                <p className="text-zinc-500 dark:text-zinc-400">{item.status} · {new Date(item.created_at).toLocaleDateString('en-IE')}</p>
+              </div>
+            );
+          });
+        })()}
       </div>
     </div>
   );

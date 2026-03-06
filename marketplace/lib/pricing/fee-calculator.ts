@@ -49,10 +49,14 @@ export async function calculateFees(
   const rebookingInfo = await getRebookingInfo(customerId, providerId);
   const subtotal = Math.max(priceCents, 0) / 100;
 
-  const serviceFee = rebookingInfo.hasWorkedBefore ? 0 : subtotal * STANDARD_SERVICE_FEE;
+  const serviceFee = rebookingInfo.hasWorkedBefore
+    ? subtotal * REBOOKING_FEE
+    : subtotal * STANDARD_SERVICE_FEE;
   const transactionFee = subtotal * TRANSACTION_FEE;
   const total = subtotal + serviceFee + transactionFee;
-  const savings = rebookingInfo.hasWorkedBefore ? subtotal * STANDARD_SERVICE_FEE : undefined;
+  const savings = rebookingInfo.hasWorkedBefore
+    ? subtotal * (STANDARD_SERVICE_FEE - REBOOKING_FEE)
+    : undefined;
 
   return {
     subtotal,

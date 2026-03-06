@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation';
 import { canAccessProDashboard, getUserRoles } from '@/lib/auth/rbac';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import Shell from '@/components/ui/Shell';
-import Card from '@/components/ui/Card';
 import DashboardShell from '@/components/dashboard/DashboardShell';
 
 export default async function LocalizedProDashboardPage({
@@ -26,16 +25,7 @@ export default async function LocalizedProDashboardPage({
   }
 
   return (
-    <Shell
-      header={(
-        <Card className="rounded-3xl">
-          <h1>Provider Dashboard</h1>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Arrange widgets around leads, quotes, and task alerts.
-          </p>
-        </Card>
-      )}
-    >
+    <Shell>
       <DashboardShell
         mode="provider"
         title="Provider Dashboard"

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import styles from './dashboard.module.css';
 
 export default function JobPhotoUploader({
@@ -33,7 +33,7 @@ export default function JobPhotoUploader({
 
     setIsPending(true);
     setFeedback('');
-
+    const supabase = getSupabaseBrowserClient();
     const uploadedPaths: string[] = [];
     for (const file of files) {
       if (!file.type.startsWith('image/')) {

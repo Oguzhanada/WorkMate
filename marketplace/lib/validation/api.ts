@@ -336,3 +336,94 @@ export const createReviewSchema = z.object({
   punctuality_rating: z.number().int().min(1).max(5).optional().nullable(),
   value_rating: z.number().int().min(1).max(5).optional().nullable(),
 });
+
+// ─── Admin: API Key Rate Limit ───────────────────────────────────────────────
+export const patchApiKeyRateLimitSchema = z.object({
+  api_rate_limit: z.number().int().min(1).max(500000),
+});
+
+// ─── Admin: Automation Rules ─────────────────────────────────────────────────
+export const createAutomationRuleSchema = z.object({
+  trigger_event: z.enum([
+    'document_verified',
+    'document_rejected',
+    'job_created',
+    'quote_received',
+    'job_inactive',
+    'provider_approved',
+  ]),
+  conditions: z.record(z.string(), z.string()).default({}),
+  action_type: z.enum(['send_notification', 'change_status', 'create_task']),
+  action_config: z.record(z.string(), z.unknown()),
+  enabled: z.boolean().default(true),
+});
+
+export const patchAutomationRuleSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    conditions: z.record(z.string(), z.string()).optional(),
+    action_type: z.enum(['send_notification', 'change_status', 'create_task']).optional(),
+    action_config: z.record(z.string(), z.unknown()).optional(),
+  })
+  .refine((d) => Object.values(d).some((v) => v !== undefined), {
+    message: 'At least one field is required',
+  });
+
+// ─── Admin: Bulk Notification ─────────────────────────────────────────────────
+export const bulkNotificationSchema = z.object({
+  profile_ids: z.array(z.string().uuid()).min(1).max(200),
+  message: z.string().trim().min(2).max(300),
+  type: z
+    .enum(['admin_bulk_notice', 'admin_verification_update'])
+    .optional()
+    .default('admin_bulk_notice'),
+});
+
+// ─── Job: Messages ────────────────────────────────────────────────────────────
+export const createJobMessageSchema = z.object({
+  message: z.string().min(1).max(4000),
+  message_type: z.enum(['text', 'file']).default('text'),
+  file_url: z.string().url().optional(),
+  file_name: z.string().max(255).optional(),
+  receiver_id: z.string().uuid().optional(),
+});
+
+// ─── Job: Todos ───────────────────────────────────────────────────────────────
+export const createJobTodoSchema = z.object({
+  description: z.string().min(1).max(500),
+  assigned_to: z.string().uuid().optional(),
+  due_date: z.string().datetime({ offset: true }).optional(),
+});
+
+export const patchJobTodoSchema = z
+  .object({
+    completed: z.boolean().optional(),
+    description: z.string().min(1).max(500).optional(),
+    assigned_to: z.string().uuid().nullable().optional(),
+    due_date: z.string().datetime({ offset: true }).nullable().optional(),
+  })
+  .refine((d) => Object.keys(d).length > 0, { message: 'At least one field required' });
+
+// ─── Public API: Webhook Subscribe ────────────────────────────────────────────
+const webhookEventValues = [
+  'job.created',
+  'quote.accepted',
+  'payment.completed',
+  'provider.approved',
+  'document.verified',
+  'document.rejected',
+] as const;
+
+export const webhookSubscribeSchema = z.object({
+  url: z.string().url().refine((v) => v.startsWith('https://'), 'Webhook URL must use HTTPS.'),
+  events: z.array(z.enum(webhookEventValues)).min(1).max(10),
+});
+
+export const submitOfferSchema = z.object({
+  jobId: z.string().uuid(),
+  priceCents: z.number().int().min(100),
+  description: z.string().trim().min(10).max(2000),
+  estimatedDuration: z.string().trim().max(120).optional().default(''),
+  includes: z.array(z.string().trim().min(1).max(120)).max(12).optional().default([]),
+  excludes: z.array(z.string().trim().min(1).max(120)).max(12).optional().default([]),
+});

@@ -1,21 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { ensureAdminRoute } from '@/lib/auth/admin';
-
-const createRuleSchema = z.object({
-  trigger_event: z.enum([
-    'document_verified',
-    'document_rejected',
-    'job_created',
-    'quote_received',
-    'job_inactive',
-    'provider_approved',
-  ]),
-  conditions: z.record(z.string(), z.string()).default({}),
-  action_type: z.enum(['send_notification', 'change_status', 'create_task']),
-  action_config: z.record(z.string(), z.unknown()),
-  enabled: z.boolean().default(true),
-});
+import { createAutomationRuleSchema } from '@/lib/validation/api';
 
 export async function GET() {
   const auth = await ensureAdminRoute();
@@ -42,7 +27,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const parsed = createRuleSchema.safeParse(rawBody);
+  const parsed = createAutomationRuleSchema.safeParse(rawBody);
   if (!parsed.success) {
     return NextResponse.json(
       { error: 'Validation failed', details: parsed.error.flatten() },

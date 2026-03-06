@@ -105,6 +105,69 @@
   font-weight: 700;
 }
 
+.cta {
+  background: linear-gradient(135deg, #00B894 0%, #008B74 100%);
+  border-radius: 24px;
+  padding: 56px 32px;
+  text-align: center;
+  margin: 0 auto 70px;
+  width: min(1120px, calc(100% - 32px));
+}
+
+.cta h2 {
+  margin: 0 0 12px;
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  color: #fff;
+}
+
+.cta p {
+  margin: 0 0 28px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 1.05rem;
+}
+
+.ctaActions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.ctaPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  color: #008B74;
+  font-weight: 700;
+  padding: 12px 24px;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: box-shadow 0.2s;
+}
+
+.ctaPrimary:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
+.ctaSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  color: #fff;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  text-decoration: none;
+  transition: border-color 0.2s;
+}
+
+.ctaSecondary:hover {
+  border-color: #fff;
+}
+
 @media (max-width: 920px) {
   .step,
   .stepAlt {

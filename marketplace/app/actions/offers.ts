@@ -1,19 +1,10 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { z } from 'zod';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { calculateOfferScore } from '@/lib/ranking/offer-ranking';
-
-const submitOfferSchema = z.object({
-  jobId: z.string().uuid(),
-  priceCents: z.number().int().min(100),
-  description: z.string().trim().min(10).max(2000),
-  estimatedDuration: z.string().trim().max(120).optional().default(''),
-  includes: z.array(z.string().trim().min(1).max(120)).max(12).optional().default([]),
-  excludes: z.array(z.string().trim().min(1).max(120)).max(12).optional().default([]),
-});
+import { submitOfferSchema } from '@/lib/validation/api';
 
 function parseStringList(value: FormDataEntryValue | null) {
   if (!value) return [] as string[];
@@ -132,7 +123,7 @@ export async function submitOffer(formData: FormData) {
 
     await serviceSupabase
       .from('quotes')
-      .update({ ranking_score: ranking.score })
+      .update({ ranking_score: ranking.breakdown.smartScore })
       .eq('id', insertedQuote.id);
   }
 

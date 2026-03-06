@@ -17,10 +17,12 @@
 }
 
 @keyframes topOfferGlow {
+
   0%,
   100% {
     box-shadow: 0 0 10px rgba(245, 158, 11, 0.42), 0 0 20px rgba(245, 158, 11, 0.18);
   }
+
   50% {
     box-shadow: 0 0 18px rgba(245, 158, 11, 0.72), 0 0 32px rgba(245, 158, 11, 0.32);
   }
@@ -29,20 +31,23 @@
 .tooltip {
   display: none;
   position: absolute;
-  bottom: calc(100% + 9px);
+  bottom: calc(100% + 12px);
   left: 50%;
   transform: translateX(-50%);
-  background: #1c2736;
+  background: rgba(28, 39, 54, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: #f1f5f9;
-  border-radius: 8px;
-  padding: 0.5rem 0.8rem;
+  border-radius: 12px;
+  padding: 0.6rem 0.9rem;
   font-size: 0.75rem;
-  font-weight: 400;
+  font-weight: 500;
   line-height: 1.4;
   white-space: nowrap;
   pointer-events: none;
   z-index: 20;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
 .tooltip::after {
@@ -52,7 +57,7 @@
   left: 50%;
   transform: translateX(-50%);
   border: 5px solid transparent;
-  border-top-color: #1c2736;
+  border-top-color: rgba(28, 39, 54, 0.85);
 }
 
 .badge:hover .tooltip,

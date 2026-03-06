@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getUserRoles } from '@/lib/auth/rbac';
 import JobCollaborationPanel from '@/components/jobs/JobCollaborationPanel';
+import JobOffersPanel from '@/components/jobs/JobOffersPanel';
 import TimeTracking from '@/components/jobs/TimeTracking';
 import JobScheduler from '@/components/jobs/JobScheduler';
 import styles from '../../inner.module.css';
@@ -24,7 +25,7 @@ export default async function JobDetailPage({ params }: Props) {
   const { data: job } = await supabase
     .from('jobs')
     .select(`
-      id, title, description, category, county, locality, budget_range,
+      id, title, description, category, category_id, county, locality, budget_range,
       status, review_status, created_at, customer_id, accepted_quote_id,
       customer:profiles!customer_id(full_name)
     `)
@@ -98,6 +99,16 @@ export default async function JobDetailPage({ params }: Props) {
             <p style={{ marginTop: 12, fontSize: '0.9rem', lineHeight: 1.6 }}>{job.description}</p>
           ) : null}
         </article>
+
+        {isCustomer && (job.status === 'open' || job.status === 'quoted') ? (
+          <JobOffersPanel
+            jobId={job.id}
+            customerId={user.id}
+            locale={locale}
+            categoryId={(job as { category_id?: string | null }).category_id ?? null}
+            jobCreatedAt={job.created_at}
+          />
+        ) : null}
 
         <article className={styles.card} style={{ padding: 0 }}>
           <JobCollaborationPanel

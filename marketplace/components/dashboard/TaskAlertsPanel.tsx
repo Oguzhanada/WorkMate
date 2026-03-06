@@ -14,34 +14,57 @@ const IRELAND_COUNTIES = [
 type TaskAlert = {
   id: string;
   keywords: string[];
+  categories: string[];
   counties: string[];
   budget_min: number | null;
   enabled: boolean;
 };
 
+type TaskAlertSuggestion = {
+  categories: { id: string; name: string }[];
+  counties: string[];
+};
+
 export default function TaskAlertsPanel() {
   const [alert, setAlert] = useState<TaskAlert | null>(null);
+  const [suggestion, setSuggestion] = useState<TaskAlertSuggestion | null>(null);
   const [keywords, setKeywords] = useState('');
+  const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [counties, setCounties] = useState<string[]>([]);
   const [budgetMin, setBudgetMin] = useState('');
   const [enabled, setEnabled] = useState(true);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
   const [feedback, setFeedback] = useState('');
 
   useEffect(() => {
-    fetch('/api/task-alerts')
-      .then((r) => r.json())
-      .then(({ alert: existing }: { alert: TaskAlert | null }) => {
-        if (existing) {
-          setAlert(existing);
-          setKeywords((existing.keywords ?? []).join(', '));
-          setCounties(existing.counties ?? []);
-          setBudgetMin(existing.budget_min ? String(existing.budget_min) : '');
-          setEnabled(existing.enabled ?? true);
-        }
-      })
-      .finally(() => setLoading(false));
+    const load = async () => {
+      const response = await fetch('/api/task-alerts');
+      const { alert: existing } = (await response.json()) as { alert: TaskAlert | null };
+      if (existing) {
+        setAlert(existing);
+        setKeywords((existing.keywords ?? []).join(', '));
+        setCategoryIds(existing.categories ?? []);
+        setCounties(existing.counties ?? []);
+        setBudgetMin(existing.budget_min ? String(existing.budget_min) : '');
+        setEnabled(existing.enabled ?? true);
+        setLoading(false);
+        return;
+      }
+
+      const suggestionResponse = await fetch('/api/task-alerts/suggest');
+      if (suggestionResponse.ok) {
+        const payload = (await suggestionResponse.json()) as { suggestion: TaskAlertSuggestion | null };
+        setSuggestion(payload.suggestion);
+      }
+      setLoading(false);
+    };
+
+    load().catch(() => {
+      setLoading(false);
+      setFeedback('Could not load task alert preferences.');
+    });
   }, []);
 
   const toggleCounty = (county: string) => {
@@ -64,6 +87,7 @@ export default function TaskAlertsPanel() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         keywords: keywordList,
+        categories: categoryIds,
         counties,
         budget_min: budgetMin ? Number(budgetMin) : null,
         enabled,
@@ -79,7 +103,32 @@ export default function TaskAlertsPanel() {
     }
 
     setAlert(payload.alert);
+    setCategoryIds(payload.alert.categories ?? []);
     setFeedback('Task alert preferences saved.');
+  };
+
+  const handleSuggest = async () => {
+    setSuggesting(true);
+    setFeedback('');
+
+    const response = await fetch('/api/task-alerts/suggest', { method: 'POST' });
+    const payload = await response.json();
+    setSuggesting(false);
+
+    if (!response.ok) {
+      setFeedback(payload.error || 'Could not create suggested alert.');
+      return;
+    }
+
+    const createdAlert = payload.alert as TaskAlert;
+    setAlert(createdAlert);
+    setKeywords((createdAlert.keywords ?? []).join(', '));
+    setCategoryIds(createdAlert.categories ?? []);
+    setCounties(createdAlert.counties ?? []);
+    setBudgetMin(createdAlert.budget_min ? String(createdAlert.budget_min) : '');
+    setEnabled(createdAlert.enabled ?? true);
+    setSuggestion(null);
+    setFeedback('Suggested alert created from your provider services.');
   };
 
   const handleDelete = async () => {
@@ -87,10 +136,16 @@ export default function TaskAlertsPanel() {
     await fetch('/api/task-alerts', { method: 'DELETE' });
     setAlert(null);
     setKeywords('');
+    setCategoryIds([]);
     setCounties([]);
     setBudgetMin('');
     setEnabled(true);
     setSaving(false);
+    const suggestionResponse = await fetch('/api/task-alerts/suggest');
+    if (suggestionResponse.ok) {
+      const payload = (await suggestionResponse.json()) as { suggestion: TaskAlertSuggestion | null };
+      setSuggestion(payload.suggestion);
+    }
     setFeedback('Task alert removed.');
   };
 
@@ -102,8 +157,21 @@ export default function TaskAlertsPanel() {
       <p className={styles.meta}>
         Get notified when a new job matches your preferences. You receive an in-app notification for each match.
       </p>
+      {!alert && suggestion ? (
+        <p className={styles.notice}>
+          Suggested from your services: {suggestion.categories.length} categories, {suggestion.counties.length} counties.
+        </p>
+      ) : null}
 
       <div className={styles.stack}>
+        {!alert && suggestion ? (
+          <div className={styles.buttons}>
+            <button className={styles.primary} onClick={handleSuggest} disabled={suggesting || saving}>
+              {suggesting ? 'Creating...' : 'Suggest alerts based on my services'}
+            </button>
+          </div>
+        ) : null}
+
         <label className={styles.meta}>
           Keywords (comma-separated, e.g. painting, tiling)
         </label>

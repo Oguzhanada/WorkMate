@@ -11,9 +11,10 @@ export default function OfferRankingBadge({ score }: Props) {
   return (
     <motion.span
       className={styles.badge}
-      initial={{ scale: 0.65, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: 'spring', stiffness: 380, damping: 24, delay: 0.06 }}
+      initial={{ scale: 0.85, opacity: 0, y: 5 }}
+      animate={{ scale: 1, opacity: 1, y: 0 }}
+      whileHover={{ scale: 1.05, y: -2 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       role="img"
       aria-label={`Top Offer — ranking score ${score}`}
     >

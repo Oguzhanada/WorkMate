@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getUserRoles } from '@/lib/auth/rbac';
-
-const createTodoSchema = z.object({
-  description: z.string().min(1).max(500),
-  assigned_to: z.string().uuid().optional(),
-  due_date: z.string().datetime({ offset: true }).optional(),
-});
+import { createJobTodoSchema } from '@/lib/validation/api';
 
 async function resolveJobAccess(
   supabase: Awaited<ReturnType<typeof getSupabaseRouteClient>>,
@@ -83,7 +77,7 @@ export async function POST(
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const parsed = createTodoSchema.safeParse(body);
+  const parsed = createJobTodoSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: 'Validation failed', details: parsed.error.flatten() }, { status: 400 });
   }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 type Review = {
   id: string;
@@ -32,6 +32,7 @@ export default function ProReviewsPanel({ proId }: { proId: string }) {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
     supabase
       .from('reviews')
       .select('id,job_id,rating,comment,quality_rating,communication_rating,punctuality_rating,value_rating,provider_response,created_at')
@@ -45,7 +46,7 @@ export default function ProReviewsPanel({ proId }: { proId: string }) {
     if (!responseText.trim()) return;
     setIsPending(true);
     setError('');
-
+    const supabase = getSupabaseBrowserClient();
     const { error: updateError } = await supabase
       .from('reviews')
       .update({ provider_response: responseText.trim() })

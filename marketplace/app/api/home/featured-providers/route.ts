@@ -8,6 +8,7 @@ type ProfileRow = {
   avatar_url: string | null;
   verification_status: string | null;
   id_verification_status: string | null;
+  is_verified: boolean | null;
   created_at: string;
 };
 
@@ -85,7 +86,7 @@ export async function GET() {
 
   const profilesQuery = supabase
     .from('profiles')
-    .select('id,full_name,avatar_url,verification_status,id_verification_status,created_at')
+    .select('id,full_name,avatar_url,verification_status,id_verification_status,is_verified,created_at')
     .order('created_at', {ascending: false})
     .limit(120);
 
@@ -105,6 +106,7 @@ export async function GET() {
   const providerIds = providers.map((item) => item.id);
   const verifiedProviders = providers.filter(
     (item) =>
+      item.is_verified === true ||
       item.id_verification_status === 'approved' ||
       item.verification_status === 'verified'
   );

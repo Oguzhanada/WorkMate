@@ -1,22 +1,8 @@
 import { randomBytes } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { authenticatePublicRequest } from '@/lib/api/public-auth';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
-
-const webhookEvents = [
-  'job.created',
-  'quote.accepted',
-  'payment.completed',
-  'provider.approved',
-  'document.verified',
-  'document.rejected',
-] as const;
-
-const schema = z.object({
-  url: z.string().url().refine((value) => value.startsWith('https://'), 'Webhook URL must use HTTPS.'),
-  events: z.array(z.enum(webhookEvents)).min(1).max(10),
-});
+import { webhookSubscribeSchema } from '@/lib/validation/api';
 
 export async function POST(request: NextRequest) {
   const auth = await authenticatePublicRequest(request);
@@ -29,7 +15,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const parsed = schema.safeParse(rawBody);
+  const parsed = webhookSubscribeSchema.safeParse(rawBody);
   if (!parsed.success) {
     return NextResponse.json(
       { error: 'Validation failed', details: parsed.error.flatten() },

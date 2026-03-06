@@ -1,19 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { ensureAdminRoute } from '@/lib/auth/admin';
-
-const patchRuleSchema = z
-  .object({
-    enabled: z.boolean().optional(),
-    conditions: z.record(z.string(), z.string()).optional(),
-    action_type: z
-      .enum(['send_notification', 'change_status', 'create_task'])
-      .optional(),
-    action_config: z.record(z.string(), z.unknown()).optional(),
-  })
-  .refine((d) => Object.values(d).some((v) => v !== undefined), {
-    message: 'At least one field is required',
-  });
+import { patchAutomationRuleSchema } from '@/lib/validation/api';
 
 export async function PATCH(
   request: NextRequest,
@@ -31,7 +18,7 @@ export async function PATCH(
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const parsed = patchRuleSchema.safeParse(rawBody);
+  const parsed = patchAutomationRuleSchema.safeParse(rawBody);
   if (!parsed.success) {
     return NextResponse.json(
       { error: 'Validation failed', details: parsed.error.flatten() },

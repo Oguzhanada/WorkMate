@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 
 import { JOB_BUDGET_OPTIONS } from '@/lib/constants/job';
 import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import styles from './job-result.module.css';
 
 type JobSummary = {
@@ -77,7 +77,7 @@ export default function JobSubmissionResult({
   const onUploadPhotos = async () => {
     setError('');
     setOk('');
-
+    const supabase = getSupabaseBrowserClient();
     if (uploadFiles.length === 0) {
       setError('Please choose at least one image.');
       return;

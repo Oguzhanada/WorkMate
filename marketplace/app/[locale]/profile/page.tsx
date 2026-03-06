@@ -183,7 +183,7 @@ export default async function ProfilePage({
 
         <section className={pageStyles.hero}>
           <div>
-            <h1 className={pageStyles.heroTitle}>My Profile ✏️</h1>
+            <h1 className={pageStyles.heroTitle}>My Profile</h1>
             <p className={pageStyles.heroSub}>Keep your account and verification details up to date.</p>
           </div>
           <div className={pageStyles.heroIdentity}>

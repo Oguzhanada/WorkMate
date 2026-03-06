@@ -42,3 +42,141 @@ These rules are mandatory for every change in this project.
 - No new raw page-level CSS for visual redesign work unless shared tokens/components are insufficient.
 - Prefer centralized design tokens in `app/globals.css` and shared primitives in `components/ui/*`.
 - If a new visual primitive is required, add it once to the shared layer and reuse it across pages.
+
+---
+
+# Technical Guardrails (Enforced — no exceptions)
+
+## 9) Supabase client — STRICT import rule
+- **NEVER** call `getSupabaseBrowserClient()` at module scope or as a top-level export.
+- **ALWAYS** call it inside an async function or `useEffect` callback, immediately before use.
+- **NEVER** import from `@/lib/supabase` — that file was deleted. The only valid imports are:
+  - Client components: `import { getSupabaseBrowserClient } from '@/lib/supabase/client'`
+  - Server components / route handlers: `import { getSupabaseServerClient } from '@/lib/supabase/server'`
+  - Route handlers (alternative): `import { getSupabaseRouteClient } from '@/lib/supabase/route'`
+  - Service role (admin only): `import { getSupabaseServiceClient } from '@/lib/supabase/service'`
+
+```tsx
+// FORBIDDEN — will cause hydration errors and shared state bugs:
+const supabase = getSupabaseBrowserClient(); // at module scope
+export const supabase = getSupabaseBrowserClient(); // as export
+
+// CORRECT:
+useEffect(() => {
+  const load = async () => {
+    const supabase = getSupabaseBrowserClient(); // inside callback
+    ...
+  };
+  load();
+}, []);
+```
+
+## 10) Locale routing — STRICT path rule
+- **NEVER** hardcode `/en/` in any `href`, `redirect()`, or `router.push()` call.
+- **ALWAYS** use locale-aware helpers from `@/lib/i18n/locale-path`:
+  - `getLocaleRoot(pathname)` — extracts `/en` or `/ga` from current path
+  - `withLocalePrefix(localeRoot, '/target-path')` — builds correct locale-prefixed URL
+- All routed pages must live under `app/[locale]/`. No pages under `app/` directly (except `layout.tsx`, `globals.css`, `auth/callback/`).
+
+```tsx
+// FORBIDDEN:
+redirect('/en/dashboard/customer');
+router.push('/en/login');
+
+// CORRECT:
+const pathname = usePathname();
+const localeRoot = getLocaleRoot(pathname);
+router.push(withLocalePrefix(localeRoot, '/dashboard/customer'));
+```
+
+## 11) Money — STRICT currency rule
+- All monetary values are stored and passed as **integer cents** in EUR only.
+- Column names must end in `_amount_cents` (e.g., `quote_amount_cents`, `payment_amount_cents`).
+- **NEVER** store or pass floats for money. **NEVER** assume any currency other than EUR.
+- Display only: divide by 100 and format with `Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR' })`.
+
+## 12) Database — STRICT RLS rule
+- Every new table **must** have RLS enabled and explicit policies.
+- **NEVER** add `FOR ALL USING (true)` — this bypasses security entirely.
+- Every migration must be additive (001, 002… never rewrite or renumber existing files).
+- Next migration number: **051** — check `migrations/` before creating any new migration.
+- Migrations are applied manually by the user in Supabase SQL Editor — do not attempt to run them via CLI.
+
+## 13) Zod — API validation rule
+- `z.record()` requires **two** arguments: `z.record(z.string(), z.string())` — NOT `z.record(z.string())`.
+- All API route inputs must be validated with Zod schemas defined in `lib/validation/api.ts`.
+- Do not add inline ad-hoc Zod schemas inside route handlers — extend the shared file.
+
+## 14) Dashboard widget system — STRICT extension rule
+- Widget types are defined in `lib/dashboard/widgets.ts` (`WidgetType`, `DashboardMode`, allowed/default config).
+- All dashboard pages must use `<DashboardShell mode="..." />` — never build a monolithic page component.
+- New widget cards go in `components/dashboard/widgets/` and must be registered in `WidgetRenderer.tsx`.
+- Do not add widget logic directly to dashboard page files.
+
+## 15) Webhook and public API rules
+- Webhooks: HTTPS delivery only. Signed with HMAC-SHA256 via `X-WorkMate-Signature` header. Implementation in `lib/webhook/send.ts`.
+- Public API auth: `x-api-key` header → `profiles.api_key` lookup. Implementation in `lib/api/public-auth.ts`.
+- Do not create new public endpoints outside `app/api/public/v1/` without explicit approval.
+
+## 16) Ireland validation rules
+- Eircode: enforce validation in all job-posting and address flows.
+- Irish phone: normalize to `+353XXXXXXXXX`, valid prefixes: 83, 85, 86, 87, 89.
+- Do not accept generic EU or UK phone/postal formats as valid Irish inputs.
+
+## 17) Skill activation guide
+When working on these areas, activate the matching skill first:
+
+| Area | Skill to activate |
+|------|-------------------|
+| New migration / RLS policy | `supabase-migration-guardian` |
+| Payment / Stripe / webhook / dispute | `stripe-connect-payment-ops` |
+| Provider onboarding / admin review flow | `provider-onboarding-qa-ie` |
+| Admin dashboard regression | `admin-dashboard-live-qa` |
+| Task alert RLS or match flow | `task-alerts-rls-smoke` |
+| Locale route or `[locale]` path issue | `locale-route-guard-next-intl` |
+| New API route handler | `workmate-api-route` |
+| New dashboard widget | `workmate-dashboard-widget` |
+| Production launch / env vars / go-live | `workmate-production-launch` |
+| Seed data / demo accounts | `workmate-seed-ireland` |
+| General project rules + guardrails | `workmate-core` |
+| Frozen decision check / architecture audit | `workmate-schema-guardian` |
+
+## 19) FROZEN DECISIONS — do not change without a Decision Record
+
+The following architectural decisions are **locked**. They were established through deliberate analysis and must not be changed without writing a Decision Record directly in this section.
+
+**Format for proposing a change:**
+```
+DR-XXX | Date | Author | Decision changed | Reason | Approved by
+```
+
+| # | Frozen Decision | Why it exists |
+|---|----------------|---------------|
+| FD-01 | All Zod schemas in `lib/validation/api.ts` — never inline in route files | Single source of truth; prevents schema drift; enables reuse across tests |
+| FD-02 | `loading.tsx` on every data-fetching page under `app/[locale]/` | No blank screens on navigation; required by CLAUDE.md |
+| FD-03 | Colors only via `--wm-*` CSS tokens — no hardcoded hex in page/feature code | Design system consistency; theme-ability; enforced in `globals.css` |
+| FD-04 | `<Button>` component always — no raw `<button className="bg-...">` or `<Link className="bg-...">` | Variant/size system; consistent focus rings; accessibility |
+| FD-05 | `<PageHeader>` component always at the top of pages | Consistent page layout; prevents ad-hoc Card+h1 patterns |
+| FD-06 | `<EmptyState>` on every list — always handle zero-item state | No blank/broken UIs on empty data; consistent UX |
+| FD-07 | Responsive grid default: `sm:grid-cols-2 lg:grid-cols-3` on all card lists | Mobile-first; prevents single-column desktop layouts |
+| FD-08 | Supabase clients per-context — never a module-scope singleton | Prevents hydration errors, shared state bugs, SSR leaks |
+| FD-09 | Money always as integer cents (`*_amount_cents`), EUR only | Prevents float rounding errors; Irish jurisdiction requirement |
+| FD-10 | RLS never `FOR ALL USING (true)` — all policies scoped to `auth.uid()` | Security — open policies expose all rows to all authenticated users |
+| FD-11 | No hardcoded `/en/` in hrefs, redirects, or router.push — use `lib/i18n/locale-path` helpers | Locale routing correctness; future locale expansion readiness |
+| FD-12 | Webhook delivery: HTTPS-only, HMAC-SHA256 via `X-WorkMate-Signature` from `lib/webhook/send.ts` | Security — unsigned webhooks are spoofable |
+
+**Decision Records (changes to frozen decisions):**
+_(none yet — first change must be documented here before implementation)_
+
+---
+
+## 18) AI onboarding — mandatory reading order
+Before making any change, a new AI agent must read these files in order:
+
+1. `PROJECT_CONTEXT.md` — single highest-density project reference
+2. `marketplace/AGENTS.md` — this file (immutable rules)
+3. `C:\Users\Ada\.claude\projects\c--Users-Ada-Git-Python-WorkMate\memory\MEMORY.md` — session history and decisions
+4. `.claude/skills/` (project root) — WorkMate specialist skills (`workmate-*`)
+5. `marketplace/lib/auth/rbac.ts` — RBAC helpers
+6. `marketplace/lib/dashboard/widgets.ts` — widget system source of truth
+7. `marketplace/lib/i18n/locale-path.ts` — locale path helpers

@@ -52,14 +52,17 @@ function SortableWidgetCard({
 
   return (
     <motion.div
+      layout
       ref={setNodeRef}
       style={style}
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileDrag={{ scale: 1.01 }}
-      className={isDragging ? 'z-20' : ''}
+      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+      whileHover={{ scale: 1.01, y: -2 }}
+      whileDrag={{ scale: 1.02, zIndex: 50, boxShadow: '0 24px 48px rgba(0,0,0,0.1)' }}
+      className={isDragging ? 'z-50 cursor-grabbing' : ''}
     >
-      <Card className={`h-full rounded-2xl ${isDragging ? 'shadow-[0_20px_48px_rgba(0,0,0,0.2)]' : ''}`}>
+      <Card className={`h-full rounded-[1.5rem] border border-zinc-100 transition-shadow duration-300 dark:border-zinc-800 ${isDragging ? 'shadow-xl' : 'shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]'}`}>
         <div className="mb-3 flex items-center justify-between gap-2">
           <button
             type="button"

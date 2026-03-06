@@ -1,6 +1,7 @@
-import Link from 'next/link';
 import {notFound} from 'next/navigation';
 import {getSupabaseServiceClient} from '@/lib/supabase/service';
+import Button from '@/components/ui/Button';
+import ComplianceBadge from '@/components/ui/ComplianceBadge';
 import styles from '../../../inner.module.css';
 
 type Params = Promise<{locale: string; id: string}>;
@@ -13,7 +14,7 @@ export default async function PublicProfilePage({params}: {params: Params}) {
     await Promise.all([
       supabase
         .from('profiles')
-        .select('id,full_name,avatar_url,created_at,is_verified,verification_status')
+        .select('id,full_name,avatar_url,created_at,is_verified,verification_status,compliance_score')
         .eq('id', id)
         .maybeSingle(),
       supabase
@@ -50,9 +51,9 @@ export default async function PublicProfilePage({params}: {params: Params}) {
         <article className={styles.card}>
           <div className={styles.profileTopRow}>
             <div className={styles.actions}>
-              <Link href="/providers" className={styles.secondary}>
-                Back
-              </Link>
+              <Button href="/providers" variant="ghost" size="sm">
+                ← Back
+              </Button>
             </div>
           </div>
           <div className={styles.profileTopRow}>
@@ -60,18 +61,7 @@ export default async function PublicProfilePage({params}: {params: Params}) {
               {profile.avatar_url ? (
                 <img src={profile.avatar_url} alt="Profile avatar" style={{width: 96, height: 96, borderRadius: 999}} />
               ) : (
-                <div
-                  style={{
-                    width: 96,
-                    height: 96,
-                    borderRadius: 999,
-                    display: 'grid',
-                    placeItems: 'center',
-                    background: '#f3f5f9',
-                    border: '1px solid #d3d9e3',
-                    fontWeight: 700,
-                  }}
-                >
+                <div className="grid h-24 w-24 place-items-center rounded-full border border-[var(--wm-border)] bg-[var(--wm-surface)] font-bold text-[var(--wm-text-muted)]">
                   {(profile.full_name ?? 'U')
                     .split(' ')
                     .filter(Boolean)
@@ -81,7 +71,10 @@ export default async function PublicProfilePage({params}: {params: Params}) {
                 </div>
               )}
               <div>
-                <h1>{profile.full_name ?? 'Member'}</h1>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1>{profile.full_name ?? 'Member'}</h1>
+                  <ComplianceBadge score={(profile as { compliance_score?: number }).compliance_score ?? 0} />
+                </div>
                 <p className={styles.muted}>Joined: {new Date(profile.created_at).toLocaleDateString()}</p>
                 <p className={styles.muted}>
                   Status: {profile.is_verified ? 'Verified' : profile.verification_status ?? 'Pending'}

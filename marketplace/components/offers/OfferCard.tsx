@@ -13,6 +13,7 @@ import {
   Star,
 } from 'lucide-react';
 import type { OfferRanking } from '@/lib/types/airtasker';
+import ComplianceBadge from '@/components/ui/ComplianceBadge';
 import styles from './offer-card.module.css';
 
 type OfferCardProps = {
@@ -34,6 +35,7 @@ type OfferCardProps = {
       hasTaxClearance: boolean;
       hasInsurance: boolean;
       hasSafePass: boolean;
+      complianceScore?: number;
     };
   };
   ranking: OfferRanking;
@@ -49,16 +51,24 @@ function formatCurrencyFromCents(cents: number) {
   );
 }
 
-function formatDateLabel(dateIso?: string) {
-  if (!dateIso) return '';
+function getRelativeExpiryText(dateIso?: string) {
+  if (!dateIso) return null;
   const date = new Date(dateIso);
-  if (Number.isNaN(date.getTime())) return '';
-  return new Intl.DateTimeFormat('en-IE', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date);
+  const now = new Date();
+  if (Number.isNaN(date.getTime())) return null;
+
+  const diffMs = date.getTime() - now.getTime();
+  if (diffMs <= 0) return 'Expired';
+
+  const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+  if (diffHrs > 24) {
+    const days = Math.floor(diffHrs / 24);
+    return `Expires in ${days} ${days === 1 ? 'day' : 'days'}`;
+  }
+  if (diffHrs > 0) return `Expires in ${diffHrs}h`;
+
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  return `Expires in ${Math.max(1, diffMins)}m`;
 }
 
 function getInitials(value: string) {
@@ -81,7 +91,7 @@ export default function OfferCard({
 }: OfferCardProps) {
   const [showDetails, setShowDetails] = useState(false);
 
-  const expiryText = useMemo(() => formatDateLabel(offer.expiresAt), [offer.expiresAt]);
+  const expiryText = useMemo(() => getRelativeExpiryText(offer.expiresAt), [offer.expiresAt]);
   const isTopOffer = ranking.badge === 'TOP_OFFER';
 
   return (
@@ -106,6 +116,12 @@ export default function OfferCard({
           </span>
         ) : null}
         {isRebooking ? <span className={`${styles.badge} ${styles.badgeRebook}`}>Repeat booking discount active</span> : null}
+        {ranking.breakdown?.matchPercentage && ranking.breakdown.matchPercentage >= 70 ? (
+          <span className={`${styles.badge} ${styles.badgeMatch}`}>
+            <Award className={styles.badgeIcon} />
+            {ranking.breakdown.matchPercentage}% Match
+          </span>
+        ) : null}
       </div>
 
       <div className={styles.main}>
@@ -119,9 +135,12 @@ export default function OfferCard({
         </button>
 
         <div className={styles.provider}>
-          <button type="button" className={styles.providerName} onClick={() => onViewProfile(offer.provider.id)}>
-            {offer.provider.businessName}
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" className={styles.providerName} onClick={() => onViewProfile(offer.provider.id)}>
+              {offer.provider.businessName}
+            </button>
+            <ComplianceBadge score={offer.provider.complianceScore ?? 0} />
+          </div>
           <p className={styles.meta}>
             <Star className={styles.metaIconStar} />
             {offer.provider.rating.toFixed(1)} ({offer.provider.reviewCount}) • {offer.provider.completedJobs} jobs
@@ -154,7 +173,7 @@ export default function OfferCard({
         </div>
       </div>
 
-      {expiryText ? <p className={styles.expiry}>Offer valid until {expiryText}</p> : null}
+      {expiryText ? <p className={styles.expiry}>{expiryText}</p> : null}
 
       <button type="button" className={styles.toggle} onClick={() => setShowDetails((current) => !current)}>
         {showDetails ? <ChevronUp className={styles.toggleIcon} /> : <ChevronDown className={styles.toggleIcon} />}
@@ -165,7 +184,7 @@ export default function OfferCard({
         <div className={styles.details}>
           <p className={styles.description}>{offer.description || 'No additional message provided.'}</p>
           <p className={styles.score}>
-            Score {ranking.score} • Price {ranking.breakdown.priceScore} • Rating {ranking.breakdown.ratingScore} •
+            Smart {ranking.breakdown.smartScore} (base {ranking.score} ×{ranking.breakdown.complianceMultiplier}) • Price {ranking.breakdown.priceScore} • Rating {ranking.breakdown.ratingScore} •
             Response {ranking.breakdown.responseScore} • Trust {ranking.breakdown.trustScore}
           </p>
         </div>

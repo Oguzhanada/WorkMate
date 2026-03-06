@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import EircodeAddressForm, { type Address } from './EircodeAddressForm';
 import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
 import {
@@ -92,6 +92,7 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
   }, [categories.length, error, isLoadingCategories]);
 
   const uploadPhotos = async () => {
+    const supabase = getSupabaseBrowserClient();
     const urls: string[] = [];
     for (const file of photos) {
       if (!file.type.startsWith('image/')) {

@@ -4,6 +4,7 @@ import { stripe } from '@/lib/stripe';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { sendWebhookEvent } from '@/lib/webhook/send';
 import { sendTransactionalEmail } from '@/lib/email/send';
+import { updateCustomerProviderHistory } from '@/lib/pricing/fee-calculator';
 
 export async function POST(request: NextRequest) {
   const signature = request.headers.get('stripe-signature');
@@ -130,6 +131,31 @@ export async function POST(request: NextRequest) {
         .from('jobs')
         .update({ payment_released_at: new Date().toISOString() })
         .eq('id', jobId);
+    }
+
+    // Update customer-provider history for rebooking fee eligibility
+    if (jobId && customerId && invoice.amount_paid) {
+      void (async () => {
+        try {
+          const { data: jobRow } = await supabase
+            .from('jobs')
+            .select('accepted_quote_id')
+            .eq('id', jobId)
+            .maybeSingle();
+          if (jobRow?.accepted_quote_id) {
+            const { data: quoteRow } = await supabase
+              .from('quotes')
+              .select('pro_id')
+              .eq('id', jobRow.accepted_quote_id)
+              .maybeSingle();
+            if (quoteRow?.pro_id) {
+              await updateCustomerProviderHistory(customerId, quoteRow.pro_id, invoice.amount_paid);
+            }
+          }
+        } catch {
+          // Non-blocking — history update failure is swallowed.
+        }
+      })();
     }
 
     if (customerId) {

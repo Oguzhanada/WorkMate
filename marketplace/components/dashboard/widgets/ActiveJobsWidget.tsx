@@ -3,8 +3,11 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { Briefcase } from 'lucide-react';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
+import Skeleton from '@/components/ui/Skeleton';
+import EmptyState from '@/components/ui/EmptyState';
 
 type Job = {
   id: string;
@@ -28,6 +31,7 @@ export default function ActiveJobsWidget({ limit = 6 }: Props) {
     const load = async () => {
       setLoading(true);
       setError('');
+      const supabase = getSupabaseBrowserClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -88,10 +92,18 @@ export default function ActiveJobsWidget({ limit = 6 }: Props) {
   return (
     <div>
       <p className="text-sm font-semibold">Active Jobs</p>
-      {loading ? <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">Loading...</p> : null}
+      {loading ? (
+        <div className="mt-3">
+          <Skeleton lines={3} height="h-10" />
+        </div>
+      ) : null}
       {error ? <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p> : null}
       {!loading && !error && jobs.length === 0 ? (
-        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">No active jobs.</p>
+        <EmptyState
+          icon={<Briefcase size={28} />}
+          title="No active jobs"
+          description="Jobs you are working on will appear here."
+        />
       ) : null}
       <div className="mt-2 space-y-2">
         {jobs.map((job) => (

@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getUserRoles } from '@/lib/auth/rbac';
-
-const patchTodoSchema = z.object({
-  completed: z.boolean().optional(),
-  description: z.string().min(1).max(500).optional(),
-  assigned_to: z.string().uuid().nullable().optional(),
-  due_date: z.string().datetime({ offset: true }).nullable().optional(),
-}).refine((d) => Object.keys(d).length > 0, { message: 'At least one field required' });
+import { patchJobTodoSchema } from '@/lib/validation/api';
 
 async function resolveJobAccess(
   supabase: Awaited<ReturnType<typeof getSupabaseRouteClient>>,
@@ -55,7 +48,7 @@ export async function PATCH(
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const parsed = patchTodoSchema.safeParse(body);
+  const parsed = patchJobTodoSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: 'Validation failed', details: parsed.error.flatten() }, { status: 400 });
   }

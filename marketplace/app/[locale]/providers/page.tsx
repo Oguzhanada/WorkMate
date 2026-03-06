@@ -1,13 +1,19 @@
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import Button from '@/components/ui/Button';
+import Badge from '@/components/ui/Badge';
 import Card from '@/components/ui/Card';
+import EmptyState from '@/components/ui/EmptyState';
 import Shell from '@/components/ui/Shell';
 import StatCard from '@/components/ui/StatCard';
+
+import ProviderFilterToggle from './ProviderFilterToggle';
+import ComplianceBadge from '@/components/ui/ComplianceBadge';
 
 type ProviderRow = {
   id: string;
   full_name: string | null;
   verification_status: string;
+  compliance_score: number;
   created_at: string;
 };
 
@@ -28,16 +34,26 @@ type CategoryRow = {
 
 export default async function ProvidersPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { locale } = await params;
+  const [resolvedParams, resolvedSearch] = await Promise.all([params, searchParams]);
+  const locale = resolvedParams.locale;
+  const isVerifiedOnly = resolvedSearch?.verified !== 'false';
   const supabase = getSupabaseServiceClient();
 
-  const { data: providersData, error: providersError } = await supabase
+  let query = supabase
     .from('profiles')
-    .select('id,full_name,verification_status,created_at')
-    .eq('is_verified', true)
+    .select('id,full_name,verification_status,compliance_score,created_at')
+    .eq('is_verified', true);
+
+  if (isVerifiedOnly) {
+    query = query.gte('compliance_score', 80);
+  }
+
+  const { data: providersData, error: providersError } = await query
     .order('created_at', { ascending: false })
     .limit(100);
 
@@ -110,30 +126,42 @@ export default async function ProvidersPage({
             Providers could not be loaded: {providersError.message}
           </div>
         ) : null}
-        <div className="mt-4 grid gap-4">
+
+        <div className="mb-4 flex items-center justify-end">
+          <ProviderFilterToggle />
+        </div>
+
+        <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {providers.map((provider) => (
-            <Card key={provider.id} className="rounded-2xl">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <h3>{provider.full_name ?? 'Provider'}</h3>
-                <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700 ring-1 ring-sky-200 dark:bg-sky-950/60 dark:text-sky-300 dark:ring-sky-800">
-                  Verified
-                </span>
+            <Card key={provider.id} className="flex flex-col justify-between transition-shadow hover:shadow-[var(--wm-shadow-lg)]">
+              <div>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                    {provider.full_name ?? 'Provider'}
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <ComplianceBadge score={provider.compliance_score} />
+                    <Badge tone="completed">Verified</Badge>
+                  </div>
+                </div>
+                <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+                  <span className="font-medium text-zinc-700 dark:text-zinc-300">Services:</span>{' '}
+                  {(servicesByProvider.get(provider.id) ?? []).join(', ') || 'Not set up'}
+                </p>
+                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                  <span className="font-medium text-zinc-700 dark:text-zinc-300">Areas:</span>{' '}
+                  {(areasByProvider.get(provider.id) ?? []).join(', ') || 'Not set up'}
+                </p>
+                <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+                  Joined {new Date(provider.created_at).toLocaleDateString('en-IE')}
+                </p>
               </div>
-              <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-                Services: {(servicesByProvider.get(provider.id) ?? []).join(', ') || '-'}
-              </p>
-              <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                Areas: {(areasByProvider.get(provider.id) ?? []).join(', ') || '-'}
-              </p>
-              <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                Joined: {new Date(provider.created_at).toLocaleDateString()}
-              </p>
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <Button href={`/${locale}/post-job?mode=direct_request&provider_id=${provider.id}`} variant="primary">
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <Button href={`/${locale}/post-job?mode=direct_request&provider_id=${provider.id}`} variant="primary" size="sm">
                   Direct Request
                 </Button>
-                <Button href={`/${locale}/profile/public/${provider.id}`} variant="secondary">
-                  View public profile
+                <Button href={`/${locale}/profile/public/${provider.id}`} variant="secondary" size="sm">
+                  View profile
                 </Button>
               </div>
             </Card>
@@ -141,15 +169,15 @@ export default async function ProvidersPage({
         </div>
         {providers.length === 0 ? (
           <Card className="mt-4">
-            <h3>No verified providers yet</h3>
-            <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-              Try again later or create a public job request to collect general quotes.
-            </p>
-            <div className="mt-3">
-              <Button href={`/${locale}/post-job`} variant="primary">
-                Create job request
-              </Button>
-            </div>
+            <EmptyState
+              title="No verified providers yet"
+              description="Try again later or create a public job request to collect general quotes."
+              action={
+                <Button href={`/${locale}/post-job`} variant="primary">
+                  Create job request
+                </Button>
+              }
+            />
           </Card>
         ) : null}
       </section>

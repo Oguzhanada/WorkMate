@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { ensureAdminRoute } from '@/lib/auth/admin';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
-
-const schema = z.object({
-  api_rate_limit: z.number().int().min(1).max(500000),
-});
+import { patchApiKeyRateLimitSchema } from '@/lib/validation/api';
 
 export async function PATCH(
   request: NextRequest,
@@ -22,7 +18,7 @@ export async function PATCH(
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const parsed = schema.safeParse(rawBody);
+  const parsed = patchApiKeyRateLimitSchema.safeParse(rawBody);
   if (!parsed.success) {
     return NextResponse.json(
       { error: 'Validation failed', details: parsed.error.flatten() },

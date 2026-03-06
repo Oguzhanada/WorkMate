@@ -47,6 +47,7 @@ export default function BecomeProviderPage() {
   const [prefillNotice, setPrefillNotice] = useState('');
   const [isPending, setIsPending] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [skipPersonalInfoStep, setSkipPersonalInfoStep] = useState(false);
 
   const [email, setEmail] = useState('');
@@ -84,10 +85,10 @@ export default function BecomeProviderPage() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        setError(t('needLogin'));
-        router.replace(withLocalePrefix(localeRoot, '/login'));
+        setIsAuthenticated(false);
         return;
       }
+      setIsAuthenticated(true);
 
       const userEmail = user.email ?? '';
       setEmail(userEmail);
@@ -217,7 +218,7 @@ export default function BecomeProviderPage() {
     };
 
     run();
-  }, [router]);
+  }, []);
 
   useEffect(() => {
     setSelectedServiceIds((current) =>
@@ -591,6 +592,19 @@ export default function BecomeProviderPage() {
             <div className={styles.actions}>
               <button type="button" className={styles.primary} onClick={() => router.push(withLocalePrefix(localeRoot, '/profile'))}>
                 {t('goProfile')}
+              </button>
+            </div>
+          </div>
+        ) : !isAuthenticated ? (
+          <div className={styles.field}>
+            <h2>Ready to start earning?</h2>
+            <p className={styles.muted}>Create a free account or sign in to complete your provider application.</p>
+            <div className={styles.actions}>
+              <button type="button" className={styles.primary} onClick={() => router.push(withLocalePrefix(localeRoot, '/sign-up'))}>
+                Create free account
+              </button>
+              <button type="button" className={styles.secondary} onClick={() => router.push(withLocalePrefix(localeRoot, '/login'))}>
+                Sign in
               </button>
             </div>
           </div>

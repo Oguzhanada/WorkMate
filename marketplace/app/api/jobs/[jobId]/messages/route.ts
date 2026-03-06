@@ -1,15 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getUserRoles } from '@/lib/auth/rbac';
-
-const sendMessageSchema = z.object({
-  message: z.string().min(1).max(4000),
-  message_type: z.enum(['text', 'file']).default('text'),
-  file_url: z.string().url().optional(),
-  file_name: z.string().max(255).optional(),
-  receiver_id: z.string().uuid().optional(),
-});
+import { createJobMessageSchema } from '@/lib/validation/api';
 
 async function resolveJobAccess(
   supabase: Awaited<ReturnType<typeof getSupabaseRouteClient>>,
@@ -88,7 +80,7 @@ export async function POST(
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const parsed = sendMessageSchema.safeParse(body);
+  const parsed = createJobMessageSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: 'Validation failed', details: parsed.error.flatten() }, { status: 400 });
   }

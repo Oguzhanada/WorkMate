@@ -1,6 +1,7 @@
 import type {Metadata} from 'next';
 import {NextIntlClientProvider} from 'next-intl';
 import {notFound} from 'next/navigation';
+import {Toaster} from 'sonner';
 
 import CookieConsentBanner from '@/components/site/CookieConsentBanner';
 import ConditionalSiteFooter from '@/components/site/ConditionalSiteFooter';
@@ -62,6 +63,7 @@ export default async function LocaleLayout({
         {children}
         <CookieConsentBanner />
         <ConditionalSiteFooter />
+        <Toaster position="bottom-right" richColors closeButton />
       </div>
     </NextIntlClientProvider>
   );

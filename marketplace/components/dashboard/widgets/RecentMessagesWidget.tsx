@@ -1,7 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { Bell } from 'lucide-react';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import Skeleton from '@/components/ui/Skeleton';
+import EmptyState from '@/components/ui/EmptyState';
 
 type Notification = {
   id: string;
@@ -22,6 +25,7 @@ export default function RecentMessagesWidget({ limit = 6 }: Props) {
     const load = async () => {
       setLoading(true);
       setError('');
+      const supabase = getSupabaseBrowserClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -53,10 +57,18 @@ export default function RecentMessagesWidget({ limit = 6 }: Props) {
   return (
     <div>
       <p className="text-sm font-semibold">Recent Messages</p>
-      {loading ? <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">Loading...</p> : null}
+      {loading ? (
+        <div className="mt-3">
+          <Skeleton lines={3} height="h-10" />
+        </div>
+      ) : null}
       {error ? <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p> : null}
       {!loading && !error && rows.length === 0 ? (
-        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">No recent notifications.</p>
+        <EmptyState
+          icon={<Bell size={28} />}
+          title="No recent notifications"
+          description="New activity and messages will appear here."
+        />
       ) : null}
       <div className="mt-2 space-y-2">
         {rows.map((row) => (

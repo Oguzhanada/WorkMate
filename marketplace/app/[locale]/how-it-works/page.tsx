@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { isValidLocale } from '@/lib/i18n';
 import { getTranslations } from 'next-intl/server';
 import styles from './how.module.css';
@@ -50,6 +51,7 @@ export default async function HowItWorksPage({
 }) {
   const { locale } = await params;
   if (!isValidLocale(locale)) return null;
+  const localePrefix = `/${locale}`;
   const home = await getTranslations({ locale, namespace: 'home' });
   const title = home('howTitle');
   const subtitle = home('heroSubtitle');
@@ -101,6 +103,19 @@ export default async function HowItWorksPage({
             )}
           </article>
         ))}
+      </section>
+
+      <section className={styles.cta}>
+        <h2>Ready to get started?</h2>
+        <p>Post a job in minutes or join as a professional and start earning today.</p>
+        <div className={styles.ctaActions}>
+          <Link href={`${localePrefix}/post-job`} className={styles.ctaPrimary}>
+            Post a Job — it&apos;s free
+          </Link>
+          <Link href={`${localePrefix}/become-provider`} className={styles.ctaSecondary}>
+            Become a Provider
+          </Link>
+        </div>
       </section>
     </main>
   );

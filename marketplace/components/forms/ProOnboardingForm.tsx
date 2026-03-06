@@ -10,7 +10,8 @@ import {
   ProviderDocumentType,
   validateProviderDocumentDraft,
 } from '@/lib/provider-documents';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import ProgressBar from '@/components/ui/ProgressBar';
 
 import styles from './pro-onboarding.module.css';
 
@@ -104,6 +105,7 @@ export default function ProOnboardingForm({
   );
 
   const uploadDoc = async (doc: ProviderDocumentDraft) => {
+    const supabase = getSupabaseBrowserClient();
     const path = `pro-documents/${profileId}/${doc.type}/${Date.now()}-${doc.file?.name ?? 'file'}`;
     const uploadRes = await supabase.storage.from('pro-documents').upload(path, doc.file!, { upsert: false });
     if (uploadRes.error) {
@@ -173,6 +175,7 @@ export default function ProOnboardingForm({
   const submitApplication = async () => {
     setError('');
     setMessage('');
+    const supabase = getSupabaseBrowserClient();
 
     if (mode === 'provider') {
       if (!primaryCategory) {
@@ -241,6 +244,13 @@ export default function ProOnboardingForm({
           </button>
         </div>
       </div>
+
+      <ProgressBar
+        value={requiredByMode.length - missingRequired.length}
+        max={requiredByMode.length}
+        label="Required documents completed"
+        className="mb-4"
+      />
 
       {mode === 'provider' ? (
         <motion.div className={styles.categoryCard} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>

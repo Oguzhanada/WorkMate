@@ -10,6 +10,7 @@ import HomeSkeleton from '@/components/home/HomeSkeleton';
 import HowItWorks from '@/components/home/HowItWorks';
 import Testimonials from '@/components/home/Testimonials';
 import TrustSection from '@/components/home/TrustSection';
+import WhyWorkMate from '@/components/home/WhyWorkMate';
 import {isValidLocale} from '@/lib/i18n';
 
 const baseUrl = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'http://localhost:3000';
@@ -52,6 +53,7 @@ export default async function LocaleHomePage({
         <CategoriesSection />
         <HowItWorks />
         <FeaturedProviders />
+        <WhyWorkMate />
         <Testimonials />
         <CTASection />
       </Suspense>

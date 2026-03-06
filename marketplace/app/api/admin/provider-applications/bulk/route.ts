@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { ensureAdminRoute } from '@/lib/auth/admin';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { logAdminAudit } from '@/lib/admin/audit';
-
-const bulkNotificationSchema = z.object({
-  profile_ids: z.array(z.string().uuid()).min(1).max(200),
-  message: z.string().trim().min(2).max(300),
-  type: z.enum(['admin_bulk_notice', 'admin_verification_update']).optional().default('admin_bulk_notice'),
-});
+import { bulkNotificationSchema } from '@/lib/validation/api';
 
 export async function POST(request: NextRequest) {
   const auth = await ensureAdminRoute();

@@ -1,5 +1,5 @@
-import {getSupabaseServiceClient} from '@/lib/supabase/service';
-import type {OfferRanking, ProviderRanking} from '@/lib/types/airtasker';
+import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import type { OfferRanking, ProviderRanking } from '@/lib/types/airtasker';
 
 type OfferInput = {
   id: string;
@@ -17,7 +17,7 @@ type JobInput = {
 async function getAveragePriceForCategory(categoryId: string): Promise<number> {
   const supabase = getSupabaseServiceClient();
 
-  const {data} = await supabase
+  const { data } = await supabase
     .from('quotes')
     .select('quote_amount_cents,jobs!inner(category_id)')
     .eq('jobs.category_id', categoryId)
@@ -34,7 +34,7 @@ async function getAveragePriceForCategory(categoryId: string): Promise<number> {
 export async function getProviderRanking(providerId: string): Promise<ProviderRanking | null> {
   const supabase = getSupabaseServiceClient();
 
-  const {data} = await supabase
+  const { data } = await supabase
     .from('provider_rankings')
     .select('*')
     .eq('provider_id', providerId)
@@ -52,7 +52,8 @@ export async function getProviderRanking(providerId: string): Promise<ProviderRa
     taxClearanceScore: Number(data.tax_clearance_score ?? 0),
     insuranceScore: Number(data.insurance_score ?? 0),
     safePassScore: Number(data.safe_pass_score ?? 0),
-    totalTrustScore: Number(data.total_trust_score ?? 0)
+    totalTrustScore: Number(data.total_trust_score ?? 0),
+    complianceScore: Number(data.compliance_score ?? 0)
   };
 }
 
@@ -83,12 +84,21 @@ export async function calculateOfferScore(offer: OfferInput, job: JobInput): Pro
   else if (completedJobs >= 5) matchScore = 9;
 
   const trustScore = providerRanking?.totalTrustScore ?? 0;
+  const complianceScore = providerRanking?.complianceScore ?? 0;
   const score = Math.round(priceScore + ratingScore + responseScore + matchScore + trustScore);
 
+  // Smart Match Score: compliance boosts the base score by up to 25%
+  // A fully compliant pro (ID + insurance + Safe Pass + tax clearance = 100pts) earns maximum boost.
+  const complianceMultiplier = 1.0 + (complianceScore / 100) * 0.25;
+  const smartScore = Math.round(score * complianceMultiplier);
+
   let badge: OfferRanking['badge'] = undefined;
-  if (score >= 85) badge = 'TOP_OFFER';
-  else if (trustScore >= 20) badge = 'TRUSTED_PRO';
+  if (smartScore >= 85) badge = 'TOP_OFFER';
+  else if (complianceScore >= 80) badge = 'TRUSTED_PRO';
   else if (responseScore >= 17) badge = 'FAST_RESPONDER';
+
+  // matchPercentage: consumer-friendly 0–99 number derived from smartScore
+  const matchPercentage = Math.min(99, Math.max(10, Math.round((smartScore / 125) * 100)));
 
   return {
     score,
@@ -97,7 +107,10 @@ export async function calculateOfferScore(offer: OfferInput, job: JobInput): Pro
       ratingScore: Math.round(ratingScore),
       responseScore,
       matchScore,
-      trustScore
+      trustScore,
+      matchPercentage,
+      smartScore,
+      complianceMultiplier: Math.round(complianceMultiplier * 100) / 100,
     },
     badge
   };
@@ -106,21 +119,21 @@ export async function calculateOfferScore(offer: OfferInput, job: JobInput): Pro
 export async function rankOffersForJob(jobId: string) {
   const supabase = getSupabaseServiceClient();
 
-  const {data: job} = await supabase
+  const { data: job } = await supabase
     .from('jobs')
     .select('id,category_id,created_at')
     .eq('id', jobId)
     .maybeSingle();
 
-  if (!job?.category_id) return [] as Array<{offerId: string; ranking: OfferRanking}>;
+  if (!job?.category_id) return [] as Array<{ offerId: string; ranking: OfferRanking }>;
 
-  const {data: offers} = await supabase
+  const { data: offers } = await supabase
     .from('quotes')
     .select('id,quote_amount_cents,pro_id,created_at')
     .eq('job_id', jobId)
     .in('status', ['pending', 'accepted']);
 
-  if (!offers || offers.length === 0) return [] as Array<{offerId: string; ranking: OfferRanking}>;
+  if (!offers || offers.length === 0) return [] as Array<{ offerId: string; ranking: OfferRanking }>;
 
   const ranked = await Promise.all(
     offers.map(async (offer) => {
@@ -138,13 +151,13 @@ export async function rankOffersForJob(jobId: string) {
         }
       );
 
-      return {offerId: offer.id, ranking};
+      return { offerId: offer.id, ranking };
     })
   );
 
-  ranked.sort((a, b) => b.ranking.score - a.ranking.score);
+  ranked.sort((a, b) => b.ranking.breakdown.smartScore - a.ranking.breakdown.smartScore);
 
-  if (ranked[0] && ranked[0].ranking.score >= 70) {
+  if (ranked[0] && ranked[0].ranking.breakdown.smartScore >= 70) {
     ranked[0].ranking.badge = 'TOP_OFFER';
   }
 

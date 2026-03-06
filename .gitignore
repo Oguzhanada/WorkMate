@@ -1,17 +1,31 @@
+# Python
 __pycache__/
 *.log
-.env
 .venv/
 venv/
+
+# Environment
+.env
 marketplace/.env.local
 marketplace/.env.*
 !marketplace/.env.example
+
+# Node / Next.js
 marketplace/node_modules/
 marketplace/.next/
 marketplace/tsconfig.tsbuildinfo
+
+# Test artifacts
 marketplace/playwright-report/
 marketplace/test-results/
+
+# Supabase local
 marketplace/supabase/.temp/
+
+# Editor / OS
 .claude/
 .vscode/
-docs/memory/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
