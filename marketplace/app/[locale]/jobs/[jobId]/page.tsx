@@ -3,6 +3,7 @@ import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getUserRoles } from '@/lib/auth/rbac';
 import JobCollaborationPanel from '@/components/jobs/JobCollaborationPanel';
 import JobOffersPanel from '@/components/jobs/JobOffersPanel';
+import JobContractPanel from '@/components/jobs/JobContractPanel';
 import TimeTracking from '@/components/jobs/TimeTracking';
 import JobScheduler from '@/components/jobs/JobScheduler';
 import styles from '../../inner.module.css';
@@ -140,6 +141,15 @@ export default async function JobDetailPage({ params }: Props) {
             locale={locale}
             categoryId={(job as { category_id?: string | null }).category_id ?? null}
             jobCreatedAt={job.created_at}
+          />
+        ) : null}
+
+        {['accepted', 'in_progress', 'completed'].includes(job.status) ? (
+          <JobContractPanel
+            jobId={job.id}
+            currentUserId={user.id}
+            isCustomer={isCustomer}
+            isProvider={isPro}
           />
         ) : null}
 

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import type { OfferRanking } from '@/lib/types/airtasker';
 import ComplianceBadge from '@/components/ui/ComplianceBadge';
+import OfferCountdownBadge from './OfferCountdownBadge';
 import styles from './offer-card.module.css';
 
 type OfferCardProps = {
@@ -151,6 +152,10 @@ export default function OfferCard({
             <Clock className={styles.badgeIcon} />
             {expiryText}
           </span>
+        ) : null}
+        {/* 48h countdown from createdAt — only shown when expiresAt is not set */}
+        {!offer.expiresAt ? (
+          <OfferCountdownBadge createdAt={offer.createdAt} status={offer.status} />
         ) : null}
       </div>
 

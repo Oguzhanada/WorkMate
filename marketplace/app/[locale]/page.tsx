@@ -10,6 +10,7 @@ import HomeSkeleton from '@/components/home/HomeSkeleton';
 import HowItWorks from '@/components/home/HowItWorks';
 import Testimonials from '@/components/home/Testimonials';
 import TrustSection from '@/components/home/TrustSection';
+import StatsSection from '@/components/home/StatsSection';
 import WhyWorkMate from '@/components/home/WhyWorkMate';
 import {isValidLocale} from '@/lib/i18n';
 
@@ -50,6 +51,7 @@ export default async function LocaleHomePage({
       <Suspense fallback={<HomeSkeleton />}>
         <HeroSection />
         <TrustSection />
+        <StatsSection />
         <CategoriesSection />
         <HowItWorks />
         <FeaturedProviders />
