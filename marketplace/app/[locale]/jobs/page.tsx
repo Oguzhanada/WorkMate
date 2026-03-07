@@ -50,7 +50,7 @@ export default async function JobsPage({
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1>Job Board</h1>
-              <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+              <p className="mt-1 text-sm" style={{ color: 'var(--wm-muted)' }}>
                 Browse recent job requests and available opportunities.
               </p>
             </div>
@@ -62,7 +62,14 @@ export default async function JobsPage({
       }
     >
       {error ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300">
+        <div
+          className="rounded-xl px-3 py-2 text-sm"
+          style={{
+            border: '1px solid rgba(var(--wm-destructive-rgb), 0.25)',
+            background: 'var(--wm-destructive-light)',
+            color: 'var(--wm-destructive)',
+          }}
+        >
           Jobs could not be loaded: {error.message}
         </div>
       ) : null}
@@ -96,13 +103,13 @@ export default async function JobsPage({
                   {job.status.replace('_', ' ')}
                 </Badge>
               </div>
-              <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="mt-2 text-xs" style={{ color: 'var(--wm-muted)' }}>
                 {job.category} · {job.locality ?? '-'}, {job.county ?? '-'}
               </p>
-              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="mt-1 text-xs" style={{ color: 'var(--wm-muted)' }}>
                 Budget: {job.budget_range}
               </p>
-              <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+              <p className="mt-1 text-xs" style={{ color: 'var(--wm-subtle)' }}>
                 {new Date(job.created_at).toLocaleDateString('en-IE')}
               </p>
             </Card>

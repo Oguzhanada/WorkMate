@@ -1,10 +1,16 @@
+/* ── Hero ────────────────────────────────────────────────── */
 .hero {
   position: relative;
-  min-height: 360px;
+  min-height: 380px;
   display: grid;
   place-items: center;
   background-image:
-    linear-gradient(120deg, rgba(17, 42, 35, 0.78), rgba(17, 42, 35, 0.56), rgba(255, 136, 62, 0.16)),
+    linear-gradient(
+      140deg,
+      rgba(var(--wm-navy-rgb), 0.82) 0%,
+      rgba(var(--wm-navy-rgb), 0.55) 55%,
+      rgba(var(--wm-primary-rgb), 0.20) 100%
+    ),
     url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1800&q=80');
   background-size: cover;
   background-position: center;
@@ -18,16 +24,21 @@
 }
 
 .heroInner h1 {
-  margin: 0 0 10px;
+  margin: 0 0 12px;
+  font-family: var(--wm-font-display);
   font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.03em;
 }
 
 .heroInner p {
   margin: 0;
-  color: #e7ecf7;
+  color: rgba(255, 255, 255, 0.78);
   font-size: 1.05rem;
 }
 
+/* ── Step cards ───────────────────────────────────────────── */
 .container {
   width: min(1120px, calc(100% - 32px));
   margin: 0 auto;
@@ -36,14 +47,20 @@
 
 .step {
   background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 12px 30px rgba(16, 37, 31, 0.1);
-  padding: 24px;
+  border-radius: var(--wm-radius-2xl);
+  border: 1px solid var(--wm-border);
+  box-shadow: var(--wm-shadow-md);
+  padding: 32px;
   margin-bottom: 20px;
   display: grid;
   grid-template-columns: 1.1fr 1fr;
-  gap: 20px;
+  gap: 32px;
   align-items: center;
+  transition: box-shadow var(--wm-transition-slow);
+}
+
+.step:hover {
+  box-shadow: var(--wm-shadow-lg);
 }
 
 .stepAlt {
@@ -52,85 +69,119 @@
 
 .stepText h2 {
   margin: 0 0 10px;
-  color: #111321;
+  font-family: var(--wm-font-display);
+  color: var(--wm-navy);
   font-size: clamp(1.4rem, 2.4vw, 2rem);
+  letter-spacing: -0.025em;
 }
 
 .stepMeta {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #169b62;
+  color: var(--wm-primary);
+  font-family: var(--wm-font-display);
   font-weight: 700;
-  margin-bottom: 8px;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--wm-primary-light);
+  border: 1px solid rgba(var(--wm-primary-rgb), 0.2);
 }
 
 .stepText p {
-  margin: 0 0 10px;
-  color: #3f4a67;
-  line-height: 1.6;
+  margin: 0 0 12px;
+  color: var(--wm-muted);
+  line-height: 1.65;
 }
 
 .tip {
-  background: #f1f8f3;
-  border: 1px solid #c9ead6;
-  border-radius: 12px;
-  padding: 10px 12px;
-  color: #1f4a3f;
+  background: var(--wm-primary-light);
+  border: 1px solid rgba(var(--wm-primary-rgb), 0.2);
+  border-radius: var(--wm-radius-md);
+  padding: 10px 14px;
+  color: var(--wm-primary-dark);
   font-weight: 600;
+  font-size: 0.875rem;
 }
 
+/* ── Visual image ─────────────────────────────────────────── */
 .visual {
   position: relative;
-  border-radius: 14px;
+  border-radius: var(--wm-radius-xl);
   overflow: hidden;
+  box-shadow: var(--wm-shadow-sm);
 }
 
 .visual img {
   width: 100%;
-  height: 260px;
+  height: 280px;
   object-fit: cover;
   display: block;
 }
 
 .badge {
   position: absolute;
-  right: 12px;
-  bottom: 12px;
-  background: #169b62;
+  right: 14px;
+  bottom: 14px;
+  background: var(--wm-grad-primary);
   color: #fff;
   border-radius: 999px;
-  padding: 8px 12px;
-  font-size: 0.9rem;
+  padding: 7px 14px;
+  font-family: var(--wm-font-display);
+  font-size: 0.875rem;
   font-weight: 700;
+  box-shadow: 0 4px 14px rgba(var(--wm-primary-rgb), 0.40);
 }
 
+/* ── CTA section ──────────────────────────────────────────── */
 .cta {
-  background: linear-gradient(135deg, #00B894 0%, #008B74 100%);
-  border-radius: 24px;
-  padding: 56px 32px;
+  background: var(--wm-grad-navy);
+  border-radius: var(--wm-radius-3xl);
+  padding: 64px 40px;
   text-align: center;
   margin: 0 auto 70px;
   width: min(1120px, calc(100% - 32px));
+  position: relative;
+  overflow: hidden;
+}
+
+.cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 80% at 0% 100%, rgba(var(--wm-primary-rgb), 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 60% at 100% 0%, rgba(var(--wm-primary-rgb), 0.12) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 .cta h2 {
-  margin: 0 0 12px;
+  margin: 0 0 14px;
+  font-family: var(--wm-font-display);
   font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 800;
   color: #fff;
+  letter-spacing: -0.03em;
+  position: relative;
 }
 
 .cta p {
-  margin: 0 0 28px;
-  color: rgba(255, 255, 255, 0.88);
+  margin: 0 0 32px;
+  color: rgba(255, 255, 255, 0.78);
   font-size: 1.05rem;
+  position: relative;
 }
 
 .ctaActions {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   justify-content: center;
   flex-wrap: wrap;
+  position: relative;
 }
 
 .ctaPrimary {
@@ -138,36 +189,41 @@
   align-items: center;
   gap: 6px;
   background: #fff;
-  color: #008B74;
+  color: var(--wm-primary-dark);
+  font-family: var(--wm-font-display);
   font-weight: 700;
-  padding: 12px 24px;
-  border-radius: 12px;
+  padding: 13px 28px;
+  border-radius: var(--wm-radius-md);
   text-decoration: none;
-  transition: box-shadow 0.2s;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
+  transition: box-shadow var(--wm-transition), transform var(--wm-transition);
 }
 
 .ctaPrimary:hover {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.24);
+  transform: translateY(-1px);
 }
 
 .ctaSecondary {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.10);
   color: #fff;
   font-weight: 600;
-  padding: 12px 24px;
-  border-radius: 12px;
-  border: 2px solid rgba(255, 255, 255, 0.6);
+  padding: 13px 28px;
+  border-radius: var(--wm-radius-md);
+  border: 1.5px solid rgba(255, 255, 255, 0.40);
   text-decoration: none;
-  transition: border-color 0.2s;
+  transition: border-color var(--wm-transition), background var(--wm-transition);
 }
 
 .ctaSecondary:hover {
   border-color: #fff;
+  background: rgba(255, 255, 255, 0.16);
 }
 
+/* ── Responsive ───────────────────────────────────────────── */
 @media (max-width: 920px) {
   .step,
   .stepAlt {

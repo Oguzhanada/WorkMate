@@ -5,7 +5,7 @@ export default function ProvidersLoading() {
   return (
     <Shell
       header={
-        <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-5 dark:border-zinc-800 dark:bg-zinc-900/80">
+        <div className="rounded-3xl [border:1px_solid_var(--wm-border)] [background:var(--wm-surface)] p-5 dark:border-zinc-800 dark:bg-zinc-900/80">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex-1">
               <Skeleton height="h-6" className="w-48" />
@@ -32,7 +32,7 @@ export default function ProvidersLoading() {
         {Array.from({ length: 9 }).map((_, i) => (
           <div
             key={i}
-            className="rounded-2xl border border-zinc-200/70 bg-white/90 p-5 dark:border-zinc-800 dark:bg-zinc-900/80"
+            className="rounded-2xl [border:1px_solid_var(--wm-border)] [background:var(--wm-surface)] p-5 dark:border-zinc-800 dark:bg-zinc-900/80"
           >
             <div className="flex items-start justify-between gap-3">
               <Skeleton height="h-5" className="w-1/2" />

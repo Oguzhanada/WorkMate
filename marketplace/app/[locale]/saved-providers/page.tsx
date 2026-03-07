@@ -88,7 +88,10 @@ export default async function SavedProvidersPage({
               <Card key={provider.id} className="flex flex-col justify-between transition-shadow hover:shadow-[var(--wm-shadow-lg)]">
                 <div>
                   <div className="flex flex-wrap items-start justify-between gap-2">
-                    <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                    <h3
+                      className="text-base font-semibold"
+                      style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)' }}
+                    >
                       {provider.full_name ?? 'Provider'}
                     </h3>
                     <div className="flex items-center gap-2">
@@ -100,7 +103,7 @@ export default async function SavedProvidersPage({
                     </div>
                   </div>
                   {ranking ? (
-                    <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+                    <p className="mt-2 text-sm" style={{ color: 'var(--wm-muted)' }}>
                       {Number(ranking.avg_rating).toFixed(1)} stars &middot; {ranking.review_count} reviews &middot; {ranking.completed_jobs} jobs done
                     </p>
                   ) : null}

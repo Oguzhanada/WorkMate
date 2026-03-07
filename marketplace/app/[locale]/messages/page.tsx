@@ -45,16 +45,16 @@ export default async function MessagesPage({
         <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (
             <Card key={item.id}>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="text-xs" style={{ color: 'var(--wm-muted)' }}>
                 Job: {item.job_id.slice(0, 8)}…
               </p>
               {item.quote_id ? (
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                <p className="text-xs" style={{ color: 'var(--wm-muted)' }}>
                   Quote: {item.quote_id.slice(0, 8)}…
                 </p>
               ) : null}
               <p className="mt-2 text-sm">{item.message}</p>
-              <p className="mt-2 text-xs text-zinc-400 dark:text-zinc-500">
+              <p className="mt-2 text-xs" style={{ color: 'var(--wm-subtle)' }}>
                 {new Date(item.created_at).toLocaleString('en-IE')}
               </p>
             </Card>

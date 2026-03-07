@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { ReactNode } from 'react';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'destructive';
-type ButtonSize = 'sm' | 'md' | 'lg';
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'destructive' | 'navy';
+type ButtonSize = 'sm' | 'md' | 'lg' | 'xl';
 
 type ButtonProps = {
   children: ReactNode;
@@ -18,25 +18,51 @@ type ButtonProps = {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'bg-[var(--wm-primary)] text-white border border-transparent hover:bg-[var(--wm-primary-dark)] shadow-[0_10px_24px_rgba(0,184,148,0.30)]',
+    'text-white border border-transparent ' +
+    'bg-[var(--wm-primary)] ' +
+    'shadow-[0_4px_14px_rgba(0,184,148,0.35)] ' +
+    'hover:bg-[var(--wm-primary-dark)] hover:shadow-[0_6px_20px_rgba(0,184,148,0.45)] hover:-translate-y-px ' +
+    'active:translate-y-0 active:shadow-[0_2px_8px_rgba(0,184,148,0.30)]',
   secondary:
-    'bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600',
+    'bg-white dark:bg-zinc-900 text-[var(--wm-text)] dark:text-zinc-100 ' +
+    'border border-[var(--wm-border)] dark:border-zinc-700 ' +
+    'shadow-[var(--wm-shadow-sm)] ' +
+    'hover:border-[var(--wm-primary)] hover:text-[var(--wm-primary)] hover:shadow-[var(--wm-shadow-md)] hover:-translate-y-px ' +
+    'active:translate-y-0',
   ghost:
-    'bg-transparent text-zinc-700 dark:text-zinc-200 border border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800',
+    'bg-transparent text-[var(--wm-muted)] dark:text-zinc-300 border border-transparent ' +
+    'hover:bg-[var(--wm-primary-light)] hover:text-[var(--wm-primary-dark)] ' +
+    'active:bg-[var(--wm-primary-light)]',
   outline:
-    'bg-transparent text-[var(--wm-primary)] border border-[var(--wm-primary)] hover:bg-[var(--wm-primary)] hover:text-white',
+    'bg-transparent text-[var(--wm-primary)] border border-[var(--wm-primary)] ' +
+    'hover:bg-[var(--wm-primary)] hover:text-white hover:shadow-[0_4px_14px_rgba(0,184,148,0.30)] hover:-translate-y-px ' +
+    'active:translate-y-0',
   destructive:
-    'bg-[var(--wm-destructive)] text-white border border-transparent hover:bg-[var(--wm-destructive-dark)] shadow-[0_10px_24px_rgba(220,38,38,0.25)]',
+    'text-white border border-transparent ' +
+    'bg-[var(--wm-destructive)] ' +
+    'shadow-[0_4px_14px_rgba(220,38,38,0.28)] ' +
+    'hover:bg-[var(--wm-destructive-dark)] hover:shadow-[0_6px_20px_rgba(220,38,38,0.38)] hover:-translate-y-px ' +
+    'active:translate-y-0',
+  navy:
+    'text-white border border-transparent ' +
+    'bg-[var(--wm-navy)] ' +
+    'shadow-[0_4px_14px_rgba(12,27,51,0.30)] ' +
+    'hover:bg-[var(--wm-navy-mid)] hover:shadow-[0_6px_20px_rgba(12,27,51,0.40)] hover:-translate-y-px ' +
+    'active:translate-y-0',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: 'px-3 py-1.5 text-sm',
-  md: 'px-4 py-2.5 text-sm',
-  lg: 'px-6 py-3 text-base',
+  sm:  'px-3 py-1.5 text-xs gap-1.5',
+  md:  'px-4 py-2.5 text-sm gap-2',
+  lg:  'px-6 py-3 text-sm gap-2',
+  xl:  'px-8 py-4 text-base gap-2.5',
 };
 
 const base =
-  'inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
+  'inline-flex items-center justify-center font-semibold rounded-xl ' +
+  'font-[var(--wm-font-sans)] transition-all duration-200 ' +
+  'disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none ' +
+  'cursor-pointer select-none';
 
 function compose(className?: string, variant: ButtonVariant = 'secondary', size: ButtonSize = 'md'): string {
   return `${base} ${variantClasses[variant]} ${sizeClasses[size]}${className ? ` ${className}` : ''}`;

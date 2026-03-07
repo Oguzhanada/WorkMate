@@ -5,19 +5,36 @@ type EmptyStateProps = {
   title: string;
   description?: string;
   action?: ReactNode;
+  compact?: boolean;
 };
 
-export default function EmptyState({ icon, title, description, action }: EmptyStateProps) {
+export default function EmptyState({ icon, title, description, action, compact = false }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
+    <div
+      className={`flex flex-col items-center justify-center gap-3 text-center ${compact ? 'py-8' : 'py-14'}`}
+    >
       {icon ? (
-        <span className="text-zinc-400 dark:text-zinc-500">{icon}</span>
+        <div
+          className="flex h-14 w-14 items-center justify-center rounded-2xl"
+          style={{backgroundColor: 'var(--wm-primary-light)', color: 'var(--wm-primary)'}}
+        >
+          {icon}
+        </div>
       ) : null}
-      <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{title}</p>
-      {description ? (
-        <p className="max-w-xs text-xs text-zinc-500 dark:text-zinc-400">{description}</p>
-      ) : null}
-      {action ? <div className="mt-1">{action}</div> : null}
+      <div className="space-y-1.5">
+        <p
+          className="text-base font-bold"
+          style={{fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)'}}
+        >
+          {title}
+        </p>
+        {description ? (
+          <p className="max-w-xs text-sm leading-relaxed" style={{color: 'var(--wm-muted)'}}>
+            {description}
+          </p>
+        ) : null}
+      </div>
+      {action ? <div className="mt-2">{action}</div> : null}
     </div>
   );
 }

@@ -22,15 +22,22 @@ export default function ProviderFilterToggle() {
     };
 
     return (
-        <div className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-2 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-            <span className="pl-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <div
+          className="flex items-center gap-3 rounded-2xl p-2"
+          style={{
+            border: '1px solid var(--wm-border)',
+            background: '#fff',
+            boxShadow: 'var(--wm-shadow-xs)',
+          }}
+        >
+            <span className="pl-2 text-sm font-medium" style={{ color: 'var(--wm-text)' }}>
                 Only fully verified Irish pros
             </span>
             <button
                 type="button"
                 onClick={toggleFilter}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${isVerifiedOnly ? 'bg-emerald-500' : 'bg-zinc-200 dark:bg-zinc-700'
-                    }`}
+                className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none"
+                style={{ background: isVerifiedOnly ? 'var(--wm-primary)' : 'var(--wm-border)' }}
                 role="switch"
                 aria-checked={isVerifiedOnly}
             >

@@ -1,122 +1,249 @@
 @import "tailwindcss";
 
 :root {
-  /* Colours — primary */
-  --wm-primary: #00B894;
-  --wm-primary-dark: #008B74;
-  --wm-primary-rgb: 0, 184, 148;
+  /* ── Typography ─────────────────────────────────────────── */
+  --wm-font-display: 'Syne', 'Poppins', sans-serif;
+  --wm-font-sans:    'Plus Jakarta Sans', 'Poppins', system-ui, sans-serif;
+
+  /* ── Colours — primary (teal) ───────────────────────────── */
+  --wm-primary:       #00B894;
+  --wm-primary-dark:  #008B74;
+  --wm-primary-mid:   #00A880;
+  --wm-primary-rgb:   0, 184, 148;
   --wm-primary-light: #ECFDF5;
+  --wm-primary-faint: #F0FFF9;
 
-  /* Colours — navy (depth / dark text) */
-  --wm-navy: #0C1B33;
-  --wm-navy-mid: #1e3a5f;
+  /* ── Colours — navy (depth / dark text) ────────────────── */
+  --wm-navy:      #0C1B33;
+  --wm-navy-mid:  #1e3a5f;
+  --wm-navy-soft: #2d4a6e;
+  --wm-navy-rgb:  12, 27, 51;
 
-  /* Colours — amber (warm accent / highlights) */
-  --wm-amber: #F59E0B;
-  --wm-amber-dark: #D97706;
+  /* ── Colours — amber (warm accent / highlights) ─────────── */
+  --wm-amber:       #F59E0B;
+  --wm-amber-dark:  #D97706;
   --wm-amber-light: #FFFBEB;
+  --wm-amber-faint: #FEFCE8;
 
-  /* Colours — blue (secondary CTA) */
-  --wm-blue: #1a56db;
+  /* ── Colours — blue (secondary CTA) ────────────────────── */
+  --wm-blue:      #1a56db;
   --wm-blue-dark: #1343b8;
+  --wm-blue-soft: #EFF6FF;
 
-  /* Colours — base */
-  --wm-accent: #0f172a;
-  --wm-bg: #f6f7f9;
-  --wm-surface: rgba(255, 255, 255, 0.86);
-  --wm-text: #111827;
-  --wm-muted: #4b5563;
-  --wm-border: #e5e7eb;
-  --wm-destructive: #dc2626;
-  --wm-destructive-dark: #b91c1c;
+  /* ── Colours — rose (destructive / alert) ──────────────── */
+  --wm-destructive:       #dc2626;
+  --wm-destructive-dark:  #b91c1c;
+  --wm-destructive-rgb:   220, 38, 38;
+  --wm-destructive-light: #FEF2F2;
 
-  /* Border radius */
-  --wm-radius-sm: 0.5rem;
-  --wm-radius-md: 0.75rem;
-  --wm-radius-lg: 1rem;
-  --wm-radius-xl: 1.25rem;
+  /* ── Colours — base surfaces ────────────────────────────── */
+  --wm-accent:  #0f172a;
+  --wm-bg:      #f4f6f9;
+  --wm-surface: rgba(255, 255, 255, 0.92);
+  --wm-text:    #0f1a2e;
+  --wm-muted:   #4b5563;
+  --wm-subtle:  #6b7280;
+  --wm-border:  #e2e6ed;
+  --wm-border-soft: rgba(0,0,0,0.06);
+
+  /* ── Border radius ──────────────────────────────────────── */
+  --wm-radius-xs:  0.375rem;
+  --wm-radius-sm:  0.5rem;
+  --wm-radius-md:  0.75rem;
+  --wm-radius-lg:  1rem;
+  --wm-radius-xl:  1.25rem;
   --wm-radius-2xl: 1.5rem;
+  --wm-radius-3xl: 2rem;
 
-  /* Shadows */
-  --wm-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.07);
-  --wm-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --wm-shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.08);
-  --wm-shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.1);
+  /* ── Shadows ────────────────────────────────────────────── */
+  --wm-shadow-xs:  0 1px 2px rgba(0,0,0,0.05);
+  --wm-shadow-sm:  0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+  --wm-shadow-md:  0 4px 16px rgba(0,0,0,0.07), 0 2px 6px rgba(0,0,0,0.04);
+  --wm-shadow-lg:  0 12px 32px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+  --wm-shadow-xl:  0 24px 56px rgba(0,0,0,0.10), 0 8px 20px rgba(0,0,0,0.05);
+  --wm-shadow-2xl: 0 40px 80px rgba(0,0,0,0.12), 0 16px 32px rgba(0,0,0,0.06);
 
-  /* Transitions */
-  --wm-transition-fast: 100ms ease;
-  --wm-transition: 150ms ease;
-  --wm-transition-slow: 250ms ease;
+  /* ── Glow shadows ───────────────────────────────────────── */
+  --wm-glow-primary: 0 0 0 3px rgba(0, 184, 148, 0.18), 0 8px 24px rgba(0, 184, 148, 0.22);
+  --wm-glow-navy:    0 0 0 3px rgba(12, 27, 51, 0.15), 0 8px 24px rgba(12, 27, 51, 0.18);
+  --wm-glow-amber:   0 0 0 3px rgba(245, 158, 11, 0.18), 0 8px 24px rgba(245, 158, 11, 0.20);
 
-  /* Typography */
-  --wm-font-sans: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  /* ── Gradient tokens ────────────────────────────────────── */
+  --wm-grad-primary: linear-gradient(135deg, var(--wm-primary) 0%, var(--wm-primary-dark) 100%);
+  --wm-grad-navy:    linear-gradient(135deg, var(--wm-navy) 0%, var(--wm-navy-mid) 60%, #1a3a6b 100%);
+  --wm-grad-warm:    linear-gradient(135deg, var(--wm-amber) 0%, var(--wm-amber-dark) 100%);
+  --wm-grad-hero:    linear-gradient(160deg, #f0fff9 0%, #f4f6f9 40%, #eef4ff 100%);
+
+  /* ── Glass / blur surfaces ──────────────────────────────── */
+  --wm-glass:        rgba(255, 255, 255, 0.72);
+  --wm-glass-border: rgba(255, 255, 255, 0.55);
+  --wm-glass-dark:   rgba(12, 27, 51, 0.65);
+
+  /* ── Transitions ────────────────────────────────────────── */
+  --wm-transition-fast:   100ms cubic-bezier(0.4, 0, 0.2, 1);
+  --wm-transition:        200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --wm-transition-slow:   350ms cubic-bezier(0.4, 0, 0.2, 1);
+  --wm-transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-* {
+/* ── Reset ──────────────────────────────────────────────────── */
+*, *::before, *::after {
   box-sizing: border-box;
 }
 
-html,
-body {
+/* ── Base ───────────────────────────────────────────────────── */
+html, body {
   margin: 0;
   padding: 0;
   color: var(--wm-text);
   background:
-    radial-gradient(1200px 520px at 5% -15%, rgba(0, 184, 148, 0.08), transparent 58%),
-    radial-gradient(900px 460px at 100% -15%, rgba(15, 23, 42, 0.07), transparent 56%),
+    radial-gradient(ellipse 100% 60% at 0% 0%, rgba(0, 184, 148, 0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 50% at 100% 0%, rgba(12, 27, 51, 0.055) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(0, 184, 148, 0.04) 0%, transparent 60%),
     var(--wm-bg);
   font-family: var(--wm-font-sans);
+  font-size: 16px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
 a {
   color: inherit;
+  text-decoration: none;
 }
 
-/* Base heading typography */
-h1, h2, h3, h4 {
-  font-family: var(--wm-font-sans);
+/* ── Headings — Syne display font ───────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--wm-font-display);
   font-weight: 700;
-  line-height: 1.25;
+  line-height: 1.2;
   color: var(--wm-text);
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
+  margin: 0;
 }
 
-h1 { font-size: 2rem; }
-h2 { font-size: 1.5rem; }
-h3 { font-size: 1.125rem; }
-h4 { font-size: 1rem; }
+h1 { font-size: clamp(2rem, 4vw, 3rem);   font-weight: 800; }
+h2 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; }
+h3 { font-size: 1.25rem; font-weight: 700; }
+h4 { font-size: 1.0625rem; font-weight: 600; }
+h5 { font-size: 0.9375rem; font-weight: 600; }
 
-/* Accessible focus ring */
+/* ── Focus ring ─────────────────────────────────────────────── */
 :focus-visible {
   outline: 2px solid var(--wm-primary);
-  outline-offset: 2px;
-  border-radius: 4px;
+  outline-offset: 3px;
+  border-radius: 6px;
 }
 
+/* ── Surface card utility ───────────────────────────────────── */
 .wm-surface {
   border: 1px solid var(--wm-border);
   background: var(--wm-surface);
-  border-radius: 1.25rem;
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.08);
-  backdrop-filter: blur(10px);
+  border-radius: var(--wm-radius-2xl);
+  box-shadow: var(--wm-shadow-lg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
+/* ── Glass card utility ─────────────────────────────────────── */
+.wm-glass {
+  background: var(--wm-glass);
+  border: 1px solid var(--wm-glass-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: var(--wm-radius-2xl);
+}
+
+/* ── Grain overlay ──────────────────────────────────────────── */
+.wm-grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0.45;
+}
+
+/* ── Section label pill ─────────────────────────────────────── */
+.wm-section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.875rem;
+  border-radius: 999px;
+  font-family: var(--wm-font-display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--wm-primary-light);
+  color: var(--wm-primary-dark);
+  border: 1px solid rgba(0, 184, 148, 0.2);
+}
+
+/* ── Display heading (Syne, extra bold) ─────────────────────── */
+.wm-display {
+  font-family: var(--wm-font-display);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+/* ── Teal underline decoration ──────────────────────────────── */
+.wm-underline-accent {
+  position: relative;
+  display: inline-block;
+}
+.wm-underline-accent::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 100%;
+  height: 3px;
+  background: var(--wm-grad-warm);
+  border-radius: 2px;
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--wm-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--wm-muted); }
+
+/* ── Dark mode overrides ────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
   :root {
-    --wm-bg: #09090b;
-    --wm-surface: rgba(20, 20, 24, 0.82);
-    --wm-text: #f3f4f6;
-    --wm-muted: #a1a1aa;
-    --wm-border: #27272a;
+    --wm-bg:         #09090e;
+    --wm-surface:    rgba(18, 18, 26, 0.88);
+    --wm-text:       #f0f2f5;
+    --wm-muted:      #94a3b8;
+    --wm-subtle:     #64748b;
+    --wm-border:     rgba(255,255,255,0.09);
+    --wm-border-soft:rgba(255,255,255,0.05);
+    --wm-glass:      rgba(18, 18, 26, 0.72);
+    --wm-glass-border: rgba(255,255,255,0.10);
+    --wm-primary-light: rgba(0, 184, 148, 0.12);
+    --wm-primary-faint: rgba(0, 184, 148, 0.07);
+    --wm-amber-light: rgba(245, 158, 11, 0.12);
+    --wm-blue-soft:   rgba(26, 86, 219, 0.12);
   }
 
-  html,
-  body {
+  html, body {
     background:
-      radial-gradient(1200px 520px at 5% -15%, rgba(0, 184, 148, 0.1), transparent 58%),
-      radial-gradient(900px 460px at 100% -15%, rgba(15, 23, 42, 0.32), transparent 56%),
+      radial-gradient(ellipse 100% 60% at 0% 0%, rgba(0, 184, 148, 0.08) 0%, transparent 55%),
+      radial-gradient(ellipse 80% 50% at 100% 0%, rgba(12, 27, 51, 0.5) 0%, transparent 50%),
       var(--wm-bg);
+  }
+}
+
+/* ── Reduced motion ─────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

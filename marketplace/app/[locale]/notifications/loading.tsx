@@ -4,7 +4,7 @@ import Skeleton from '@/components/ui/Skeleton';
 export default function NotificationsLoading() {
   return (
     <Shell>
-      <div className="rounded-2xl border border-zinc-200/70 bg-white/90 p-5 dark:border-zinc-800 dark:bg-zinc-900/80">
+      <div className="rounded-2xl [border:1px_solid_var(--wm-border)] [background:var(--wm-surface)] p-5 dark:border-zinc-800 dark:bg-zinc-900/80">
         <Skeleton height="h-6" className="w-36" />
         <div className="mt-2">
           <Skeleton height="h-4" className="w-72" />
