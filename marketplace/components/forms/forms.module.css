@@ -204,6 +204,18 @@
   transform: translateY(-1px);
 }
 
+.buttonContent {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.inlineSpinner {
+  width: 0.9rem;
+  height: 0.9rem;
+  animation: wm-spin 0.9s linear infinite;
+}
+
 .primary:disabled,
 .secondary:disabled {
   opacity: 0.6;
@@ -289,6 +301,15 @@
   padding: 10px;
   display: grid;
   gap: 8px;
+}
+
+@keyframes wm-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 760px) {

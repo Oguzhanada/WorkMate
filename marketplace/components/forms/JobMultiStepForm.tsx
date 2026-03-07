@@ -1,5 +1,7 @@
 'use client';
 
+import { AnimatePresence, motion } from 'framer-motion';
+import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -22,6 +24,12 @@ const STEP_GOALS: Record<number, string> = {
   1: 'Define what needs to be done and how you want providers to respond.',
   2: 'Confirm location details so only relevant providers can see your request.',
   3: 'Add optional photos and submit your request for review.'
+};
+const STEP_ANIMATION = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+  transition: { duration: 0.2, ease: 'easeOut' as const }
 };
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -313,8 +321,16 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
         </aside>
 
         <div className={styles.wizardMain}>
-          {step === 1 ? (
-            <div className={styles.field}>
+          <AnimatePresence mode="wait" initial={false}>
+            {step === 1 ? (
+              <motion.div
+                key="step-1"
+                className={styles.field}
+                initial={STEP_ANIMATION.initial}
+                animate={STEP_ANIMATION.animate}
+                exit={STEP_ANIMATION.exit}
+                transition={STEP_ANIMATION.transition}
+              >
               <h2 className={styles.title}>Let&apos;s start with the basics</h2>
               <p className={styles.sectionLead}>Tell providers what you need and when you need it.</p>
 
@@ -434,7 +450,10 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
                     className={styles.secondary}
                     style={{ fontSize: '0.78rem', padding: '0.25rem 0.6rem', whiteSpace: 'nowrap' }}
                   >
-                    {isGeneratingDescription ? 'Writing...' : '✨ AI-write'}
+                    <span className={styles.buttonContent}>
+                      {isGeneratingDescription ? <Loader2 className={styles.inlineSpinner} /> : null}
+                      {isGeneratingDescription ? 'Writing...' : '✨ AI-write'}
+                    </span>
                   </button>
                 </div>
                 <textarea
@@ -450,11 +469,18 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
                   Continue
                 </button>
               </div>
-            </div>
-          ) : null}
+              </motion.div>
+            ) : null}
 
-          {step === 2 ? (
-            <div className={styles.field}>
+            {step === 2 ? (
+              <motion.div
+                key="step-2"
+                className={styles.field}
+                initial={STEP_ANIMATION.initial}
+                animate={STEP_ANIMATION.animate}
+                exit={STEP_ANIMATION.exit}
+                transition={STEP_ANIMATION.transition}
+              >
               <h2 className={styles.title}>Location and budget</h2>
               <p className={styles.sectionLead}>Add your address so local providers can match your request.</p>
               <EircodeAddressForm value={address} onChange={setAddress} />
@@ -488,11 +514,18 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
                   Continue
                 </button>
               </div>
-            </div>
-          ) : null}
+              </motion.div>
+            ) : null}
 
-          {step === 3 ? (
-            <div className={styles.field}>
+            {step === 3 ? (
+              <motion.div
+                key="step-3"
+                className={styles.field}
+                initial={STEP_ANIMATION.initial}
+                animate={STEP_ANIMATION.animate}
+                exit={STEP_ANIMATION.exit}
+                transition={STEP_ANIMATION.transition}
+              >
               <h2 className={styles.title}>Add photos and submit</h2>
               <p className={styles.sectionLead}>Upload optional photos to help providers quote faster.</p>
               <input className={styles.input} type="file" accept="image/*" multiple onChange={(e) => setPhotos(Array.from(e.target.files || []))} />
@@ -506,11 +539,15 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
                   disabled={isPending || Boolean(currentStepError)}
                   className={styles.primary}
                 >
-                  {isPending ? 'Submitting...' : 'Create Job Request'}
+                  <span className={styles.buttonContent}>
+                    {isPending ? <Loader2 className={styles.inlineSpinner} /> : null}
+                    {isPending ? 'Submitting...' : 'Create Job Request'}
+                  </span>
                 </button>
               </div>
-            </div>
-          ) : null}
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
         </div>
       </div>
     </div>

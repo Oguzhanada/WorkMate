@@ -98,9 +98,15 @@ export default function CTASection() {
 
             <div className="mt-8 flex flex-wrap gap-3">
               {ctaActions.map((action) => (
-                <motion.div key={action.label} whileHover={{scale: 1.04}} whileTap={{scale: 0.97}}>
+                <motion.div key={action.label} whileHover={{scale: 1.04, y: -1}} whileTap={{scale: 0.97}}>
                   <Link href={action.href} className={action.className} style={action.style}>
-                    <span>{action.emoji}</span>
+                    <motion.span
+                      aria-hidden
+                      animate={{x: [0, 1, 0]}}
+                      transition={{duration: 1.4, repeat: Infinity, ease: 'easeInOut'}}
+                    >
+                      {action.emoji}
+                    </motion.span>
                     <span>{action.label}</span>
                   </Link>
                 </motion.div>
@@ -109,10 +115,14 @@ export default function CTASection() {
 
             <div className="mt-10 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               {highlights.map((item) => (
-                <div key={item.text} className="flex items-center gap-2.5 text-sm text-white/80">
+                <motion.div
+                  key={item.text}
+                  whileHover={{x: 2}}
+                  className="flex items-center gap-2.5 text-sm text-white/80"
+                >
                   <span className="text-lg">{item.emoji}</span>
                   <span>{item.text}</span>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>

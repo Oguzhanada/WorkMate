@@ -1,11 +1,13 @@
 'use client';
 
 import {motion} from 'framer-motion';
-import {MapPin, Search, X} from 'lucide-react';
+import Link from 'next/link';
+import {MapPin, Search, X, Loader2} from 'lucide-react';
 import {useEffect, useState} from 'react';
-import {useRouter} from 'next/navigation';
+import {usePathname, useRouter} from 'next/navigation';
 
 import {heroItemVariants, heroStaggerContainer} from '@/styles/animations';
+import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
 import {getTaxonomySuggestions} from '@/lib/service-taxonomy';
 
 const counties = [
@@ -51,9 +53,12 @@ function Counter({target, suffix = ''}: {target: number; suffix?: string}) {
 
 export default function HeroSection() {
   const router = useRouter();
+  const pathname = usePathname() || '/';
+  const localeRoot = getLocaleRoot(pathname);
   const [county, setCounty] = useState('Dublin');
   const [serviceQuery, setServiceQuery] = useState('');
   const [suggestOpen, setSuggestOpen] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [serviceSuggestions, setServiceSuggestions] = useState<string[]>(fallbackServiceSuggestions);
 
   useEffect(() => {
@@ -83,11 +88,13 @@ export default function HeroSection() {
     .slice(0, 6);
 
   const onFindService = () => {
+    if (isSearching) return;
+    setIsSearching(true);
     const params = new URLSearchParams();
     if (serviceQuery.trim()) params.set('q', serviceQuery.trim());
     if (county) params.set('county', county);
     setSuggestOpen(false);
-    router.push(`/search?${params.toString()}`);
+    router.push(withLocalePrefix(localeRoot, `/search?${params.toString()}`));
   };
 
   return (
@@ -226,14 +233,28 @@ export default function HeroSection() {
               </select>
             </label>
 
-            <button
+            <motion.button
               type="button"
               onClick={onFindService}
-              className="rounded-xl px-4 py-3 text-sm font-bold text-white transition hover:scale-[1.02]"
+              disabled={isSearching}
+              whileTap={{scale: 0.98}}
+              className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-80"
               style={{background: 'linear-gradient(135deg, var(--wm-primary), var(--wm-primary-dark))'}}
             >
-              Find Service 🔍
-            </button>
+              {isSearching ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Finding...
+                </>
+              ) : (
+                <>
+                  Find Service
+                  <motion.span animate={{x: [0, 2, 0]}} transition={{duration: 1.2, repeat: Infinity, ease: 'easeInOut'}}>
+                    🔍
+                  </motion.span>
+                </>
+              )}
+            </motion.button>
           </motion.div>
 
           {/* Stats */}
@@ -258,13 +279,13 @@ export default function HeroSection() {
             >
               How it works ↓
             </a>
-            <a
-              href="/search"
+            <Link
+              href={withLocalePrefix(localeRoot, '/search')}
               className="rounded-xl px-5 py-3 text-sm font-bold text-white transition hover:scale-[1.02]"
               style={{background: 'linear-gradient(135deg, var(--wm-primary), var(--wm-primary-dark))'}}
             >
               Explore All Services →
-            </a>
+            </Link>
           </motion.div>
 
           {/* Social proof strip */}

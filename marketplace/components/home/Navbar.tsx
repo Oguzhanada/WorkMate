@@ -82,6 +82,7 @@ export default function Navbar() {
   const [hasAdminRole, setHasAdminRole] = useState(false);
   const [hasProviderRole, setHasProviderRole] = useState(false);
   const [profileName, setProfileName] = useState('');
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const hasResolvedInitialAuthRef = useRef(false);
 
   const localeRoot = useMemo(() => getLocaleRoot(pathname), [pathname]);
@@ -199,6 +200,8 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
     const supabase = getSupabaseBrowserClient();
     setMobileOpen(false);
     setIsAuthenticated(false);
@@ -245,6 +248,7 @@ export default function Navbar() {
     router.replace(target);
     router.refresh();
     setTimeout(() => window.location.assign(target), 120);
+    setTimeout(() => setIsLoggingOut(false), 1000);
   };
 
   const handleHashLink = (hash: string) => {
@@ -355,9 +359,10 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={handleLogout}
+                disabled={isLoggingOut}
                 className="rounded-xl border border-[var(--wm-border)] px-4 py-2 text-sm font-semibold text-[var(--wm-text)] transition hover:border-[var(--wm-primary)] hover:text-[var(--wm-primary)]"
               >
-                Log out
+                {isLoggingOut ? 'Logging out...' : 'Log out'}
               </button>
             </>
           ) : (
@@ -472,9 +477,10 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={handleLogout}
+                    disabled={isLoggingOut}
                     className="rounded-lg border border-[var(--wm-border)] px-3 py-2 text-center text-sm font-semibold sm:col-span-2"
                   >
-                    Log out
+                    {isLoggingOut ? 'Logging out...' : 'Log out'}
                   </button>
                 </>
               ) : (
