@@ -109,7 +109,7 @@ export async function GET(
 
   const { data, error } = await supabase
     .from('appointments')
-    .select('id,job_id,provider_id,customer_id,start_time,end_time,status,created_at')
+    .select('id,job_id,provider_id,customer_id,start_time,end_time,status,video_link,notes,created_at')
     .eq('job_id', jobId)
     .order('start_time', { ascending: true });
 
@@ -241,8 +241,10 @@ export async function POST(
       start_time: parsed.data.start_time,
       end_time: parsed.data.end_time,
       status: 'scheduled',
+      video_link: parsed.data.video_link ?? null,
+      notes: parsed.data.notes ?? null,
     })
-    .select('id,job_id,provider_id,customer_id,start_time,end_time,status,created_at')
+    .select('id,job_id,provider_id,customer_id,start_time,end_time,status,video_link,notes,created_at')
     .single();
 
   if (insertError) {

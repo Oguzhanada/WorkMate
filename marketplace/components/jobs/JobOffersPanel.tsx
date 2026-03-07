@@ -22,12 +22,20 @@ export default async function JobOffersPanel({
 
   const supabase = getSupabaseServiceClient();
 
-  const { data: quotes } = await supabase
-    .from('quotes')
-    .select('id,pro_id,quote_amount_cents,message,estimated_duration,expires_at,created_at,status')
-    .eq('job_id', jobId)
-    .eq('status', 'pending')
-    .order('created_at', { ascending: false });
+  const [{ data: quotes }, { data: allQuoteProviders }] = await Promise.all([
+    supabase
+      .from('quotes')
+      .select('id,pro_id,quote_amount_cents,message,estimated_duration,expires_at,created_at,status')
+      .eq('job_id', jobId)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('quotes')
+      .select('pro_id')
+      .eq('job_id', jobId),
+  ]);
+
+  const uniqueInterestedProviders = new Set((allQuoteProviders ?? []).map((q) => q.pro_id)).size;
 
   if (!quotes || quotes.length === 0) {
     return (
@@ -42,10 +50,14 @@ export default async function JobOffersPanel({
 
   const providerIds = [...new Set(quotes.map((q) => q.pro_id))];
 
+  const todayDate = new Date().toISOString().slice(0, 10);
+  const todayDow = new Date().getDay();
+
   const [
     { data: profiles },
     { data: rankings },
     { data: documents },
+    { data: sameDaySlots },
     rebookingChecks,
   ] = await Promise.all([
     supabase
@@ -62,8 +74,15 @@ export default async function JobOffersPanel({
       .in('profile_id', providerIds)
       .eq('verification_status', 'verified')
       .is('archived_at', null),
+    supabase
+      .from('provider_availability')
+      .select('provider_id')
+      .in('provider_id', providerIds)
+      .or(`and(is_recurring.eq.true,day_of_week.eq.${todayDow}),and(is_recurring.eq.false,specific_date.eq.${todayDate})`),
     Promise.all(providerIds.map((pid) => getRebookingInfo(customerId, pid))),
   ]);
+
+  const sameDayProviderIds = new Set((sameDaySlots ?? []).map((row) => row.provider_id));
 
   const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
   const rankingById = new Map((rankings ?? []).map((r) => [r.provider_id, r]));
@@ -116,6 +135,7 @@ export default async function JobOffersPanel({
           hasInsurance: docs.has('public_liability_insurance'),
           hasSafePass: docs.has('safe_pass'),
           complianceScore: Number(profile?.compliance_score ?? 0),
+          isSameDayAvailable: sameDayProviderIds.has(quote.pro_id),
         },
         ranking,
         isRebooking: Boolean(rebooking?.hasWorkedBefore),
@@ -130,9 +150,16 @@ export default async function JobOffersPanel({
   return (
     <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-base font-semibold">
-          Offers <span className="ml-1 text-sm font-normal text-zinc-500">({offersWithRankings.length})</span>
-        </h2>
+        <div>
+          <h2 className="text-base font-semibold">
+            Offers <span className="ml-1 text-sm font-normal text-zinc-500">({offersWithRankings.length})</span>
+          </h2>
+          {uniqueInterestedProviders > 0 ? (
+            <p className="mt-0.5 text-xs text-zinc-500">
+              {uniqueInterestedProviders} {uniqueInterestedProviders === 1 ? 'provider' : 'providers'} interested in this job
+            </p>
+          ) : null}
+        </div>
         {offersWithRankings.some((o) => o.isRebooking) && (
           <span className="text-xs text-[var(--wm-primary)] font-medium">
             Repeat booking discount applied

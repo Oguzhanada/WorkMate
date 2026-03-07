@@ -254,11 +254,12 @@ describe('calculateOfferScore — badge assignment', () => {
     }
   });
 
-  it('assigns TRUSTED_PRO badge when trustScore >= 20 and score < 85', async () => {
-    // Low price score (expensive offer) + high trust score
+  it('assigns TRUSTED_PRO badge when complianceScore >= 80 and smartScore < 85', async () => {
+    // Expensive + slow offer → low price/response scores → smartScore < 85
+    // compliance_score=90 → TRUSTED_PRO badge should fire
     vi.mocked(getSupabaseServiceClient).mockReturnValue(
       makeMockClient({
-        provider_rankings: { ...FULL_RANKING, avg_rating: 0, completed_jobs: 0, total_trust_score: 25 },
+        provider_rankings: { ...FULL_RANKING, avg_rating: 0, completed_jobs: 0, total_trust_score: 0, compliance_score: 90 },
         quotes: AVG_PRICE_QUOTES,
       }) as unknown as ReturnType<typeof getSupabaseServiceClient>
     );
@@ -266,8 +267,8 @@ describe('calculateOfferScore — badge assignment', () => {
       { ...BASE_OFFER, priceCents: 100_000, createdAt: quoteCreatedAt(30) }, // expensive + slow
       BASE_JOB
     );
-    // trustScore=25 ≥ 20, and with low price+response the total should be < 85
-    if (result.score < 85 && result.breakdown.trustScore >= 20) {
+    // complianceScore=90 ≥ 80, and with low price+response the smartScore should be < 85
+    if (result.breakdown.smartScore < 85 && result.breakdown.complianceMultiplier >= 1.2) {
       expect(result.badge).toBe('TRUSTED_PRO');
     }
   });

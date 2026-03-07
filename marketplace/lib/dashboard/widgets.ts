@@ -8,10 +8,13 @@ export type WidgetType =
   | 'recent_messages'
   | 'task_alerts'
   | 'customer_stats'
+  | 'provider_earnings'
   | 'admin_pending_jobs'
   | 'admin_applications'
   | 'admin_stats'
-  | 'admin_api_keys';
+  | 'admin_api_keys'
+  | 'admin_feature_flags'
+  | 'provider_subscription';
 
 export type WidgetPosition = {
   x: number;
@@ -28,8 +31,8 @@ export type WidgetConfig = {
 
 const ALLOWED_WIDGETS: Record<DashboardMode, WidgetType[]> = {
   customer: ['customer_stats', 'active_jobs', 'pending_quotes', 'recent_messages'],
-  provider: ['active_jobs', 'pending_quotes', 'recent_messages', 'task_alerts'],
-  admin: ['admin_pending_jobs', 'admin_applications', 'admin_stats', 'admin_api_keys', 'recent_messages'],
+  provider: ['active_jobs', 'pending_quotes', 'recent_messages', 'task_alerts', 'provider_earnings', 'provider_subscription'],
+  admin: ['admin_pending_jobs', 'admin_applications', 'admin_stats', 'admin_api_keys', 'admin_feature_flags', 'recent_messages'],
 };
 
 const DEFAULT_WIDGETS: Record<DashboardMode, WidgetConfig[]> = {
@@ -40,17 +43,20 @@ const DEFAULT_WIDGETS: Record<DashboardMode, WidgetConfig[]> = {
     { widget_type: 'recent_messages', position: { x: 0, y: 2, w: 12, h: 2 }, settings: { limit: 6 } },
   ],
   provider: [
-    { widget_type: 'active_jobs', position: { x: 0, y: 0, w: 6, h: 2 }, settings: {} },
-    { widget_type: 'pending_quotes', position: { x: 6, y: 0, w: 6, h: 2 }, settings: {} },
-    { widget_type: 'task_alerts', position: { x: 0, y: 1, w: 12, h: 3 }, settings: {} },
-    { widget_type: 'recent_messages', position: { x: 0, y: 2, w: 12, h: 2 }, settings: { limit: 6 } },
+    { widget_type: 'provider_earnings', position: { x: 0, y: 0, w: 12, h: 2 }, settings: {} },
+    { widget_type: 'active_jobs', position: { x: 0, y: 1, w: 6, h: 2 }, settings: {} },
+    { widget_type: 'pending_quotes', position: { x: 6, y: 1, w: 6, h: 2 }, settings: {} },
+    { widget_type: 'provider_subscription', position: { x: 0, y: 2, w: 12, h: 1 }, settings: {} },
+    { widget_type: 'task_alerts', position: { x: 0, y: 3, w: 12, h: 3 }, settings: {} },
+    { widget_type: 'recent_messages', position: { x: 0, y: 4, w: 12, h: 2 }, settings: { limit: 6 } },
   ],
   admin: [
     { widget_type: 'admin_stats', position: { x: 0, y: 0, w: 6, h: 2 }, settings: {} },
     { widget_type: 'admin_pending_jobs', position: { x: 6, y: 0, w: 6, h: 2 }, settings: {} },
     { widget_type: 'admin_applications', position: { x: 0, y: 1, w: 6, h: 2 }, settings: {} },
     { widget_type: 'admin_api_keys', position: { x: 6, y: 1, w: 6, h: 2 }, settings: {} },
-    { widget_type: 'recent_messages', position: { x: 0, y: 2, w: 12, h: 2 }, settings: { limit: 6 } },
+    { widget_type: 'admin_feature_flags', position: { x: 0, y: 2, w: 12, h: 2 }, settings: {} },
+    { widget_type: 'recent_messages', position: { x: 0, y: 3, w: 12, h: 2 }, settings: { limit: 6 } },
   ],
 };
 
@@ -94,6 +100,8 @@ export function getWidgetLabel(widgetType: WidgetType) {
       return 'Task Alerts';
     case 'customer_stats':
       return 'My Stats';
+    case 'provider_earnings':
+      return 'Earnings';
     case 'admin_pending_jobs':
       return 'Pending Job Reviews';
     case 'admin_applications':
@@ -102,6 +110,10 @@ export function getWidgetLabel(widgetType: WidgetType) {
       return 'Admin Stats';
     case 'admin_api_keys':
       return 'API Keys';
+    case 'admin_feature_flags':
+      return 'Feature Flags';
+    case 'provider_subscription':
+      return 'Subscription';
     default:
       return widgetType;
   }

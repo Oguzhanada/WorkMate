@@ -77,35 +77,43 @@ export async function PATCH(
     );
   }
 
+  const updatePayload: Record<string, unknown> = {};
+  if (parsed.data.status) updatePayload.status = parsed.data.status;
+  if ('video_link' in parsed.data) updatePayload.video_link = parsed.data.video_link ?? null;
+  if ('notes' in parsed.data) updatePayload.notes = parsed.data.notes ?? null;
+
   const { data: updated, error: updateError } = await service
     .from('appointments')
-    .update({ status: parsed.data.status })
+    .update(updatePayload)
     .eq('id', appointmentId)
-    .select('id,job_id,provider_id,customer_id,start_time,end_time,status,created_at')
+    .select('id,job_id,provider_id,customer_id,start_time,end_time,status,video_link,notes,created_at')
     .single();
 
   if (updateError) {
     return NextResponse.json({ error: updateError.message }, { status: 400 });
   }
 
-  const notificationType =
-    parsed.data.status === 'cancelled' ? 'appointment_cancelled' : 'appointment_completed';
+  // Only send status-change notifications when status was actually updated
+  if (parsed.data.status) {
+    const notificationType =
+      parsed.data.status === 'cancelled' ? 'appointment_cancelled' : 'appointment_completed';
 
-  await Promise.all(
-    [updated.provider_id, updated.customer_id].map(async (targetId) => {
-      await service.from('notifications').insert({
-        user_id: targetId,
-        type: notificationType,
-        payload: {
-          appointment_id: updated.id,
-          job_id: updated.job_id,
-          status: updated.status,
-          start_time: updated.start_time,
-          end_time: updated.end_time,
-        },
-      });
-    })
-  );
+    await Promise.all(
+      [updated.provider_id, updated.customer_id].map(async (targetId) => {
+        await service.from('notifications').insert({
+          user_id: targetId,
+          type: notificationType,
+          payload: {
+            appointment_id: updated.id,
+            job_id: updated.job_id,
+            status: updated.status,
+            start_time: updated.start_time,
+            end_time: updated.end_time,
+          },
+        });
+      })
+    );
+  }
 
   return NextResponse.json({ appointment: updated }, { status: 200 });
 }

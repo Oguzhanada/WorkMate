@@ -60,6 +60,15 @@
   gap: 0.25rem;
 }
 
+.badgeSameDay {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
 .badgeIcon {
   width: 0.75rem;
   height: 0.75rem;
@@ -164,6 +173,28 @@
   margin: 0;
   color: #6b7280;
   font-size: 0.82rem;
+}
+
+.expiryBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+}
+
+.expiryUrgent {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+
+.expiryCritical {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
 }
 
 .toggle {

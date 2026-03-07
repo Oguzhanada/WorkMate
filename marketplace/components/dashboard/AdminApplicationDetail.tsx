@@ -62,6 +62,8 @@ type ReviewModalState =
       defaultValue: string;
     };
 
+type RiskResult = { risk_score: number; risk_flags: string[] } | null;
+
 export default function AdminApplicationDetail({ profileId }: { profileId: string }) {
   const [application, setApplication] = useState<ApplicationDetail | null>(null);
   const [documents, setDocuments] = useState<DocumentRow[]>([]);
@@ -71,6 +73,8 @@ export default function AdminApplicationDetail({ profileId }: { profileId: strin
   const [reviewInput, setReviewInput] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
   const [pendingActions, setPendingActions] = useState<Record<string, boolean>>({});
+  const [riskResult, setRiskResult] = useState<RiskResult>(null);
+  const [riskPending, setRiskPending] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
@@ -137,6 +141,22 @@ export default function AdminApplicationDetail({ profileId }: { profileId: strin
       await loadData();
     } finally {
       setPendingAction(actionKey, false);
+    }
+  };
+
+  const runRiskAssessment = async () => {
+    setRiskPending(true);
+    setRiskResult(null);
+    try {
+      const res = await fetch(`/api/admin/risk/${profileId}`, { method: 'POST' });
+      const payload = await res.json() as { risk_score?: number; risk_flags?: string[]; error?: string };
+      if (!res.ok) {
+        setFeedback(payload.error || 'Risk assessment failed.');
+        return;
+      }
+      setRiskResult({ risk_score: payload.risk_score ?? 0, risk_flags: payload.risk_flags ?? [] });
+    } finally {
+      setRiskPending(false);
     }
   };
 
@@ -323,7 +343,27 @@ export default function AdminApplicationDetail({ profileId }: { profileId: strin
           <button type="button" className={styles.secondaryLink} onClick={runVerification} disabled={verificationPending}>
             Run AI risk check
           </button>
+          <button type="button" className={styles.secondaryLink} onClick={runRiskAssessment} disabled={riskPending}>
+            {riskPending ? 'Assessing...' : 'Risk Assessment'}
+          </button>
         </div>
+        {riskResult ? (
+          <div
+            className={riskResult.risk_score >= 50 ? styles.notice : styles.okTag}
+            style={{ marginTop: '0.75rem' }}
+          >
+            <strong>Risk Score: {riskResult.risk_score}/100</strong>
+            {riskResult.risk_flags.length > 0 ? (
+              <ul style={{ margin: '0.25rem 0 0', paddingLeft: '1.2rem', fontSize: '0.85rem' }}>
+                {riskResult.risk_flags.map((flag) => (
+                  <li key={flag}>{flag.replace(/_/g, ' ')}</li>
+                ))}
+              </ul>
+            ) : (
+              <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem' }}>No risk flags detected.</p>
+            )}
+          </div>
+        ) : null}
       </article>
 
       <section className={styles.card}>

@@ -2,6 +2,7 @@ import {notFound} from 'next/navigation';
 import {getSupabaseServiceClient} from '@/lib/supabase/service';
 import Button from '@/components/ui/Button';
 import ComplianceBadge from '@/components/ui/ComplianceBadge';
+import GardaVettingBadge from '@/components/ui/GardaVettingBadge';
 import styles from '../../../inner.module.css';
 
 type Params = Promise<{locale: string; id: string}>;
@@ -14,7 +15,7 @@ export default async function PublicProfilePage({params}: {params: Params}) {
     await Promise.all([
       supabase
         .from('profiles')
-        .select('id,full_name,avatar_url,created_at,is_verified,verification_status,compliance_score')
+        .select('id,full_name,avatar_url,created_at,is_verified,verification_status,compliance_score,garda_vetting_status,garda_vetting_expires_at')
         .eq('id', id)
         .maybeSingle(),
       supabase
@@ -74,6 +75,10 @@ export default async function PublicProfilePage({params}: {params: Params}) {
                 <div className="flex flex-wrap items-center gap-2">
                   <h1>{profile.full_name ?? 'Member'}</h1>
                   <ComplianceBadge score={(profile as { compliance_score?: number }).compliance_score ?? 0} />
+                  <GardaVettingBadge
+                    status={(profile as { garda_vetting_status?: string | null }).garda_vetting_status as Parameters<typeof GardaVettingBadge>[0]['status']}
+                    expiresAt={(profile as { garda_vetting_expires_at?: string | null }).garda_vetting_expires_at}
+                  />
                 </div>
                 <p className={styles.muted}>Joined: {new Date(profile.created_at).toLocaleDateString()}</p>
                 <p className={styles.muted}>

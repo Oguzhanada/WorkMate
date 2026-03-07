@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import {AnimatePresence, motion} from 'framer-motion';
-import {Menu, X, Hammer, BriefcaseBusiness} from 'lucide-react';
+import {Menu, X, BriefcaseBusiness} from 'lucide-react';
 import {useEffect, useMemo, useRef, useState} from 'react';
+import WorkMateLogo from '@/components/ui/WorkMateLogo';
 import {usePathname, useRouter} from 'next/navigation';
 
 import {getSupabaseBrowserClient} from '@/lib/supabase/client';
@@ -282,23 +283,21 @@ export default function Navbar() {
         }}
         className="mx-auto flex w-full max-w-7xl items-center justify-between rounded-2xl border border-white/70 px-4 py-3 backdrop-blur-xl"
       >
-        <Link href={localeRoot} className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#00B894] text-white">
-            <Hammer className="h-5 w-5" />
-          </span>
+        <Link href={localeRoot} className="flex items-center gap-2.5">
+          <WorkMateLogo size={38} />
           <div>
-            <p className="font-[Poppins] text-lg font-bold text-[#1F2937]">WorkMate</p>
-            <p className="text-xs text-[#4B5563]">Ireland service marketplace</p>
+            <p className="font-[Poppins] text-lg font-bold tracking-tight text-[var(--wm-text)]">WorkMate</p>
+            <p className="text-xs text-[var(--wm-muted)]">🇮🇪 Ireland&apos;s service marketplace</p>
           </div>
         </Link>
 
-        <nav className="hidden items-center gap-7 text-sm font-medium text-[#1F2937] lg:flex">
+        <nav className="hidden items-center gap-7 text-sm font-medium text-[var(--wm-text)] lg:flex">
           {navItems.map((item) => (
             <button
               key={item.href}
               type="button"
               onClick={() => handleHashLink(item.href)}
-              className="transition-colors hover:text-[#00B894]"
+              className="transition-colors hover:text-[var(--wm-primary)]"
             >
               {item.label}
             </button>
@@ -312,13 +311,13 @@ export default function Navbar() {
                 <>
                   <Link
                     href={withLocalePrefix(localeRoot, '/post-job')}
-                    className="rounded-xl bg-[#1a56db] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1343b8]"
+                    className="rounded-xl bg-[var(--wm-blue)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--wm-blue-dark)]"
                   >
-                    Post a Job
+                    📋 Post a Job
                   </Link>
                   <Link
                     href={withLocalePrefix(localeRoot, '/become-provider')}
-                    className="flex items-center gap-2 rounded-xl bg-[#00B894] px-4 py-2 text-sm font-semibold text-white transition hover:scale-[1.03] hover:bg-[#008B74]"
+                    className="flex items-center gap-2 rounded-xl bg-[var(--wm-primary)] px-4 py-2 text-sm font-semibold text-white transition hover:scale-[1.03] hover:bg-[var(--wm-primary-dark)]"
                   >
                     <BriefcaseBusiness className="h-4 w-4" />
                     Become a Pro
@@ -327,20 +326,28 @@ export default function Navbar() {
               ) : null}
               <Link
                 href={withLocalePrefix(localeRoot, '/profile')}
-                className="rounded-xl border border-[#D1D5DB] px-4 py-2 text-sm font-semibold text-[#1F2937] transition hover:border-[#00B894] hover:text-[#00B894]"
+                className="rounded-xl border border-[var(--wm-border)] px-4 py-2 text-sm font-semibold text-[var(--wm-text)] transition hover:border-[var(--wm-primary)] hover:text-[var(--wm-primary)]"
               >
                 {profileName || 'Profile'}
               </Link>
+              {!hasProviderRole && !hasAdminRole ? (
+                <Link
+                  href={withLocalePrefix(localeRoot, '/saved-providers')}
+                  className="rounded-xl border border-[var(--wm-border)] px-4 py-2 text-sm font-semibold text-[var(--wm-text)] transition hover:border-[var(--wm-primary)] hover:text-[var(--wm-primary)]"
+                >
+                  ❤️ Saved
+                </Link>
+              ) : null}
               <Link
                 href={dashboardHref}
-                className="rounded-xl border border-[#D1D5DB] px-4 py-2 text-sm font-semibold text-[#1F2937] transition hover:border-[#00B894] hover:text-[#00B894]"
+                className="rounded-xl border border-[var(--wm-border)] px-4 py-2 text-sm font-semibold text-[var(--wm-text)] transition hover:border-[var(--wm-primary)] hover:text-[var(--wm-primary)]"
               >
                 Dashboard
               </Link>
               {hasAdminRole ? (
                 <Link
                   href={withLocalePrefix(localeRoot, '/dashboard/admin')}
-                  className="rounded-xl border border-[#D1D5DB] px-4 py-2 text-sm font-semibold text-[#1F2937] transition hover:border-[#00B894] hover:text-[#00B894]"
+                  className="rounded-xl border border-[var(--wm-border)] px-4 py-2 text-sm font-semibold text-[var(--wm-text)] transition hover:border-[var(--wm-primary)] hover:text-[var(--wm-primary)]"
                 >
                   Admin Panel
                 </Link>
@@ -348,7 +355,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="rounded-xl border border-[#D1D5DB] px-4 py-2 text-sm font-semibold text-[#1F2937] transition hover:border-[#00B894] hover:text-[#00B894]"
+                className="rounded-xl border border-[var(--wm-border)] px-4 py-2 text-sm font-semibold text-[var(--wm-text)] transition hover:border-[var(--wm-primary)] hover:text-[var(--wm-primary)]"
               >
                 Log out
               </button>
@@ -357,19 +364,19 @@ export default function Navbar() {
             <>
               <Link
                 href={withLocalePrefix(localeRoot, '/login')}
-                className="rounded-xl border border-[#D1D5DB] px-4 py-2 text-sm font-semibold text-[#1F2937] transition hover:border-[#00B894] hover:text-[#00B894]"
+                className="rounded-xl border border-[var(--wm-border)] px-4 py-2 text-sm font-semibold text-[var(--wm-text)] transition hover:border-[var(--wm-primary)] hover:text-[var(--wm-primary)]"
               >
                 Log in
               </Link>
               <Link
                 href={withLocalePrefix(localeRoot, '/sign-up')}
-                className="rounded-xl bg-[#00B894] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#008B74]"
+                className="rounded-xl bg-[var(--wm-primary)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--wm-primary-dark)]"
               >
-                Sign up
+                Sign up free
               </Link>
               <Link
                 href={withLocalePrefix(localeRoot, '/become-provider')}
-                className="flex items-center gap-2 rounded-xl bg-[#00B894] px-4 py-2 text-sm font-semibold text-white transition hover:scale-[1.03] hover:bg-[#008B74]"
+                className="flex items-center gap-2 rounded-xl bg-[var(--wm-navy)] px-4 py-2 text-sm font-semibold text-white transition hover:scale-[1.03] hover:bg-[var(--wm-navy-mid)]"
               >
                 <BriefcaseBusiness className="h-4 w-4" />
                 Become a Pro
@@ -380,7 +387,7 @@ export default function Navbar() {
 
         <button
           type="button"
-          className="inline-flex rounded-xl border border-[#D1D5DB] p-2 text-[#1F2937] lg:hidden"
+          className="inline-flex rounded-xl border border-[var(--wm-border)] p-2 text-[var(--wm-text)] lg:hidden"
           onClick={() => setMobileOpen((prev) => !prev)}
           aria-label="Toggle mobile navigation"
         >
@@ -395,14 +402,14 @@ export default function Navbar() {
             animate={{opacity: 1, y: 0}}
             exit={{opacity: 0, y: -8}}
             transition={{duration: 0.2, ease: 'easeOut'}}
-            className="mx-auto mt-2 w-full max-w-7xl rounded-2xl border border-[#E5E7EB] bg-white/95 p-4 shadow-lg backdrop-blur"
+            className="mx-auto mt-2 w-full max-w-7xl rounded-2xl border border-[var(--wm-border)] bg-white/95 p-4 shadow-lg backdrop-blur"
           >
             <div className="flex flex-col gap-2">
               {navItems.map((item) => (
                 <button
                   key={item.href}
                   type="button"
-                  className="rounded-lg px-3 py-2 text-left text-sm font-medium text-[#1F2937] transition hover:bg-[#F3F4F6]"
+                  className="rounded-lg px-3 py-2 text-left text-sm font-medium text-[var(--wm-text)] transition hover:bg-[var(--wm-primary-light)]"
                   onClick={() => handleHashLink(item.href)}
                 >
                   {item.label}
@@ -417,14 +424,14 @@ export default function Navbar() {
                       <Link
                         href={withLocalePrefix(localeRoot, '/post-job')}
                         onClick={() => setMobileOpen(false)}
-                        className="rounded-lg bg-[#1a56db] px-3 py-2 text-center text-sm font-semibold text-white sm:col-span-2"
+                        className="rounded-lg bg-[var(--wm-blue)] px-3 py-2 text-center text-sm font-semibold text-white sm:col-span-2"
                       >
-                        Post a Job
+                        📋 Post a Job
                       </Link>
                       <Link
                         href={withLocalePrefix(localeRoot, '/become-provider')}
                         onClick={() => setMobileOpen(false)}
-                        className="rounded-lg bg-[#00B894] px-3 py-2 text-center text-sm font-semibold text-white sm:col-span-2"
+                        className="rounded-lg bg-[var(--wm-primary)] px-3 py-2 text-center text-sm font-semibold text-white sm:col-span-2"
                       >
                         Become a Pro
                       </Link>
@@ -433,14 +440,23 @@ export default function Navbar() {
                   <Link
                     href={withLocalePrefix(localeRoot, '/profile')}
                     onClick={() => setMobileOpen(false)}
-                    className="rounded-lg border border-[#D1D5DB] px-3 py-2 text-center text-sm font-semibold"
+                    className="rounded-lg border border-[var(--wm-border)] px-3 py-2 text-center text-sm font-semibold"
                   >
                     {profileName || 'Profile'}
                   </Link>
+                  {!hasProviderRole && !hasAdminRole ? (
+                    <Link
+                      href={withLocalePrefix(localeRoot, '/saved-providers')}
+                      onClick={() => setMobileOpen(false)}
+                      className="rounded-lg border border-[var(--wm-border)] px-3 py-2 text-center text-sm font-semibold"
+                    >
+                      ❤️ Saved
+                    </Link>
+                  ) : null}
                   <Link
                     href={dashboardHref}
                     onClick={() => setMobileOpen(false)}
-                    className="rounded-lg border border-[#D1D5DB] px-3 py-2 text-center text-sm font-semibold"
+                    className="rounded-lg border border-[var(--wm-border)] px-3 py-2 text-center text-sm font-semibold"
                   >
                     Dashboard
                   </Link>
@@ -448,7 +464,7 @@ export default function Navbar() {
                     <Link
                       href={withLocalePrefix(localeRoot, '/dashboard/admin')}
                       onClick={() => setMobileOpen(false)}
-                      className="rounded-lg border border-[#D1D5DB] px-3 py-2 text-center text-sm font-semibold sm:col-span-2"
+                      className="rounded-lg border border-[var(--wm-border)] px-3 py-2 text-center text-sm font-semibold sm:col-span-2"
                     >
                       Admin Panel
                     </Link>
@@ -456,7 +472,7 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="rounded-lg border border-[#D1D5DB] px-3 py-2 text-center text-sm font-semibold sm:col-span-2"
+                    className="rounded-lg border border-[var(--wm-border)] px-3 py-2 text-center text-sm font-semibold sm:col-span-2"
                   >
                     Log out
                   </button>
@@ -466,21 +482,21 @@ export default function Navbar() {
                   <Link
                     href={withLocalePrefix(localeRoot, '/login')}
                     onClick={() => setMobileOpen(false)}
-                    className="rounded-lg border border-[#D1D5DB] px-3 py-2 text-center text-sm font-semibold"
+                    className="rounded-lg border border-[var(--wm-border)] px-3 py-2 text-center text-sm font-semibold"
                   >
                     Log in
                   </Link>
                   <Link
                     href={withLocalePrefix(localeRoot, '/sign-up')}
                     onClick={() => setMobileOpen(false)}
-                    className="rounded-lg bg-[#00B894] px-3 py-2 text-center text-sm font-semibold text-white hover:bg-[#008B74]"
+                    className="rounded-lg bg-[var(--wm-primary)] px-3 py-2 text-center text-sm font-semibold text-white"
                   >
-                    Sign up
+                    Sign up free
                   </Link>
                   <Link
                     href={withLocalePrefix(localeRoot, '/become-provider')}
                     onClick={() => setMobileOpen(false)}
-                    className="rounded-lg bg-[#00B894] px-3 py-2 text-center text-sm font-semibold text-white sm:col-span-2"
+                    className="rounded-lg bg-[var(--wm-navy)] px-3 py-2 text-center text-sm font-semibold text-white sm:col-span-2"
                   >
                     Become a Pro
                   </Link>

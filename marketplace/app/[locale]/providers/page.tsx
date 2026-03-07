@@ -1,4 +1,5 @@
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { getSupabaseServerClient } from '@/lib/supabase/server';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import Card from '@/components/ui/Card';
@@ -8,6 +9,7 @@ import StatCard from '@/components/ui/StatCard';
 
 import ProviderFilterToggle from './ProviderFilterToggle';
 import ComplianceBadge from '@/components/ui/ComplianceBadge';
+import FavouriteButton from '@/components/providers/FavouriteButton';
 
 type ProviderRow = {
   id: string;
@@ -44,6 +46,10 @@ export default async function ProvidersPage({
   const isVerifiedOnly = resolvedSearch?.verified !== 'false';
   const supabase = getSupabaseServiceClient();
 
+  // Fetch current user to show personalised favourite state
+  const authClient = await getSupabaseServerClient();
+  const { data: { user: currentUser } } = await authClient.auth.getUser();
+
   let query = supabase
     .from('profiles')
     .select('id,full_name,verification_status,compliance_score,created_at')
@@ -60,7 +66,7 @@ export default async function ProvidersPage({
   const providers = (providersData ?? []) as ProviderRow[];
   const providerIds = providers.map((item) => item.id);
 
-  const [{ data: servicesData }, { data: areasData }, { data: categoriesData }] = await Promise.all([
+  const [{ data: servicesData }, { data: areasData }, { data: categoriesData }, { data: favouritesData }] = await Promise.all([
     providerIds.length
       ? supabase.from('pro_services').select('profile_id,category_id').in('profile_id', providerIds)
       : Promise.resolve({ data: [] as ProviderServiceRow[] }),
@@ -68,6 +74,12 @@ export default async function ProvidersPage({
       ? supabase.from('pro_service_areas').select('profile_id,county').in('profile_id', providerIds)
       : Promise.resolve({ data: [] as ProviderAreaRow[] }),
     supabase.from('categories').select('id,name'),
+    currentUser
+      ? supabase
+          .from('favourite_providers')
+          .select('provider_id')
+          .eq('customer_id', currentUser.id)
+      : Promise.resolve({ data: [] as { provider_id: string }[] }),
   ]);
 
   const services = (servicesData ?? []) as ProviderServiceRow[];
@@ -75,6 +87,20 @@ export default async function ProvidersPage({
   const categories = (categoriesData ?? []) as CategoryRow[];
 
   const categoryNameById = new Map(categories.map((item) => [item.id, item.name]));
+  const savedProviderIds = new Set((favouritesData ?? []).map((f) => f.provider_id));
+
+  // Same-Day Available: providers with a recurring or specific slot for today
+  const todayDate = new Date().toISOString().slice(0, 10);
+  const todayDow = new Date().getDay();
+  const { data: sameDaySlots } = providerIds.length
+    ? await supabase
+        .from('provider_availability')
+        .select('provider_id')
+        .in('provider_id', providerIds)
+        .or(`and(is_recurring.eq.true,day_of_week.eq.${todayDow}),and(is_recurring.eq.false,specific_date.eq.${todayDate})`)
+    : { data: [] as { provider_id: string }[] };
+
+  const sameDayProviderIds = new Set((sameDaySlots ?? []).map((row) => row.provider_id));
 
   const servicesByProvider = new Map<string, string[]>();
   for (const row of services) {
@@ -139,9 +165,18 @@ export default async function ProvidersPage({
                   <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
                     {provider.full_name ?? 'Provider'}
                   </h3>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <ComplianceBadge score={provider.compliance_score} />
                     <Badge tone="completed">Verified</Badge>
+                    {sameDayProviderIds.has(provider.id) ? (
+                      <Badge tone="open">Same-Day Available</Badge>
+                    ) : null}
+                    {currentUser ? (
+                      <FavouriteButton
+                        providerId={provider.id}
+                        initialSaved={savedProviderIds.has(provider.id)}
+                      />
+                    ) : null}
                   </div>
                 </div>
                 <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">

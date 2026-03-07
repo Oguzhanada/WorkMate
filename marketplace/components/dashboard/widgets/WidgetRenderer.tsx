@@ -10,6 +10,9 @@ import AdminApplicationsWidget from './AdminApplicationsWidget';
 import AdminStatsWidget from './AdminStatsWidget';
 import AdminApiKeysWidget from './AdminApiKeysWidget';
 import CustomerStatsWidget from './CustomerStatsWidget';
+import ProviderEarningsWidget from './ProviderEarningsWidget';
+import AdminFeatureFlagsWidget from './AdminFeatureFlagsWidget';
+import ProviderSubscriptionWidget from './ProviderSubscriptionWidget';
 
 type Props = {
   widgetType: WidgetType;
@@ -28,6 +31,8 @@ export default function WidgetRenderer({ widgetType, settings }: Props) {
       return <TaskAlertsWidget />;
     case 'customer_stats':
       return <CustomerStatsWidget />;
+    case 'provider_earnings':
+      return <ProviderEarningsWidget />;
     case 'admin_pending_jobs':
       return <AdminPendingJobsWidget />;
     case 'admin_applications':
@@ -36,6 +41,10 @@ export default function WidgetRenderer({ widgetType, settings }: Props) {
       return <AdminStatsWidget />;
     case 'admin_api_keys':
       return <AdminApiKeysWidget />;
+    case 'admin_feature_flags':
+      return <AdminFeatureFlagsWidget />;
+    case 'provider_subscription':
+      return <ProviderSubscriptionWidget />;
     default:
       return null;
   }

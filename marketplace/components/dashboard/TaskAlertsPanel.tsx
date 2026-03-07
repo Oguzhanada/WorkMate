@@ -158,19 +158,46 @@ export default function TaskAlertsPanel() {
         Get notified when a new job matches your preferences. You receive an in-app notification for each match.
       </p>
       {!alert && suggestion ? (
-        <p className={styles.notice}>
-          Suggested from your services: {suggestion.categories.length} categories, {suggestion.counties.length} counties.
-        </p>
+        <div className={styles.aiSuggestionCard}>
+          <div className={styles.aiSuggestionHeader}>
+            <span aria-hidden="true">✨</span>
+            <span>AI Suggested Alert</span>
+            <span className={styles.aiSuggestionBadge}>Smart Match</span>
+          </div>
+          <p className={styles.meta}>
+            Based on your registered services and service areas, WorkMate can auto-create a job alert for you.
+          </p>
+          {suggestion.categories.length > 0 ? (
+            <div>
+              <p className={styles.aiSuggestionLabel}>Categories</p>
+              <div className={styles.aiPills}>
+                {suggestion.categories.map((cat) => (
+                  <span key={cat.id} className={styles.aiPill}>{cat.name}</span>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          {suggestion.counties.length > 0 ? (
+            <div>
+              <p className={styles.aiSuggestionLabel}>Service areas</p>
+              <div className={styles.aiPills}>
+                {suggestion.counties.map((county) => (
+                  <span key={county} className={styles.aiPillCounty}>{county}</span>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className={styles.meta}>Coverage: <strong>Ireland-wide</strong></p>
+          )}
+          <div className={styles.buttons}>
+            <button className={styles.primary} onClick={handleSuggest} disabled={suggesting || saving}>
+              {suggesting ? 'Creating alert...' : 'Apply suggestions'}
+            </button>
+          </div>
+        </div>
       ) : null}
 
       <div className={styles.stack}>
-        {!alert && suggestion ? (
-          <div className={styles.buttons}>
-            <button className={styles.primary} onClick={handleSuggest} disabled={suggesting || saving}>
-              {suggesting ? 'Creating...' : 'Suggest alerts based on my services'}
-            </button>
-          </div>
-        ) : null}
 
         <label className={styles.meta}>
           Keywords (comma-separated, e.g. painting, tiling)

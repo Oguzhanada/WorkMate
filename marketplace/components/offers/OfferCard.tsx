@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Award,
+  CalendarCheck,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
@@ -36,6 +37,7 @@ type OfferCardProps = {
       hasInsurance: boolean;
       hasSafePass: boolean;
       complianceScore?: number;
+      isSameDayAvailable?: boolean;
     };
   };
   ranking: OfferRanking;
@@ -51,24 +53,31 @@ function formatCurrencyFromCents(cents: number) {
   );
 }
 
-function getRelativeExpiryText(dateIso?: string) {
-  if (!dateIso) return null;
+type ExpiryUrgency = 'critical' | 'urgent' | 'normal' | null;
+
+function getExpiryInfo(dateIso?: string): { text: string | null; urgency: ExpiryUrgency } {
+  if (!dateIso) return { text: null, urgency: null };
   const date = new Date(dateIso);
   const now = new Date();
-  if (Number.isNaN(date.getTime())) return null;
+  if (Number.isNaN(date.getTime())) return { text: null, urgency: null };
 
   const diffMs = date.getTime() - now.getTime();
-  if (diffMs <= 0) return 'Expired';
+  if (diffMs <= 0) return { text: 'Expired', urgency: 'critical' };
 
   const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-  if (diffHrs > 24) {
-    const days = Math.floor(diffHrs / 24);
-    return `Expires in ${days} ${days === 1 ? 'day' : 'days'}`;
-  }
-  if (diffHrs > 0) return `Expires in ${diffHrs}h`;
 
-  const diffMins = Math.floor(diffMs / (1000 * 60));
-  return `Expires in ${Math.max(1, diffMins)}m`;
+  if (diffHrs < 1) {
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    return { text: `Expires in ${Math.max(1, diffMins)}m`, urgency: 'critical' };
+  }
+  if (diffHrs <= 12) return { text: `Expires in ${diffHrs}h`, urgency: 'critical' };
+  if (diffHrs <= 24) return { text: `Expires in ${diffHrs}h`, urgency: 'urgent' };
+
+  const days = Math.floor(diffHrs / 24);
+  return {
+    text: `Expires in ${days} ${days === 1 ? 'day' : 'days'}`,
+    urgency: 'normal',
+  };
 }
 
 function getInitials(value: string) {
@@ -91,7 +100,10 @@ export default function OfferCard({
 }: OfferCardProps) {
   const [showDetails, setShowDetails] = useState(false);
 
-  const expiryText = useMemo(() => getRelativeExpiryText(offer.expiresAt), [offer.expiresAt]);
+  const { text: expiryText, urgency: expiryUrgency } = useMemo(
+    () => getExpiryInfo(offer.expiresAt),
+    [offer.expiresAt]
+  );
   const isTopOffer = ranking.badge === 'TOP_OFFER';
 
   return (
@@ -115,11 +127,29 @@ export default function OfferCard({
             Fast Responder
           </span>
         ) : null}
+        {offer.provider.isSameDayAvailable ? (
+          <span className={`${styles.badge} ${styles.badgeSameDay}`}>
+            <CalendarCheck className={styles.badgeIcon} />
+            Same-Day Available
+          </span>
+        ) : null}
         {isRebooking ? <span className={`${styles.badge} ${styles.badgeRebook}`}>Repeat booking discount active</span> : null}
         {ranking.breakdown?.matchPercentage && ranking.breakdown.matchPercentage >= 70 ? (
           <span className={`${styles.badge} ${styles.badgeMatch}`}>
             <Award className={styles.badgeIcon} />
             {ranking.breakdown.matchPercentage}% Match
+          </span>
+        ) : null}
+        {expiryUrgency === 'critical' && expiryText ? (
+          <span className={`${styles.expiryBadge} ${styles.expiryCritical}`}>
+            <Clock className={styles.badgeIcon} />
+            {expiryText}
+          </span>
+        ) : null}
+        {expiryUrgency === 'urgent' && expiryText ? (
+          <span className={`${styles.expiryBadge} ${styles.expiryUrgent}`}>
+            <Clock className={styles.badgeIcon} />
+            {expiryText}
           </span>
         ) : null}
       </div>
@@ -173,7 +203,7 @@ export default function OfferCard({
         </div>
       </div>
 
-      {expiryText ? <p className={styles.expiry}>{expiryText}</p> : null}
+      {expiryUrgency === 'normal' && expiryText ? <p className={styles.expiry}>{expiryText}</p> : null}
 
       <button type="button" className={styles.toggle} onClick={() => setShowDetails((current) => !current)}>
         {showDetails ? <ChevronUp className={styles.toggleIcon} /> : <ChevronDown className={styles.toggleIcon} />}

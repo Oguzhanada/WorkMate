@@ -25,6 +25,7 @@ export type OfferData = {
     hasInsurance: boolean;
     hasSafePass: boolean;
     complianceScore: number;
+    isSameDayAvailable?: boolean;
   };
   ranking: OfferRanking;
   isRebooking: boolean;

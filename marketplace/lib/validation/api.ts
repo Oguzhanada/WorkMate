@@ -281,6 +281,8 @@ export const createAppointmentSchema = z
   .object({
     start_time: z.string().datetime({ offset: true }),
     end_time: z.string().datetime({ offset: true }),
+    video_link: z.string().trim().url().max(500).optional().nullable(),
+    notes: z.string().trim().max(2000).optional().nullable(),
   })
   .superRefine((payload, ctx) => {
     if (new Date(payload.end_time).getTime() <= new Date(payload.start_time).getTime()) {
@@ -292,9 +294,13 @@ export const createAppointmentSchema = z
     }
   });
 
-export const patchAppointmentSchema = z.object({
-  status: z.enum(['scheduled', 'completed', 'cancelled']),
-});
+export const patchAppointmentSchema = z
+  .object({
+    status: z.enum(['scheduled', 'completed', 'cancelled']).optional(),
+    video_link: z.string().trim().url().max(500).optional().nullable(),
+    notes: z.string().trim().max(2000).optional().nullable(),
+  })
+  .refine((d) => Object.keys(d).length > 0, { message: 'At least one field required' });
 
 const widgetPositionSchema = z.object({
   x: z.number().int().min(0).max(24),
@@ -308,10 +314,14 @@ const widgetTypeSchema = z.enum([
   'pending_quotes',
   'recent_messages',
   'task_alerts',
+  'customer_stats',
+  'provider_earnings',
   'admin_pending_jobs',
   'admin_applications',
   'admin_stats',
   'admin_api_keys',
+  'admin_feature_flags',
+  'provider_subscription',
 ]);
 
 export const createDashboardWidgetSchema = z.object({

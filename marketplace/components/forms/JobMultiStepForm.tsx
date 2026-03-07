@@ -59,6 +59,13 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
   const [isPending, setIsPending] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [error, setError] = useState('');
+  const [priceEstimate, setPriceEstimate] = useState<{
+    p25Cents: number;
+    p75Cents: number;
+    medianCents: number;
+    sampleSize: number;
+  } | null>(null);
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   const progressPercent = Math.round((step / 3) * 100);
 
   const getFriendlyApiError = (payload: any) => {
@@ -90,6 +97,23 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
       setError('');
     }
   }, [categories.length, error, isLoadingCategories]);
+
+  useEffect(() => {
+    if (!categoryId) {
+      setPriceEstimate(null);
+      return;
+    }
+    let cancelled = false;
+    fetch(`/api/categories/${categoryId}/price-estimate`)
+      .then((res) => res.json())
+      .then((payload: { estimate: typeof priceEstimate }) => {
+        if (!cancelled) setPriceEstimate(payload.estimate ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setPriceEstimate(null);
+      });
+    return () => { cancelled = true; };
+  }, [categoryId]);
 
   const uploadPhotos = async () => {
     const supabase = getSupabaseBrowserClient();
@@ -214,6 +238,35 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
   };
 
   const currentStepError = getStepValidationError(step);
+
+  const generateDescription = async () => {
+    const resolvedTitle = titleOption === 'Other' ? customTitle.trim() : titleOption;
+    const categoryObj = categories.find((item: Category) => item.id === categoryId);
+    if (!resolvedTitle || !categoryObj) return;
+
+    setIsGeneratingDescription(true);
+    try {
+      const res = await fetch('/api/ai/job-description', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jobTitle: resolvedTitle,
+          categoryName: categoryObj.name,
+          scope: scope || undefined,
+          urgency: urgency || undefined,
+          taskType: taskType,
+        }),
+      });
+      const payload = await res.json() as { description?: string; error?: string };
+      if (res.ok && payload.description) {
+        setAdditionalDetails(payload.description);
+      }
+    } catch {
+      // silent — user can still type manually
+    } finally {
+      setIsGeneratingDescription(false);
+    }
+  };
 
   const nextFromStep2 = () => {
     const validationError = getStepValidationError(2);
@@ -371,13 +424,27 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
                 </div>
               </div>
 
-              <textarea
-                value={additionalDetails}
-                onChange={(e) => setAdditionalDetails(e.target.value)}
-                placeholder="Additional details (optional)"
-                className={styles.textarea}
-                rows={4}
-              />
+              <div className={styles.field}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                  <span>Additional details</span>
+                  <button
+                    type="button"
+                    onClick={generateDescription}
+                    disabled={isGeneratingDescription || !titleOption || !categoryId}
+                    className={styles.secondary}
+                    style={{ fontSize: '0.78rem', padding: '0.25rem 0.6rem', whiteSpace: 'nowrap' }}
+                  >
+                    {isGeneratingDescription ? 'Writing...' : '✨ AI-write'}
+                  </button>
+                </div>
+                <textarea
+                  value={additionalDetails}
+                  onChange={(e) => setAdditionalDetails(e.target.value)}
+                  placeholder="Describe what you need done, or tap AI-write to auto-generate a description."
+                  className={styles.textarea}
+                  rows={4}
+                />
+              </div>
               <div className={styles.buttonRow}>
                 <button type="button" onClick={() => setStep(2)} className={styles.primary} disabled={Boolean(currentStepError)}>
                   Continue
@@ -404,6 +471,15 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
                   </option>
                 ))}
               </select>
+              {priceEstimate ? (
+                <p className={styles.muted}>
+                  💡 Based on {priceEstimate.sampleSize} accepted jobs in this category — typical range:{' '}
+                  <strong>
+                    €{Math.round(priceEstimate.p25Cents / 100)}–€{Math.round(priceEstimate.p75Cents / 100)}
+                  </strong>{' '}
+                  (median €{Math.round(priceEstimate.medianCents / 100)})
+                </p>
+              ) : null}
               <div className={styles.buttonRow}>
                 <button type="button" onClick={() => setStep(1)} className={styles.secondary}>
                   Back
