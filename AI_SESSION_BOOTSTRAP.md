@@ -3,12 +3,12 @@
 Use this file as the single entry point for any new AI session (Codex or Claude).
 
 ## Session Opener (one line)
-`Please read PROJECT_CONTEXT.md + marketplace/AGENTS.md + the current skills list (Codex: ~/.codex/skills,"C:\Users\Ada\Git\Python\WorkMate\.claude\skills" Claude: .claude/skills), choose only scope-matching skills, and if a skill mismatches, warn briefly and continue with the safest fallback.`
+`Please read PROJECT_CONTEXT.md + marketplace/AGENTS.md + the current skills list (Codex: ~/.codex/skills, "<repo>/.claude/skills"; Claude: .claude/skills), choose only scope-matching skills, and if a skill mismatches, warn briefly and continue with the safest fallback.`
 
 ## Mandatory Read Order
 1. `PROJECT_CONTEXT.md`
 2. `marketplace/AGENTS.md`
-3. `C:/Users/Ada/.claude/projects/c--Users-Ada-Git-Python-WorkMate/memory/MEMORY.md`
+3. `~/.claude/projects/<project-slug>/memory/MEMORY.md`
 4. `.claude/skills/workmate-core/SKILL.md`
 5. `.claude/skills/workmate-schema-guardian/SKILL.md`
 6. `marketplace/lib/auth/rbac.ts`
@@ -17,7 +17,7 @@ Use this file as the single entry point for any new AI session (Codex or Claude)
 9. `marketplace/lib/validation/api.ts`
 
 ## Skill Paths
-- Codex shared skills: `C:/Users/Ada/.codex/skills/`
+- Codex shared skills: `~/.codex/skills/`
 - Project skills (Claude): `.claude/skills/`
 
 ## Skill Safety Rules
@@ -41,4 +41,3 @@ Use this file as the single entry point for any new AI session (Codex or Claude)
 3. List top 3 priorities and top 3 risks.
 4. State the exact skills selected (or fallback reason).
 5. Propose the next concrete implementation step.
-

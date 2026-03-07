@@ -9,6 +9,14 @@
 - [ ] Ireland-first constraints are preserved
 - [ ] English-only UI/docs/errors are preserved
 
+## Security Checklist (GitHub)
+
+- [ ] GitHub Secret Scanning is enabled for this repository
+- [ ] GitHub Push Protection is enabled for this repository
+- [ ] `npm run check:prepublic-security` passes
+- [ ] No real secrets are present in this PR diff (keys, tokens, private keys, webhook secrets)
+- [ ] If any secret was exposed previously, it has been rotated and revoked
+
 ## UI Regression Checklist
 
 - [ ] `onAuthStateChange` does not trigger loading-state flicker in visible UI
