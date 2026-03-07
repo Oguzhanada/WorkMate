@@ -19,6 +19,11 @@ marketplace/tsconfig.tsbuildinfo
 marketplace/playwright-report/
 marketplace/test-results/
 
+# BackstopJS — keep bitmaps_reference committed, ignore test outputs
+backstop_data/bitmaps_test/
+backstop_data/html_report/
+backstop_data/ci_report/
+
 # Supabase local
 marketplace/supabase/.temp/
 

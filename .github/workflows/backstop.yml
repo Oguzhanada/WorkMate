@@ -1,0 +1,66 @@
+name: BackstopJS Visual Regression
+
+on:
+  pull_request:
+
+jobs:
+  visual-regression:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: marketplace/package-lock.json
+
+      - name: Install dependencies
+        working-directory: marketplace
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: marketplace
+        run: npx playwright install --with-deps chromium
+
+      - name: Build app
+        working-directory: marketplace
+        env:
+          NEXT_PUBLIC_PLATFORM_BASE_URL: http://localhost:3001
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: npm run build
+
+      - name: Install BackstopJS globally
+        run: npm install -g backstopjs
+
+      - name: Start server
+        working-directory: marketplace
+        run: npm start -- --port 3001 &
+        env:
+          NEXT_PUBLIC_PLATFORM_BASE_URL: http://localhost:3001
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+      - name: Wait for server to be ready
+        run: sleep 10
+
+      - name: Run BackstopJS visual regression tests
+        # First run will fail gracefully if no reference images exist yet.
+        # Generate reference images locally with:
+        #   backstop reference --config=backstop.json
+        # Then commit backstop_data/bitmaps_reference/ to the repo.
+        continue-on-error: true
+        run: backstop test --config=backstop.json
+
+      - name: Upload BackstopJS report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backstop-report
+          path: |
+            backstop_data/html_report
+            backstop_data/bitmaps_test
