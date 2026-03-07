@@ -110,10 +110,11 @@ export default function ActiveJobsWidget({ limit = 6 }: Props) {
           <Link
             key={job.id}
             href={withLocalePrefix(localeRoot, `/jobs/${job.id}`)}
-            className="block rounded-lg border border-zinc-200 px-3 py-2 text-sm no-underline hover:border-zinc-400 dark:border-zinc-700 dark:hover:border-zinc-500"
+            className="block rounded-lg px-3 py-2 text-sm no-underline"
+            style={{ border: '1px solid var(--wm-border)' }}
           >
             <p className="font-medium">{job.title}</p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="text-xs" style={{ color: 'var(--wm-muted)' }}>
               {job.status.replace('_', ' ')} · {new Date(job.created_at).toLocaleDateString('en-IE')}
             </p>
           </Link>

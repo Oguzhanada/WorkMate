@@ -1,3 +1,4 @@
+/* ── Dashboard page shell ─────────────────────────────────── */
 .page {
   width: min(1160px, calc(100% - 32px));
   margin: 40px auto;
@@ -6,22 +7,24 @@
 }
 
 .hero {
-  background: #f5f7f8;
-  border-radius: 16px;
+  background: var(--wm-bg);
+  border-radius: var(--wm-radius-xl);
   padding: 20px;
-  border: 1px solid #e0e5ec;
+  border: 1px solid var(--wm-border);
 }
 
 .hero h1 {
   margin: 0 0 8px;
-  color: #111321;
+  font-family: var(--wm-font-display);
+  color: var(--wm-navy);
 }
 
 .hero p {
   margin: 0;
-  color: #59607a;
+  color: var(--wm-muted);
 }
 
+/* ── Grids ────────────────────────────────────────────────── */
 .stack {
   display: grid;
   gap: 12px;
@@ -33,45 +36,49 @@
   gap: 10px;
 }
 
+/* ── Feedback states ──────────────────────────────────────── */
 .feedback {
-  border-radius: 10px;
+  border-radius: var(--wm-radius-sm);
   padding: 10px 12px;
-  border: 1px solid #d9dee6;
-  background: #f8fafc;
-  color: #2d3c52;
+  border: 1px solid var(--wm-border);
+  background: var(--wm-bg);
+  color: var(--wm-text);
 }
 
 .notice {
-  border-radius: 10px;
+  border-radius: var(--wm-radius-sm);
   padding: 10px 12px;
-  border: 1px solid #f3ddab;
-  background: #fff8e7;
-  color: #7a5817;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  background: var(--wm-amber-light);
+  color: var(--wm-amber-dark);
 }
 
+/* ── Card ─────────────────────────────────────────────────── */
 .card {
   background: #fff;
-  border: 1px solid #dfe3ea;
-  border-radius: 14px;
+  border: 1px solid var(--wm-border);
+  border-radius: var(--wm-radius-xl);
   padding: 14px;
-  box-shadow: 0 8px 22px rgba(16, 37, 31, 0.06);
+  box-shadow: var(--wm-shadow-sm);
 }
 
 .title {
   margin: 0 0 6px;
-  color: #111321;
+  font-family: var(--wm-font-display);
+  color: var(--wm-navy);
   font-weight: 700;
 }
 
 .meta {
-  color: #5f6780;
+  color: var(--wm-muted);
   font-size: 0.95rem;
 }
 
 .desc {
-  color: #2f3b55;
+  color: var(--wm-text);
 }
 
+/* ── Form fields ──────────────────────────────────────────── */
 .field {
   display: grid;
   gap: 6px;
@@ -79,23 +86,21 @@
 
 .input,
 .textarea {
-  border: 1px solid #d2d6dd;
-  border-radius: 10px;
+  border: 1px solid var(--wm-border);
+  border-radius: var(--wm-radius-sm);
   padding: 10px 12px;
   font: inherit;
   width: 100%;
   box-sizing: border-box;
+  color: var(--wm-text);
+  transition: border-color var(--wm-transition), box-shadow var(--wm-transition);
 }
 
-.secondaryLink {
-  border: 1px solid #ccd2dd;
-  background: #fff;
-  color: #223149;
-  border-radius: 10px;
-  padding: 9px 12px;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
+.input:focus,
+.textarea:focus {
+  border-color: var(--wm-primary);
+  box-shadow: 0 0 0 3px rgba(var(--wm-primary-rgb), 0.12);
+  outline: none;
 }
 
 .textarea {
@@ -103,30 +108,60 @@
   resize: vertical;
 }
 
+/* ── Buttons ──────────────────────────────────────────────── */
 .buttons {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.primary {
-  border: 1px solid #169b62;
-  background: #169b62;
-  color: #fff;
-  border-radius: 10px;
+.secondaryLink {
+  border: 1px solid var(--wm-border);
+  background: #fff;
+  color: var(--wm-navy);
+  border-radius: var(--wm-radius-sm);
   padding: 9px 12px;
   font-weight: 600;
   cursor: pointer;
+  text-decoration: none;
+  transition: border-color var(--wm-transition);
+}
+
+.secondaryLink:hover {
+  border-color: var(--wm-primary);
+}
+
+.primary {
+  border: none;
+  background: var(--wm-grad-primary);
+  color: #fff;
+  border-radius: var(--wm-radius-sm);
+  padding: 9px 12px;
+  font-family: var(--wm-font-display);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(var(--wm-primary-rgb), 0.28);
+  transition: transform var(--wm-transition), box-shadow var(--wm-transition);
+}
+
+.primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(var(--wm-primary-rgb), 0.38);
 }
 
 .danger {
-  border: 1px solid #efc3c3;
-  background: #fff4f4;
-  color: #8f2f2f;
-  border-radius: 10px;
+  border: 1px solid rgba(var(--wm-destructive-rgb), 0.25);
+  background: var(--wm-destructive-light);
+  color: var(--wm-destructive-dark);
+  border-radius: var(--wm-radius-sm);
   padding: 9px 12px;
   font-weight: 600;
   cursor: pointer;
+  transition: border-color var(--wm-transition);
+}
+
+.danger:hover:not(:disabled) {
+  border-color: var(--wm-destructive);
 }
 
 .primary:disabled,
@@ -136,14 +171,16 @@
   cursor: not-allowed;
 }
 
+/* ── OK tag ───────────────────────────────────────────────── */
 .okTag {
-  border-radius: 10px;
+  border-radius: var(--wm-radius-sm);
   padding: 8px 10px;
-  background: #e8f8ec;
-  color: #166a2a;
-  border: 1px solid #b8e9c4;
+  background: var(--wm-primary-light);
+  color: var(--wm-primary-dark);
+  border: 1px solid rgba(var(--wm-primary-rgb), 0.25);
 }
 
+/* ── Doc status ───────────────────────────────────────────── */
 .docStatusWrap {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -151,18 +188,20 @@
 }
 
 .docStatusCard {
-  border: 1px solid #dfe3ea;
-  border-radius: 12px;
+  border: 1px solid var(--wm-border);
+  border-radius: var(--wm-radius-md);
   background: #fff;
   padding: 10px;
-  box-shadow: 0 8px 22px rgba(16, 37, 31, 0.06);
+  box-shadow: var(--wm-shadow-xs);
 }
 
 .docStatusCard h4 {
   margin: 0 0 6px;
-  color: #12223c;
+  font-family: var(--wm-font-display);
+  color: var(--wm-navy);
 }
 
+/* ── Modal ────────────────────────────────────────────────── */
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -176,14 +215,15 @@
 .modalCard {
   width: min(94vw, 560px);
   background: #fff;
-  border: 1px solid #dfe3ea;
-  border-radius: 14px;
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2);
-  padding: 16px;
+  border: 1px solid var(--wm-border);
+  border-radius: var(--wm-radius-xl);
+  box-shadow: var(--wm-shadow-2xl);
+  padding: 20px;
   display: grid;
   gap: 10px;
 }
 
+/* ── County grid ──────────────────────────────────────────── */
 .countyGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -192,7 +232,7 @@
 
 .countyLabel {
   font-size: 0.88rem;
-  color: #3a4560;
+  color: var(--wm-text);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -201,17 +241,18 @@
 
 .toggleRow {
   font-size: 0.92rem;
-  color: #3a4560;
+  color: var(--wm-text);
   display: flex;
   align-items: center;
   gap: 6px;
   cursor: pointer;
 }
 
+/* ── AI suggestion card ───────────────────────────────────── */
 .aiSuggestionCard {
-  border: 1px solid #6ee7b7;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  border: 1px solid rgba(var(--wm-primary-rgb), 0.28);
+  border-radius: var(--wm-radius-md);
+  background: var(--wm-primary-faint);
   padding: 14px;
   display: grid;
   gap: 10px;
@@ -221,17 +262,18 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  font-family: var(--wm-font-display);
   font-weight: 700;
-  color: #065f46;
+  color: var(--wm-primary-dark);
   font-size: 0.95rem;
 }
 
 .aiSuggestionBadge {
   display: inline-flex;
   align-items: center;
-  background: #d1fae5;
-  color: #065f46;
-  border: 1px solid #6ee7b7;
+  background: var(--wm-primary-light);
+  color: var(--wm-primary-dark);
+  border: 1px solid rgba(var(--wm-primary-rgb), 0.28);
   border-radius: 999px;
   padding: 2px 8px;
   font-size: 0.72rem;
@@ -242,7 +284,7 @@
 .aiSuggestionLabel {
   font-size: 0.78rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--wm-text);
   margin: 0 0 5px;
 }
 
@@ -255,8 +297,8 @@
 .aiPill {
   border-radius: 999px;
   background: #fff;
-  border: 1px solid #6ee7b7;
-  color: #065f46;
+  border: 1px solid rgba(var(--wm-primary-rgb), 0.28);
+  color: var(--wm-primary-dark);
   font-size: 0.8rem;
   padding: 3px 10px;
   font-weight: 500;
@@ -265,8 +307,8 @@
 .aiPillCounty {
   border-radius: 999px;
   background: #fff;
-  border: 1px solid #93c5fd;
-  color: #1d4ed8;
+  border: 1px solid rgba(26, 86, 219, 0.25);
+  color: var(--wm-blue-dark);
   font-size: 0.8rem;
   padding: 3px 10px;
   font-weight: 500;

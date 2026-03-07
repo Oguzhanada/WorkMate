@@ -87,7 +87,7 @@ export default function ProfileCompletionCard({items, showProviderCta = false}: 
         {items.map((item, index) => {
           const isOpen = openId === item.id;
           return (
-            <article key={item.id} className={styles.item} style={{animationDelay: `${index * 80}ms`}}>
+            <article key={item.id} className={styles.item} data-status={item.status} style={{animationDelay: `${index * 80}ms`}}>
               <button
                 type="button"
                 className={styles.itemHead}

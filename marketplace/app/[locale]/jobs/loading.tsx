@@ -5,7 +5,7 @@ export default function JobsLoading() {
   return (
     <Shell
       header={
-        <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-5 dark:border-zinc-800 dark:bg-zinc-900/80">
+        <div className="rounded-3xl p-5" style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)' }}>
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex-1">
               <Skeleton height="h-6" className="w-32" />
@@ -22,7 +22,8 @@ export default function JobsLoading() {
         {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={i}
-            className="rounded-2xl border border-zinc-200/70 bg-white/90 p-5 dark:border-zinc-800 dark:bg-zinc-900/80"
+            className="rounded-2xl p-5"
+            style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)' }}
           >
             <div className="flex items-start justify-between gap-2">
               <Skeleton height="h-4" className="w-2/3" />

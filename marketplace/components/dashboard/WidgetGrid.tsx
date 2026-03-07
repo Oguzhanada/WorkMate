@@ -62,13 +62,13 @@ function SortableWidgetCard({
       whileDrag={{ scale: 1.02, zIndex: 50, boxShadow: '0 24px 48px rgba(0,0,0,0.1)' }}
       className={isDragging ? 'z-50 cursor-grabbing' : ''}
     >
-      <Card className={`h-full rounded-[1.5rem] border border-zinc-100 transition-shadow duration-300 dark:border-zinc-800 ${isDragging ? 'shadow-xl' : 'shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]'}`}>
+      <Card className={`h-full rounded-[1.5rem] transition-shadow duration-300 ${isDragging ? 'shadow-xl' : 'hover:shadow-[var(--wm-shadow-md)]'}`} style={{ border: '1px solid var(--wm-border)' }}>
         <div className="mb-3 flex items-center justify-between gap-2">
           <button
             type="button"
             {...attributes}
             {...listeners}
-            className="cursor-grab rounded-lg p-1 text-zinc-400 hover:text-zinc-600 active:cursor-grabbing dark:text-zinc-500 dark:hover:text-zinc-300"
+            className="cursor-grab rounded-lg p-1 active:cursor-grabbing" style={{ color: 'var(--wm-subtle)' }}
             disabled={disabled}
             aria-label={`Drag ${widget.widget_type}`}
           >
@@ -77,7 +77,7 @@ function SortableWidgetCard({
           <p className="text-sm font-semibold">{getWidgetLabel(widget.widget_type as WidgetType)}</p>
           <button
             type="button"
-            className="rounded-lg p-1 text-zinc-400 hover:text-red-500 dark:text-zinc-500 dark:hover:text-red-400"
+            className="rounded-lg p-1 hover:text-red-500" style={{ color: 'var(--wm-subtle)' }}
             onClick={() => onRemove(widget.id)}
             disabled={disabled}
             aria-label={`Remove ${widget.widget_type}`}

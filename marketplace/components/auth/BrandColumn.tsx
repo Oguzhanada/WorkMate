@@ -1,15 +1,15 @@
 "use client";
 
 import {motion} from 'framer-motion';
-import {CheckCircle2, UsersRound, Zap} from 'lucide-react';
+import {ShieldCheck, Star, Users, Zap} from 'lucide-react';
 
 import styles from './login.module.css';
 import {leftColumnVariants} from '@/styles/animations';
 
 const stats = [
-  {value: '500+', label: 'Active workers'},
-  {value: '10k+', label: 'Completed tasks'},
-  {value: '4.9/5', label: 'Customer rating'}
+  {icon: Users, value: '500+', label: 'Active workers'},
+  {icon: Star, value: '4.9', label: 'Average rating'},
+  {icon: ShieldCheck, value: '100%', label: 'Verified pros'}
 ];
 
 export function BrandColumn() {
@@ -21,9 +21,10 @@ export function BrandColumn() {
       animate="visible"
       aria-label="WorkMate brand highlights"
     >
+      {/* Logo row */}
       <div className={styles.logoRow}>
         <div className={styles.logoBadge}>
-          <UsersRound size={30} aria-hidden="true" />
+          <ShieldCheck size={26} aria-hidden="true" />
         </div>
         <div>
           <h1 className={styles.brandTitle}>WorkMate</h1>
@@ -31,28 +32,29 @@ export function BrandColumn() {
         </div>
       </div>
 
+      {/* Quote card */}
       <article className={styles.quoteCard}>
-        <p className={styles.quoteText}>"I found 3 jobs in one week!"</p>
-        <p className={styles.stars}>★★★★★</p>
-        <p className={styles.quoteMeta}>- Michael, Cork</p>
+        <div className={styles.quoteStars}>★★★★★</div>
+        <p className={styles.quoteText}>&ldquo;I found 3 jobs in one week!&rdquo;</p>
+        <p className={styles.quoteMeta}>Michael &mdash; Cork</p>
       </article>
 
+      {/* Stats */}
       <div className={styles.statGrid}>
         {stats.map((item) => (
           <div key={item.label} className={styles.statItem}>
-            <CheckCircle2 size={18} aria-hidden="true" />
+            <item.icon size={16} aria-hidden="true" className={styles.statIcon} />
             <p className={styles.statValue}>{item.value}</p>
             <p className={styles.statLabel}>{item.label}</p>
           </div>
         ))}
       </div>
 
+      {/* Badge pills */}
       <div className={styles.badges}>
         <span className={styles.badgePill}>🇮🇪 26 counties</span>
-        <span className={styles.badgePill}>GDPR Compliant</span>
-        <span className={styles.badgePill}>
-          <Zap size={14} aria-hidden="true" /> Trusted verification flow
-        </span>
+        <span className={styles.badgePill}>🔒 GDPR Compliant</span>
+        <span className={styles.badgePill}><Zap size={12} aria-hidden="true" /> Trust verified</span>
       </div>
     </motion.section>
   );

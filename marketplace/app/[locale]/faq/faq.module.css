@@ -1,3 +1,4 @@
+/* ── Header ───────────────────────────────────────────────── */
 .header {
   margin-bottom: 16px;
   display: grid;
@@ -6,15 +7,18 @@
 
 .header h1 {
   margin: 0;
+  font-family: var(--wm-font-display);
   font-size: clamp(1.6rem, 2.4vw, 2.1rem);
-  color: #13263f;
+  color: var(--wm-navy);
+  letter-spacing: -0.025em;
 }
 
 .header p {
   margin: 0;
-  color: #56627d;
+  color: var(--wm-muted);
 }
 
+/* ── Search ───────────────────────────────────────────────── */
 .searchWrap {
   display: grid;
   gap: 6px;
@@ -23,23 +27,25 @@
 
 .searchWrap span {
   font-size: 0.87rem;
-  color: #304666;
+  color: var(--wm-text);
   font-weight: 600;
 }
 
 .searchWrap input {
-  border: 1px solid #cfe0ee;
-  border-radius: 12px;
-  padding: 11px 12px;
+  border: 1px solid var(--wm-border);
+  border-radius: var(--wm-radius-md);
+  padding: 11px 14px;
   font: inherit;
+  transition: border-color var(--wm-transition), box-shadow var(--wm-transition);
 }
 
 .searchWrap input:focus {
-  border-color: #00b894;
-  box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.12);
+  border-color: var(--wm-primary);
+  box-shadow: 0 0 0 3px rgba(var(--wm-primary-rgb), 0.12);
   outline: none;
 }
 
+/* ── Layout ───────────────────────────────────────────────── */
 .layout {
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
@@ -49,13 +55,14 @@
 .sidebar,
 .article {
   background: #fff;
-  border: 1px solid #dce5ef;
-  border-radius: 14px;
-  box-shadow: 0 10px 24px rgba(16, 37, 31, 0.08);
+  border: 1px solid var(--wm-border);
+  border-radius: var(--wm-radius-xl);
+  box-shadow: var(--wm-shadow-sm);
 }
 
+/* ── Sidebar ──────────────────────────────────────────────── */
 .sidebar {
-  padding: 14px;
+  padding: 16px;
   display: grid;
   gap: 8px;
   align-self: start;
@@ -63,8 +70,12 @@
 
 .sidebar h2 {
   margin: 0;
-  font-size: 1rem;
-  color: #1f2937;
+  font-family: var(--wm-font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--wm-navy);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .sidebar ul {
@@ -72,71 +83,84 @@
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 
 .articleButton,
 .articleButtonActive {
   width: 100%;
-  border: 1px solid #dce5ef;
-  border-radius: 10px;
+  border: 1px solid var(--wm-border);
+  border-radius: var(--wm-radius-sm);
   background: #fff;
-  color: #1f2937;
+  color: var(--wm-text);
   text-align: left;
-  padding: 9px 10px;
+  padding: 9px 12px;
+  font-size: 0.875rem;
   cursor: pointer;
-  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+  transition: border-color var(--wm-transition), box-shadow var(--wm-transition), background var(--wm-transition);
 }
 
 .articleButton:hover {
-  border-color: #00b894;
+  border-color: var(--wm-primary);
+  background: var(--wm-primary-faint);
 }
 
 .articleButtonActive {
-  border-color: #00b894;
-  background: #edfdf7;
-  box-shadow: 0 8px 20px rgba(0, 184, 148, 0.14);
+  border-color: var(--wm-primary);
+  background: var(--wm-primary-light);
+  color: var(--wm-primary-dark);
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(var(--wm-primary-rgb), 0.14);
 }
 
+/* ── Article ──────────────────────────────────────────────── */
 .article {
-  padding: 18px;
+  padding: 24px;
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .breadcrumb {
   margin: 0;
-  font-size: 0.82rem;
-  color: #5e6a82;
+  font-size: 0.8rem;
+  color: var(--wm-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .article h2 {
   margin: 0;
-  color: #13263f;
+  font-family: var(--wm-font-display);
+  color: var(--wm-navy);
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
 }
 
 .updated {
   margin: 0;
-  color: #6a7590;
-  font-size: 0.9rem;
+  color: var(--wm-subtle);
+  font-size: 0.875rem;
 }
 
 .article p {
   margin: 0;
-  color: #2e3f57;
-  line-height: 1.6;
+  color: var(--wm-text);
+  line-height: 1.65;
 }
 
+/* ── Standards card ───────────────────────────────────────── */
 .standardsCard {
-  border: 1px solid #d5e5f0;
-  background: linear-gradient(165deg, #f7fbff 0%, #f2f8ff 100%);
-  border-radius: 12px;
-  padding: 12px;
+  border: 1px solid rgba(var(--wm-primary-rgb), 0.2);
+  background: var(--wm-primary-faint);
+  border-radius: var(--wm-radius-md);
+  padding: 16px;
 }
 
 .standardsCard h3 {
-  margin: 0 0 8px;
-  color: #173556;
+  margin: 0 0 10px;
+  font-family: var(--wm-font-display);
+  color: var(--wm-navy);
+  font-size: 0.95rem;
 }
 
 .standardsCard ul {
@@ -147,13 +171,20 @@
 }
 
 .standardsCard li {
-  color: #344e70;
+  color: var(--wm-text);
+  font-size: 0.875rem;
 }
 
+/* ── Related / helpful ────────────────────────────────────── */
 .related h3,
 .helpful h3 {
-  margin: 0 0 6px;
-  color: #1f2937;
+  margin: 0 0 8px;
+  font-family: var(--wm-font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--wm-navy);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .relatedList {
@@ -163,18 +194,22 @@
 }
 
 .relatedList button {
-  border: 1px solid #cfe0ee;
+  border: 1px solid var(--wm-border);
   background: #fff;
-  color: #1f2f45;
+  color: var(--wm-text);
   border-radius: 999px;
-  padding: 7px 10px;
+  padding: 7px 12px;
+  font-size: 0.875rem;
   cursor: pointer;
+  transition: border-color var(--wm-transition), color var(--wm-transition);
 }
 
 .relatedList button:hover {
-  border-color: #00b894;
+  border-color: var(--wm-primary);
+  color: var(--wm-primary-dark);
 }
 
+/* ── Vote buttons ─────────────────────────────────────────── */
 .helpfulButtons {
   display: flex;
   gap: 8px;
@@ -182,24 +217,30 @@
 
 .voteButton,
 .voteActive {
-  border: 1px solid #cfe0ee;
+  border: 1px solid var(--wm-border);
   background: #fff;
-  color: #2b3d58;
-  border-radius: 10px;
-  padding: 8px 12px;
+  color: var(--wm-text);
+  border-radius: var(--wm-radius-sm);
+  padding: 8px 16px;
+  font-weight: 600;
   cursor: pointer;
+  transition: border-color var(--wm-transition), background var(--wm-transition), color var(--wm-transition);
+}
+
+.voteButton:hover {
+  border-color: var(--wm-primary);
 }
 
 .voteActive {
-  border-color: #00b894;
-  background: #ebfcf6;
-  color: #0d7f57;
-  font-weight: 700;
+  border-color: var(--wm-primary);
+  background: var(--wm-primary-light);
+  color: var(--wm-primary-dark);
 }
 
+/* ── Muted ────────────────────────────────────────────────── */
 .muted {
   margin: 0;
-  color: #6a7590;
+  color: var(--wm-muted);
 }
 
 @media (max-width: 980px) {

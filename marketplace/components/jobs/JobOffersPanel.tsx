@@ -39,9 +39,9 @@ export default async function JobOffersPanel({
 
   if (!quotes || quotes.length === 0) {
     return (
-      <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="rounded-2xl p-5" style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)' }}>
         <h2 className="text-base font-semibold">Offers</h2>
-        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-2 text-sm" style={{ color: 'var(--wm-muted)' }}>
           No offers yet. Providers will submit offers once your job is approved.
         </p>
       </div>
@@ -148,14 +148,14 @@ export default async function JobOffersPanel({
   );
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="rounded-2xl p-5" style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)' }}>
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h2 className="text-base font-semibold">
-            Offers <span className="ml-1 text-sm font-normal text-zinc-500">({offersWithRankings.length})</span>
+            Offers <span className="ml-1 text-sm font-normal" style={{ color: 'var(--wm-muted)' }}>({offersWithRankings.length})</span>
           </h2>
           {uniqueInterestedProviders > 0 ? (
-            <p className="mt-0.5 text-xs text-zinc-500">
+            <p className="mt-0.5 text-xs" style={{ color: 'var(--wm-muted)' }}>
               {uniqueInterestedProviders} {uniqueInterestedProviders === 1 ? 'provider' : 'providers'} interested in this job
             </p>
           ) : null}

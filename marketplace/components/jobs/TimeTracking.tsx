@@ -201,7 +201,7 @@ export default function TimeTracking({ jobId, isCustomer, isProvider, isAdmin }:
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3>Time Tracking</h3>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="mt-1 text-sm" style={{ color: 'var(--wm-muted)' }}>
             Track worked time, approve entries, and generate hourly invoice.
           </p>
         </div>
@@ -209,26 +209,27 @@ export default function TimeTracking({ jobId, isCustomer, isProvider, isAdmin }:
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
-        <div className="rounded-xl border border-zinc-200 px-3 py-2 dark:border-zinc-700">
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">Total tracked</p>
+        <div className="rounded-xl px-3 py-2" style={{ border: '1px solid var(--wm-border)' }}>
+          <p className="text-xs" style={{ color: 'var(--wm-muted)' }}>Total tracked</p>
           <p className="mt-1 text-lg font-semibold">{formatMinutes(summary.total_minutes)}</p>
         </div>
-        <div className="rounded-xl border border-zinc-200 px-3 py-2 dark:border-zinc-700">
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">Approved time</p>
+        <div className="rounded-xl px-3 py-2" style={{ border: '1px solid var(--wm-border)' }}>
+          <p className="text-xs" style={{ color: 'var(--wm-muted)' }}>Approved time</p>
           <p className="mt-1 text-lg font-semibold">{formatMinutes(summary.approved_minutes)}</p>
         </div>
-        <div className="rounded-xl border border-zinc-200 px-3 py-2 dark:border-zinc-700">
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">Approved billable</p>
+        <div className="rounded-xl px-3 py-2" style={{ border: '1px solid var(--wm-border)' }}>
+          <p className="text-xs" style={{ color: 'var(--wm-muted)' }}>Approved billable</p>
           <p className="mt-1 text-lg font-semibold">{formatCurrency(summary.approved_billable_cents)}</p>
         </div>
       </div>
 
       {isProvider ? (
-        <div className="mt-4 rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
+        <div className="mt-4 rounded-xl p-3" style={{ border: '1px solid var(--wm-border)' }}>
           <p className="text-sm font-medium">Provider timer controls</p>
           <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-3">
             <input
-              className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+              className="rounded-lg px-3 py-2 text-sm"
+              style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)' }}
               placeholder="Work description (optional)"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
@@ -236,7 +237,8 @@ export default function TimeTracking({ jobId, isCustomer, isProvider, isAdmin }:
               disabled={pending || Boolean(activeEntry)}
             />
             <input
-              className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+              className="rounded-lg px-3 py-2 text-sm"
+              style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)' }}
               placeholder="Hourly rate (cents, optional)"
               type="number"
               min={1}
@@ -268,14 +270,15 @@ export default function TimeTracking({ jobId, isCustomer, isProvider, isAdmin }:
       </div>
 
       <div className="mt-4 space-y-2">
-        {loading ? <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading time entries...</p> : null}
+        {loading ? <p className="text-sm" style={{ color: 'var(--wm-muted)' }}>Loading time entries...</p> : null}
         {!loading && entries.length === 0 ? (
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">No time entries yet.</p>
+          <p className="text-sm" style={{ color: 'var(--wm-muted)' }}>No time entries yet.</p>
         ) : null}
         {entries.map((entry) => (
           <div
             key={entry.id}
-            className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700"
+            className="rounded-xl p-3"
+            style={{ border: '1px solid var(--wm-border)' }}
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
@@ -286,7 +289,7 @@ export default function TimeTracking({ jobId, isCustomer, isProvider, isAdmin }:
                     ? new Date(entry.ended_at).toLocaleString('en-IE', { dateStyle: 'short', timeStyle: 'short' })
                     : 'Active'}
                 </p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                <p className="text-xs" style={{ color: 'var(--wm-muted)' }}>
                   {entry.duration_minutes ? formatMinutes(entry.duration_minutes) : '-'} • Rate {formatCurrency(entry.effective_hourly_rate)} / hr
                 </p>
               </div>
@@ -299,7 +302,7 @@ export default function TimeTracking({ jobId, isCustomer, isProvider, isAdmin }:
             </div>
 
             {entry.description ? (
-              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">{entry.description}</p>
+              <p className="mt-2 text-sm" style={{ color: 'var(--wm-text)' }}>{entry.description}</p>
             ) : null}
 
             <div className="mt-3 flex flex-wrap gap-2">
@@ -324,7 +327,7 @@ export default function TimeTracking({ jobId, isCustomer, isProvider, isAdmin }:
       </div>
 
       {error ? <p className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p> : null}
-      {ok ? <p className="mt-3 text-sm text-emerald-600 dark:text-emerald-400">{ok}</p> : null}
+      {ok ? <p className="mt-3 text-sm" style={{ color: 'var(--wm-primary)' }}>{ok}</p> : null}
     </Card>
   );
 }

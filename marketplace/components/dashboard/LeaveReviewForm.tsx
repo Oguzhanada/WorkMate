@@ -28,7 +28,7 @@ function StarRow({
   const [hovered, setHovered] = useState(0);
   return (
     <div className="flex items-center gap-3">
-      <span className="w-36 text-xs text-zinc-500 dark:text-zinc-400">{label}</span>
+      <span className="w-36 text-xs" style={{ color: 'var(--wm-muted)' }}>{label}</span>
       <div className="flex gap-1">
         {[1, 2, 3, 4, 5].map((star) => (
           <button
@@ -41,7 +41,7 @@ function StarRow({
             className={`text-xl transition-colors ${
               star <= (hovered || value)
                 ? 'text-amber-400'
-                : 'text-zinc-300 dark:text-zinc-600'
+                : 'text-zinc-300'
             }`}
           >
             ★
@@ -49,7 +49,7 @@ function StarRow({
         ))}
       </div>
       {value > 0 ? (
-        <span className="text-xs text-zinc-400 dark:text-zinc-500">{LABELS[value]}</span>
+        <span className="text-xs" style={{ color: 'var(--wm-subtle)' }}>{LABELS[value]}</span>
       ) : null}
     </div>
   );
@@ -68,11 +68,11 @@ export default function LeaveReviewForm({ jobId, proName, onSubmitted }: Props) 
 
   if (submitted) {
     return (
-      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 dark:border-emerald-800/60 dark:bg-emerald-950/40">
-        <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+      <div className="rounded-2xl px-4 py-4" style={{ border: '1px solid var(--wm-primary-light)', background: 'var(--wm-primary-faint)' }}>
+        <p className="text-sm font-semibold" style={{ color: 'var(--wm-primary-dark)' }}>
           Review submitted — thank you!
         </p>
-        <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-400">
+        <p className="mt-1 text-xs" style={{ color: 'var(--wm-primary-dark)' }}>
           Your feedback helps other customers find quality providers.
         </p>
       </div>
@@ -116,10 +116,10 @@ export default function LeaveReviewForm({ jobId, proName, onSubmitted }: Props) 
 
   return (
     <div className="rounded-2xl border border-amber-200/70 bg-amber-50/60 p-4 dark:border-amber-800/40 dark:bg-amber-950/30">
-      <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+      <p className="text-sm font-semibold" style={{ color: 'var(--wm-text)' }}>
         Leave a review for {proName}
       </p>
-      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+      <p className="mt-1 text-xs" style={{ color: 'var(--wm-muted)' }}>
         Your review is public and helps the WorkMate community.
       </p>
 
@@ -136,7 +136,8 @@ export default function LeaveReviewForm({ jobId, proName, onSubmitted }: Props) 
         onChange={(e) => setComment(e.target.value)}
         placeholder="Describe your experience (optional)"
         maxLength={2000}
-        className="mt-4 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-800 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder-zinc-500"
+        className="mt-4 w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+        style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)', color: 'var(--wm-text)' }}
         rows={3}
       />
 
@@ -154,7 +155,7 @@ export default function LeaveReviewForm({ jobId, proName, onSubmitted }: Props) 
           {isPending ? 'Submitting...' : 'Submit review'}
         </button>
         {rating === 0 ? (
-          <span className="text-xs text-zinc-400 dark:text-zinc-500">Select a rating to continue</span>
+          <span className="text-xs" style={{ color: 'var(--wm-subtle)' }}>Select a rating to continue</span>
         ) : null}
       </div>
     </div>

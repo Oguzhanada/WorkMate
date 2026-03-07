@@ -5,7 +5,7 @@
   place-items: center;
   color: #fff;
   background-image:
-    linear-gradient(120deg, rgba(18, 35, 48, 0.78), rgba(18, 35, 48, 0.58)),
+    linear-gradient(120deg, rgba(var(--wm-navy-rgb), 0.82), rgba(var(--wm-navy-rgb), 0.58)),
     url('https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=1600&q=80');
   background-size: cover;
   background-position: center;
@@ -19,7 +19,9 @@
 
 .heroInner h1 {
   margin: 0 0 18px;
+  font-family: var(--wm-font-display);
   font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -0.03em;
 }
 
 .searchBar {
@@ -31,21 +33,36 @@
 }
 
 .searchBar input {
-  border-radius: 12px;
-  border: 1px solid #d2d6dd;
+  border-radius: var(--wm-radius-md);
+  border: 1px solid var(--wm-border);
   padding: 12px 14px;
   font: inherit;
+  transition: border-color var(--wm-transition), box-shadow var(--wm-transition);
+}
+
+.searchBar input:focus {
+  border-color: var(--wm-primary);
+  box-shadow: 0 0 0 3px rgba(var(--wm-primary-rgb), 0.12);
+  outline: none;
 }
 
 .searchBar button {
-  border-radius: 12px;
-  border: 1px solid #169b62;
-  background: #169b62;
+  border-radius: var(--wm-radius-md);
+  border: none;
+  background: var(--wm-grad-primary);
   color: #fff;
   font: inherit;
+  font-family: var(--wm-font-display);
   font-weight: 700;
   padding: 12px 24px;
   cursor: pointer;
+  box-shadow: 0 4px 14px rgba(var(--wm-primary-rgb), 0.30);
+  transition: transform var(--wm-transition), box-shadow var(--wm-transition);
+}
+
+.searchBar button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(var(--wm-primary-rgb), 0.40);
 }
 
 .container {
@@ -60,8 +77,10 @@
 
 .category h2 {
   margin: 0 0 18px;
+  font-family: var(--wm-font-display);
   font-size: 2rem;
-  color: #111321;
+  color: var(--wm-navy);
+  letter-spacing: -0.025em;
 }
 
 .listGrid {
@@ -71,14 +90,15 @@
 }
 
 .itemLink {
-  color: #203149;
+  color: var(--wm-text);
   text-decoration: underline;
   text-underline-offset: 2px;
   line-height: 1.5;
+  transition: color var(--wm-transition);
 }
 
 .itemLink:hover {
-  color: #169b62;
+  color: var(--wm-primary);
 }
 
 @media (max-width: 900px) {

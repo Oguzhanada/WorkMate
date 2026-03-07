@@ -219,7 +219,7 @@ export default function JobScheduler({ jobId, providerId, isCustomer, isProvider
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3>Appointment Scheduler</h3>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="mt-1 text-sm" style={{ color: 'var(--wm-muted)' }}>
             Book and manage appointments based on provider availability.
           </p>
         </div>
@@ -227,20 +227,21 @@ export default function JobScheduler({ jobId, providerId, isCustomer, isProvider
       </div>
 
       {!providerId ? (
-        <p className="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-4 text-sm" style={{ color: 'var(--wm-muted)' }}>
           A provider must be assigned to this job before scheduling.
         </p>
       ) : null}
 
       {providerId && (isCustomer || isAdmin) ? (
-        <div className="mt-4 rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
+        <div className="mt-4 rounded-xl p-3" style={{ border: '1px solid var(--wm-border)' }}>
           <p className="text-sm font-medium">Book a new slot</p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <input
               type="date"
               value={selectedDate}
               min={dublinTodayIsoDate()}
-              className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+              className="rounded-lg px-3 py-2 text-sm"
+              style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)' }}
               onChange={(event) => {
                 setSelectedDate(event.target.value);
                 setSelectedSlot(null);
@@ -254,7 +255,7 @@ export default function JobScheduler({ jobId, providerId, isCustomer, isProvider
 
           <div className="mt-3 flex flex-wrap gap-2">
             {slots.length === 0 ? (
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">No slots available for this day.</p>
+              <p className="text-sm" style={{ color: 'var(--wm-muted)' }}>No slots available for this day.</p>
             ) : (
               slots.map((slot) => (
                 <button
@@ -262,8 +263,8 @@ export default function JobScheduler({ jobId, providerId, isCustomer, isProvider
                   type="button"
                   className={`rounded-lg border px-3 py-2 text-sm transition ${
                     selectedSlot?.key === slot.key
-                      ? 'border-emerald-600 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300'
-                      : 'border-zinc-300 text-zinc-700 hover:border-zinc-400 dark:border-zinc-700 dark:text-zinc-100'
+                      ? 'border-[var(--wm-primary)] bg-[var(--wm-primary-faint)] text-[var(--wm-primary-dark)]'
+                      : 'border-[var(--wm-border)] text-[var(--wm-text)]'
                   }`}
                   onClick={() => setSelectedSlot(slot)}
                   disabled={pending}
@@ -279,10 +280,10 @@ export default function JobScheduler({ jobId, providerId, isCustomer, isProvider
       <div className="mt-4 space-y-2">
         <p className="text-sm font-medium">Appointments</p>
         {appointments.length === 0 ? (
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">No appointments yet.</p>
+          <p className="text-sm" style={{ color: 'var(--wm-muted)' }}>No appointments yet.</p>
         ) : (
           appointments.map((item) => (
-            <div key={item.id} className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
+            <div key={item.id} className="rounded-xl p-3" style={{ border: '1px solid var(--wm-border)' }}>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-sm font-medium">
                   {new Date(item.start_time).toLocaleString('en-IE', {
@@ -335,9 +336,9 @@ export default function JobScheduler({ jobId, providerId, isCustomer, isProvider
         )}
       </div>
 
-      {loading ? <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">Loading schedule...</p> : null}
+      {loading ? <p className="mt-3 text-sm" style={{ color: 'var(--wm-muted)' }}>Loading schedule...</p> : null}
       {error ? <p className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p> : null}
-      {ok ? <p className="mt-3 text-sm text-emerald-600 dark:text-emerald-400">{ok}</p> : null}
+      {ok ? <p className="mt-3 text-sm" style={{ color: 'var(--wm-primary)' }}>{ok}</p> : null}
     </Card>
   );
 }

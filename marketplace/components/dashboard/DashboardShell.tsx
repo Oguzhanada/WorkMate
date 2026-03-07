@@ -137,14 +137,28 @@ export default function DashboardShell({ mode, title, description }: Props) {
 
   return (
     <section className="space-y-4">
-      <div className="rounded-[2rem] border border-white/20 bg-white/70 backdrop-blur-xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:border-white/5 dark:bg-zinc-900/70">
+      <div
+        className="rounded-[2rem] p-8"
+        style={{
+          background: 'var(--wm-surface)',
+          border: '1px solid var(--wm-border)',
+          boxShadow: 'var(--wm-shadow-md)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+        }}
+      >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{title}</h1>
-            <p className="mt-1 text-base text-zinc-500 dark:text-zinc-400">{description}</p>
+            <h1
+              className="text-2xl font-bold tracking-tight"
+              style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)', letterSpacing: '-0.025em' }}
+            >
+              {title}
+            </h1>
+            <p className="mt-1 text-base" style={{ color: 'var(--wm-muted)' }}>{description}</p>
           </div>
           {mode === 'customer' ? (
-            <Button href={`${localeRoot}/post-job`} className="shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white shadow-md">
+            <Button href={`${localeRoot}/post-job`} variant="primary" size="md">
               + Post a Job
             </Button>
           ) : null}
@@ -171,7 +185,15 @@ export default function DashboardShell({ mode, title, description }: Props) {
       {loading ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="rounded-2xl border border-zinc-100 bg-white/50 p-6 shadow-sm dark:border-zinc-800/50 dark:bg-zinc-900/50">
+            <div
+              key={i}
+              className="rounded-2xl p-6"
+              style={{
+                border: '1px solid var(--wm-border)',
+                background: 'rgba(255, 255, 255, 0.5)',
+                boxShadow: 'var(--wm-shadow-xs)',
+              }}
+            >
               <Skeleton lines={1} height="h-4" className="w-1/3" />
               <div className="mt-4">
                 <Skeleton lines={3} height="h-10" />

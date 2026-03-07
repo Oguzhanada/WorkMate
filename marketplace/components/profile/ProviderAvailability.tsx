@@ -246,9 +246,9 @@ export default function ProviderAvailability({ providerId }: Props) {
         </div>
       </div>
 
-      {loading ? <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">Loading availability...</p> : null}
+      {loading ? <p className="mt-3 text-sm" style={{ color: 'var(--wm-muted)' }}>Loading availability...</p> : null}
       {error ? <p className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p> : null}
-      {ok ? <p className="mt-3 text-sm text-emerald-600 dark:text-emerald-400">{ok}</p> : null}
+      {ok ? <p className="mt-3 text-sm" style={{ color: 'var(--wm-primary)' }}>{ok}</p> : null}
     </Card>
   );
 }

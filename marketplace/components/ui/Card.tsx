@@ -3,15 +3,26 @@ import { ReactNode } from 'react';
 type CardProps = {
   children: ReactNode;
   className?: string;
+  hover?: boolean;
+  glass?: boolean;
 };
 
-export default function Card({ children, className }: CardProps) {
+export default function Card({ children, className, hover = false, glass = false }: CardProps) {
+  const base =
+    'rounded-2xl border p-5 ' +
+    'border-[var(--wm-border)] ' +
+    (glass
+      ? 'bg-[var(--wm-glass)] backdrop-blur-sm '
+      : 'bg-white dark:bg-zinc-900/80 ') +
+    'shadow-[var(--wm-shadow-md)] ' +
+    (hover
+      ? 'transition-all duration-[var(--wm-transition-slow)] ' +
+        'hover:-translate-y-1 hover:shadow-[var(--wm-shadow-xl)] ' +
+        'hover:border-[rgba(0,184,148,0.25)] '
+      : '');
+
   return (
-    <article
-      className={`rounded-2xl border border-zinc-200/70 bg-white/90 p-5 shadow-[0_12px_30px_rgba(0,0,0,0.06)] backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/80 dark:shadow-[0_10px_24px_rgba(0,0,0,0.35)]${
-        className ? ` ${className}` : ''
-      }`}
-    >
+    <article className={`${base}${className ? ` ${className}` : ''}`}>
       {children}
     </article>
   );

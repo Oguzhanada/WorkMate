@@ -28,14 +28,14 @@ export default function AdminApplicationsWidget() {
   return (
     <div>
       <p className="text-sm font-semibold">Provider Applications</p>
-      {loading ? <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">Loading...</p> : null}
+      {loading ? <p className="mt-2 text-sm" style={{ color: 'var(--wm-muted)' }}>Loading...</p> : null}
       {error ? <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p> : null}
       {!loading && !error ? <p className="mt-2 text-lg font-semibold">{items.length}</p> : null}
       <div className="mt-2 space-y-2">
         {items.map((item) => (
-          <div key={item.id} className="rounded-lg border border-zinc-200 px-3 py-2 text-sm dark:border-zinc-700">
+          <div key={item.id} className="rounded-lg px-3 py-2 text-sm" style={{ border: '1px solid var(--wm-border)' }}>
             <p className="font-medium">{item.full_name ?? item.id.slice(0, 8)}</p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">{item.verification_status}</p>
+            <p className="text-xs" style={{ color: 'var(--wm-muted)' }}>{item.verification_status}</p>
           </div>
         ))}
       </div>

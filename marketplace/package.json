@@ -27,7 +27,7 @@
     "dev:checked": "npm run check:english && npm run preflight && next dev",
     "build": "npm run check:english && next build",
     "start": "next start",
-    "lint": "npm run check:english && npx tsc --noEmit",
+    "lint": "npm run check:english && tsc --noEmit",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "vitest run --config vitest.config.ts tests/unit",
     "test:integration": "vitest run --config vitest.config.ts tests/integration",
