@@ -77,7 +77,7 @@ export default function AdminApiKeysPanel() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h3>API Keys</h3>
-            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+            <p className="mt-1 text-sm" style={{ color: 'var(--wm-muted)' }}>
               Review active public API keys and adjust daily limits.
             </p>
           </div>
@@ -88,7 +88,7 @@ export default function AdminApiKeysPanel() {
       <Card className="rounded-2xl">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-left text-sm">
-            <thead className="text-zinc-500 dark:text-zinc-400">
+            <thead style={{ color: 'var(--wm-muted)' }}>
               <tr>
                 <th className="px-2 py-2 font-medium">User</th>
                 <th className="px-2 py-2 font-medium">Roles</th>
@@ -100,7 +100,7 @@ export default function AdminApiKeysPanel() {
             </thead>
             <tbody>
               {items.map((item) => (
-                <tr key={item.id} className="border-t border-zinc-200 dark:border-zinc-800">
+                <tr key={item.id} style={{ borderTop: '1px solid var(--wm-border)' }}>
                   <td className="px-2 py-3">{item.full_name ?? 'User'}</td>
                   <td className="px-2 py-3">
                     <div className="flex flex-wrap gap-1">
@@ -116,7 +116,8 @@ export default function AdminApiKeysPanel() {
                   </td>
                   <td className="px-2 py-3">
                     <input
-                      className="w-28 rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                      className="w-28 rounded-lg px-2 py-1 text-sm"
+                      style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)' }}
                       type="number"
                       min={1}
                       max={500000}
@@ -148,7 +149,7 @@ export default function AdminApiKeysPanel() {
       </Card>
 
       {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
-      {ok ? <p className="text-sm text-emerald-600 dark:text-emerald-400">{ok}</p> : null}
+      {ok ? <p className="text-sm" style={{ color: 'var(--wm-primary)' }}>{ok}</p> : null}
     </div>
   );
 }

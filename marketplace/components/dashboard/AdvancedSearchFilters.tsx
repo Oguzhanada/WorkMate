@@ -52,11 +52,12 @@ function SelectField({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{label}</label>
+      <label className="text-xs font-medium" style={{ color: 'var(--wm-muted)' }}>{label}</label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+        className="rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--wm-primary)]"
+        style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)', color: 'var(--wm-text)' }}
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>
@@ -83,14 +84,15 @@ function DateField({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{label}</label>
+      <label className="text-xs font-medium" style={{ color: 'var(--wm-muted)' }}>{label}</label>
       <input
         type="date"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         max={max}
         min={min}
-        className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+        className="rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--wm-primary)]"
+        style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)', color: 'var(--wm-text)' }}
       />
     </div>
   );
@@ -117,31 +119,31 @@ export default function AdvancedSearchFilters({
   }));
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+    <div className="rounded-2xl" style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)', boxShadow: 'var(--wm-shadow-sm)' }}>
       {/* Header — always visible */}
       <button
         type="button"
         onClick={() => setExpanded((prev) => !prev)}
         className="flex w-full items-center justify-between px-4 py-3 text-left"
       >
-        <span className="flex items-center gap-2 text-sm font-semibold text-zinc-800 dark:text-zinc-100">
-          <Search className="h-4 w-4 text-zinc-500" />
+        <span className="flex items-center gap-2 text-sm font-semibold" style={{ color: 'var(--wm-text)' }}>
+          <Search className="h-4 w-4" style={{ color: 'var(--wm-muted)' }} />
           Advanced Filters
           {activeCount > 0 ? (
-            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">
+            <span className="rounded-full px-2 py-0.5 text-xs font-semibold" style={{ background: 'var(--wm-primary-light)', color: 'var(--wm-primary-dark)' }}>
               {activeCount} active
             </span>
           ) : null}
         </span>
         {expanded ? (
-          <ChevronUp className="h-4 w-4 text-zinc-400" />
+          <ChevronUp className="h-4 w-4" style={{ color: 'var(--wm-subtle)' }} />
         ) : (
-          <ChevronDown className="h-4 w-4 text-zinc-400" />
+          <ChevronDown className="h-4 w-4" style={{ color: 'var(--wm-subtle)' }} />
         )}
       </button>
 
       {expanded ? (
-        <div className="border-t border-zinc-100 px-4 pb-4 pt-3 dark:border-zinc-800">
+        <div className="px-4 pb-4 pt-3" style={{ borderTop: '1px solid var(--wm-border)' }}>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 
             {/* Application status */}
@@ -226,7 +228,8 @@ export default function AdvancedSearchFilters({
             <button
               type="button"
               onClick={() => onApply(value)}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+              className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white"
+              style={{ background: 'var(--wm-grad-primary)', boxShadow: 'var(--wm-shadow-sm)' }}
             >
               <Search className="h-3.5 w-3.5" />
               Apply filters
@@ -234,7 +237,8 @@ export default function AdvancedSearchFilters({
             <button
               type="button"
               onClick={onReset}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+              className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold"
+              style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)', color: 'var(--wm-muted)' }}
             >
               <RotateCcw className="h-3.5 w-3.5" />
               Reset

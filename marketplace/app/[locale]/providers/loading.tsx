@@ -5,7 +5,7 @@ export default function ProvidersLoading() {
   return (
     <Shell
       header={
-        <div className="rounded-3xl [border:1px_solid_var(--wm-border)] [background:var(--wm-surface)] p-5 dark:border-zinc-800 dark:bg-zinc-900/80">
+        <div className="rounded-3xl p-5" style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)' }}>
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex-1">
               <Skeleton height="h-6" className="w-48" />
@@ -17,7 +17,7 @@ export default function ProvidersLoading() {
           </div>
           <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="rounded-2xl border border-zinc-200/70 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+              <div key={i} className="rounded-2xl p-4" style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)' }}>
                 <Skeleton height="h-3" className="w-1/2" />
                 <div className="mt-3">
                   <Skeleton height="h-7" className="w-12" />
@@ -32,7 +32,8 @@ export default function ProvidersLoading() {
         {Array.from({ length: 9 }).map((_, i) => (
           <div
             key={i}
-            className="rounded-2xl [border:1px_solid_var(--wm-border)] [background:var(--wm-surface)] p-5 dark:border-zinc-800 dark:bg-zinc-900/80"
+            className="rounded-2xl p-5"
+            style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)' }}
           >
             <div className="flex items-start justify-between gap-3">
               <Skeleton height="h-5" className="w-1/2" />

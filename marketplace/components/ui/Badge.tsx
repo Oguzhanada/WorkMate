@@ -28,7 +28,7 @@ const dotColors: Record<Tone, string> = {
   completed: 'bg-[var(--wm-blue)]',
   assigned:  'bg-indigo-500',
   navy:      'bg-[var(--wm-navy)]',
-  neutral:   'bg-zinc-400',
+  neutral:   'bg-[var(--wm-subtle)]',
 };
 
 export default function Badge({ children, tone = 'neutral', className, dot = false }: BadgeProps) {

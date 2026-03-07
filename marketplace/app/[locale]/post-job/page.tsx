@@ -39,7 +39,7 @@ export default async function LocalizedPostJobPage({
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1>Create Job Request</h1>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              <p className="text-sm" style={{ color: 'var(--wm-muted)' }}>
                 Share clear details to receive faster and more accurate quotes.
               </p>
             </div>
