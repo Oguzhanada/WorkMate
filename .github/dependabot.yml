@@ -1,0 +1,47 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/marketplace"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+      timezone: "Europe/Dublin"
+    open-pull-requests-limit: 5
+    groups:
+      production-deps:
+        patterns:
+          - "next"
+          - "react"
+          - "react-dom"
+          - "@supabase/*"
+          - "stripe"
+          - "zod"
+        update-types:
+          - "minor"
+          - "patch"
+      dev-tools:
+        patterns:
+          - "@playwright/*"
+          - "vitest"
+          - "typescript"
+          - "eslint*"
+          - "@eslint/*"
+          - "tailwindcss"
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      - dependency-name: "eslint"
+        versions: [">=10"]
+      - dependency-name: "@supabase/ssr"
+        versions: [">=0.9"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+      timezone: "Europe/Dublin"
+    open-pull-requests-limit: 3
