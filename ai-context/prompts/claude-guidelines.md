@@ -1,4 +1,4 @@
-# CLAUDE.md
+# Claude Guidelines
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -26,7 +26,7 @@ WorkMate/
 │   │   ├── dashboard/widgets.ts     # DashboardMode, WidgetType, defaults
 │   │   ├── jobs/access.ts           # Job participant access resolver
 │   │   └── validation/ ranking/ pricing/ types/ hooks/ i18n/ constants/
-│   ├── migrations/      # 001–049 ALL APPLIED in Supabase. Next = 050.
+│   ├── migrations/      # 001–058 ALL APPLIED in Supabase. Next = 059.
 │   └── messages/en.json # i18n strings (English only)
 ├── scripts/             # Standalone .mjs scripts (seed-ireland.mjs…)
 └── docs/                # Checkpoints, production launch guide
@@ -110,7 +110,7 @@ Every page that fetches data **must** have a co-located `loading.tsx`.
 ## Migrations
 
 - Migrations in `marketplace/migrations/` are applied manually via the Supabase SQL Editor.
-- 001–049 are all applied. Next migration file = **050_\*.sql**.
+- 001–058 are all applied. Next migration file = **059_\*.sql**.
 - Never rewrite or renumber existing migrations — additive only.
 - Note: two files are both numbered `021` (a known collision that cannot be fixed).
 
