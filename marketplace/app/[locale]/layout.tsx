@@ -37,7 +37,26 @@ export async function generateMetadata({
       languages: {
         en: '/'
       }
-    }
+    },
+    openGraph: {
+      title: seo.defaultTitle,
+      description: seo.defaultDescription,
+      url: baseUrl,
+      siteName: 'WorkMate',
+      locale: 'en_IE',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: seo.defaultTitle,
+      description: seo.defaultDescription,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: { index: true, follow: true },
+    },
+    icons: { icon: '/favicon.ico' },
   };
 }
 

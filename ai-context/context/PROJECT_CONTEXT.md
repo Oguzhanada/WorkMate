@@ -197,8 +197,8 @@ marketplace/
 
 ## 6. CURRENT STATE
 
-- Migrations 001-049: ALL APPLIED in Supabase
-- Next migration: **050**
+- Migrations 001-058: ALL APPLIED in Supabase
+- Next migration: **059**
 - Vercel deployment: active at `work-mate-neon.vercel.app`
 - Stripe: test mode (`sk_test_*`) — no real charges
 - Email sender: `notifications@workmate.ie` — Resend domain must be verified before go-live
@@ -222,7 +222,7 @@ marketplace/
 10. [ ] API key scopes and rotation audit trail
 
 ### Phase 1 — Strategic Features (Session 13 Roadmap)
-> Full roadmap: `docs/CHECKPOINT_SESSION13_2026-03-06.md`
+> Full roadmap: `ai-context/memory/checkpoints/CHECKPOINT_SESSION13_2026-03-06.md`
 
 11. [ ] **Migration 050** — `compliance_score` column on `profiles` + ranking view update
 12. [ ] **Irish Compliance Badge** — "Ireland Fully Verified" badge component + `/providers` filter toggle + admin compliance_score panel
@@ -329,7 +329,7 @@ marketplace/
 - [ ] Set all env vars on Vercel (`SUPABASE_*`, `STRIPE_*`, `RESEND_API_KEY`, `TASK_ALERT_SECRET`)
 
 **Supabase**
-- [ ] Confirm migrations 001-049 applied on production Supabase project
+- [ ] Confirm migrations 001-058 applied on production Supabase project
 - [ ] Enable `pg_cron` on production project
 - [ ] Set Auth Site URL + Redirect URLs to production domain
 - [ ] Update OAuth redirect URIs in Google/Facebook consoles

@@ -3,6 +3,7 @@ import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getUserRoles } from '@/lib/auth/rbac';
 import JobCollaborationPanel from '@/components/jobs/JobCollaborationPanel';
 import JobOffersPanel from '@/components/jobs/JobOffersPanel';
+import JobContractPanel from '@/components/jobs/JobContractPanel';
 import TimeTracking from '@/components/jobs/TimeTracking';
 import JobScheduler from '@/components/jobs/JobScheduler';
 import styles from '../../inner.module.css';
@@ -69,8 +70,41 @@ export default async function JobDetailPage({ params }: Props) {
     cancelled: '#ef4444',
   };
 
+  const validThrough = new Date(
+    new Date(job.created_at).getTime() + 30 * 24 * 60 * 60 * 1000
+  ).toISOString();
+
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'JobPosting',
+    title: job.title,
+    description: job.description ?? job.title,
+    datePosted: job.created_at,
+    validThrough,
+    hiringOrganization: {
+      '@type': 'Organization',
+      name: 'WorkMate',
+      sameAs: process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'https://workmate.ie',
+    },
+    jobLocation: {
+      '@type': 'Place',
+      address: {
+        '@type': 'PostalAddress',
+        addressCountry: 'IE',
+        ...(job.county ?? job.locality
+          ? { addressRegion: job.county ?? job.locality }
+          : {}),
+      },
+    },
+    employmentType: 'CONTRACTOR',
+  };
+
   return (
     <main className={styles.section}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       <section className={styles.container}>
         <article className={styles.card}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
@@ -107,6 +141,15 @@ export default async function JobDetailPage({ params }: Props) {
             locale={locale}
             categoryId={(job as { category_id?: string | null }).category_id ?? null}
             jobCreatedAt={job.created_at}
+          />
+        ) : null}
+
+        {['accepted', 'in_progress', 'completed'].includes(job.status) ? (
+          <JobContractPanel
+            jobId={job.id}
+            currentUserId={user.id}
+            isCustomer={isCustomer}
+            isProvider={isPro}
           />
         ) : null}
 
