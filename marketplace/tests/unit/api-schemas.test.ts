@@ -19,12 +19,12 @@ import {
 describe('createJobSchema', () => {
   const valid = {
     title: 'Boiler repair needed',
-    category_id: '11111111-1111-1111-1111-111111111111',
+    category_id: '11111111-1111-4111-8111-111111111111',
     description: 'My boiler stopped working and needs urgent attention.',
     eircode: 'D02X285',
     county: 'Dublin',
     locality: 'Dublin 2',
-    budget_range: 'under_100',
+    budget_range: '€50-€100',
   };
 
   it('accepts a valid job payload', () => {
@@ -78,7 +78,7 @@ describe('createJobSchema', () => {
 describe('createQuoteSchema', () => {
   const slot = { start: '2026-04-01T09:00:00.000Z', end: '2026-04-01T11:00:00.000Z' };
   const valid = {
-    job_id: '22222222-2222-2222-2222-222222222222',
+    job_id: '22222222-2222-4222-8222-222222222222',
     quote_amount_cents: 15000,
     estimated_duration: '2 hours',
     includes: ['Parts', 'Labour'],
@@ -122,7 +122,7 @@ describe('createQuoteSchema', () => {
 
 describe('createReviewSchema', () => {
   const valid = {
-    job_id: '33333333-3333-3333-3333-333333333333',
+    job_id: '33333333-3333-4333-8333-333333333333',
     rating: 4,
   };
 
@@ -277,7 +277,7 @@ describe('createProviderAvailabilitySchema', () => {
 
 describe('createMessageSchema', () => {
   const valid = {
-    job_id: '44444444-4444-4444-4444-444444444444',
+    job_id: '44444444-4444-4444-8444-444444444444',
     visibility: 'public',
     message: 'Hello, is this still available?',
   };
@@ -290,7 +290,7 @@ describe('createMessageSchema', () => {
     const result = createMessageSchema.safeParse({
       ...valid,
       visibility: 'private',
-      receiver_id: '55555555-5555-5555-5555-555555555555',
+      receiver_id: '55555555-5555-4555-8555-555555555555',
     });
     expect(result.success).toBe(true);
   });
@@ -316,7 +316,7 @@ describe('createMessageSchema', () => {
 describe('acceptQuoteSchema', () => {
   it('accepts a valid UUID quote_id', () => {
     const result = acceptQuoteSchema.safeParse({
-      quote_id: '66666666-6666-6666-6666-666666666666',
+      quote_id: '66666666-6666-4666-8666-666666666666',
     });
     expect(result.success).toBe(true);
   });
@@ -331,7 +331,7 @@ describe('acceptQuoteSchema', () => {
 
 describe('submitOfferSchema', () => {
   const valid = {
-    jobId: '77777777-7777-7777-7777-777777777777',
+    jobId: '77777777-7777-4777-8777-777777777777',
     priceCents: 5000,
     description: 'I can fix this quickly and efficiently.',
   };
@@ -378,7 +378,7 @@ describe('updateJobStatusSchema', () => {
 
 describe('createDisputeSchema', () => {
   const valid = {
-    job_id: '88888888-8888-8888-8888-888888888888',
+    job_id: '88888888-8888-4888-8888-888888888888',
     dispute_type: 'quality_issue',
     customer_claim: 'The work was not completed to the agreed standard.',
   };
@@ -408,7 +408,7 @@ describe('createDisputeSchema', () => {
 
 describe('bulkNotificationSchema', () => {
   const valid = {
-    profile_ids: ['aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'],
+    profile_ids: ['aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'],
     message: 'Important platform update.',
   };
 
@@ -424,7 +424,7 @@ describe('bulkNotificationSchema', () => {
   it('rejects more than 200 profile_ids', () => {
     const result = bulkNotificationSchema.safeParse({
       ...valid,
-      profile_ids: Array.from({ length: 201 }, () => 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+      profile_ids: Array.from({ length: 201 }, () => 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
     });
     expect(result.success).toBe(false);
   });

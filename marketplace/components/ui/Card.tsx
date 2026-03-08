@@ -1,13 +1,14 @@
-import { ReactNode } from 'react';
+import { ReactNode, CSSProperties } from 'react';
 
 type CardProps = {
   children: ReactNode;
   className?: string;
+  style?: CSSProperties;
   hover?: boolean;
   glass?: boolean;
 };
 
-export default function Card({ children, className, hover = false, glass = false }: CardProps) {
+export default function Card({ children, className, style, hover = false, glass = false }: CardProps) {
   const base =
     'rounded-2xl border p-5 ' +
     'border-[var(--wm-border)] ' +
@@ -22,7 +23,7 @@ export default function Card({ children, className, hover = false, glass = false
       : '');
 
   return (
-    <article className={`${base}${className ? ` ${className}` : ''}`}>
+    <article className={`${base}${className ? ` ${className}` : ''}`} style={style}>
       {children}
     </article>
   );

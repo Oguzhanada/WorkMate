@@ -62,8 +62,8 @@ create policy "Admins can view all subscriptions"
 create policy "Service role manages subscriptions"
   on public.provider_subscriptions
   for all
-  using (true)
-  with check (true);
+  using (auth.role() = 'service_role')
+  with check (auth.role() = 'service_role');
 
 comment on column public.provider_subscriptions.plan is 'Subscription tier: basic (free) | professional | premium';
 comment on column public.provider_subscriptions.stripe_subscription_id is 'Stripe subscription ID for paid plans';

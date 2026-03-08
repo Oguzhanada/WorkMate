@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 import { Clock } from 'lucide-react';
 import styles from './offer-card.module.css';
 
@@ -73,12 +73,12 @@ export default function OfferCountdownBadge({ createdAt, status }: Props) {
   const badgeClass = isExpired || isUrgent ? styles.expiryCritical : styles.expiryUrgent;
 
   // Pulse animation only when urgent or expired
-  const pulseVariants = {
+  const pulseVariants: Variants = {
     idle: { scale: 1, opacity: 1 },
     pulse: {
       scale: [1, 1.06, 1],
       opacity: [1, 0.85, 1],
-      transition: { duration: 1.8, repeat: Infinity, ease: 'easeInOut' },
+      transition: { duration: 1.8, repeat: Infinity, ease: [0.42, 0, 0.58, 1] },
     },
   };
 
