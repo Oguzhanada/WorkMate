@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import styles from './dashboard.module.css';
+import Button from '@/components/ui/Button';
 
 const IRELAND_COUNTIES = [
   'Carlow', 'Cavan', 'Clare', 'Cork', 'Donegal', 'Dublin', 'Galway',
@@ -37,6 +38,8 @@ export default function TaskAlertsPanel() {
   const [saving, setSaving] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
   const [feedback, setFeedback] = useState('');
+  const [aiSuggesting, setAiSuggesting] = useState(false);
+  const [aiSuggestFeedback, setAiSuggestFeedback] = useState('');
 
   useEffect(() => {
     const load = async () => {

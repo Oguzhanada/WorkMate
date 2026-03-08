@@ -437,3 +437,8 @@ export const submitOfferSchema = z.object({
   includes: z.array(z.string().trim().min(1).max(120)).max(12).optional().default([]),
   excludes: z.array(z.string().trim().min(1).max(120)).max(12).optional().default([]),
 });
+
+// ─── AI: Suggest Alerts ───────────────────────────────────────────────────────
+export const suggestAlertsSchema = z.object({
+  max_suggestions: z.number().int().min(1).max(10).optional().default(5),
+});

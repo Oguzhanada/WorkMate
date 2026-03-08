@@ -169,6 +169,9 @@ router.push(withLocalePrefix(localeRoot, '/dashboard/customer'));
 
 ## 17) Skill activation guide
 When working on these areas, activate the matching skill first:
+- Skill locations:
+  - Repo-local WorkMate skills: `.claude/skills/workmate-*`
+  - Codex global skills: `~/.codex/skills/*`
 
 | Area | Skill to activate |
 |------|-------------------|
@@ -219,7 +222,7 @@ Before making any change, a new AI agent must read these files in order:
 
 1. `ai-context/context/PROJECT_CONTEXT.md` — single highest-density project reference
 2. `ai-context/context/agents.md` — this file (immutable rules)
-3. `C:\Users\Ada\.claude\projects\c--Users-Ada-Git-Python-WorkMate\memory\MEMORY.md` — session history and decisions
+3. `~/.claude/projects/<project-slug>/memory/MEMORY.md` — session history and decisions
 4. `.claude/skills/` (project root) — WorkMate specialist skills (`workmate-*`)
 5. `marketplace/lib/auth/rbac.ts` — RBAC helpers
 6. `marketplace/lib/dashboard/widgets.ts` — widget system source of truth
