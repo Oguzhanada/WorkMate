@@ -1,230 +1,192 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { FileText, MessageSquare, CreditCard, ShieldCheck, BadgeCheck, Euro } from 'lucide-react';
 
 const steps = [
   {
     num: '01',
-    title: 'Describe Your Job',
-    description: 'Tell us what you need done, set your budget, and choose your county. Takes less than 2 minutes.',
-    highlight: '2 min setup',
-    color: 'var(--wm-primary)',
-    lightBg: 'var(--wm-primary-light)',
-    glow: 'rgba(0,184,148,0.15)',
-    accentBar: 'var(--wm-grad-primary)',
+    title: 'Post Your Job',
+    description: 'Describe what you need, set a budget, pick your county. Takes under 2 minutes.',
+    icon: FileText,
+    accent: 'var(--wm-primary)',
+    lightBg: 'var(--wm-primary-faint)',
   },
   {
     num: '02',
-    title: 'Receive Verified Offers',
-    description: 'Insured, background-checked professionals send you competitive quotes. Compare and choose with confidence.',
-    highlight: 'Avg. 3 offers in 2h',
-    color: 'var(--wm-blue)',
+    title: 'Get Verified Offers',
+    description: 'Insured pros send competitive quotes. Compare ratings, prices, and reviews side by side.',
+    icon: MessageSquare,
+    accent: 'var(--wm-blue)',
     lightBg: 'var(--wm-blue-soft)',
-    glow: 'rgba(26,86,219,0.12)',
-    accentBar: 'linear-gradient(135deg, var(--wm-blue) 0%, var(--wm-blue-dark) 100%)',
   },
   {
     num: '03',
-    title: 'Pay When Done',
-    description: "Payment is held securely by Stripe and released only when you're satisfied. Zero risk, full control.",
-    highlight: 'Stripe-protected',
-    color: 'var(--wm-amber-dark)',
+    title: 'Pay When Satisfied',
+    description: 'Stripe holds your payment securely. Released only when you confirm the work is done.',
+    icon: CreditCard,
+    accent: 'var(--wm-amber-dark)',
     lightBg: 'var(--wm-amber-light)',
-    glow: 'rgba(245,158,11,0.12)',
-    accentBar: 'var(--wm-grad-warm)',
   },
 ];
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 40 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.6,
-      delay: i * 0.15,
-      ease: [0.34, 1.56, 0.64, 1] as [number, number, number, number],
-    },
-  }),
-};
+const trustPills = [
+  { icon: ShieldCheck, label: 'Garda vetted' },
+  { icon: BadgeCheck, label: 'Admin approved' },
+  { icon: Euro, label: 'Transparent pricing' },
+];
 
 export default function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="px-4 py-24 sm:px-6 lg:px-8"
-      style={{ background: 'linear-gradient(180deg, var(--wm-bg) 0%, rgba(255, 251, 235, 0.25) 50%, var(--wm-bg) 100%)' }}
+      className="relative overflow-hidden px-5 py-28 sm:px-8 lg:px-12"
+      style={{
+        background: 'linear-gradient(180deg, var(--wm-bg) 0%, rgba(240,253,244,0.4) 50%, var(--wm-bg) 100%)',
+      }}
     >
       <div className="mx-auto max-w-7xl">
-        {/* Header */}
+        {/* Header — centered */}
         <motion.div
-          className="mb-16"
+          className="mb-20 text-center"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
+          transition={{ duration: 0.5 }}
         >
-          <span className="wm-section-label mb-3">How it works</span>
-          <h2
-            className="mt-4 wm-display"
-            style={{ fontSize: 'clamp(1.7rem, 3.2vw, 2.4rem)', color: 'var(--wm-text-strong)' }}
+          <span
+            className="text-xs font-bold uppercase tracking-[0.2em]"
+            style={{ color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)' }}
           >
-            Get It Done in 3 Simple Steps
+            How it works
+          </span>
+          <h2
+            className="mt-3"
+            style={{
+              fontFamily: 'var(--wm-font-display)',
+              fontSize: 'clamp(2rem, 4.5vw, 3.2rem)',
+              fontWeight: 800,
+              lineHeight: 1.1,
+              letterSpacing: '-0.03em',
+              color: 'var(--wm-navy)',
+            }}
+          >
+            Three steps to done.
           </h2>
-          <p className="mt-3 max-w-lg text-base leading-relaxed" style={{ color: 'var(--wm-text-muted)' }}>
-            From posting to payment — we handle the complexity so you can focus on the result.
-          </p>
         </motion.div>
 
-        <div className="relative grid gap-8 md:grid-cols-3">
-          {/* SVG connector line — desktop only */}
-          <svg
-            className="pointer-events-none absolute hidden md:block"
-            style={{ top: '3.5rem', left: '16.67%', right: '16.67%', width: '66.66%', height: '2px', overflow: 'visible' }}
-            preserveAspectRatio="none"
-          >
-            <line
-              x1="0"
-              y1="0"
-              x2="100%"
-              y2="0"
-              strokeDasharray="8 6"
-              strokeWidth="2"
-              style={{ stroke: 'var(--wm-border)' }}
-            />
-          </svg>
-
-          {/* Animated connector dot */}
-          <motion.div
-            className="absolute hidden h-3 w-3 rounded-full md:block"
+        {/* Steps — horizontal cards with connecting line */}
+        <div className="relative">
+          {/* Connector line — desktop */}
+          <div
+            className="pointer-events-none absolute top-16 hidden h-[2px] md:block"
             style={{
-              top: 'calc(3.5rem - 5px)',
-              left: '16.67%',
-              backgroundColor: 'var(--wm-primary)',
-              boxShadow: '0 0 0 6px rgba(var(--wm-primary-rgb), 0.15)',
+              left: 'calc(16.67% + 24px)',
+              right: 'calc(16.67% + 24px)',
+              background: 'linear-gradient(90deg, var(--wm-primary), var(--wm-blue), var(--wm-amber))',
+              opacity: 0.2,
             }}
-            animate={{ x: ['0%', '200%', '400%'] }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', repeatDelay: 0.5 }}
           />
 
-          {steps.map((step, index) => (
-            <motion.article
-              key={step.num}
-              custom={index}
-              variants={cardVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.3 }}
-              whileHover={{ y: -8, transition: { duration: 0.25, ease: [0.34, 1.56, 0.64, 1] } }}
-              className="relative z-10 overflow-hidden rounded-2xl"
-              style={{
-                background: 'var(--wm-surface)',
-                borderRadius: 'var(--wm-radius-2xl)',
-                border: '1px solid var(--wm-border)',
-                boxShadow: 'var(--wm-shadow-sm)',
-                transition: 'box-shadow 0.3s ease, border-color 0.3s ease',
-              }}
-              onMouseEnter={(e) => {
-                const el = e.currentTarget as HTMLElement;
-                el.style.boxShadow = `0 20px 50px ${step.glow}, var(--wm-shadow-lg)`;
-                el.style.borderColor = step.color;
-              }}
-              onMouseLeave={(e) => {
-                const el = e.currentTarget as HTMLElement;
-                el.style.boxShadow = 'var(--wm-shadow-sm)';
-                el.style.borderColor = 'var(--wm-border)';
-              }}
-            >
-              {/* Colored accent bar at the top */}
-              <div
-                className="h-1 w-full"
-                style={{ background: step.accentBar }}
-              />
-
-              <div className="relative p-7 pt-6">
-                {/* Large oversized background step number */}
-                <div
-                  className="pointer-events-none absolute -right-3 -top-4 select-none font-black leading-none"
-                  style={{
-                    fontFamily: 'var(--wm-font-display)',
-                    fontSize: '7rem',
-                    color: step.color,
-                    opacity: 0.04,
-                  }}
-                >
-                  {step.num}
-                </div>
-
-                {/* Step indicator circle with pulse */}
-                <div className="relative mb-6 inline-flex">
-                  {/* Pulse ring */}
-                  <motion.div
-                    className="absolute inset-0 rounded-full"
-                    style={{
-                      backgroundColor: step.color,
-                      opacity: 0.15,
-                    }}
-                    animate={{
-                      scale: [1, 1.6, 1],
-                      opacity: [0.15, 0, 0.15],
-                    }}
-                    transition={{
-                      duration: 2.5,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                      delay: index * 0.4,
-                    }}
-                  />
+          <div className="grid gap-6 md:grid-cols-3">
+            {steps.map((step, i) => (
+              <motion.article
+                key={step.num}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5, delay: i * 0.12 }}
+                className="group relative"
+              >
+                {/* Step number circle */}
+                <div className="relative z-10 mb-6 inline-flex">
                   <div
-                    className="relative z-10 inline-flex h-12 w-12 items-center justify-center rounded-full text-sm font-black"
+                    className="flex h-12 w-12 items-center justify-center rounded-full text-sm font-black"
                     style={{
                       fontFamily: 'var(--wm-font-display)',
-                      backgroundColor: step.lightBg,
-                      color: step.color,
-                      boxShadow: `0 0 0 3px ${step.glow}`,
+                      background: 'var(--wm-surface)',
+                      border: `2px solid ${step.accent}`,
+                      color: step.accent,
+                      boxShadow: `0 0 0 6px rgba(255,255,255,1), 0 4px 20px rgba(0,0,0,0.06)`,
                     }}
                   >
                     {step.num}
                   </div>
                 </div>
 
-                {/* Step number label */}
+                {/* Card body */}
                 <div
-                  className="mb-1 text-xs font-bold tracking-[0.15em] uppercase"
-                  style={{ color: step.color, fontFamily: 'var(--wm-font-display)' }}
-                >
-                  Step {step.num}
-                </div>
-
-                <h3
-                  className="text-xl font-bold leading-snug"
-                  style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-text-strong)' }}
-                >
-                  {step.title}
-                </h3>
-
-                <p className="mt-2.5 text-sm leading-relaxed" style={{ color: 'var(--wm-text-muted)' }}>
-                  {step.description}
-                </p>
-
-                {/* Highlight pill with gradient background */}
-                <div
-                  className="mt-5 inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold"
+                  className="rounded-2xl p-6 transition-all duration-300"
                   style={{
-                    background: `linear-gradient(135deg, ${step.lightBg} 0%, rgba(255, 255, 255, 0.6) 100%)`,
-                    color: step.color,
-                    border: `1px solid ${step.glow}`,
+                    background: 'var(--wm-surface)',
+                    border: '1px solid var(--wm-border)',
+                    boxShadow: 'var(--wm-shadow-sm)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = step.accent;
+                    e.currentTarget.style.boxShadow = `0 20px 50px rgba(0,0,0,0.06), 0 0 0 1px ${step.accent}20`;
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--wm-border)';
+                    e.currentTarget.style.boxShadow = 'var(--wm-shadow-sm)';
+                    e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0 }}>
-                    <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  {step.highlight}
+                  {/* Icon */}
+                  <div
+                    className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl"
+                    style={{ background: step.lightBg, color: step.accent }}
+                  >
+                    <step.icon className="h-5 w-5" />
+                  </div>
+
+                  <h3
+                    className="text-lg font-bold"
+                    style={{
+                      fontFamily: 'var(--wm-font-display)',
+                      color: 'var(--wm-navy)',
+                      letterSpacing: '-0.01em',
+                    }}
+                  >
+                    {step.title}
+                  </h3>
+
+                  <p
+                    className="mt-2.5 text-sm leading-relaxed"
+                    style={{ color: 'var(--wm-muted)' }}
+                  >
+                    {step.description}
+                  </p>
                 </div>
-              </div>
-            </motion.article>
-          ))}
+              </motion.article>
+            ))}
+          </div>
         </div>
+
+        {/* Trust pills — below steps */}
+        <motion.div
+          className="mt-14 flex flex-wrap items-center justify-center gap-3"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          {trustPills.map(({ icon: Icon, label }) => (
+            <span
+              key={label}
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold"
+              style={{
+                background: 'var(--wm-primary-faint)',
+                color: 'var(--wm-primary-dark)',
+                border: '1px solid rgba(var(--wm-primary-rgb), 0.15)',
+              }}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              {label}
+            </span>
+          ))}
+        </motion.div>
       </div>
     </section>
   );

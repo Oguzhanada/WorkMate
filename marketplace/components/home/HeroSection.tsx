@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Search, MapPin, ShieldCheck, Star, Map, CreditCard } from 'lucide-react';
+import { Search, MapPin, ArrowRight, Shield, Star, Zap, Users } from 'lucide-react';
 import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
@@ -15,54 +15,12 @@ const counties = [
   'Wexford', 'Wicklow',
 ];
 
-const trustBadges = [
-  { icon: ShieldCheck, label: '500+ Verified Pros' },
-  { icon: Map, label: '26 Counties' },
-  { icon: Star, label: '4.8\u2605 Rating' },
-  { icon: CreditCard, label: 'Stripe Protected' },
+const ticker = [
+  { icon: Users, value: '500+', label: 'Verified Pros' },
+  { icon: Star, value: '4.8★', label: 'Avg Rating' },
+  { icon: Zap, value: '<4h', label: 'Response' },
+  { icon: Shield, value: '26', label: 'Counties' },
 ];
-
-const headlineVariants = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.1, delayChildren: 0.15 },
-  },
-};
-
-const lineVariants = {
-  hidden: { opacity: 0, y: 32, filter: 'blur(8px)' },
-  visible: {
-    opacity: 1,
-    y: 0,
-    filter: 'blur(0px)',
-    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] as const },
-  },
-};
-
-const slideUp = {
-  hidden: { opacity: 0, y: 40 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { type: 'spring' as const, stiffness: 80, damping: 18, mass: 1 },
-  },
-};
-
-const badgeContainer = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.08, delayChildren: 0.9 },
-  },
-};
-
-const badgeItem = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
-  },
-};
 
 export default function HeroSection() {
   const router = useRouter();
@@ -80,125 +38,174 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="wm-hero-bg wm-grain relative overflow-hidden px-4 pb-24 pt-20 sm:px-6 sm:pb-32 sm:pt-28 lg:px-8 lg:pb-36 lg:pt-32">
-      {/* Celtic knot decorative background */}
-      <div className="wm-celtic-deco wm-float" aria-hidden="true" />
+    <section
+      className="relative overflow-hidden"
+      style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(165deg, var(--wm-navy) 0%, #0c1a2e 45%, #0a2a29 100%)',
+      }}
+    >
+      {/* Grain overlay */}
+      <div className="wm-grain pointer-events-none absolute inset-0" style={{ opacity: 0.4 }} />
 
-      {/* Subtle radial glow */}
+      {/* Mesh gradient orbs */}
       <div
-        className="absolute left-1/2 top-0 -translate-x-1/2 pointer-events-none"
+        className="pointer-events-none absolute"
         style={{
-          width: '900px',
-          height: '500px',
-          background: 'radial-gradient(ellipse at center, rgba(var(--wm-primary-rgb), 0.06) 0%, transparent 70%)',
+          width: '800px',
+          height: '800px',
+          top: '-20%',
+          right: '-15%',
+          background: 'radial-gradient(circle, rgba(var(--wm-primary-rgb), 0.12) 0%, transparent 60%)',
+          filter: 'blur(80px)',
+        }}
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute"
+        style={{
+          width: '600px',
+          height: '600px',
+          bottom: '-10%',
+          left: '-10%',
+          background: 'radial-gradient(circle, rgba(var(--wm-primary-rgb), 0.08) 0%, transparent 60%)',
+          filter: 'blur(60px)',
         }}
         aria-hidden="true"
       />
 
-      <div className="relative mx-auto max-w-5xl text-center">
-        {/* Section pill */}
+      {/* Subtle grid */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)',
+          backgroundSize: '80px 80px',
+        }}
+        aria-hidden="true"
+      />
+
+      {/* Top accent line */}
+      <div
+        className="absolute left-0 right-0 top-0 h-[2px]"
+        style={{
+          background: 'linear-gradient(90deg, transparent 10%, var(--wm-primary) 50%, transparent 90%)',
+          opacity: 0.6,
+        }}
+      />
+
+      {/* Main content */}
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl flex-col justify-center px-5 pb-20 pt-28 sm:px-8 lg:px-12">
+        {/* Pill badge */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.05 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
         >
-          <span className="wm-section-label mb-8 inline-block">
-            Ireland&apos;s Home Services Platform
+          <span
+            className="inline-flex items-center gap-2.5 rounded-full px-4 py-1.5"
+            style={{
+              background: 'rgba(var(--wm-primary-rgb), 0.12)',
+              border: '1px solid rgba(var(--wm-primary-rgb), 0.25)',
+            }}
+          >
+            <span
+              className="h-1.5 w-1.5 rounded-full"
+              style={{ background: 'var(--wm-primary)', boxShadow: '0 0 8px var(--wm-primary)' }}
+            />
+            <span
+              className="text-xs font-semibold uppercase tracking-[0.15em]"
+              style={{ color: 'var(--wm-primary)' }}
+            >
+              Ireland&apos;s Home Services Platform
+            </span>
           </span>
         </motion.div>
 
-        {/* Headline — massive staggered reveal */}
+        {/* Headline — editorial scale */}
         <motion.h1
-          className="wm-display mx-auto max-w-5xl"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
           style={{
-            fontSize: 'clamp(3rem, 8vw, 6.5rem)',
-            lineHeight: 1,
+            fontFamily: 'var(--wm-font-display)',
+            fontWeight: 800,
+            fontSize: 'clamp(3.2rem, 9vw, 7.5rem)',
+            lineHeight: 0.92,
             letterSpacing: '-0.04em',
-            color: 'var(--wm-navy)',
+            marginTop: '2rem',
           }}
-          variants={headlineVariants}
-          initial="hidden"
-          animate="visible"
         >
-          <motion.span className="block" variants={lineVariants}>
-            Ireland&apos;s Most Trusted
-          </motion.span>
-          <motion.span className="wm-text-gradient block" variants={lineVariants}>
-            Home Services
-          </motion.span>
-          <motion.span className="block" variants={lineVariants}>
-            Marketplace
-          </motion.span>
+          <span style={{ color: 'white' }}>Find your</span>
+          <br />
+          <span
+            style={{
+              background: 'linear-gradient(135deg, var(--wm-primary) 0%, #34d399 50%, var(--wm-amber) 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            perfect pro.
+          </span>
         </motion.h1>
 
         {/* Subheadline */}
         <motion.p
-          className="mx-auto mt-8 max-w-2xl leading-relaxed"
-          style={{
-            fontSize: 'clamp(1.05rem, 2.2vw, 1.4rem)',
-            color: 'var(--wm-muted)',
-            letterSpacing: '-0.01em',
-          }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.55 }}
+          transition={{ duration: 0.6, delay: 0.45 }}
+          className="mt-6 max-w-xl"
+          style={{
+            fontSize: 'clamp(1.05rem, 2vw, 1.3rem)',
+            color: 'rgba(255,255,255,0.6)',
+            lineHeight: 1.65,
+            letterSpacing: '-0.01em',
+          }}
         >
-          Connect with verified professionals across all 26 counties.
-          <br className="hidden sm:block" />
-          Quality work, fair prices, complete peace of mind.
+          Verified tradespeople across all 26 counties. Post a job, get offers within hours,
+          pay securely through Stripe — only when you&apos;re satisfied.
         </motion.p>
 
-        {/* Search bar — floating glass pill */}
+        {/* Search bar */}
         <motion.div
-          className="wm-search-glass mx-auto mt-12 max-w-3xl p-2 sm:p-2.5"
-          variants={slideUp}
-          initial="hidden"
-          animate="visible"
-          transition={{ delay: 0.65 }}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="mt-10 max-w-2xl"
         >
-          <div className="grid gap-2 sm:grid-cols-[1fr_200px_auto] md:grid-cols-[1fr_240px_auto]">
-            <label
-              className="flex items-center gap-3 rounded-full px-5 py-3.5 text-left transition"
-              style={{
-                background: 'rgba(255,255,255,0.7)',
-                border: '1px solid var(--wm-border-soft)',
-              }}
-            >
+          <div
+            className="flex flex-col gap-2 rounded-2xl p-2 sm:flex-row sm:items-center"
+            style={{
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+            }}
+          >
+            <label className="flex flex-1 items-center gap-3 rounded-xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.06)' }}>
               <Search className="h-4 w-4 shrink-0" style={{ color: 'var(--wm-primary)' }} />
               <input
                 value={serviceQuery}
-                onChange={(event) => setServiceQuery(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault();
-                    onSearch();
-                  }
-                }}
-                placeholder="What service do you need?"
-                className="w-full border-none bg-transparent text-sm outline-none placeholder:opacity-50"
-                style={{ color: 'var(--wm-text-default)', fontFamily: 'var(--wm-font-sans)' }}
+                onChange={(e) => setServiceQuery(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); onSearch(); } }}
+                placeholder="What do you need done?"
+                className="w-full border-none bg-transparent text-sm font-medium outline-none placeholder:text-white/30"
+                style={{ color: 'white', fontFamily: 'var(--wm-font-sans)' }}
               />
             </label>
 
-            <label
-              className="flex items-center gap-3 rounded-full px-5 py-3.5 text-left transition"
-              style={{
-                background: 'rgba(255,255,255,0.7)',
-                border: '1px solid var(--wm-border-soft)',
-              }}
-            >
+            <label className="flex items-center gap-3 rounded-xl px-4 py-3 sm:w-48" style={{ background: 'rgba(255,255,255,0.06)' }}>
               <MapPin className="h-4 w-4 shrink-0" style={{ color: 'var(--wm-primary)' }} />
               <select
                 value={county}
-                onChange={(event) => setCounty(event.target.value)}
-                className="w-full border-none bg-transparent text-sm outline-none"
-                style={{ color: 'var(--wm-text-default)', fontFamily: 'var(--wm-font-sans)' }}
+                onChange={(e) => setCounty(e.target.value)}
+                className="w-full border-none bg-transparent text-sm font-medium outline-none"
+                style={{ color: 'white', fontFamily: 'var(--wm-font-sans)' }}
                 aria-label="Select county"
               >
-                {counties.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
+                {counties.map((c) => (
+                  <option key={c} value={c} style={{ color: 'var(--wm-navy)' }}>{c}</option>
                 ))}
               </select>
             </label>
@@ -206,83 +213,90 @@ export default function HeroSection() {
             <button
               type="button"
               onClick={onSearch}
-              className="wm-btn-glow rounded-full px-8 py-3.5 text-sm font-bold text-white"
+              className="flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-bold text-white transition-transform active:scale-95"
+              style={{
+                background: 'var(--wm-grad-primary)',
+                boxShadow: '0 8px 30px rgba(var(--wm-primary-rgb), 0.35)',
+              }}
             >
               Search
+              <ArrowRight className="h-4 w-4" />
             </button>
           </div>
         </motion.div>
 
-        {/* Trust badges */}
+        {/* CTA row */}
         <motion.div
-          className="mt-10 flex flex-wrap items-center justify-center gap-6 sm:gap-8"
-          variants={badgeContainer}
-          initial="hidden"
-          animate="visible"
-        >
-          {trustBadges.map(({ icon: Icon, label }) => (
-            <motion.div
-              key={label}
-              className="flex items-center gap-2"
-              variants={badgeItem}
-            >
-              <Icon
-                className="h-4 w-4"
-                style={{ color: 'var(--wm-primary)' }}
-                aria-hidden="true"
-              />
-              <span
-                className="text-sm font-medium"
-                style={{ color: 'var(--wm-muted)', letterSpacing: '-0.01em' }}
-              >
-                {label}
-              </span>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* CTA buttons — asymmetric sizing */}
-        <motion.div
-          className="mt-12 flex flex-wrap items-center justify-center gap-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.1 }}
+          transition={{ duration: 0.5, delay: 0.8 }}
+          className="mt-8 flex flex-wrap items-center gap-4"
         >
           <Link
             href={withLocalePrefix(localeRoot, '/post-job')}
-            className="wm-btn-glow inline-flex items-center justify-center rounded-full px-10 py-4 text-base font-bold text-white"
-            style={{ fontSize: 'clamp(0.95rem, 1.8vw, 1.1rem)' }}
+            className="inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-bold transition-transform hover:scale-[1.02] active:scale-95"
+            style={{
+              background: 'white',
+              color: 'var(--wm-navy)',
+              fontFamily: 'var(--wm-font-display)',
+              boxShadow: '0 8px 32px rgba(255,255,255,0.12)',
+            }}
           >
-            Post a Job
+            Post a Job — Free
+            <ArrowRight className="h-4 w-4" />
           </Link>
           <Link
             href={withLocalePrefix(localeRoot, '/become-provider')}
-            className="inline-flex items-center justify-center rounded-full px-8 py-3.5 text-sm font-semibold transition"
+            className="inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold transition-colors"
             style={{
-              border: '1.5px solid var(--wm-border)',
-              background: 'var(--wm-surface)',
-              color: 'var(--wm-text-default)',
+              color: 'rgba(255,255,255,0.8)',
+              border: '1px solid rgba(255,255,255,0.15)',
               fontFamily: 'var(--wm-font-display)',
-              letterSpacing: '-0.01em',
-              boxShadow: 'var(--wm-shadow-sm)',
-            }}
-            onMouseEnter={(e) => {
-              const t = e.currentTarget;
-              t.style.borderColor = 'var(--wm-primary)';
-              t.style.color = 'var(--wm-primary-dark)';
-              t.style.transform = 'translateY(-1px)';
-            }}
-            onMouseLeave={(e) => {
-              const t = e.currentTarget;
-              t.style.borderColor = 'var(--wm-border)';
-              t.style.color = 'var(--wm-text-default)';
-              t.style.transform = 'translateY(0)';
             }}
           >
             Become a Pro
           </Link>
         </motion.div>
+
+        {/* Stats ticker — bottom of hero */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 1.1 }}
+          className="mt-auto flex flex-wrap items-center gap-8 pt-16 sm:gap-12"
+        >
+          {ticker.map(({ icon: Icon, value, label }) => (
+            <div key={label} className="flex items-center gap-3">
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-xl"
+                style={{
+                  background: 'rgba(var(--wm-primary-rgb), 0.1)',
+                  border: '1px solid rgba(var(--wm-primary-rgb), 0.2)',
+                }}
+              >
+                <Icon className="h-4 w-4" style={{ color: 'var(--wm-primary)' }} />
+              </div>
+              <div>
+                <span
+                  className="block text-lg font-extrabold leading-none"
+                  style={{ color: 'white', fontFamily: 'var(--wm-font-display)' }}
+                >
+                  {value}
+                </span>
+                <span className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                  {label}
+                </span>
+              </div>
+            </div>
+          ))}
+        </motion.div>
       </div>
+
+      {/* Bottom fade */}
+      <div
+        className="pointer-events-none absolute bottom-0 left-0 right-0 h-32"
+        style={{ background: 'linear-gradient(to top, var(--wm-bg), transparent)' }}
+      />
     </section>
   );
 }
