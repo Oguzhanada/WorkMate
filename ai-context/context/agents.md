@@ -74,6 +74,9 @@ These rules are mandatory for every change in this project.
 - Before commit:
   - `npm run lint`
   - `npm run test`
+- Before merge (PR gate, mandatory):
+  - Backstop visual regression check must pass
+  - Lighthouse CI check must pass
 - Keep commit messages explicit and scoped.
 
 ## 7) Delivery behavior
@@ -86,6 +89,10 @@ These rules are mandatory for every change in this project.
 - No new raw page-level CSS for visual redesign work unless shared tokens/components are insufficient.
 - Prefer centralized design tokens in `app/globals.css` and shared primitives in `components/ui/*`.
 - If a new visual primitive is required, add it once to the shared layer and reuse it across pages.
+- Hybrid UI boundary is allowed:
+  - Shadcn/Radix primitives are allowed inside `components/ui/*` wrappers.
+  - Do not scatter primitive-specific utility patterns directly across page files.
+  - Keep color/spacing/radius/shadow decisions mapped to `--wm-*` tokens.
 
 ---
 
@@ -170,7 +177,7 @@ router.push(withLocalePrefix(localeRoot, '/dashboard/customer'));
 ## 17) Skill activation guide
 When working on these areas, activate the matching skill first:
 - Skill locations:
-  - Repo-local WorkMate skills: `.claude/skills/workmate-*`
+  - Repo-local WorkMate skills: `.claude/skills/workmate-*` and `.claude/skills/ui-system-hybrid-migration`
   - Codex global skills: `~/.codex/skills/*`
 
 | Area | Skill to activate |
@@ -181,6 +188,8 @@ When working on these areas, activate the matching skill first:
 | Admin dashboard regression | `admin-dashboard-live-qa` |
 | Task alert RLS or match flow | `task-alerts-rls-smoke` |
 | Locale route or `[locale]` path issue | `locale-route-guard-next-intl` |
+| Hybrid UI migration and wrapper strategy | `ui-system-hybrid-migration` |
+| Visual QA and regression gate workflow | `workmate-visual-qa` |
 | New API route handler | `workmate-api-route` |
 | New dashboard widget | `workmate-dashboard-widget` |
 | Production launch / env vars / go-live | `workmate-production-launch` |
@@ -201,9 +210,9 @@ DR-XXX | Date | Author | Decision changed | Reason | Approved by
 |---|----------------|---------------|
 | FD-01 | All Zod schemas in `lib/validation/api.ts` — never inline in route files | Single source of truth; prevents schema drift; enables reuse across tests |
 | FD-02 | `loading.tsx` on every data-fetching page under `app/[locale]/` | No blank screens on navigation; required by `ai-context/prompts/claude-guidelines.md` |
-| FD-03 | Colors only via `--wm-*` CSS tokens — no hardcoded hex in page/feature code | Design system consistency; theme-ability; enforced in `globals.css` |
-| FD-04 | `<Button>` component always — no raw `<button className="bg-...">` or `<Link className="bg-...">` | Variant/size system; consistent focus rings; accessibility |
-| FD-05 | `<PageHeader>` component always at the top of pages | Consistent page layout; prevents ad-hoc Card+h1 patterns |
+| FD-03 | Colors/spacing/radius/shadows must map to `--wm-*` tokens; wrapper internals may use Shadcn/Radix primitives | Preserves brand identity while enabling modern primitive internals |
+| FD-04 | Keep wrapper API (`Button`, `Card`, `Badge`, etc.) as the page-facing contract | Stable app-level API, safer migration path, consistent behavior |
+| FD-05 | `<PageHeader>` remains required at page top; avoid ad-hoc page-level style systems | Consistent page structure and reduced UI drift |
 | FD-06 | `<EmptyState>` on every list — always handle zero-item state | No blank/broken UIs on empty data; consistent UX |
 | FD-07 | Responsive grid default: `sm:grid-cols-2 lg:grid-cols-3` on all card lists | Mobile-first; prevents single-column desktop layouts |
 | FD-08 | Supabase clients per-context — never a module-scope singleton | Prevents hydration errors, shared state bugs, SSR leaks |

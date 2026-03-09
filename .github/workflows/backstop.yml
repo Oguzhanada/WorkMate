@@ -49,11 +49,7 @@ jobs:
         run: sleep 10
 
       - name: Run BackstopJS visual regression tests
-        # First run will fail gracefully if no reference images exist yet.
-        # Generate reference images locally with:
-        #   backstop reference --config=backstop.json
-        # Then commit backstop_data/bitmaps_reference/ to the repo.
-        continue-on-error: true
+        # This check is merge-blocking. Keep reference images committed and updated.
         run: backstop test --config=backstop.json
 
       - name: Upload BackstopJS report

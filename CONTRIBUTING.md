@@ -203,13 +203,19 @@ Note: there is a known file naming collision at `021` (`021_pro_documents_rls.sq
    - `npm run lint:eslint` passes with no new warnings
    - `npm run test:unit` and `npm run test:integration` pass
    - `npm run test:e2e:smoke` passes
+   - Backstop visual regression check passes (no unexpected diffs)
+   - Lighthouse CI check passes (no blocking regressions)
    - No secrets, API keys, or credentials are present anywhere in the diff
    - All new pages have a co-located `loading.tsx`
    - All new list views have an `EmptyState` handler
 
 4. PRs require at least one review before merge.
 
-5. Squash-merge to keep the main branch history clean.
+5. Visual quality checks are merge-blocking:
+   - `.github/workflows/backstop.yml`
+   - `.github/workflows/lighthouse.yml`
+
+6. Squash-merge to keep the main branch history clean.
 
 ---
 

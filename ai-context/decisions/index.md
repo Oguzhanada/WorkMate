@@ -3,6 +3,7 @@
 | ID | Date | Title | Status |
 |---|---|---|---|
 | DR-001 | 2026-03-08 | AI context consolidation to `ai-context/` | Accepted |
+| DR-002 | 2026-03-09 | Hybrid UI strategy with wrapper boundary and visual PR gates | Accepted |
 
 ## Record Format
 - Create one file per decision: `DR-XXX-short-title.md`.

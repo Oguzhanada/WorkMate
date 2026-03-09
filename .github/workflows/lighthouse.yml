@@ -26,7 +26,6 @@ jobs:
 
       - name: Build Next.js app
         run: npm run build
-        continue-on-error: true
         env:
           NEXT_PUBLIC_PLATFORM_BASE_URL: http://localhost:3001
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
@@ -42,7 +41,6 @@ jobs:
 
       - name: Run Lighthouse CI
         run: lhci autorun
-        continue-on-error: true
 
       - name: Upload Lighthouse report
         if: always()

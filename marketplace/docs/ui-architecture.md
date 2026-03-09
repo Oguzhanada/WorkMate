@@ -11,6 +11,7 @@ Create one premium, consistent visual system across all product pages with centr
 3. Page files compose shared components; avoid page-specific styling unless necessary.
 4. Dark mode parity is mandatory for all newly touched views.
 5. UI changes must not alter business logic or API behavior.
+6. Hybrid boundary: primitive libraries are allowed only behind shared wrappers in `components/ui/*`.
 
 ## Token Source
 
@@ -25,6 +26,12 @@ Create one premium, consistent visual system across all product pages with centr
 - `components/ui/StatCard.tsx`
 - `components/ui/Shell.tsx`
 
+### Hybrid Primitive Rule
+
+- Shadcn/Radix primitives may be used **inside** shared wrappers under `components/ui/*`.
+- Page files must consume wrapper components and avoid random utility-heavy one-offs.
+- Wrapper visuals still map to `--wm-*` tokens in `app/globals.css`.
+
 ## Migration Order
 
 1. Dashboards (`customer`, `pro`, `admin`)
@@ -38,6 +45,14 @@ Create one premium, consistent visual system across all product pages with centr
 `No new raw CSS`:
 - Do not add new page-specific CSS modules for visual styling if shared tokens/components can express the change.
 - If a new style primitive is needed, add it once in shared UI/tokens and reuse.
+- Avoid style duplication in page files. If a visual pattern appears twice, move it into shared UI layer.
+
+## Visual Quality Gate
+
+- PRs must pass visual baseline checks before merge:
+  - Backstop visual regression (`.github/workflows/backstop.yml`)
+  - Lighthouse CI (`.github/workflows/lighthouse.yml`)
+- Visual failures are treated as blocking quality failures, not informational warnings.
 
 ## Review Checklist
 

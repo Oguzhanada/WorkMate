@@ -28,7 +28,13 @@ backstop_data/ci_report/
 marketplace/supabase/.temp/
 
 # Editor / OS
-.claude/
+.claude/*
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/ui-system-hybrid-migration/
+!.claude/skills/ui-system-hybrid-migration/SKILL.md
+!.claude/skills/workmate-visual-qa/
+!.claude/skills/workmate-visual-qa/SKILL.md
 .vscode/
 .DS_Store
 Thumbs.db
