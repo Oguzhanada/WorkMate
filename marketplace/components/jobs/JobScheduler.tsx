@@ -359,7 +359,7 @@ export default function JobScheduler({ jobId, providerId, isCustomer, isProvider
       </div>
 
       {loading ? <p className="mt-3 text-sm" style={{ color: 'var(--wm-muted)' }}>Loading schedule...</p> : null}
-      {error ? <p className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p> : null}
+      {error ? <p className="mt-3 text-sm text-[var(--wm-destructive)]">{error}</p> : null}
       {ok ? <p className="mt-3 text-sm" style={{ color: 'var(--wm-primary)' }}>{ok}</p> : null}
     </Card>
   );

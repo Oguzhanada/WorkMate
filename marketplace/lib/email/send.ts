@@ -11,6 +11,7 @@ import {
   gardaVettingStatusEmail,
   gardaVettingRequestedEmail,
   subscriptionStatusEmail,
+  gdprDeletionConfirmEmail,
   type QuoteReceivedData,
   type QuoteAcceptedData,
   type PaymentReleasedData,
@@ -21,6 +22,7 @@ import {
   type GardaVettingStatusData,
   type GardaVettingRequestedData,
   type SubscriptionStatusData,
+  type GdprDeletionConfirmData,
 } from './templates';
 
 const FROM = 'WorkMate <notifications@workmate.ie>';
@@ -35,7 +37,8 @@ type EmailEvent =
   | ({ type: 'contract_voided' } & ContractVoidedData)
   | ({ type: 'garda_vetting_status' } & GardaVettingStatusData)
   | ({ type: 'garda_vetting_requested' } & GardaVettingRequestedData)
-  | ({ type: 'subscription_status' } & SubscriptionStatusData);
+  | ({ type: 'subscription_status' } & SubscriptionStatusData)
+  | ({ type: 'gdpr_deletion_confirm' } & GdprDeletionConfirmData);
 
 /**
  * Fire-and-forget transactional email. Never throws — email failure is logged
@@ -76,6 +79,8 @@ export function sendTransactionalEmail(event: EmailEvent): void {
         ({ subject, html } = gardaVettingRequestedEmail(event));
       } else if (event.type === 'subscription_status') {
         ({ subject, html } = subscriptionStatusEmail(event));
+      } else if (event.type === 'gdpr_deletion_confirm') {
+        ({ subject, html } = gdprDeletionConfirmEmail(event));
       } else {
         ({ subject, html } = paymentReleasedEmail(event));
       }

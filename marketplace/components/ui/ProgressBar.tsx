@@ -11,14 +11,15 @@ export default function ProgressBar({ value, max, label, className }: ProgressBa
     <div className={className}>
       {label ? (
         <div className="mb-1 flex items-center justify-between">
-          <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">{label}</span>
-          <span className="text-xs text-zinc-500 dark:text-zinc-400">
+          <span className="text-xs font-medium" style={{ color: 'var(--wm-text-default)' }}>{label}</span>
+          <span className="text-xs" style={{ color: 'var(--wm-muted)' }}>
             {value} / {max}
           </span>
         </div>
       ) : null}
       <div
-        className="h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700"
+        className="h-2 w-full overflow-hidden rounded-full"
+        style={{ background: 'var(--wm-border)' }}
         role="progressbar"
         aria-valuenow={value}
         aria-valuemin={0}

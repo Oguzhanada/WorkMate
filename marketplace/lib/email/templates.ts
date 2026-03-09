@@ -368,6 +368,37 @@ export type ProviderFirstQuoteData = {
   dashboardUrl: string;
 };
 
+// ── GDPR account deletion confirmation ──────────────────────────────────────
+
+export type GdprDeletionConfirmData = {
+  to: string;
+  recipientName?: string;
+};
+
+export function gdprDeletionConfirmEmail(data: GdprDeletionConfirmData): { subject: string; html: string } {
+  const subject = 'Your WorkMate account has been permanently deleted';
+  const html = layout(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;">Account deleted</h2>
+    <p style="margin:0 0 20px;color:${MUTED};">Hi${data.recipientName ? ` ${data.recipientName}` : ''}, your WorkMate account and personal data have been permanently deleted as requested.</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG};border-radius:8px;padding:16px;margin-bottom:20px;">
+      <tr><td style="padding:4px 0;">
+        <span style="color:${MUTED};font-size:13px;">What was deleted</span><br />
+        <strong>Your profile, reviews, jobs, appointments, and saved preferences.</strong>
+      </td></tr>
+      <tr><td style="padding:12px 0 4px;">
+        <span style="color:${MUTED};font-size:13px;">What was retained</span><br />
+        <strong>Financial transaction records (7-year statutory requirement).</strong>
+      </td></tr>
+    </table>
+
+    <p style="margin-top:8px;font-size:13px;color:${MUTED};">This action is irreversible. If you wish to use WorkMate in the future, you will need to create a new account. Thank you for being part of our community.</p>
+  `);
+  return { subject, html };
+}
+
+// ── Provider first quote milestone (provider notification) ───────────────────
+
 export function providerFirstQuoteEmail(data: ProviderFirstQuoteData): { subject: string; html: string } {
   const subject = `Nice start, ${data.providerName} - your first quote is live`;
   const html = layout(`

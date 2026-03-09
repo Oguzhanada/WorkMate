@@ -32,15 +32,15 @@ export default function AdminStatsWidget() {
 
   return (
     <div>
-      <p className="text-sm font-bold" style={{ color: '#0f172a' }}>Admin Stats</p>
+      <p className="text-sm font-bold" style={{ color: 'var(--wm-navy)' }}>Admin Stats</p>
       {loading ? <p className="mt-2 text-sm" style={{ color: 'var(--wm-muted)' }}>Loading...</p> : null}
-      {error ? <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p> : null}
+      {error ? <p className="mt-2 text-sm" style={{ color: 'var(--wm-destructive)' }}>{error}</p> : null}
       {stats ? (
         <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-          <div className="rounded-xl px-3 py-2.5" style={{ border: '1px solid var(--wm-border)', background: 'white', color: '#0f172a' }}>Users: {stats.totalUsers}</div>
-          <div className="rounded-xl px-3 py-2.5" style={{ border: '1px solid var(--wm-border)', background: 'white', color: '#0f172a' }}>Pending: {stats.pendingApps}</div>
-          <div className="rounded-xl px-3 py-2.5" style={{ border: '1px solid var(--wm-border)', background: 'white', color: '#0f172a' }}>Approval: {stats.approvalRate}%</div>
-          <div className="rounded-xl px-3 py-2.5" style={{ border: '1px solid var(--wm-border)', background: 'white', color: '#0f172a' }}>Revenue: EUR {stats.revenue}</div>
+          <div className="rounded-xl px-3 py-2.5" style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)', color: 'var(--wm-navy)' }}>Users: {stats.totalUsers}</div>
+          <div className="rounded-xl px-3 py-2.5" style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)', color: 'var(--wm-navy)' }}>Pending: {stats.pendingApps}</div>
+          <div className="rounded-xl px-3 py-2.5" style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)', color: 'var(--wm-navy)' }}>Approval: {stats.approvalRate}%</div>
+          <div className="rounded-xl px-3 py-2.5" style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)', color: 'var(--wm-navy)' }}>Revenue: EUR {stats.revenue}</div>
         </div>
       ) : null}
     </div>

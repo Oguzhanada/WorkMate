@@ -9,7 +9,7 @@ import DashboardShell from '@/components/dashboard/DashboardShell';
 const ADMIN_QUICK_LINKS = [
   {
     label: 'Platform Stats',
-    description: 'Bird's-eye view of users, jobs, revenue, and growth trends.',
+    description: "Bird's-eye view of users, jobs, revenue, and growth trends.",
     path: '/dashboard/admin/stats',
   },
   {

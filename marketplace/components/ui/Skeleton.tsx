@@ -10,7 +10,8 @@ export default function Skeleton({ className, lines = 1, height = 'h-4' }: Skele
       {Array.from({ length: lines }).map((_, i) => (
         <div
           key={i}
-          className={`rounded-lg bg-zinc-200 dark:bg-zinc-700 ${height}${className ? ` ${className}` : ''}`}
+          className={`rounded-lg ${height}${className ? ` ${className}` : ''}`}
+          style={{ background: 'var(--wm-border)' }}
         />
       ))}
     </div>

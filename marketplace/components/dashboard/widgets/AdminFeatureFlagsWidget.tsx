@@ -50,21 +50,21 @@ export default function AdminFeatureFlagsWidget() {
   if (loading) {
     return (
       <div style={{ padding: '0.75rem' }}>
-        <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>Loading flags...</p>
+        <p style={{ color: 'var(--wm-muted)', fontSize: '0.875rem' }}>Loading flags...</p>
       </div>
     );
   }
 
   return (
     <div style={{ display: 'grid', gap: '0.5rem' }}>
-      <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#111827' }}>
+      <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: 'var(--wm-navy)' }}>
         Feature Flags
       </h3>
       {error ? (
-        <p style={{ color: '#991b1b', fontSize: '0.85rem', margin: 0 }}>{error}</p>
+        <p style={{ color: 'var(--wm-destructive)', fontSize: '0.85rem', margin: 0 }}>{error}</p>
       ) : null}
       {flags.length === 0 ? (
-        <p style={{ color: '#6b7280', fontSize: '0.875rem', margin: 0 }}>No flags configured.</p>
+        <p style={{ color: 'var(--wm-muted)', fontSize: '0.875rem', margin: 0 }}>No flags configured.</p>
       ) : (
         <div style={{ display: 'grid', gap: '0.4rem' }}>
           {flags.map((flag) => (
@@ -77,16 +77,16 @@ export default function AdminFeatureFlagsWidget() {
                 gap: '0.75rem',
                 padding: '0.5rem 0.6rem',
                 borderRadius: '0.5rem',
-                background: flag.enabled ? '#f0fdf4' : '#f9fafb',
-                border: `1px solid ${flag.enabled ? '#bbf7d0' : '#e5e7eb'}`,
+                background: flag.enabled ? 'var(--wm-primary-faint)' : 'var(--wm-bg)',
+                border: `1px solid ${flag.enabled ? 'var(--wm-primary-light)' : 'var(--wm-border)'}`,
               }}
             >
               <div style={{ minWidth: 0 }}>
-                <p style={{ margin: 0, fontWeight: 600, fontSize: '0.82rem', color: '#111827' }}>
+                <p style={{ margin: 0, fontWeight: 600, fontSize: '0.82rem', color: 'var(--wm-navy)' }}>
                   {flag.flag_key}
                 </p>
                 {flag.description ? (
-                  <p style={{ margin: 0, fontSize: '0.75rem', color: '#6b7280' }}>{flag.description}</p>
+                  <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--wm-muted)' }}>{flag.description}</p>
                 ) : null}
               </div>
               <button
@@ -101,8 +101,8 @@ export default function AdminFeatureFlagsWidget() {
                   fontSize: '0.75rem',
                   fontWeight: 700,
                   cursor: toggling === flag.flag_key ? 'not-allowed' : 'pointer',
-                  background: flag.enabled ? '#00b894' : '#e5e7eb',
-                  color: flag.enabled ? '#fff' : '#374151',
+                  background: flag.enabled ? 'var(--wm-primary)' : 'var(--wm-border)',
+                  color: flag.enabled ? '#fff' : 'var(--wm-muted)',
                   opacity: toggling === flag.flag_key ? 0.6 : 1,
                   transition: 'background 0.15s',
                 }}

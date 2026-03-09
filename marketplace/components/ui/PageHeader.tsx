@@ -11,8 +11,9 @@ type PageHeaderProps = {
 export default function PageHeader({ title, description, action, className, badge }: PageHeaderProps) {
   return (
     <div
-      className={`flex flex-wrap items-start justify-between gap-4 rounded-2xl border bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/80${className ? ` ${className}` : ''}`}
+      className={`flex flex-wrap items-start justify-between gap-4 rounded-2xl border p-5${className ? ` ${className}` : ''}`}
       style={{
+        background: 'var(--wm-surface)',
         borderColor: 'var(--wm-border)',
         boxShadow: 'var(--wm-shadow-md)'
       }}

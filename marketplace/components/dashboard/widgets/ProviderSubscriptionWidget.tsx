@@ -12,9 +12,9 @@ type Subscription = {
 };
 
 const PLAN_LABELS: Record<string, { label: string; color: string; bg: string }> = {
-  basic: { label: 'Basic', color: '#374151', bg: '#f3f4f6' },
-  professional: { label: 'Professional', color: '#1d4ed8', bg: '#dbeafe' },
-  premium: { label: 'Premium', color: '#7c3aed', bg: '#ede9fe' },
+  basic: { label: 'Basic', color: 'var(--wm-muted)', bg: 'var(--wm-bg)' },
+  professional: { label: 'Professional', color: 'var(--wm-blue)', bg: 'var(--wm-blue-soft)' },
+  premium: { label: 'Premium', color: 'var(--wm-primary-dark)', bg: 'var(--wm-primary-faint)' },
 };
 
 export default function ProviderSubscriptionWidget() {
@@ -34,7 +34,7 @@ export default function ProviderSubscriptionWidget() {
   }, []);
 
   if (loading) {
-    return <p style={{ color: '#6b7280', fontSize: '0.875rem', margin: 0 }}>Loading subscription...</p>;
+    return <p style={{ color: 'var(--wm-muted)', fontSize: '0.875rem', margin: 0 }}>Loading subscription...</p>;
   }
 
   if (!subscription) return null;
@@ -44,7 +44,7 @@ export default function ProviderSubscriptionWidget() {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
       <div>
-        <p style={{ margin: 0, fontSize: '0.78rem', color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+        <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--wm-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
           Current Plan
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.2rem' }}>
@@ -60,12 +60,12 @@ export default function ProviderSubscriptionWidget() {
           >
             {plan.label}
           </span>
-          <span style={{ fontSize: '0.82rem', color: '#6b7280' }}>
+          <span style={{ fontSize: '0.82rem', color: 'var(--wm-muted)' }}>
             {subscription.status === 'trialing' ? 'Free trial' : subscription.status}
           </span>
         </div>
         {subscription.cancel_at_period_end && subscription.current_period_end ? (
-          <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: '#d97706' }}>
+          <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: 'var(--wm-amber)' }}>
             Cancels on {new Date(subscription.current_period_end).toLocaleDateString('en-IE')}
           </p>
         ) : null}
@@ -77,7 +77,7 @@ export default function ProviderSubscriptionWidget() {
             border: 'none',
             borderRadius: '0.5rem',
             padding: '0.45rem 0.9rem',
-            background: '#00b894',
+            background: 'var(--wm-primary)',
             color: '#fff',
             fontWeight: 700,
             fontSize: '0.82rem',

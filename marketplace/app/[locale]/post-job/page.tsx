@@ -55,8 +55,8 @@ export default async function LocalizedPostJobPage({
         >
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-extrabold" style={{ color: '#0f172a', letterSpacing: '-0.03em' }}>Create Job Request</h1>
-              <p className="text-sm" style={{ color: '#475569' }}>
+              <h1 className="text-3xl font-extrabold" style={{ color: 'var(--wm-navy)', letterSpacing: '-0.03em' }}>Create Job Request</h1>
+              <p className="text-sm" style={{ color: 'var(--wm-muted)' }}>
                 Share clear details to receive faster and more accurate quotes.
               </p>
             </div>
@@ -79,8 +79,8 @@ export default async function LocalizedPostJobPage({
           <JobMultiStepForm customerId={user.id} />
         ) : user && blockedByRole ? (
           <Card className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-            <h2 className="text-lg font-bold" style={{ color: '#0f172a' }}>Your account cannot post jobs yet</h2>
-            <p className="mt-2 text-sm" style={{ color: '#334155' }}>
+            <h2 className="text-lg font-bold" style={{ color: 'var(--wm-navy)' }}>Your account cannot post jobs yet</h2>
+            <p className="mt-2 text-sm" style={{ color: 'var(--wm-text-default)' }}>
               Complete your profile and required verification details to unlock job posting.
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-2">

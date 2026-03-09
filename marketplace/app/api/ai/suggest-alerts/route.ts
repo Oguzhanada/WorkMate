@@ -77,7 +77,7 @@ async function handler(request: NextRequest): Promise<NextResponse> {
 
   const serviceList = proServices
     .map((s) => {
-      const cat = s.categories as { name: string } | null;
+      const cat = s.categories as unknown as { name: string } | null;
       return cat?.name ?? null;
     })
     .filter(Boolean)

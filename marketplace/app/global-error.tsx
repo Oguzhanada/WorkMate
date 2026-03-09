@@ -9,7 +9,7 @@ export default function GlobalError({
 }) {
   return (
     <html lang="en">
-      <body style={{margin: 0, fontFamily: 'Poppins, sans-serif', background: '#f0f1f2'}}>
+      <body style={{margin: 0, fontFamily: 'Poppins, sans-serif', background: 'var(--wm-bg)'}}>
         <main
           style={{
             minHeight: '100vh',
@@ -21,22 +21,22 @@ export default function GlobalError({
           <section
             style={{
               width: 'min(560px, 100%)',
-              background: '#fff',
+              background: 'var(--wm-surface)',
               borderRadius: '16px',
-              boxShadow: '0 12px 28px rgba(17, 19, 33, 0.12)',
+              boxShadow: 'var(--wm-shadow-lg)',
               padding: '24px'
             }}
           >
-            <h1 style={{marginTop: 0, color: '#111321'}}>Something went wrong</h1>
-            <p style={{color: '#404259'}}>An unexpected error occurred. Please try again.</p>
-            {error.digest ? <p style={{color: '#6b7280'}}>Ref: {error.digest}</p> : null}
+            <h1 style={{marginTop: 0, color: 'var(--wm-navy)'}}>Something went wrong</h1>
+            <p style={{color: 'var(--wm-text-default)'}}>An unexpected error occurred. Please try again.</p>
+            {error.digest ? <p style={{color: 'var(--wm-muted)'}}>Ref: {error.digest}</p> : null}
             <button
               type="button"
               onClick={() => reset()}
               style={{
-                border: '1px solid #2cb34f',
-                background: '#2cb34f',
-                color: '#fff',
+                border: '1px solid var(--wm-primary)',
+                background: 'var(--wm-primary)',
+                color: 'var(--wm-surface)',
                 padding: '10px 14px',
                 borderRadius: '10px',
                 fontWeight: 600,

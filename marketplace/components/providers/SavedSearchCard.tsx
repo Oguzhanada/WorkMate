@@ -137,7 +137,7 @@ export default function SavedSearchCard({ search, locale, categoryNameById, onDe
       {filterChips.length > 0 ? (
         <div className="mt-3 flex flex-wrap gap-2">
           {filterChips.map((chip) => (
-            <Badge key={chip} tone="default">
+            <Badge key={chip} tone="neutral">
               {chip}
             </Badge>
           ))}

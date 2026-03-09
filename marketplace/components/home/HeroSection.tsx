@@ -31,24 +31,30 @@ export default function HeroSection() {
 
   return (
     <section className="relative overflow-hidden px-4 pb-20 pt-16 sm:px-6 lg:px-8">
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, #edf3f1 0%, #f3f5f6 62%, #eef3f1 100%)' }} />
+      <div className="absolute inset-0" style={{ background: 'var(--wm-grad-hero)' }} />
       <div className="relative mx-auto max-w-5xl text-center">
         <h1
           className="mx-auto max-w-4xl text-[clamp(2.4rem,6.5vw,5.1rem)] font-extrabold leading-[1.02]"
-          style={{ color: 'var(--color-text-primary)', textShadow: '0 1px 0 rgba(255,255,255,0.4)' }}
+          style={{ color: 'var(--wm-navy)', textShadow: '0 1px 0 rgba(255,255,255,0.4)' }}
         >
-          <span style={{ color: 'var(--color-text-primary)' }}>Find trusted local pros</span>
+          <span style={{ color: 'var(--wm-navy)' }}>Find trusted local pros</span>
           <br />
           <span className="text-[var(--wm-primary)]">in Ireland</span>
         </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-[clamp(1rem,2.2vw,1.35rem)] leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
+        <p className="mx-auto mt-6 max-w-2xl text-[clamp(1rem,2.2vw,1.35rem)] leading-relaxed" style={{ color: 'var(--wm-muted)' }}>
           Connect with verified professionals for all your home service needs.
         </p>
 
-        <div className="mx-auto mt-10 max-w-4xl rounded-2xl border border-[#e5e7eb] bg-white p-2 shadow-[0_10px_28px_rgba(15,23,42,0.09)]">
+        <div
+          className="mx-auto mt-10 max-w-4xl rounded-2xl p-2"
+          style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)', boxShadow: 'var(--wm-shadow-lg)' }}
+        >
           <div className="grid gap-2 md:grid-cols-[1fr_300px_140px]">
-            <label className="flex items-center gap-2 rounded-xl border border-[#e5e7eb] px-4 py-3.5 text-left">
-              <Search className="h-4 w-4 text-slate-500" />
+            <label
+              className="flex items-center gap-2 rounded-xl px-4 py-3.5 text-left"
+              style={{ border: '1px solid var(--wm-border)' }}
+            >
+              <Search className="h-4 w-4" style={{ color: 'var(--wm-muted)' }} />
               <input
                 value={serviceQuery}
                 onChange={(event) => setServiceQuery(event.target.value)}
@@ -59,16 +65,21 @@ export default function HeroSection() {
                   }
                 }}
                 placeholder="What service do you need?"
-                className="w-full border-none bg-transparent text-sm text-slate-700 outline-none"
+                className="w-full border-none bg-transparent text-sm outline-none"
+                style={{ color: 'var(--wm-text-default)' }}
               />
             </label>
 
-            <label className="flex items-center gap-2 rounded-xl border border-[#e5e7eb] px-4 py-3.5 text-left">
-              <MapPin className="h-4 w-4 text-slate-500" />
+            <label
+              className="flex items-center gap-2 rounded-xl px-4 py-3.5 text-left"
+              style={{ border: '1px solid var(--wm-border)' }}
+            >
+              <MapPin className="h-4 w-4" style={{ color: 'var(--wm-muted)' }} />
               <select
                 value={county}
                 onChange={(event) => setCounty(event.target.value)}
-                className="w-full border-none bg-transparent text-sm text-slate-700 outline-none"
+                className="w-full border-none bg-transparent text-sm outline-none"
+                style={{ color: 'var(--wm-text-default)' }}
                 aria-label="Select county"
               >
                 {counties.map((item) => (
@@ -92,13 +103,20 @@ export default function HeroSection() {
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
           <Link
             href={withLocalePrefix(localeRoot, '/post-job')}
-            className="rounded-2xl bg-[var(--wm-navy)] px-9 py-3.5 text-base font-semibold text-white shadow-[0_8px_22px_rgba(15,23,42,0.2)] transition hover:bg-[#0b1630]"
+            className="rounded-2xl bg-[var(--wm-navy)] px-9 py-3.5 text-base font-semibold text-white transition hover:bg-[var(--wm-navy-mid)]"
+            style={{ boxShadow: 'var(--wm-shadow-lg)' }}
           >
             Post a Job
           </Link>
           <Link
             href={withLocalePrefix(localeRoot, '/become-provider')}
-            className="rounded-2xl border border-[#cbd5e1] bg-white px-9 py-3.5 text-base font-semibold text-[#334155] shadow-[0_6px_16px_rgba(15,23,42,0.08)] transition hover:border-[var(--wm-primary)] hover:text-[#0f172a]"
+            className="rounded-2xl px-9 py-3.5 text-base font-semibold transition hover:border-[var(--wm-primary)]"
+            style={{
+              border: '1px solid var(--wm-border)',
+              background: 'var(--wm-surface)',
+              color: 'var(--wm-text-default)',
+              boxShadow: 'var(--wm-shadow-sm)',
+            }}
           >
             Become a Pro
           </Link>
@@ -107,4 +125,3 @@ export default function HeroSection() {
     </section>
   );
 }
-

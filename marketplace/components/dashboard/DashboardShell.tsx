@@ -152,11 +152,11 @@ export default function DashboardShell({ mode, title, description, showTourBanne
           <div>
             <h1
               className="text-3xl font-extrabold tracking-tight"
-              style={{ fontFamily: 'var(--wm-font-display)', color: '#0f172a', letterSpacing: '-0.03em' }}
+              style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)', letterSpacing: '-0.03em' }}
             >
               {title}
             </h1>
-            <p className="mt-1 text-base" style={{ color: '#475569' }}>{description}</p>
+            <p className="mt-1 text-base" style={{ color: 'var(--wm-muted)' }}>{description}</p>
           </div>
           {mode === 'customer' ? (
             <Button href={`${localeRoot}/post-job`} variant="navy" size="md">
@@ -187,7 +187,7 @@ export default function DashboardShell({ mode, title, description, showTourBanne
         <div
           className="rounded-2xl border p-4"
           style={{
-            borderColor: 'rgba(16,185,129,0.24)',
+            borderColor: 'var(--wm-primary-light)',
             background: 'var(--wm-primary-faint)',
             boxShadow: 'var(--wm-shadow-xs)',
           }}

@@ -91,14 +91,14 @@ export default function ActiveJobsWidget({ limit = 6 }: Props) {
 
   return (
     <div>
-      <p className="text-sm font-bold" style={{ color: '#0f172a' }}>Active Jobs</p>
-      <p className="mt-1 text-xs" style={{ color: '#64748b' }}>Jobs currently open or in progress.</p>
+      <p className="text-sm font-bold" style={{ color: 'var(--wm-navy)' }}>Active Jobs</p>
+      <p className="mt-1 text-xs" style={{ color: 'var(--wm-muted)' }}>Jobs currently open or in progress.</p>
       {loading ? (
         <div className="mt-3">
           <Skeleton lines={3} height="h-10" />
         </div>
       ) : null}
-      {error ? <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p> : null}
+      {error ? <p className="mt-2 text-sm text-[var(--wm-destructive)]">{error}</p> : null}
       {!loading && !error && jobs.length === 0 ? (
         <EmptyState
           icon={<Briefcase size={28} />}
@@ -112,9 +112,9 @@ export default function ActiveJobsWidget({ limit = 6 }: Props) {
             key={job.id}
             href={withLocalePrefix(localeRoot, `/jobs/${job.id}`)}
             className="block rounded-xl px-3 py-2.5 text-sm no-underline transition"
-            style={{ border: '1px solid var(--wm-border)', background: 'white' }}
+            style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)' }}
           >
-            <p className="font-semibold" style={{ color: '#0f172a' }}>{job.title}</p>
+            <p className="font-semibold" style={{ color: 'var(--wm-navy)' }}>{job.title}</p>
             <p className="text-xs" style={{ color: 'var(--wm-muted)' }}>
               {job.status.replace('_', ' ')} · {new Date(job.created_at).toLocaleDateString('en-IE')}
             </p>

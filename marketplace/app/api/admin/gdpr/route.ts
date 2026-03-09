@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ensureAdminRoute } from '@/lib/auth/admin';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { logAdminAudit } from '@/lib/admin/audit';
+import { sendTransactionalEmail } from '@/lib/email/send';
 import { processGdprDeletionSchema } from '@/lib/validation/api';
 
 const HOLD_DAYS = 30;
@@ -81,7 +82,7 @@ export async function DELETE(request: NextRequest) {
   // ── 1. Verify the deletion request exists and hold period has elapsed ────────
   const { data: profile, error: fetchError } = await svc
     .from('profiles')
-    .select('id, full_name, deletion_requested_at')
+    .select('id, full_name, email, deletion_requested_at')
     .eq('id', profile_id)
     .single();
 
@@ -192,6 +193,15 @@ export async function DELETE(request: NextRequest) {
       processed_at: new Date().toISOString(),
     },
   });
+
+  // Send deletion confirmation email — fire-and-forget
+  if (profile.email) {
+    sendTransactionalEmail({
+      type: 'gdpr_deletion_confirm',
+      to: profile.email as string,
+      recipientName: (profile.full_name as string) ?? undefined,
+    });
+  }
 
   return NextResponse.json({ deleted: true, profile_id });
 }

@@ -260,9 +260,9 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-8 text-[15px] font-semibold text-[#334155] lg:flex">
+        <nav className="hidden items-center gap-8 text-[15px] font-semibold text-[var(--wm-text-default)] lg:flex">
           {navItems.map((item) => (
-            <Link key={item.href} href={withLocalePrefix(localeRoot, item.href)} className="transition hover:text-[#0f172a]">
+            <Link key={item.href} href={withLocalePrefix(localeRoot, item.href)} className="transition hover:text-[var(--wm-navy)]">
               {item.label}
             </Link>
           ))}
@@ -271,14 +271,14 @@ export default function Navbar() {
         <div className="hidden items-center gap-3 lg:flex">
           {isAuthenticated ? (
             <>
-              <Link href={dashboardHref} className="px-3 py-2 text-sm font-semibold text-[#0f172a] transition hover:text-[var(--wm-primary-dark)]">
+              <Link href={dashboardHref} className="px-3 py-2 text-sm font-semibold text-[var(--wm-navy)] transition hover:text-[var(--wm-primary-dark)]">
                 Dashboard
               </Link>
-              <Link href={withLocalePrefix(localeRoot, '/saved-searches')} className="px-3 py-2 text-sm font-semibold text-[#0f172a] transition hover:text-[var(--wm-primary-dark)]">
+              <Link href={withLocalePrefix(localeRoot, '/saved-searches')} className="px-3 py-2 text-sm font-semibold text-[var(--wm-navy)] transition hover:text-[var(--wm-primary-dark)]">
                 Saved Searches
               </Link>
               <NotificationBell />
-              <Link href={withLocalePrefix(localeRoot, '/profile')} className="px-3 py-2 text-sm font-semibold text-[#0f172a] transition hover:text-[var(--wm-primary-dark)]">
+              <Link href={withLocalePrefix(localeRoot, '/profile')} className="px-3 py-2 text-sm font-semibold text-[var(--wm-navy)] transition hover:text-[var(--wm-primary-dark)]">
                 {displayName}
               </Link>
               <button
@@ -292,7 +292,7 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <Link href={withLocalePrefix(localeRoot, '/login')} className="px-3 py-2 text-sm font-semibold text-[#0f172a] transition hover:text-[var(--wm-primary-dark)]">
+              <Link href={withLocalePrefix(localeRoot, '/login')} className="px-3 py-2 text-sm font-semibold text-[var(--wm-navy)] transition hover:text-[var(--wm-primary-dark)]">
                 Sign In
               </Link>
               <Link

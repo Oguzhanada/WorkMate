@@ -29,7 +29,7 @@ export default function AdminPendingJobsWidget() {
     <div>
       <p className="text-sm font-semibold">Pending Job Reviews</p>
       {loading ? <p className="mt-2 text-sm" style={{ color: 'var(--wm-muted)' }}>Loading...</p> : null}
-      {error ? <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p> : null}
+      {error ? <p className="mt-2 text-sm text-[var(--wm-destructive)]">{error}</p> : null}
       {!loading && !error ? <p className="mt-2 text-lg font-semibold">{items.length}</p> : null}
       <div className="mt-2 space-y-2">
         {items.map((item) => (
