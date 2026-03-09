@@ -8,6 +8,7 @@ const baseUrl = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'https://workmate.i
 
 interface JsonLdProps {
   type: 'homepage' | 'service';
+  locale?: string;
   service?: {
     name: string;
     description: string;
@@ -15,7 +16,7 @@ interface JsonLdProps {
   };
 }
 
-function getHomepageSchema() {
+function getHomepageSchema(locale: string) {
   return [
     {
       '@context': 'https://schema.org',
@@ -28,7 +29,7 @@ function getHomepageSchema() {
         '@type': 'SearchAction',
         target: {
           '@type': 'EntryPoint',
-          urlTemplate: `${baseUrl}/en/search?q={search_term_string}`,
+          urlTemplate: `${baseUrl}/${locale}/search?q={search_term_string}`,
         },
         'query-input': 'required name=search_term_string',
       },
@@ -84,14 +85,14 @@ function getHomepageSchema() {
   ];
 }
 
-function getServiceSchema(service: { name: string; description: string; slug: string }) {
+function getServiceSchema(locale: string, service: { name: string; description: string; slug: string }) {
   return [
     {
       '@context': 'https://schema.org',
       '@type': 'Service',
       name: service.name,
       description: service.description,
-      url: `${baseUrl}/en/service/${service.slug}`,
+      url: `${baseUrl}/${locale}/service/${service.slug}`,
       provider: {
         '@type': 'Organization',
         name: 'WorkMate',
@@ -106,12 +107,12 @@ function getServiceSchema(service: { name: string; description: string; slug: st
   ];
 }
 
-export default function JsonLd({ type, service }: JsonLdProps) {
+export default function JsonLd({ type, locale = 'en', service }: JsonLdProps) {
   const schemas =
     type === 'homepage'
-      ? getHomepageSchema()
+      ? getHomepageSchema(locale)
       : service
-        ? getServiceSchema(service)
+        ? getServiceSchema(locale, service)
         : [];
 
   return (

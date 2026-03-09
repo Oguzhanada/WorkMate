@@ -1,13 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
-
-const patchFlagSchema = z.object({
-  flag_key: z.string().trim().min(2).max(100),
-  enabled: z.boolean(),
-});
+import { patchFeatureFlagSchema } from '@/lib/validation/api';
 
 // GET /api/admin/feature-flags — list all flags
 export async function GET() {
@@ -61,7 +56,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const parsed = patchFlagSchema.safeParse(rawBody);
+  const parsed = patchFeatureFlagSchema.safeParse(rawBody);
   if (!parsed.success) {
     return NextResponse.json(
       { error: 'Validation failed', details: parsed.error.flatten() },

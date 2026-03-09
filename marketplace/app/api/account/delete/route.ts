@@ -21,7 +21,8 @@ export async function POST() {
   const { error: deleteError } = await serviceClient.auth.admin.deleteUser(user.id);
 
   if (deleteError) {
-    return NextResponse.json({ error: deleteError.message }, { status: 400 });
+    console.error('Account deletion failed:', deleteError.message);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 
   const response = NextResponse.json({ ok: true });

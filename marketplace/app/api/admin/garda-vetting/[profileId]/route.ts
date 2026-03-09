@@ -1,16 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { sendTransactionalEmail } from '@/lib/email/send';
 import { sendNotification } from '@/lib/notifications/send';
-
-const patchGardaVettingSchema = z.object({
-  garda_vetting_status: z.enum(['not_required', 'pending', 'approved', 'rejected', 'expired']),
-  garda_vetting_reference: z.string().trim().max(100).optional().nullable(),
-  garda_vetting_expires_at: z.string().date().optional().nullable(),
-});
+import { patchGardaVettingSchema } from '@/lib/validation/api';
 
 // PATCH /api/admin/garda-vetting/[profileId] — update vetting status
 export async function PATCH(

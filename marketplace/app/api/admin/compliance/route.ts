@@ -41,7 +41,8 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: true, message: 'Materialized view refreshed successfully' });
         }
 
-    } catch (err: any) {
-        return NextResponse.json({ error: err.message }, { status: 500 });
+    } catch (err: unknown) {
+        console.error('Compliance recalculation failed:', err);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

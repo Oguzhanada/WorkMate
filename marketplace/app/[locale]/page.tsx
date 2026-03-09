@@ -50,7 +50,7 @@ export default async function LocaleHomePage({
 
   return (
     <main className="min-h-screen text-[var(--wm-text)]">
-      <JsonLd type="homepage" />
+      <JsonLd type="homepage" locale={locale} />
       <Suspense fallback={<HomeSkeleton />}>
         <HeroSection />
         <TrustSection />

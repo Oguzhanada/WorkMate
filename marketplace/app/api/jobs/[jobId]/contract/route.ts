@@ -1,19 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { resolveJobAccessContext } from '@/lib/jobs/access';
 import { sendTransactionalEmail } from '@/lib/email/send';
 import { sendNotification } from '@/lib/notifications/send';
-
-const createContractSchema = z.object({
-  terms: z.string().trim().min(10).max(10000),
-  quote_id: z.string().uuid().optional().nullable(),
-});
-
-const signContractSchema = z.object({
-  action: z.enum(['sign', 'void']),
-});
+import { createContractSchema, signContractSchema } from '@/lib/validation/api';
 
 // GET /api/jobs/[jobId]/contract — get the contract for this job
 export async function GET(

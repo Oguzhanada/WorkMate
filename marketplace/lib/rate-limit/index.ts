@@ -26,6 +26,10 @@ export const RATE_LIMITS = {
   AI_ENDPOINT: { windowMs: 60_000, max: 5, keyPrefix: 'ai' } satisfies RateLimitConfig,
   /** 10 requests per 15 minutes — for API key creation / auth-sensitive operations */
   AUTH_ENDPOINT: { windowMs: 900_000, max: 10, keyPrefix: 'auth' } satisfies RateLimitConfig,
+  /** 10 requests per minute — for login attempts */
+  AUTH_LOGIN: { windowMs: 60_000, max: 10, keyPrefix: 'auth-login' } satisfies RateLimitConfig,
+  /** 5 requests per minute — for registration, password reset, and other strict auth ops */
+  AUTH_STRICT: { windowMs: 60_000, max: 5, keyPrefix: 'auth-strict' } satisfies RateLimitConfig,
   /** 30 requests per minute — for write operations (POST/PATCH/DELETE) */
   WRITE_ENDPOINT: { windowMs: 60_000, max: 30, keyPrefix: 'write' } satisfies RateLimitConfig,
   /** 100 requests per minute — for read operations */

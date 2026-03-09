@@ -1,6 +1,25 @@
 import { z } from 'zod';
 import { JOB_BUDGET_OPTIONS } from '@/lib/constants/job';
 
+// ── Auth schemas ────────────────────────────────────────────────────────────
+
+export const loginSchema = z.object({
+  email: z.string().trim().email('Enter a valid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+});
+
+export const registerSchema = z.object({
+  email: z.string().trim().email('Enter a valid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  full_name: z.string().trim().min(1, 'Full name is required').max(120),
+});
+
+export const resetPasswordSchema = z.object({
+  email: z.string().trim().email('Enter a valid email address'),
+});
+
+// ── Job schemas ─────────────────────────────────────────────────────────────
+
 export const createJobSchema = z.object({
   title: z.string().trim().min(3).max(120),
   category_id: z.string().uuid(),
@@ -648,6 +667,36 @@ export const markNotificationsReadSchema = z
 // ─── Admin: Platform Stats Query ──────────────────────────────────────────────
 export const adminStatsQuerySchema = z.object({
   monthly: z.enum(['true', 'false']).optional().default('false'),
+});
+
+// ─── Admin: Feature Flag Toggle ───────────────────────────────────────────────
+export const patchFeatureFlagSchema = z.object({
+  flag_key: z.string().trim().min(2).max(100),
+  enabled: z.boolean(),
+});
+
+// ─── Admin: Garda Vetting Status ──────────────────────────────────────────────
+export const patchGardaVettingSchema = z.object({
+  garda_vetting_status: z.enum(['not_required', 'pending', 'approved', 'rejected', 'expired']),
+  garda_vetting_reference: z.string().trim().max(100).optional().nullable(),
+  garda_vetting_expires_at: z.string().date().optional().nullable(),
+});
+
+// ─── Task Alerts: Upsert ──────────────────────────────────────────────────────
+const TASK_ALERT_COUNTIES = [
+  'Carlow', 'Cavan', 'Clare', 'Cork', 'Donegal', 'Dublin', 'Galway',
+  'Kerry', 'Kildare', 'Kilkenny', 'Laois', 'Leitrim', 'Limerick',
+  'Longford', 'Louth', 'Mayo', 'Meath', 'Monaghan', 'Offaly',
+  'Roscommon', 'Sligo', 'Tipperary', 'Waterford', 'Westmeath',
+  'Wexford', 'Wicklow', 'Ireland-wide',
+] as const;
+
+export const upsertTaskAlertSchema = z.object({
+  keywords: z.array(z.string().trim().min(1).max(60)).max(20).default([]),
+  categories: z.array(z.string().uuid()).max(20).default([]),
+  counties: z.array(z.enum(TASK_ALERT_COUNTIES)).max(27).default([]),
+  budget_min: z.number().int().min(0).nullable().default(null),
+  enabled: z.boolean().default(true),
 });
 
 // ─── Portfolio: Work Gallery ───────────────────────────────────────────────────
