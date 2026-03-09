@@ -1,0 +1,15 @@
+{
+  "generated_at": "2026-03-09T14:20:50.2814384+00:00",
+  "mode": "baseline",
+  "repo": "Oguzhanada/WorkMate",
+  "github_cli_available": false,
+  "metrics": {
+    "pr_lead_time_median_hours": null,
+    "issue_triage_time_median_hours": null,
+    "ambiguous_task_ratio_percent": null
+  },
+  "status": "blocked_missing_github_cli",
+  "notes": [
+    "gh CLI is not installed."
+  ]
+}
