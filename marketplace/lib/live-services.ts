@@ -24,8 +24,8 @@ const LIVE_ENABLED =
   process.env.NODE_ENV === 'production';
 
 export const liveServices = {
-  /** Resend — transactional email. Costs per email sent. */
-  email: LIVE_ENABLED || process.env.EMAIL_SEND_ENABLED === 'true',
+  /** Resend — free tier 3K/month, no card required. Always enabled. */
+  email: true,
 
   /** Anthropic — AI job description + alert suggestions. Costs per token. */
   ai: LIVE_ENABLED || process.env.AI_CALLS_ENABLED === 'true',
