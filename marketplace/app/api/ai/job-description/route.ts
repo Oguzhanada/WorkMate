@@ -7,6 +7,11 @@ import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 async function handler(request: NextRequest): Promise<NextResponse> {
+  // Cost guard — block live AI calls outside production
+  if (process.env.NODE_ENV !== 'production' && process.env.AI_CALLS_ENABLED !== 'true') {
+    return NextResponse.json({ error: 'AI endpoints disabled in development. Set AI_CALLS_ENABLED=true to enable.' }, { status: 503 });
+  }
+
   // Auth guard — only logged-in users
   const supabase = await getSupabaseRouteClient();
   const {

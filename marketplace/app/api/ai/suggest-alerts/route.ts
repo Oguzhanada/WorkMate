@@ -11,6 +11,11 @@ type AISuggestion = {
 };
 
 async function handler(request: NextRequest): Promise<NextResponse> {
+  // Cost guard — block live AI calls outside production
+  if (process.env.NODE_ENV !== 'production' && process.env.AI_CALLS_ENABLED !== 'true') {
+    return NextResponse.json({ error: 'AI endpoints disabled in development. Set AI_CALLS_ENABLED=true to enable.' }, { status: 503 });
+  }
+
   // Auth check
   const supabase = await getSupabaseRouteClient();
   const {

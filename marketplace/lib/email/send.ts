@@ -39,10 +39,22 @@ type EmailEvent =
 /**
  * Fire-and-forget transactional email. Never throws — email failure is logged
  * but must never break the caller's response.
+ *
+ * DEV GUARD: In non-production environments, emails are logged to console only.
+ * Set EMAIL_SEND_ENABLED=true in .env.local to force real sends in dev (not recommended).
  */
 export function sendTransactionalEmail(event: EmailEvent): void {
   void (async () => {
     try {
+      // Block real email sends in development to avoid accidental charges / spam.
+      if (
+        process.env.NODE_ENV !== 'production' &&
+        process.env.EMAIL_SEND_ENABLED !== 'true'
+      ) {
+        console.log('[DEV EMAIL BLOCKED]', event.type, '->', event.to);
+        return;
+      }
+
       const resend = getResendClient();
 
       let subject: string;
