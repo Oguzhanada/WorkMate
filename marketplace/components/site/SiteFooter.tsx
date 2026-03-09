@@ -1,7 +1,9 @@
 "use client";
 
 import Link from 'next/link';
+import {usePathname} from 'next/navigation';
 import {useTranslations} from 'next-intl';
+import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
 
 import styles from './site.module.css';
 
@@ -9,8 +11,10 @@ export default function SiteFooter() {
   const t = useTranslations('footer');
   const home = useTranslations('home');
   const header = useTranslations('header');
+  const pathname = usePathname() || '/';
+  const localeRoot = getLocaleRoot(pathname);
 
-  const localized = (path: string) => path;
+  const localized = (path: string) => withLocalePrefix(localeRoot, path);
 
   return (
     <footer className={styles.footer}>
@@ -26,6 +30,7 @@ export default function SiteFooter() {
             {/* <Link href={localized('/search?q=careers')}>{t('careers')}</Link> */}
             <Link href={localized('/contact')}>{t('contact')}</Link>
             <Link href={localized('/faq')}>{t('faq')}</Link>
+            <Link href={localized('/blog')}>Blog</Link>
             <Link href={localized('/profile')}>{header('profile')}</Link>
           </div>
           <div>

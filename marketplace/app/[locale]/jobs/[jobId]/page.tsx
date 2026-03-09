@@ -6,6 +6,8 @@ import JobOffersPanel from '@/components/jobs/JobOffersPanel';
 import JobContractPanel from '@/components/jobs/JobContractPanel';
 import TimeTracking from '@/components/jobs/TimeTracking';
 import JobScheduler from '@/components/jobs/JobScheduler';
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
 import styles from '../../inner.module.css';
 
 type Props = {
@@ -73,6 +75,40 @@ export default async function JobDetailPage({ params }: Props) {
   const validThrough = new Date(
     new Date(job.created_at).getTime() + 30 * 24 * 60 * 60 * 1000
   ).toISOString();
+
+  const [{ data: reviews }, { data: questions }] = await Promise.all([
+    supabase
+      .from('reviews')
+      .select('id,customer_id,rating,comment,created_at')
+      .eq('job_id', job.id)
+      .order('created_at', { ascending: false })
+      .limit(5),
+    supabase
+      .from('job_messages')
+      .select('id,sender_id,message,created_at,visibility')
+      .eq('job_id', job.id)
+      .eq('visibility', 'public')
+      .order('created_at', { ascending: false })
+      .limit(5),
+  ]);
+
+  const profileIds = Array.from(
+    new Set([
+      ...(reviews ?? []).map((item) => item.customer_id),
+      ...(questions ?? []).map((item) => item.sender_id),
+    ])
+  );
+
+  const profileMap = new Map<string, string>();
+  if (profileIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id,full_name')
+      .in('id', profileIds);
+    for (const profile of profiles ?? []) {
+      profileMap.set(profile.id, profile.full_name ?? 'WorkMate user');
+    }
+  }
 
   const structuredData = {
     '@context': 'https://schema.org',
@@ -160,6 +196,69 @@ export default async function JobDetailPage({ params }: Props) {
             otherUserName={otherUserName}
           />
         </article>
+
+        <Card>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-bold">Reviews and ratings</h2>
+            <Button href={`/${locale}/profile/public/${proId ?? user.id}`} variant="secondary" size="sm">
+              View profile
+            </Button>
+          </div>
+          {reviews && reviews.length > 0 ? (
+            <div className="mt-3 grid gap-3 md:grid-cols-2">
+              {reviews.map((review) => (
+                <div key={review.id} className="rounded-xl border p-3" style={{ borderColor: 'var(--wm-border)' }}>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-semibold">
+                      {profileMap.get(review.customer_id) ?? 'Customer'}
+                    </p>
+                    <p className="text-xs font-semibold" style={{ color: 'var(--wm-amber-dark)' }}>
+                      {'★'.repeat(Math.max(1, Math.min(5, review.rating)))}
+                    </p>
+                  </div>
+                  <p className="mt-1 text-xs" style={{ color: 'var(--wm-muted)' }}>
+                    {review.comment?.trim() || 'No written review provided.'}
+                  </p>
+                  <p className="mt-1 text-[11px]" style={{ color: 'var(--wm-subtle)' }}>
+                    {new Date(review.created_at).toLocaleDateString('en-IE')}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-3 text-sm" style={{ color: 'var(--wm-muted)' }}>
+              No public review submitted yet for this task.
+            </p>
+          )}
+        </Card>
+
+        <Card>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-bold">Questions and answers</h2>
+            <Button href={`/${locale}/messages`} variant="primary" size="sm">
+              Ask a question in messages
+            </Button>
+          </div>
+          {questions && questions.length > 0 ? (
+            <div className="mt-3 space-y-3">
+              {questions.map((entry) => (
+                <div key={entry.id} className="rounded-xl border p-3" style={{ borderColor: 'var(--wm-border)' }}>
+                  <p className="text-sm font-semibold">
+                    {profileMap.get(entry.sender_id) ?? 'WorkMate user'}
+                  </p>
+                  <p className="mt-1 text-sm" style={{ color: 'var(--wm-text)' }}>{entry.message}</p>
+                  <p className="mt-1 text-[11px]" style={{ color: 'var(--wm-subtle)' }}>
+                    {new Date(entry.created_at).toLocaleString('en-IE')}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-3 text-sm" style={{ color: 'var(--wm-muted)' }}>
+              No public questions yet. Use private messages to coordinate details safely.
+            </p>
+          )}
+        </Card>
 
         <TimeTracking
           jobId={job.id}

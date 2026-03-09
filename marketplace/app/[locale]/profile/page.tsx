@@ -12,6 +12,7 @@ import ProfileBasicInfoPanel from '@/components/profile/ProfileBasicInfoPanel';
 import ProfileCompletionCard from '@/components/profile/ProfileCompletionCard';
 import ApiKeyCard from '@/components/profile/ApiKeyCard';
 import ProviderAvailability from '@/components/profile/ProviderAvailability';
+import ProfileExpressionCard from '@/components/profile/ProfileExpressionCard';
 
 import pageStyles from './profile-page.module.css';
 
@@ -268,6 +269,8 @@ export default async function ProfilePage({
             </div>
           </div>
         </section>
+
+        <ProfileExpressionCard />
 
         <ApiKeyCard initialApiKey={profile?.api_key ?? null} initialRateLimit={profile?.api_rate_limit ?? 1000} />
 

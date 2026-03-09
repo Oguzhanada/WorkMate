@@ -53,6 +53,7 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
   const [taskType, setTaskType] = useState<TaskType>('in_person');
   const [scope, setScope] = useState<(typeof JOB_SCOPE_OPTIONS)[number] | ''>('');
   const [urgency, setUrgency] = useState<(typeof JOB_URGENCY_OPTIONS)[number] | ''>('');
+  const [targetDate, setTargetDate] = useState('');
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [budgetRange, setBudgetRange] = useState<(typeof JOB_BUDGET_OPTIONS)[number]>(JOB_BUDGET_OPTIONS[2]);
   const [address, setAddress] = useState<Address>({
@@ -145,6 +146,7 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
     const resolvedDescription = [
       `Scope: ${scope}`,
       `Urgency: ${urgency}`,
+      targetDate ? `Preferred deadline: ${targetDate}` : '',
       additionalDetails.trim() ? `Details: ${additionalDetails.trim()}` : '',
     ]
       .filter(Boolean)
@@ -439,6 +441,17 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
                   ))}
                 </div>
               </div>
+
+              <label className={styles.field}>
+                <span>Preferred completion date (optional)</span>
+                <input
+                  type="date"
+                  value={targetDate}
+                  onChange={(e) => setTargetDate(e.target.value)}
+                  className={styles.input}
+                  min={new Date().toISOString().split('T')[0]}
+                />
+              </label>
 
               <div className={styles.field}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>

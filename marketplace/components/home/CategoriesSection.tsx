@@ -8,6 +8,8 @@ import {
   LucideIcon, ArrowRight
 } from 'lucide-react';
 import {SERVICE_TAXONOMY} from '@/lib/service-taxonomy';
+import {usePathname} from 'next/navigation';
+import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
 
 const categoryIcons: Record<string, LucideIcon> = {
   'home-cleaning': Sparkles,
@@ -45,6 +47,9 @@ const featuredCategories = SERVICE_TAXONOMY.map((group) => ({
 }));
 
 export default function CategoriesSection() {
+  const pathname = usePathname() || '/';
+  const localeRoot = getLocaleRoot(pathname);
+
   return (
     <section id="categories" className="px-4 py-16 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
@@ -62,7 +67,7 @@ export default function CategoriesSection() {
             </p>
           </div>
           <Link
-            href="/search"
+            href={withLocalePrefix(localeRoot, '/search')}
             className="hidden items-center gap-1.5 text-sm font-semibold sm:inline-flex"
             style={{color: 'var(--wm-primary-dark)', transition: 'color var(--wm-transition)'}}
             onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = 'var(--wm-primary)')}
@@ -119,7 +124,7 @@ export default function CategoriesSection() {
 
         <div className="mt-6 text-center sm:hidden">
           <Link
-            href="/search"
+            href={withLocalePrefix(localeRoot, '/search')}
             className="inline-flex items-center gap-1.5 text-sm font-semibold"
             style={{color: 'var(--wm-primary-dark)'}}
           >

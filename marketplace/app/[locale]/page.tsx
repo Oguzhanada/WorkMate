@@ -12,6 +12,7 @@ import Testimonials from '@/components/home/Testimonials';
 import TrustSection from '@/components/home/TrustSection';
 import StatsSection from '@/components/home/StatsSection';
 import WhyWorkMate from '@/components/home/WhyWorkMate';
+import QuickStartHighlights from '@/components/home/QuickStartHighlights';
 import {isValidLocale} from '@/lib/i18n';
 
 const baseUrl = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'http://localhost:3000';
@@ -53,6 +54,7 @@ export default async function LocaleHomePage({
         <TrustSection />
         <StatsSection />
         <CategoriesSection />
+        <QuickStartHighlights />
         <HowItWorks />
         <FeaturedProviders />
         <WhyWorkMate />
