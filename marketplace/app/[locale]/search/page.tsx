@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import {usePathname, useRouter, useSearchParams} from 'next/navigation';
-import {FormEvent, ReactNode, useEffect, useMemo, useRef, useState} from 'react';
+import {FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {AnimatePresence, motion, useReducedMotion} from 'framer-motion';
 
@@ -71,10 +71,17 @@ export default function SearchPage() {
   const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    setKeyword((params.get('q') ?? '').trim());
-    setCityFilter((params.get('county') ?? '').trim());
+    const nextKeyword = (params.get('q') ?? '').trim();
+    const nextCity = (params.get('county') ?? '').trim();
     const nextMode = (params.get('mode') ?? 'services').trim().toLowerCase();
-    setMode(nextMode === 'providers' ? 'providers' : 'services');
+    queueMicrotask(() => {
+      setKeyword((prev) => (prev !== nextKeyword ? nextKeyword : prev));
+      setCityFilter((prev) => (prev !== nextCity ? nextCity : prev));
+      setMode((prev) => {
+        const resolved = nextMode === 'providers' ? 'providers' : 'services';
+        return prev !== resolved ? resolved : prev;
+      });
+    });
   }, [params]);
 
   const allCities = useMemo(() => {
@@ -94,12 +101,14 @@ export default function SearchPage() {
       mountedRef.current = true;
       return;
     }
-    setIsRefreshing(true);
+    let cancelled = false;
+    queueMicrotask(() => { if (!cancelled) setIsRefreshing(true); });
     if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
     refreshTimeoutRef.current = setTimeout(() => {
-      setIsRefreshing(false);
+      if (!cancelled) setIsRefreshing(false);
     }, 280);
     return () => {
+      cancelled = true;
       if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
     };
   }, [query, cityFilter, maxPriceFilter, minRatingFilter, mode, prefersReducedMotion]);
@@ -147,7 +156,7 @@ export default function SearchPage() {
     [cityFilter, maxPriceFilter, minRatingFilter, query]
   );
 
-  const localizedServiceName = (slug: string) => {
+  const localizedServiceName = useCallback((slug: string) => {
     if (slug === 'home-cleaning') return home('trend.homeCleaning');
     if (slug === 'painting-decorating') return home('trend.painting');
     if (slug === 'moving-services') return home('trend.moving');
@@ -156,7 +165,7 @@ export default function SearchPage() {
       .split('-')
       .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
       .join(' ');
-  };
+  }, [home]);
 
   const onKeywordSearch = (event: FormEvent) => {
     event.preventDefault();
@@ -200,17 +209,17 @@ export default function SearchPage() {
       city: provider.city,
       meta: `${provider.rating.toFixed(1)} (${provider.reviews} reviews)`
     }));
-  }, [mode, matchedPros, matchedServices]);
+  }, [mode, matchedPros, matchedServices, localizedServiceName]);
 
   useEffect(() => {
-    if (mapPins.length === 0) {
-      setSelectedPinId('');
-      return;
-    }
-    if (!mapPins.some((pin) => pin.id === selectedPinId)) {
-      setSelectedPinId(mapPins[0].id);
-    }
-  }, [mapPins, selectedPinId]);
+    queueMicrotask(() => {
+      setSelectedPinId((prev) => {
+        if (mapPins.length === 0) return prev !== '' ? '' : prev;
+        if (!mapPins.some((pin) => pin.id === prev)) return mapPins[0].id;
+        return prev;
+      });
+    });
+  }, [mapPins]);
 
   const filterControls = (footerAction?: ReactNode) => (
     <>

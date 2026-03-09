@@ -42,9 +42,11 @@ export default function JobMessagePanel({ jobId, quoteId, visibility, receiverId
   };
 
   useEffect(() => {
-    loadMessages();
+    let active = true;
+    queueMicrotask(() => { if (active) loadMessages(); });
     const timer = setInterval(loadMessages, 15000);
-    return () => clearInterval(timer);
+    return () => { active = false; clearInterval(timer); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobId, quoteId, visibility]);
 
   const submit = async () => {

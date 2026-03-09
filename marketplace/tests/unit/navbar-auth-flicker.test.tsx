@@ -23,7 +23,7 @@ function createDeferred<T>() {
 }
 
 vi.mock('next/link', () => ({
-  default: ({children, href, ...rest}: any) => (
+  default: ({children, href, ...rest}: Record<string, unknown>) => (
     <a href={typeof href === 'string' ? href : '#'} {...rest}>
       {children}
     </a>
@@ -40,9 +40,9 @@ vi.mock('next/navigation', () => ({
 }));
 
 vi.mock('framer-motion', () => ({
-  AnimatePresence: ({children}: any) => children,
+  AnimatePresence: ({children}: Record<string, unknown>) => children,
   motion: {
-    div: ({children, initial, animate, variants, exit, transition, ...props}: any) => (
+    div: ({children, initial: _initial, animate: _animate, variants: _variants, exit: _exit, transition: _transition, ...props}: Record<string, unknown>) => (
       <div {...props}>{children}</div>
     )
   }

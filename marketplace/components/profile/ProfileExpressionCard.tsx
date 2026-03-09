@@ -11,15 +11,17 @@ export default function ProfileExpressionCard() {
   const [savedAt, setSavedAt] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (!saved) return;
-      const payload = JSON.parse(saved) as { note?: string; savedAt?: string };
-      if (payload.note) setNote(payload.note);
-      if (payload.savedAt) setSavedAt(payload.savedAt);
-    } catch {
-      // Keep default empty state if storage payload is invalid.
-    }
+    queueMicrotask(() => {
+      try {
+        const saved = window.localStorage.getItem(STORAGE_KEY);
+        if (!saved) return;
+        const payload = JSON.parse(saved) as { note?: string; savedAt?: string };
+        if (payload.note) setNote(payload.note);
+        if (payload.savedAt) setSavedAt(payload.savedAt);
+      } catch {
+        // Keep default empty state if storage payload is invalid.
+      }
+    });
   }, []);
 
   const save = () => {

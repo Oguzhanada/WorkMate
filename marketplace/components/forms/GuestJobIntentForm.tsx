@@ -39,19 +39,23 @@ export default function GuestJobIntentForm() {
   const [intentId, setIntentId] = useState('');
 
   useEffect(() => {
-    setCategoryId((current) => {
-      if (current && categories.some((item) => item.id === current)) return current;
-      return categories[0]?.id || '';
+    queueMicrotask(() => {
+      setCategoryId((current) => {
+        if (current && categories.some((item) => item.id === current)) return current;
+        return categories[0]?.id || '';
+      });
     });
   }, [categories]);
 
   useEffect(() => {
-    if (categories.length === 0 && !isLoadingCategories) {
-      setError('No active categories are available right now. Please try again shortly.');
-    } else if (error.startsWith('No active categories')) {
-      setError('');
-    }
-  }, [categories.length, error, isLoadingCategories]);
+    queueMicrotask(() => {
+      if (categories.length === 0 && !isLoadingCategories) {
+        setError('No active categories are available right now. Please try again shortly.');
+      } else {
+        setError((prev) => prev.startsWith('No active categories') ? '' : prev);
+      }
+    });
+  }, [categories.length, isLoadingCategories]);
 
   const nextFromStep1 = () => {
     if (!categoryId || !titleOption || (titleOption === 'Other' && !customTitle.trim())) {

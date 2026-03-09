@@ -14,12 +14,14 @@ export default function CookieConsentBanner() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const hasConsent = document.cookie
-      .split(';')
-      .map((entry) => entry.trim())
-      .some((entry) => entry.startsWith(`${COOKIE_KEY}=`));
+    queueMicrotask(() => {
+      const hasConsent = document.cookie
+        .split(';')
+        .map((entry) => entry.trim())
+        .some((entry) => entry.startsWith(`${COOKIE_KEY}=`));
 
-    setIsVisible(!hasConsent);
+      setIsVisible(!hasConsent);
+    });
   }, []);
 
   const setConsent = (value: ConsentValue) => {

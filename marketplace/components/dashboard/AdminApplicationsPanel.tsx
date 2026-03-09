@@ -7,8 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { PROVIDER_DOCUMENT_LABELS, PROVIDER_REQUIRED_DOCUMENTS } from '@/lib/provider-documents';
-import AdvancedSearchFilters, { DEFAULT_ADVANCED_FILTERS } from '@/components/dashboard/AdvancedSearchFilters';
-import type { AdvancedFilters } from '@/components/dashboard/AdvancedSearchFilters';
+import AdvancedSearchFilters, { DEFAULT_ADVANCED_FILTERS, type AdvancedFilters } from '@/components/dashboard/AdvancedSearchFilters';
 import styles from './admin-panel.module.css';
 
 type ReviewType = 'provider_application' | 'customer_identity_review' | 'other';

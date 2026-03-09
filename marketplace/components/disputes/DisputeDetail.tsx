@@ -49,7 +49,9 @@ export default function DisputeDetail({ disputeId }: { disputeId: string }) {
   }, [disputeId]);
 
   useEffect(() => {
-    load();
+    let active = true;
+    queueMicrotask(() => { if (active) load(); });
+    return () => { active = false; };
   }, [load]);
 
   const submitProviderResponse = async () => {

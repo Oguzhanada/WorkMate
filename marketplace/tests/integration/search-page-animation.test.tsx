@@ -7,7 +7,7 @@ import SearchPage from '@/app/[locale]/search/page';
 const pushMock = vi.fn();
 
 vi.mock('next/link', () => ({
-  default: ({children, href, ...rest}: any) => (
+  default: ({children, href, ...rest}: Record<string, unknown>) => (
     <a href={typeof href === 'string' ? href : '#'} {...rest}>
       {children}
     </a>
@@ -15,7 +15,7 @@ vi.mock('next/link', () => ({
 }));
 
 vi.mock('@/components/site/VerifiedNavigationLink', () => ({
-  default: ({children, href, ...rest}: any) => (
+  default: ({children, href, ...rest}: Record<string, unknown>) => (
     <a href={typeof href === 'string' ? href : '#'} {...rest}>
       {children}
     </a>

@@ -137,7 +137,11 @@ export default function AnalyticsDashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { load(days); }, [days, load]);
+  useEffect(() => {
+    let active = true;
+    queueMicrotask(() => { if (active) load(days); });
+    return () => { active = false; };
+  }, [days, load]);
 
   if (error) return <p className={styles.errorMsg}>{error}</p>;
   if (loading || !data) return <p className={styles.muted}>Loading analytics...</p>;

@@ -84,9 +84,12 @@ export default async function JobsPage({
     sortedJobs.sort((a, b) => budgetRank(b.budget_range) - budgetRank(a.budget_range));
   }
 
+  // Server component: runs once per request, Date.now() is safe here
+  // eslint-disable-next-line react-hooks/purity
+  const serverNow = Date.now();
   const quoteWindowText = (createdAt: string) => {
     const end = new Date(createdAt).getTime() + 7 * 24 * 60 * 60 * 1000;
-    const diff = end - Date.now();
+    const diff = end - serverNow;
     if (diff <= 0) return 'Quote window ending soon';
     const hours = Math.floor(diff / (60 * 60 * 1000));
     if (hours < 24) return `${hours}h left in quote window`;

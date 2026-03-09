@@ -1,7 +1,6 @@
 import JobMultiStepForm from '@/components/forms/JobMultiStepForm';
 import GuestJobIntentForm from '@/components/forms/GuestJobIntentForm';
-import { canPostJobWithIdentity, getUserRoles } from '@/lib/auth/rbac';
-import type { AppRole } from '@/lib/auth/rbac';
+import { canPostJobWithIdentity, getUserRoles, type AppRole } from '@/lib/auth/rbac';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';

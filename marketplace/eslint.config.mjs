@@ -1,7 +1,9 @@
 import nextConfig from 'eslint-config-next/core-web-vitals';
+import tseslint from 'typescript-eslint';
 
 export default [
   ...nextConfig,
+  ...tseslint.configs.recommended,
   {
     rules: {
       // Warn on console.log left in production code (console.error/warn allowed)

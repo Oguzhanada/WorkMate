@@ -1,7 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Check, FileText, Target, Zap } from 'lucide-react';
 import type { JobMode } from '@/lib/types/airtasker';

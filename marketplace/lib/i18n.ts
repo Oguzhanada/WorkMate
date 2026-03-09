@@ -1,5 +1,4 @@
-import type {Locale} from '@/i18n/config';
-import {locales} from '@/i18n/config';
+import {type Locale, locales} from '@/i18n/config';
 
 export function isValidLocale(value: string): value is Locale {
   return locales.includes(value as Locale);
