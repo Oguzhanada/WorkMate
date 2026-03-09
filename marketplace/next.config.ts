@@ -14,9 +14,9 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "img-src 'self' data: blob: https://ejpnmcxzycxqfdbetydp.supabase.co https://*.stripe.com",
-      "font-src 'self' https://fonts.gstatic.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+      "img-src 'self' data: blob: https://ejpnmcxzycxqfdbetydp.supabase.co https://*.stripe.com https://images.unsplash.com",
+      "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
       "connect-src 'self' https://ejpnmcxzycxqfdbetydp.supabase.co wss://ejpnmcxzycxqfdbetydp.supabase.co https://api.stripe.com https://api.ideal-postcodes.co.uk",
       "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
       "object-src 'none'",
@@ -36,6 +36,10 @@ const nextConfig = {
         protocol: 'https' as const,
         hostname: 'ejpnmcxzycxqfdbetydp.supabase.co',
         pathname: '/storage/v1/object/public/**',
+      },
+      {
+        protocol: 'https' as const,
+        hostname: 'images.unsplash.com',
       },
     ],
   },
