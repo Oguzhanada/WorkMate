@@ -54,3 +54,18 @@ Each daily report must include:
 - **Go to phase 2 candidate** only if:
   - write violations = 0
   - measurable progress against pilot targets.
+
+## 7) GitMCP + Magic usage rules
+- GitMCP usage:
+  - use GitMCP only for public-repo pilot context ingestion,
+  - do not rely on GitMCP for private/sensitive repository access,
+  - run `public-only checklist` before onboarding a repo.
+- 21st.dev Magic usage:
+  - use for UI ideation/prototyping only, not direct merge output,
+  - generated code must be normalized into `components/ui/*` wrappers,
+  - token-only prompt contract is optional (team can use raw Tailwind utilities when useful),
+  - require manual review for accessibility, contrast, locale-safe links, and guardrail compliance.
+- Minimum review gate for Magic-generated output:
+  - token contract check passed,
+  - no page-level style drift from shared system,
+  - lint + unit/integration smoke checks passed before merge.

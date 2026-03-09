@@ -226,6 +226,19 @@ MCP pilot rules:
 - Any blocked action must be logged to `logs/mcp-readonly-violations.log`.
 - If fallback rate exceeds thresholds defined in DR-006, narrow scope immediately.
 
+## 17.2) MCP security note (GitMCP + Magic)
+- `gitmcp.io` is public-repo context tooling by default; do not assume private-repo support.
+- Treat all MCP-exposed repo content as externally consumable context:
+  - never include secrets/tokens/credentials in tracked files,
+  - never expose internal-only compliance or ops notes without review.
+- Before enabling GitMCP on any repo:
+  - run security preflight (`npm run check:prepublic-security` where applicable),
+  - verify `.env*`, keys, and operational runbooks are excluded or sanitized,
+  - require explicit security approval for any non-public or mixed-sensitivity repository.
+- `21st.dev/magic` output is untrusted until reviewed:
+  - generated UI must be wrapped/adapted to WorkMate shared UI layer,
+  - generated code should prefer `--wm-*` token contract, but raw Tailwind utilities are allowed when reviewed.
+
 ## 19) FROZEN DECISIONS — do not change without a Decision Record
 
 The following architectural decisions are **locked**. They were established through deliberate analysis and must not be changed without writing a Decision Record directly in this section.

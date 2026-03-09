@@ -35,6 +35,8 @@ marketplace/supabase/.temp/
 !.claude/skills/ui-system-hybrid-migration/SKILL.md
 !.claude/skills/workmate-visual-qa/
 !.claude/skills/workmate-visual-qa/SKILL.md
+.sandbox/
+sandbox/
 .vscode/
 .DS_Store
 Thumbs.db
