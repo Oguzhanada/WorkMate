@@ -12,6 +12,7 @@ import {hasAtLeastTwoNameParts, isValidEnglishFullName} from '@/lib/validation/n
 import {useCategoriesWithFallback, type Category} from '@/lib/hooks/useCategoriesWithFallback';
 import {resolveProviderVerificationState} from '@/lib/onboarding/provider-verification';
 import MultiSelectDropdown from '@/components/forms/MultiSelectDropdown';
+import { trackFunnelStep, FUNNEL_PROVIDER_ONBOARDING } from '@/lib/analytics/funnel';
 import styles from '../inner.module.css';
 
 type Step = 1 | 2 | 3 | 4;
@@ -89,6 +90,13 @@ export default function BecomeProviderPage() {
         return;
       }
       setIsAuthenticated(true);
+
+      // Fire-and-forget: track funnel start when authenticated user opens the form
+      trackFunnelStep({
+        funnelName: FUNNEL_PROVIDER_ONBOARDING,
+        stepName: 'onboarding_started',
+        stepNumber: 1,
+      });
 
       const userEmail = user.email ?? '';
       setEmail(userEmail);
@@ -363,6 +371,30 @@ export default function BecomeProviderPage() {
 
   const next = () => {
     if (!validateStep(step)) return;
+
+    // Fire-and-forget telemetry for each completed step
+    if (step === 1) {
+      trackFunnelStep({
+        funnelName: FUNNEL_PROVIDER_ONBOARDING,
+        stepName: 'personal_info_completed',
+        stepNumber: 2,
+      });
+    } else if (step === 2) {
+      trackFunnelStep({
+        funnelName: FUNNEL_PROVIDER_ONBOARDING,
+        stepName: 'services_selected',
+        stepNumber: 3,
+        metadata: { category_count: selectedServiceIds.length },
+      });
+    } else if (step === 3) {
+      trackFunnelStep({
+        funnelName: FUNNEL_PROVIDER_ONBOARDING,
+        stepName: 'location_completed',
+        stepNumber: 4,
+        metadata: { area_count: selectedAreas.length },
+      });
+    }
+
     setStep((prev) => (prev < 4 ? ((prev + 1) as Step) : prev));
   };
   const back = () => {
@@ -512,6 +544,22 @@ export default function BecomeProviderPage() {
         const {error: insertAreasError} = await supabase.from('pro_service_areas').insert(areaRows);
         if (insertAreasError) throw insertAreasError;
       }
+
+      // Fire-and-forget telemetry for final submission steps
+      trackFunnelStep({
+        funnelName: FUNNEL_PROVIDER_ONBOARDING,
+        stepName: 'documents_submitted',
+        stepNumber: 5,
+        metadata: {
+          id_document_uploaded: hasVerifiedIdentity || !!idDocument || hasExistingIdDocument,
+          insurance_document_uploaded: !!insuranceDocument || hasExistingInsuranceDocument,
+        },
+      });
+      trackFunnelStep({
+        funnelName: FUNNEL_PROVIDER_ONBOARDING,
+        stepName: 'application_submitted',
+        stepNumber: 6,
+      });
 
       setIsSubmitted(true);
       setMessage(t('submitSuccess'));

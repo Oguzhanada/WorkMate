@@ -27,6 +27,9 @@ backstop_data/ci_report/
 # Supabase local
 marketplace/supabase/.temp/
 
+# MCP config (contains secrets)
+.mcp.json
+
 # Editor / OS
 .claude/*
 !.claude/skills/

@@ -6,6 +6,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { calculateOfferScore } from '@/lib/ranking/offer-ranking';
 import { submitOfferSchema } from '@/lib/validation/api';
 import { sendTransactionalEmail } from '@/lib/email/send';
+import { sendNotification } from '@/lib/notifications/send';
 
 function parseStringList(value: FormDataEntryValue | null) {
   if (!value) return [] as string[];
@@ -138,7 +139,7 @@ export async function submitOffer(formData: FormData) {
           to: providerProfile.email,
           providerName: providerProfile.full_name ?? 'Provider',
           jobTitle: job.title ?? 'your job',
-          dashboardUrl: `${process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'https://workmate.ie'}/en/dashboard/pro?tour=1`,
+          dashboardUrl: `${process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'https://workmate.ie'}/${process.env.NEXT_PUBLIC_DEFAULT_LOCALE ?? 'en'}/dashboard/pro?tour=1`,
         });
       }
     }
@@ -176,6 +177,14 @@ export async function submitOffer(formData: FormData) {
       title: job.title,
       quote_amount_cents: priceCents,
     },
+  });
+
+  // In-app notification via sendNotification — fire-and-forget
+  sendNotification({
+    userId: job.customer_id,
+    type: 'job_offer',
+    title: 'New Offer on Your Job',
+    data: { job_id: jobId },
   });
 
   revalidatePath(`/jobs/${jobId}`);
@@ -252,6 +261,14 @@ export async function acceptOffer(offerId: string) {
       job_id: offer.job_id,
       title: job.title,
     },
+  });
+
+  // In-app notification via sendNotification — fire-and-forget
+  sendNotification({
+    userId: offer.pro_id,
+    type: 'job_offer',
+    title: 'Your Offer Was Accepted!',
+    data: { job_id: offer.job_id },
   });
 
   revalidatePath(`/jobs/${offer.job_id}`);

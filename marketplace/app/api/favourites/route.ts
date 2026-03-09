@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { toggleFavouriteSchema } from '@/lib/validation/api';
 
 // GET /api/favourites — list all provider IDs the current user has saved
 export async function GET() {
@@ -44,17 +45,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const body = rawBody as { provider_id?: string };
-  if (!body.provider_id || typeof body.provider_id !== 'string') {
-    return NextResponse.json({ error: 'provider_id is required' }, { status: 400 });
+  const parsed = toggleFavouriteSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message ?? 'Invalid request' },
+      { status: 400 }
+    );
   }
+
+  const { provider_id } = parsed.data;
 
   // Check if already favourited
   const { data: existing } = await supabase
     .from('favourite_providers')
     .select('id')
     .eq('customer_id', user.id)
-    .eq('provider_id', body.provider_id)
+    .eq('provider_id', provider_id)
     .maybeSingle();
 
   if (existing) {
@@ -63,7 +69,7 @@ export async function POST(request: NextRequest) {
       .from('favourite_providers')
       .delete()
       .eq('customer_id', user.id)
-      .eq('provider_id', body.provider_id);
+      .eq('provider_id', provider_id);
 
     return NextResponse.json({ saved: false });
   }
@@ -71,7 +77,7 @@ export async function POST(request: NextRequest) {
   // Add favourite
   const { error: insertError } = await supabase.from('favourite_providers').insert({
     customer_id: user.id,
-    provider_id: body.provider_id,
+    provider_id,
   });
 
   if (insertError) return NextResponse.json({ error: insertError.message }, { status: 400 });

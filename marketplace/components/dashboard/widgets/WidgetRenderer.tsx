@@ -13,6 +13,10 @@ import CustomerStatsWidget from './CustomerStatsWidget';
 import ProviderEarningsWidget from './ProviderEarningsWidget';
 import AdminFeatureFlagsWidget from './AdminFeatureFlagsWidget';
 import ProviderSubscriptionWidget from './ProviderSubscriptionWidget';
+import GardaVettingRequestWidget from '../GardaVettingRequestWidget';
+import ProfileCompletenessWidget from '../ProfileCompletenessWidget';
+import AvailabilityWidget from './AvailabilityWidget';
+import PortfolioManagerWidget from '../PortfolioManagerWidget';
 
 type Props = {
   widgetType: WidgetType;
@@ -45,6 +49,14 @@ export default function WidgetRenderer({ widgetType, settings }: Props) {
       return <AdminFeatureFlagsWidget />;
     case 'provider_subscription':
       return <ProviderSubscriptionWidget />;
+    case 'garda_vetting':
+      return <GardaVettingRequestWidget />;
+    case 'profile_completeness':
+      return <ProfileCompletenessWidget />;
+    case 'availability':
+      return <AvailabilityWidget />;
+    case 'portfolio':
+      return <PortfolioManagerWidget />;
     default:
       return null;
   }

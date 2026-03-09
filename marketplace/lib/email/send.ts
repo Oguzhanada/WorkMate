@@ -4,10 +4,22 @@ import {
   quoteAcceptedEmail,
   paymentReleasedEmail,
   providerFirstQuoteEmail,
+  contractCreatedEmail,
+  contractSignedEmail,
+  contractVoidedEmail,
+  gardaVettingStatusEmail,
+  gardaVettingRequestedEmail,
+  subscriptionStatusEmail,
   type QuoteReceivedData,
   type QuoteAcceptedData,
   type PaymentReleasedData,
   type ProviderFirstQuoteData,
+  type ContractCreatedData,
+  type ContractSignedData,
+  type ContractVoidedData,
+  type GardaVettingStatusData,
+  type GardaVettingRequestedData,
+  type SubscriptionStatusData,
 } from './templates';
 
 const FROM = 'WorkMate <notifications@workmate.ie>';
@@ -16,7 +28,13 @@ type EmailEvent =
   | ({ type: 'quote_received' } & QuoteReceivedData)
   | ({ type: 'quote_accepted' } & QuoteAcceptedData)
   | ({ type: 'payment_released' } & PaymentReleasedData)
-  | ({ type: 'provider_first_quote' } & ProviderFirstQuoteData);
+  | ({ type: 'provider_first_quote' } & ProviderFirstQuoteData)
+  | ({ type: 'contract_created' } & ContractCreatedData)
+  | ({ type: 'contract_signed' } & ContractSignedData)
+  | ({ type: 'contract_voided' } & ContractVoidedData)
+  | ({ type: 'garda_vetting_status' } & GardaVettingStatusData)
+  | ({ type: 'garda_vetting_requested' } & GardaVettingRequestedData)
+  | ({ type: 'subscription_status' } & SubscriptionStatusData);
 
 /**
  * Fire-and-forget transactional email. Never throws — email failure is logged
@@ -36,6 +54,18 @@ export function sendTransactionalEmail(event: EmailEvent): void {
         ({ subject, html } = quoteAcceptedEmail(event));
       } else if (event.type === 'provider_first_quote') {
         ({ subject, html } = providerFirstQuoteEmail(event));
+      } else if (event.type === 'contract_created') {
+        ({ subject, html } = contractCreatedEmail(event));
+      } else if (event.type === 'contract_signed') {
+        ({ subject, html } = contractSignedEmail(event));
+      } else if (event.type === 'contract_voided') {
+        ({ subject, html } = contractVoidedEmail(event));
+      } else if (event.type === 'garda_vetting_status') {
+        ({ subject, html } = gardaVettingStatusEmail(event));
+      } else if (event.type === 'garda_vetting_requested') {
+        ({ subject, html } = gardaVettingRequestedEmail(event));
+      } else if (event.type === 'subscription_status') {
+        ({ subject, html } = subscriptionStatusEmail(event));
       } else {
         ({ subject, html } = paymentReleasedEmail(event));
       }

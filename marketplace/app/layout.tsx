@@ -1,7 +1,7 @@
 import type {Metadata} from 'next';
 import './globals.css';
 
-const baseUrl = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'http://localhost:3000';
+const baseUrl = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'https://workmate.ie';
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl)

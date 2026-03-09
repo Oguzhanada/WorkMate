@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
+import { sendTransactionalEmail } from '@/lib/email/send';
+import { sendNotification } from '@/lib/notifications/send';
 
 const patchGardaVettingSchema = z.object({
   garda_vetting_status: z.enum(['not_required', 'pending', 'approved', 'rejected', 'expired']),
@@ -72,6 +74,47 @@ export async function PATCH(
 
   if (updateError) {
     return NextResponse.json({ error: updateError.message }, { status: 400 });
+  }
+
+  // In-app notification for approved/rejected — fire-and-forget
+  if (parsed.data.garda_vetting_status === 'approved') {
+    sendNotification({
+      userId: profileId,
+      type: 'vetting_update',
+      title: 'Garda Vetting Approved',
+    });
+  } else if (parsed.data.garda_vetting_status === 'rejected') {
+    sendNotification({
+      userId: profileId,
+      type: 'vetting_update',
+      title: 'Garda Vetting Update — Action Required',
+    });
+  }
+
+  // Email provider on actionable status transitions — fire-and-forget
+  const emailableStatuses = ['approved', 'rejected'] as const;
+  type EmailableStatus = typeof emailableStatuses[number];
+  if (emailableStatuses.includes(parsed.data.garda_vetting_status as EmailableStatus)) {
+    void (async () => {
+      try {
+        const { data: providerProfile } = await service
+          .from('profiles')
+          .select('email,full_name')
+          .eq('id', profileId)
+          .maybeSingle();
+        if (providerProfile?.email) {
+          sendTransactionalEmail({
+            type: 'garda_vetting_status',
+            to: providerProfile.email,
+            providerName: providerProfile.full_name ?? 'Provider',
+            status: parsed.data.garda_vetting_status as EmailableStatus,
+            expiresAt: parsed.data.garda_vetting_expires_at ?? undefined,
+          });
+        }
+      } catch {
+        // Non-blocking — email lookup failure is swallowed.
+      }
+    })();
   }
 
   return NextResponse.json({ profile: updated });

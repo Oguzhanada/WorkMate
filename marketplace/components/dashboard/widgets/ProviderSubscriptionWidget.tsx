@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
 
 type Subscription = {
   plan: 'basic' | 'professional' | 'premium';
@@ -18,6 +20,8 @@ const PLAN_LABELS: Record<string, { label: string; color: string; bg: string }> 
 export default function ProviderSubscriptionWidget() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
+  const pricingHref = withLocalePrefix(getLocaleRoot(pathname), '/pricing');
 
   useEffect(() => {
     fetch('/api/subscriptions')
@@ -68,7 +72,7 @@ export default function ProviderSubscriptionWidget() {
       </div>
       {subscription.plan === 'basic' ? (
         <a
-          href="/en/pricing"
+          href={pricingHref}
           style={{
             border: 'none',
             borderRadius: '0.5rem',

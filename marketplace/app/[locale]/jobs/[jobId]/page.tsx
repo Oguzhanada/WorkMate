@@ -1,18 +1,68 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { getUserRoles } from '@/lib/auth/rbac';
 import JobCollaborationPanel from '@/components/jobs/JobCollaborationPanel';
 import JobOffersPanel from '@/components/jobs/JobOffersPanel';
 import JobContractPanel from '@/components/jobs/JobContractPanel';
+import JobStatusTimeline from '@/components/jobs/JobStatusTimeline';
 import TimeTracking from '@/components/jobs/TimeTracking';
 import JobScheduler from '@/components/jobs/JobScheduler';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import styles from '../../inner.module.css';
 
+const baseUrl = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'https://workmate.ie';
+
 type Props = {
   params: Promise<{ locale: string; jobId: string }>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale, jobId } = await params;
+  const supabase = getSupabaseServiceClient();
+
+  const { data: job } = await supabase
+    .from('jobs')
+    .select('title, description, status, category, county, locality, created_at')
+    .eq('id', jobId)
+    .maybeSingle();
+
+  if (!job) return {};
+
+  const isOpen = job.status === 'open';
+  const title = `${job.title} — Find a Provider | WorkMate`;
+  const rawDescription = job.description ?? `${job.title} — find a trusted provider in Ireland.`;
+  const description = rawDescription.length > 160 ? rawDescription.slice(0, 157) + '...' : rawDescription;
+  const location = job.county ?? job.locality ?? 'Ireland';
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      siteName: 'WorkMate',
+    },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+    },
+    alternates: {
+      canonical: `${baseUrl}/${locale}/jobs/${jobId}`,
+    },
+    robots: isOpen
+      ? { index: true, follow: true }
+      : { index: false, follow: false },
+    other: {
+      'job:location': location,
+      'job:category': job.category ?? '',
+    },
+  };
+}
 
 export default async function JobDetailPage({ params }: Props) {
   const { locale, jobId } = await params;
@@ -64,19 +114,19 @@ export default async function JobDetailPage({ params }: Props) {
     : ((job.customer as unknown as { full_name: string | null } | null)?.full_name ?? 'Customer');
 
   const statusColors: Record<string, string> = {
-    open: '#0ea5e9',
-    quoted: '#f59e0b',
-    accepted: '#10b981',
-    in_progress: '#8b5cf6',
-    completed: '#6b7280',
-    cancelled: '#ef4444',
+    open: 'var(--wm-info)',
+    quoted: 'var(--wm-amber-dark)',
+    accepted: 'var(--wm-primary)',
+    in_progress: 'var(--wm-navy)',
+    completed: 'var(--wm-muted)',
+    cancelled: 'var(--wm-destructive)',
   };
 
   const validThrough = new Date(
     new Date(job.created_at).getTime() + 30 * 24 * 60 * 60 * 1000
   ).toISOString();
 
-  const [{ data: reviews }, { data: questions }] = await Promise.all([
+  const [{ data: reviews }, { data: questions }, { count: offerCount }, { data: firstAppointment }] = await Promise.all([
     supabase
       .from('reviews')
       .select('id,customer_id,rating,comment,created_at')
@@ -90,6 +140,17 @@ export default async function JobDetailPage({ params }: Props) {
       .eq('visibility', 'public')
       .order('created_at', { ascending: false })
       .limit(5),
+    supabase
+      .from('quotes')
+      .select('id', { count: 'exact', head: true })
+      .eq('job_id', job.id),
+    supabase
+      .from('appointments')
+      .select('start_time')
+      .eq('job_id', job.id)
+      .order('start_time', { ascending: true })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const profileIds = Array.from(
@@ -156,8 +217,8 @@ export default async function JobDetailPage({ params }: Props) {
                 borderRadius: 20,
                 fontSize: '0.8rem',
                 fontWeight: 600,
-                background: statusColors[job.status] ?? '#6b7280',
-                color: '#fff',
+                background: statusColors[job.status] ?? 'var(--wm-muted)',
+                color: 'var(--wm-background)',
                 textTransform: 'capitalize',
               }}
             >
@@ -170,6 +231,18 @@ export default async function JobDetailPage({ params }: Props) {
           ) : null}
         </article>
 
+        {isCustomer || isPro || isAdmin ? (
+          <Card>
+            <JobStatusTimeline
+              jobId={job.id}
+              status={job.status}
+              createdAt={job.created_at}
+              offers={{ count: offerCount ?? 0 }}
+              appointmentAt={firstAppointment?.start_time ?? null}
+            />
+          </Card>
+        ) : null}
+
         {isCustomer && (job.status === 'open' || job.status === 'quoted') ? (
           <JobOffersPanel
             jobId={job.id}
@@ -180,12 +253,12 @@ export default async function JobDetailPage({ params }: Props) {
           />
         ) : null}
 
-        {['accepted', 'in_progress', 'completed'].includes(job.status) ? (
+        {['accepted', 'in_progress', 'completed'].includes(job.status) &&
+        (isCustomer || isPro || isAdmin) ? (
           <JobContractPanel
             jobId={job.id}
             currentUserId={user.id}
-            isCustomer={isCustomer}
-            isProvider={isPro}
+            userRole={isAdmin ? 'admin' : isCustomer ? 'customer' : 'verified_pro'}
           />
         ) : null}
 

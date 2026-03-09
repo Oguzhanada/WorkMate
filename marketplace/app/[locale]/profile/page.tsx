@@ -274,6 +274,42 @@ export default async function ProfilePage({
 
         <ApiKeyCard initialApiKey={profile?.api_key ?? null} initialRateLimit={profile?.api_rate_limit ?? 1000} />
 
+        {/* ── Privacy & GDPR Settings link ──────────────────────────────── */}
+        <div
+          className="rounded-[22px] border p-5"
+          style={{
+            background: 'var(--color-background-secondary)',
+            borderColor: 'var(--wm-border)',
+            boxShadow: 'var(--wm-shadow-sm)',
+          }}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p
+                className="text-sm font-bold"
+                style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)' }}
+              >
+                Privacy &amp; Account Settings
+              </p>
+              <p className="mt-0.5 text-sm" style={{ color: 'var(--wm-muted)' }}>
+                Export your data or request account deletion under GDPR.
+              </p>
+            </div>
+            <a
+              href={`/${locale}/account/settings`}
+              className="inline-flex items-center justify-center rounded-2xl border px-4 py-2.5 text-sm font-semibold"
+              style={{
+                borderColor: 'var(--wm-border)',
+                background: 'var(--wm-surface)',
+                color: 'var(--wm-text)',
+                textDecoration: 'none',
+              }}
+            >
+              Manage
+            </a>
+          </div>
+        </div>
+
         {hasProviderRole ? <ProviderAvailability providerId={user.id} /> : null}
 
         {hasProviderRole ? <ProPortfolioPanel /> : null}

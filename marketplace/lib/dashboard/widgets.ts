@@ -14,7 +14,11 @@ export type WidgetType =
   | 'admin_stats'
   | 'admin_api_keys'
   | 'admin_feature_flags'
-  | 'provider_subscription';
+  | 'provider_subscription'
+  | 'garda_vetting'
+  | 'profile_completeness'
+  | 'availability'
+  | 'portfolio';
 
 export type WidgetPosition = {
   x: number;
@@ -31,7 +35,7 @@ export type WidgetConfig = {
 
 const ALLOWED_WIDGETS: Record<DashboardMode, WidgetType[]> = {
   customer: ['customer_stats', 'active_jobs', 'pending_quotes', 'recent_messages'],
-  provider: ['active_jobs', 'pending_quotes', 'recent_messages', 'task_alerts', 'provider_earnings', 'provider_subscription'],
+  provider: ['active_jobs', 'pending_quotes', 'recent_messages', 'task_alerts', 'provider_earnings', 'provider_subscription', 'garda_vetting', 'profile_completeness', 'availability', 'portfolio'],
   admin: ['admin_pending_jobs', 'admin_applications', 'admin_stats', 'admin_api_keys', 'admin_feature_flags', 'recent_messages'],
 };
 
@@ -46,9 +50,13 @@ const DEFAULT_WIDGETS: Record<DashboardMode, WidgetConfig[]> = {
     { widget_type: 'provider_earnings', position: { x: 0, y: 0, w: 12, h: 2 }, settings: {} },
     { widget_type: 'active_jobs', position: { x: 0, y: 1, w: 6, h: 2 }, settings: {} },
     { widget_type: 'pending_quotes', position: { x: 6, y: 1, w: 6, h: 2 }, settings: {} },
-    { widget_type: 'provider_subscription', position: { x: 0, y: 2, w: 12, h: 1 }, settings: {} },
+    { widget_type: 'provider_subscription', position: { x: 0, y: 2, w: 6, h: 1 }, settings: {} },
+    { widget_type: 'garda_vetting', position: { x: 6, y: 2, w: 6, h: 1 }, settings: {} },
     { widget_type: 'task_alerts', position: { x: 0, y: 3, w: 12, h: 3 }, settings: {} },
-    { widget_type: 'recent_messages', position: { x: 0, y: 4, w: 12, h: 2 }, settings: { limit: 6 } },
+    { widget_type: 'profile_completeness', position: { x: 0, y: 4, w: 6, h: 2 }, settings: {} },
+    { widget_type: 'availability', position: { x: 6, y: 4, w: 6, h: 4 }, settings: {} },
+    { widget_type: 'portfolio', position: { x: 0, y: 5, w: 12, h: 4 }, settings: {} },
+    { widget_type: 'recent_messages', position: { x: 0, y: 6, w: 12, h: 2 }, settings: { limit: 6 } },
   ],
   admin: [
     { widget_type: 'admin_stats', position: { x: 0, y: 0, w: 6, h: 2 }, settings: {} },
@@ -114,6 +122,14 @@ export function getWidgetLabel(widgetType: WidgetType) {
       return 'Feature Flags';
     case 'provider_subscription':
       return 'Subscription';
+    case 'garda_vetting':
+      return 'Garda Vetting';
+    case 'profile_completeness':
+      return 'Profile Completeness';
+    case 'availability':
+      return 'My Availability';
+    case 'portfolio':
+      return 'Work Gallery';
     default:
       return widgetType;
   }

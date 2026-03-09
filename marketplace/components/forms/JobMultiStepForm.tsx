@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import EircodeAddressForm, { type Address } from './EircodeAddressForm';
@@ -18,6 +18,7 @@ import { useCategoriesWithFallback, type Category } from '@/lib/hooks/useCategor
 import InfoTooltip from '@/components/ui/InfoTooltip';
 import HybridJobPost from '@/components/jobs/HybridJobPost';
 import styles from './forms.module.css';
+import { trackFunnelStep, FUNNEL_JOB_POSTING } from '@/lib/analytics/funnel';
 
 const STEP_LABELS = ['Title and details', 'Location and budget', 'Photos and submit'] as const;
 const STEP_GOALS: Record<number, string> = {
@@ -68,6 +69,7 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
   const [isPending, setIsPending] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [error, setError] = useState('');
+  const trackedCategoryRef = useRef<string>('');
   const [priceEstimate, setPriceEstimate] = useState<{
     p25Cents: number;
     p75Cents: number;
@@ -91,6 +93,12 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
     }
     return payload.error || 'We could not create your request. Please review the highlighted fields and try again.';
   };
+
+  // Track funnel start once on mount
+  useEffect(() => {
+    trackFunnelStep({ funnelName: FUNNEL_JOB_POSTING, stepName: 'job_posting_started', stepNumber: 1 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     setCategoryId((current) => {
@@ -210,6 +218,12 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
       }
 
       setFeedback('Your job request was created successfully.');
+      trackFunnelStep({
+        funnelName: FUNNEL_JOB_POSTING,
+        stepName: 'job_posting_submitted',
+        stepNumber: 3,
+        metadata: { job_id: payload.job.id as string, category_id: categoryId },
+      });
       router.push(withLocalePrefix(localeRoot, `/post-job/result/${payload.job.id}`));
     } catch (submitError) {
       const message = submitError instanceof Error ? submitError.message : 'Job request could not be created.';
@@ -379,7 +393,19 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
                 <span>Service category</span>
                 <select
                   value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
+                  onChange={(e) => {
+                    const newId = e.target.value;
+                    setCategoryId(newId);
+                    if (newId && newId !== trackedCategoryRef.current) {
+                      trackedCategoryRef.current = newId;
+                      trackFunnelStep({
+                        funnelName: FUNNEL_JOB_POSTING,
+                        stepName: 'category_selected',
+                        stepNumber: 1,
+                        metadata: { category_id: newId },
+                      });
+                    }
+                  }}
                   className={styles.select}
                   disabled={isLoadingCategories || categories.length === 0}
                 >
@@ -478,7 +504,20 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
                 />
               </div>
               <div className={styles.buttonRow}>
-                <button type="button" onClick={() => setStep(2)} className={styles.primary} disabled={Boolean(currentStepError)}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    trackFunnelStep({
+                      funnelName: FUNNEL_JOB_POSTING,
+                      stepName: 'description_written',
+                      stepNumber: 1,
+                      metadata: { category_id: categoryId, has_details: additionalDetails.trim().length > 0 },
+                    });
+                    setStep(2);
+                  }}
+                  className={styles.primary}
+                  disabled={Boolean(currentStepError)}
+                >
                   Continue
                 </button>
               </div>

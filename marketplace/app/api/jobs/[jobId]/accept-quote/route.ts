@@ -5,6 +5,7 @@ import { canAccessAdmin, canPostJob, getUserRoles } from '@/lib/auth/rbac';
 import { acceptQuoteSchema } from '@/lib/validation/api';
 import { sendWebhookEvent } from '@/lib/webhook/send';
 import { sendTransactionalEmail } from '@/lib/email/send';
+import { sendNotification } from '@/lib/notifications/send';
 
 export async function PATCH(
   request: NextRequest,
@@ -125,6 +126,16 @@ export async function PATCH(
     accepted_by: user.id,
     accepted_at: new Date().toISOString(),
   });
+
+  // In-app notification to provider — fire-and-forget
+  if (quote.pro_id) {
+    sendNotification({
+      userId: quote.pro_id,
+      type: 'job_offer',
+      title: 'Your Offer Was Accepted!',
+      data: { job_id: jobId },
+    });
+  }
 
   // Notify provider their quote was accepted — non-blocking, best-effort
   if (quote.pro_id) {

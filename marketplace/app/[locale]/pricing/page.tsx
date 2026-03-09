@@ -21,14 +21,16 @@ type Tier = {
   features: Feature[];
 };
 
-const TIERS: Tier[] = [
+type TierDef = Omit<Tier, 'ctaHref'> & { ctaPath: string };
+
+const TIER_DEFS: TierDef[] = [
   {
     id: 'basic',
     name: 'Starter',
     price: 'Free',
     priceNote: 'No credit card required',
     cta: 'Get started free',
-    ctaHref: '/en/auth/register',
+    ctaPath: '/auth/register',
     popular: false,
     features: [
       '3 job bids per month',
@@ -43,7 +45,7 @@ const TIERS: Tier[] = [
     price: '€29',
     priceNote: 'per month, billed monthly',
     cta: 'Start Professional',
-    ctaHref: '/en/auth/register?plan=professional',
+    ctaPath: '/auth/register?plan=professional',
     popular: true,
     features: [
       '20 job bids per month',
@@ -60,7 +62,7 @@ const TIERS: Tier[] = [
     price: '€59',
     priceNote: 'per month, billed monthly',
     cta: 'Start Premium',
-    ctaHref: '/en/auth/register?plan=premium',
+    ctaPath: '/auth/register?plan=premium',
     popular: false,
     features: [
       'Unlimited job bids',
@@ -74,6 +76,13 @@ const TIERS: Tier[] = [
     ],
   },
 ];
+
+function buildTiers(locale: string): Tier[] {
+  return TIER_DEFS.map((def) => ({
+    ...def,
+    ctaHref: `/${locale}${def.ctaPath}`,
+  }));
+}
 
 function CheckIcon() {
   return (
@@ -177,7 +186,14 @@ function TierCard({ tier }: { tier: Tier }) {
   );
 }
 
-export default function PricingPage() {
+export default async function PricingPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const tiers = buildTiers(locale);
+
   return (
     <div className="mx-auto max-w-5xl space-y-8 px-4 py-8">
       <PageHeader
@@ -187,7 +203,7 @@ export default function PricingPage() {
 
       {/* Tier grid */}
       <div className="grid gap-6 sm:grid-cols-3">
-        {TIERS.map((tier) => (
+        {tiers.map((tier) => (
           <TierCard key={tier.id} tier={tier} />
         ))}
       </div>

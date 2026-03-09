@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import WorkMateLogo from '@/components/ui/WorkMateLogo';
+import NotificationBell from '@/components/notifications/NotificationBell';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -273,6 +274,10 @@ export default function Navbar() {
               <Link href={dashboardHref} className="px-3 py-2 text-sm font-semibold text-[#0f172a] transition hover:text-[var(--wm-primary-dark)]">
                 Dashboard
               </Link>
+              <Link href={withLocalePrefix(localeRoot, '/saved-searches')} className="px-3 py-2 text-sm font-semibold text-[#0f172a] transition hover:text-[var(--wm-primary-dark)]">
+                Saved Searches
+              </Link>
+              <NotificationBell />
               <Link href={withLocalePrefix(localeRoot, '/profile')} className="px-3 py-2 text-sm font-semibold text-[#0f172a] transition hover:text-[var(--wm-primary-dark)]">
                 {displayName}
               </Link>
@@ -339,6 +344,16 @@ export default function Navbar() {
                   >
                     Dashboard
                   </Link>
+                  <Link
+                    href={withLocalePrefix(localeRoot, '/saved-searches')}
+                    onClick={() => setMobileOpen(false)}
+                    className="rounded-lg px-3 py-2 text-sm font-semibold text-[var(--wm-text)] transition hover:bg-[var(--wm-primary-faint)]"
+                  >
+                    Saved Searches
+                  </Link>
+                  <div className="px-3 py-1">
+                    <NotificationBell />
+                  </div>
                   <Link
                     href={withLocalePrefix(localeRoot, '/profile')}
                     onClick={() => setMobileOpen(false)}
