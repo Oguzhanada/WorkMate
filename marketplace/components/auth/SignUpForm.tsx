@@ -432,9 +432,9 @@ export function SignUpForm() {
 
   const eircodeInputStyle =
     eircodeStatus === 'valid'
-      ? {borderColor: '#00B894', boxShadow: '0 0 0 3px rgba(0, 184, 148, 0.15)'}
+      ? {borderColor: 'var(--wm-primary)', boxShadow: '0 0 0 3px rgba(16, 185, 129, 0.15)'}
       : eircodeStatus === 'invalid'
-        ? {borderColor: '#FF7675', boxShadow: '0 0 0 3px rgba(255, 118, 117, 0.15)'}
+        ? {borderColor: 'var(--wm-destructive)', boxShadow: '0 0 0 3px rgba(220, 38, 38, 0.15)'}
         : undefined;
 
   return (
@@ -599,8 +599,8 @@ export function SignUpForm() {
                       onChange={(event) => updateField('eircode', normalizeEircode(event.target.value))}
                       placeholder="D02 23B5"
                     />
-                    {eircodeStatus === 'valid' ? <CheckCircle2 size={16} color="#00B894" /> : null}
-                    {eircodeStatus === 'invalid' ? <CircleX size={16} color="#FF7675" /> : null}
+                    {eircodeStatus === 'valid' ? <CheckCircle2 size={16} color="var(--wm-primary)" /> : null}
+                    {eircodeStatus === 'invalid' ? <CircleX size={16} color="var(--wm-destructive)" /> : null}
                   </div>
                   <button
                     type="button"

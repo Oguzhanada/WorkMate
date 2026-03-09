@@ -138,11 +138,11 @@ export default function DashboardShell({ mode, title, description }: Props) {
   return (
     <section className="space-y-4">
       <div
-        className="rounded-[2rem] p-8"
+        className="rounded-[1.6rem] p-8"
         style={{
-          background: 'var(--wm-surface)',
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
           border: '1px solid var(--wm-border)',
-          boxShadow: 'var(--wm-shadow-md)',
+          boxShadow: 'var(--wm-shadow-lg)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
         }}
@@ -150,15 +150,15 @@ export default function DashboardShell({ mode, title, description }: Props) {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1
-              className="text-2xl font-bold tracking-tight"
-              style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)', letterSpacing: '-0.025em' }}
+              className="text-3xl font-extrabold tracking-tight"
+              style={{ fontFamily: 'var(--wm-font-display)', color: '#0f172a', letterSpacing: '-0.03em' }}
             >
               {title}
             </h1>
-            <p className="mt-1 text-base" style={{ color: 'var(--wm-muted)' }}>{description}</p>
+            <p className="mt-1 text-base" style={{ color: '#475569' }}>{description}</p>
           </div>
           {mode === 'customer' ? (
-            <Button href={`${localeRoot}/post-job`} variant="primary" size="md">
+            <Button href={`${localeRoot}/post-job`} variant="navy" size="md">
               + Post a Job
             </Button>
           ) : null}

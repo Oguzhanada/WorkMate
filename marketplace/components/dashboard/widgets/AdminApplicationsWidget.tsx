@@ -27,15 +27,22 @@ export default function AdminApplicationsWidget() {
 
   return (
     <div>
-      <p className="text-sm font-semibold">Provider Applications</p>
+      <p className="text-sm font-bold" style={{ color: '#0f172a' }}>Provider Applications</p>
+      <p className="mt-1 text-xs" style={{ color: '#64748b' }}>
+        Recent verification applications requiring admin decisions.
+      </p>
       {loading ? <p className="mt-2 text-sm" style={{ color: 'var(--wm-muted)' }}>Loading...</p> : null}
       {error ? <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p> : null}
-      {!loading && !error ? <p className="mt-2 text-lg font-semibold">{items.length}</p> : null}
+      {!loading && !error ? <p className="mt-2 text-lg font-semibold" style={{ color: '#0f172a' }}>{items.length}</p> : null}
       <div className="mt-2 space-y-2">
         {items.map((item) => (
-          <div key={item.id} className="rounded-lg px-3 py-2 text-sm" style={{ border: '1px solid var(--wm-border)' }}>
-            <p className="font-medium">{item.full_name ?? item.id.slice(0, 8)}</p>
-            <p className="text-xs" style={{ color: 'var(--wm-muted)' }}>{item.verification_status}</p>
+          <div
+            key={item.id}
+            className="rounded-xl px-3 py-2.5 text-sm"
+            style={{ border: '1px solid var(--wm-border)', background: 'white' }}
+          >
+            <p className="font-semibold" style={{ color: '#0f172a' }}>{item.full_name ?? item.id.slice(0, 8)}</p>
+            <p className="text-xs uppercase tracking-wide" style={{ color: '#64748b' }}>{item.verification_status}</p>
           </div>
         ))}
       </div>

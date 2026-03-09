@@ -48,7 +48,7 @@ export default async function LocaleHomePage({
   if (!isValidLocale(locale)) return null;
 
   return (
-    <main className="min-h-screen bg-white text-[#1F2937]">
+    <main className="min-h-screen text-[var(--wm-text)]">
       <Suspense fallback={<HomeSkeleton />}>
         <HeroSection />
         <TrustSection />

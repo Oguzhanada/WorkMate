@@ -2,8 +2,8 @@
 .page {
   min-height: 100vh;
   background:
-    radial-gradient(ellipse 80% 60% at 0% 0%, rgba(0, 184, 148, 0.07), transparent 55%),
-    radial-gradient(ellipse 60% 50% at 100% 0%, rgba(12, 27, 51, 0.06), transparent 50%),
+    radial-gradient(ellipse 80% 60% at 0% 0%, rgba(16, 185, 129, 0.10), transparent 55%),
+    radial-gradient(ellipse 60% 50% at 100% 0%, rgba(15, 23, 42, 0.07), transparent 50%),
     var(--wm-bg);
   color: var(--wm-text);
   font-family: var(--wm-font-sans);
@@ -25,18 +25,18 @@
 .panel {
   background: white;
   border: 1px solid var(--wm-border);
-  border-radius: var(--wm-radius-2xl);
-  box-shadow: var(--wm-shadow-lg);
+  border-radius: 1.4rem;
+  box-shadow: var(--wm-shadow-md);
   padding: 32px;
 }
 
 /* ── Brand panel ──────────────────────────────────────────── */
 .brandPanel {
   background:
-    radial-gradient(ellipse 100% 80% at 0% 0%, rgba(0, 184, 148, 0.08), transparent 50%),
-    radial-gradient(ellipse 80% 60% at 100% 100%, rgba(12, 27, 51, 0.06), transparent 55%),
+    radial-gradient(ellipse 100% 80% at 0% 0%, rgba(16, 185, 129, 0.11), transparent 50%),
+    radial-gradient(ellipse 80% 60% at 100% 100%, rgba(15, 23, 42, 0.06), transparent 55%),
     white;
-  border-color: rgba(0, 184, 148, 0.18);
+  border-color: rgba(16, 185, 129, 0.25);
 }
 
 .logoRow {
@@ -51,9 +51,9 @@
   border-radius: var(--wm-radius-lg);
   display: grid;
   place-items: center;
-  background: var(--wm-grad-primary);
+  background: transparent;
   color: white;
-  box-shadow: 0 6px 16px rgba(0, 184, 148, 0.35);
+  box-shadow: none;
 }
 
 .brandTitle {
@@ -75,9 +75,9 @@
 /* ── Quote card ───────────────────────────────────────────── */
 .quoteCard {
   margin-top: 24px;
-  border-radius: var(--wm-radius-lg);
+  border-radius: 1rem;
   background: var(--wm-primary-light);
-  border: 1px solid rgba(0, 184, 148, 0.20);
+  border: 1px solid rgba(16, 185, 129, 0.24);
   border-left: 3px solid var(--wm-primary);
   padding: 16px 18px;
 }
@@ -313,14 +313,22 @@
 /* ── Form fields ──────────────────────────────────────────── */
 .field { display: grid; gap: 5px; margin-bottom: 10px; }
 
+.field > span,
+.field > label {
+  color: #1f2937;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
 .inputWrap {
   display: flex;
   align-items: center;
   gap: 8px;
   border: 1.5px solid var(--wm-border);
-  border-radius: var(--wm-radius-md);
+  border-radius: 0.9rem;
   padding: 0 12px;
-  min-height: 48px;
+  min-height: 50px;
   background: white;
   transition: border-color var(--wm-transition), box-shadow var(--wm-transition);
 }
@@ -335,12 +343,12 @@
   border: 0;
   outline: none;
   font: inherit;
-  font-size: 14px;
-  color: var(--wm-text);
+  font-size: 15px;
+  color: #0f172a;
   background: transparent;
 }
 
-.inputWrap svg { color: var(--wm-subtle); }
+.inputWrap svg { color: #64748b; }
 
 .togglePassword {
   border: 0;
@@ -362,7 +370,7 @@
 
 .smallButton {
   min-height: 42px;
-  border-radius: var(--wm-radius-sm);
+  border-radius: 0.8rem;
   border: 1.5px solid var(--wm-border);
   background: white;
   color: var(--wm-text);
@@ -385,7 +393,7 @@
 .roleCard {
   border: 1.5px solid var(--wm-border);
   background: white;
-  border-radius: var(--wm-radius-lg);
+  border-radius: 1rem;
   min-height: 88px;
   padding: 14px;
   text-align: left;
@@ -449,8 +457,8 @@
 /* ── Primary button ───────────────────────────────────────── */
 .primaryButton {
   width: 100%;
-  min-height: 50px;
-  border-radius: var(--wm-radius-lg);
+  min-height: 52px;
+  border-radius: 1rem;
   border: none;
   background: var(--wm-grad-primary);
   color: white;
@@ -463,11 +471,11 @@
   justify-content: center;
   gap: 8px;
   letter-spacing: -0.01em;
-  box-shadow: 0 4px 16px rgba(0, 184, 148, 0.35);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.28);
   transition: transform var(--wm-transition), box-shadow var(--wm-transition);
 }
 
-.primaryButton:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(0, 184, 148, 0.48); }
+.primaryButton:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(16, 185, 129, 0.36); }
 .primaryButton:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
 
 .linkRow { margin: 14px 0 0; text-align: center; color: var(--wm-muted); font-size: 13px; }

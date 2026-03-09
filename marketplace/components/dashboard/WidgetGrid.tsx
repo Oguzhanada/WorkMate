@@ -62,8 +62,13 @@ function SortableWidgetCard({
       whileDrag={{ scale: 1.02, zIndex: 50, boxShadow: '0 24px 48px rgba(0,0,0,0.1)' }}
       className={isDragging ? 'z-50 cursor-grabbing' : ''}
     >
-      <Card className={`h-full rounded-[1.5rem] transition-shadow duration-300 ${isDragging ? 'shadow-xl' : 'hover:shadow-[var(--wm-shadow-md)]'}`} style={{ border: '1px solid var(--wm-border)' }}>
-        <div className="mb-3 flex items-center justify-between gap-2">
+      <Card
+        className={`h-full rounded-[1.4rem] transition-shadow duration-300 ${
+          isDragging ? 'shadow-xl' : 'hover:shadow-[var(--wm-shadow-lg)]'
+        }`}
+        style={{ border: '1px solid var(--wm-border)', background: 'rgba(255,255,255,0.96)' }}
+      >
+        <div className="mb-3 flex items-center justify-between gap-2 border-b pb-2.5" style={{ borderColor: 'rgba(15,23,42,0.08)' }}>
           <button
             type="button"
             {...attributes}
@@ -74,7 +79,7 @@ function SortableWidgetCard({
           >
             <GripVertical className="h-4 w-4" />
           </button>
-          <p className="text-sm font-semibold">{getWidgetLabel(widget.widget_type as WidgetType)}</p>
+          <p className="text-sm font-bold" style={{ color: '#0f172a' }}>{getWidgetLabel(widget.widget_type as WidgetType)}</p>
           <button
             type="button"
             className="rounded-lg p-1 hover:text-red-500" style={{ color: 'var(--wm-subtle)' }}

@@ -3,15 +3,15 @@
 import Link from 'next/link';
 import {motion} from 'framer-motion';
 import {usePathname} from 'next/navigation';
-import {ArrowRight, Briefcase, Search, Hammer} from 'lucide-react';
+import {ArrowRight, Briefcase, Search, Hammer, BadgeCheck, MapPin, ShieldCheck, Zap} from 'lucide-react';
 import WorkMateLogo from '@/components/ui/WorkMateLogo';
 import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
 
 const highlights = [
-  {icon: '🛠️', text: '1,000+ active professionals'},
-  {icon: '📍', text: '26 counties covered'},
-  {icon: '🔒', text: 'Stripe-protected payments'},
-  {icon: '⚡', text: 'Avg. first offer in 2 hours'}
+  {icon: BadgeCheck, text: '1,000+ active professionals'},
+  {icon: MapPin, text: '26 counties covered'},
+  {icon: ShieldCheck, text: 'Structured payment protection'},
+  {icon: Zap, text: 'Average first offer in 2 hours'}
 ];
 
 export default function CTASection() {
@@ -149,7 +149,7 @@ export default function CTASection() {
                     className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-white/80"
                     style={{backgroundColor: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)'}}
                   >
-                    <span className="text-base">{item.icon}</span>
+                    <item.icon className="h-4 w-4 text-white/85" />
                     <span>{item.text}</span>
                   </div>
                 ))}

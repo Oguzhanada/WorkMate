@@ -102,8 +102,8 @@ export default function ProviderEarningsWidget() {
 
   return (
     <div>
-      <p className="text-sm font-semibold">Earnings</p>
-      <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+      <p className="text-sm font-bold" style={{ color: '#0f172a' }}>Earnings</p>
+      <p className="mt-0.5 text-xs" style={{ color: '#64748b' }}>
         {new Date().toLocaleDateString('en-IE', { month: 'long', year: 'numeric' })}
       </p>
       {loading ? (
@@ -114,37 +114,37 @@ export default function ProviderEarningsWidget() {
       {error ? <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p> : null}
       {!loading && !error && summary ? (
         <div className="mt-3 grid grid-cols-3 gap-3">
-          <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800/50">
-            <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+          <div className="rounded-xl p-3" style={{ border: '1px solid var(--wm-border)', background: 'white' }}>
+            <div className="flex items-center gap-1.5 text-xs" style={{ color: '#64748b' }}>
               <TrendingUp size={13} />
               This month (net)
             </div>
-            <p className="mt-1 text-xl font-bold text-zinc-900 dark:text-zinc-100">
+            <p className="mt-1 text-xl font-bold" style={{ color: '#0f172a' }}>
               {formatEur(summary.monthlyNetCents)}
             </p>
           </div>
-          <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800/50">
-            <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+          <div className="rounded-xl p-3" style={{ border: '1px solid var(--wm-border)', background: 'white' }}>
+            <div className="flex items-center gap-1.5 text-xs" style={{ color: '#64748b' }}>
               <Clock size={13} />
               Pending payout
             </div>
-            <p className="mt-1 text-xl font-bold text-zinc-900 dark:text-zinc-100">
+            <p className="mt-1 text-xl font-bold" style={{ color: '#0f172a' }}>
               {formatEur(summary.pendingCents)}
             </p>
           </div>
-          <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800/50">
-            <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+          <div className="rounded-xl p-3" style={{ border: '1px solid var(--wm-border)', background: 'white' }}>
+            <div className="flex items-center gap-1.5 text-xs" style={{ color: '#64748b' }}>
               <Briefcase size={13} />
               Jobs completed
             </div>
-            <p className="mt-1 text-xl font-bold text-zinc-900 dark:text-zinc-100">
+            <p className="mt-1 text-xl font-bold" style={{ color: '#0f172a' }}>
               {summary.completedJobsThisMonth}
             </p>
           </div>
         </div>
       ) : null}
       {!loading && !error && summary && summary.monthlyNetCents === 0 && summary.completedJobsThisMonth === 0 ? (
-        <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="mt-2 text-xs" style={{ color: '#64748b' }}>
           No completed jobs this month. Earnings will appear here once jobs are marked complete.
         </p>
       ) : null}

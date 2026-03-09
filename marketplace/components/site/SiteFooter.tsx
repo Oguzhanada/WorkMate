@@ -4,13 +4,12 @@ import Link from 'next/link';
 import {usePathname} from 'next/navigation';
 import {useTranslations} from 'next-intl';
 import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
+import WorkMateLogo from '@/components/ui/WorkMateLogo';
 
 import styles from './site.module.css';
 
 export default function SiteFooter() {
   const t = useTranslations('footer');
-  const home = useTranslations('home');
-  const header = useTranslations('header');
   const pathname = usePathname() || '/';
   const localeRoot = getLocaleRoot(pathname);
 
@@ -20,42 +19,35 @@ export default function SiteFooter() {
     <footer className={styles.footer}>
       <div className={styles.container}>
         <div className={styles.footerGrid}>
-          <div>
-            <h4>{t('siteMap')}</h4>
-            <Link href={localized('/about')}>{t('about')}</Link>
-            <Link href={localized('/how-it-works')}>{t('how')}</Link>
-            <Link href={localized('/jobs')}>Jobs</Link>
-            <Link href={localized('/providers')}>Providers</Link>
-            {/* Careers link is temporarily hidden until the page is ready. */}
-            {/* <Link href={localized('/search?q=careers')}>{t('careers')}</Link> */}
-            <Link href={localized('/contact')}>{t('contact')}</Link>
-            <Link href={localized('/faq')}>{t('faq')}</Link>
-            <Link href={localized('/blog')}>Blog</Link>
-            <Link href={localized('/profile')}>{header('profile')}</Link>
-          </div>
-          <div>
-            <h4>{t('topSearches')}</h4>
-            <Link href={localized('/service/home-cleaning')}>{home('trend.homeCleaning')}</Link>
-            <Link href={localized('/service/painting-decorating')}>{home('trend.painting')}</Link>
-            <Link href={localized('/service/moving-services')}>{home('trend.moving')}</Link>
-            <Link href={localized('/service/ac-service')}>{home('trend.acRepair')}</Link>
-          </div>
-          <div>
-            <h4>{t('social')}</h4>
-            <div className={styles.socials}>
-              <a href="/" title="Coming soon" aria-label="Instagram (coming soon)">
-                <i className="fa-brands fa-instagram" />
-              </a>
-              <a href="/" title="Coming soon" aria-label="Facebook (coming soon)">
-                <i className="fa-brands fa-facebook-f" />
-              </a>
-              <a href="/" title="Coming soon" aria-label="LinkedIn (coming soon)">
-                <i className="fa-brands fa-linkedin-in" />
-              </a>
-              <a href="/" title="Coming soon" aria-label="X (coming soon)">
-                <i className="fa-brands fa-x-twitter" />
-              </a>
+          <div className={styles.footerBrand}>
+            <div className={styles.footerBrandRow}>
+              <WorkMateLogo size={42} />
+              <h4>WorkMate</h4>
             </div>
+            <p>
+              Connecting Irish homeowners with trusted local professionals.
+            </p>
+          </div>
+          <div>
+            <h4>For Customers</h4>
+            <Link href={localized('/search')}>Browse Services</Link>
+            <Link href={localized('/post-job')}>Post a Job</Link>
+            <Link href={localized('/how-it-works')}>{t('how')}</Link>
+            <Link href={localized('/faq')}>{t('faq')}</Link>
+          </div>
+          <div>
+            <h4>For Professionals</h4>
+            <Link href={localized('/become-provider')}>Become a Pro</Link>
+            <Link href={localized('/providers')}>Find Opportunities</Link>
+            <Link href={localized('/dashboard/pro')}>Pro Dashboard</Link>
+            <Link href={localized('/login')}>Pro Login</Link>
+          </div>
+          <div>
+            <h4>Company</h4>
+            <Link href={localized('/about')}>{t('about')}</Link>
+            <Link href={localized('/contact')}>{t('contact')}</Link>
+            <Link href={localized('/privacy')}>{t('privacy')}</Link>
+            <Link href={localized('/terms')}>{t('terms')}</Link>
           </div>
         </div>
 
@@ -63,9 +55,7 @@ export default function SiteFooter() {
           <p>{t('copyright')}</p>
 
           <div className={styles.footerLegal}>
-            <Link href={localized('/privacy')}>{t('privacy')}</Link>
             <Link href={localized('/community-guidelines')}>Community Guidelines</Link>
-            <Link href={localized('/terms')}>{t('terms')}</Link>
             <Link href={localized('/cookie-policy')}>{t('cookie')}</Link>
             <Link href={localized('/data-retention')}>{t('retention')}</Link>
           </div>

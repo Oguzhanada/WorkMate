@@ -2,48 +2,48 @@
 
 :root {
   /* ── Typography ─────────────────────────────────────────── */
-  --wm-font-display: 'Syne', 'Poppins', sans-serif;
-  --wm-font-sans:    'Plus Jakarta Sans', 'Poppins', system-ui, sans-serif;
+  --wm-font-display: 'Manrope', 'Inter', sans-serif;
+  --wm-font-sans:    'Inter', 'Manrope', system-ui, sans-serif;
 
   /* ── Colours — primary (teal) ───────────────────────────── */
-  --wm-primary:       #00B894;
-  --wm-primary-dark:  #008B74;
-  --wm-primary-mid:   #00A880;
-  --wm-primary-rgb:   0, 184, 148;
-  --wm-primary-light: #ECFDF5;
-  --wm-primary-faint: #F0FFF9;
+  --wm-primary:       #10b981;
+  --wm-primary-dark:  #059669;
+  --wm-primary-mid:   #0ea878;
+  --wm-primary-rgb:   16, 185, 129;
+  --wm-primary-light: #d1fae5;
+  --wm-primary-faint: #ecfdf5;
 
   /* ── Colours — navy (depth / dark text) ────────────────── */
-  --wm-navy:      #0C1B33;
-  --wm-navy-mid:  #1e3a5f;
-  --wm-navy-soft: #2d4a6e;
-  --wm-navy-rgb:  12, 27, 51;
+  --wm-navy:      #0f172a;
+  --wm-navy-mid:  #1f2937;
+  --wm-navy-soft: #334155;
+  --wm-navy-rgb:  15, 23, 42;
 
   /* ── Colours — amber (warm accent / highlights) ─────────── */
-  --wm-amber:       #F59E0B;
-  --wm-amber-dark:  #D97706;
-  --wm-amber-light: #FFFBEB;
-  --wm-amber-faint: #FEFCE8;
+  --wm-amber:       #f59e0b;
+  --wm-amber-dark:  #d97706;
+  --wm-amber-light: #fffbeb;
+  --wm-amber-faint: #fefce8;
 
   /* ── Colours — blue (secondary CTA) ────────────────────── */
-  --wm-blue:      #1a56db;
-  --wm-blue-dark: #1343b8;
-  --wm-blue-soft: #EFF6FF;
+  --wm-blue:      #2563eb;
+  --wm-blue-dark: #1d4ed8;
+  --wm-blue-soft: #eff6ff;
 
   /* ── Colours — rose (destructive / alert) ──────────────── */
   --wm-destructive:       #dc2626;
   --wm-destructive-dark:  #b91c1c;
   --wm-destructive-rgb:   220, 38, 38;
-  --wm-destructive-light: #FEF2F2;
+  --wm-destructive-light: #fef2f2;
 
   /* ── Colours — base surfaces ────────────────────────────── */
   --wm-accent:  #0f172a;
-  --wm-bg:      #f4f6f9;
-  --wm-surface: rgba(255, 255, 255, 0.92);
-  --wm-text:    #0f1a2e;
-  --wm-muted:   #4b5563;
-  --wm-subtle:  #6b7280;
-  --wm-border:  #e2e6ed;
+  --wm-bg:      #eef3f1;
+  --wm-surface: rgba(255, 255, 255, 0.95);
+  --wm-text:    #0f172a;
+  --wm-muted:   #475569;
+  --wm-subtle:  #64748b;
+  --wm-border:  #dbe1e7;
   --wm-border-soft: rgba(0,0,0,0.06);
 
   /* ── Border radius ──────────────────────────────────────── */
@@ -56,11 +56,11 @@
   --wm-radius-3xl: 2rem;
 
   /* ── Shadows ────────────────────────────────────────────── */
-  --wm-shadow-xs:  0 1px 2px rgba(0,0,0,0.05);
-  --wm-shadow-sm:  0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
-  --wm-shadow-md:  0 4px 16px rgba(0,0,0,0.07), 0 2px 6px rgba(0,0,0,0.04);
-  --wm-shadow-lg:  0 12px 32px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
-  --wm-shadow-xl:  0 24px 56px rgba(0,0,0,0.10), 0 8px 20px rgba(0,0,0,0.05);
+  --wm-shadow-xs:  0 1px 2px rgba(15, 23, 42, 0.06);
+  --wm-shadow-sm:  0 2px 6px rgba(15, 23, 42, 0.07);
+  --wm-shadow-md:  0 8px 20px rgba(15, 23, 42, 0.08);
+  --wm-shadow-lg:  0 14px 36px rgba(15, 23, 42, 0.10);
+  --wm-shadow-xl:  0 22px 50px rgba(15, 23, 42, 0.14);
   --wm-shadow-2xl: 0 40px 80px rgba(0,0,0,0.12), 0 16px 32px rgba(0,0,0,0.06);
 
   /* ── Glow shadows ───────────────────────────────────────── */
@@ -70,9 +70,9 @@
 
   /* ── Gradient tokens ────────────────────────────────────── */
   --wm-grad-primary: linear-gradient(135deg, var(--wm-primary) 0%, var(--wm-primary-dark) 100%);
-  --wm-grad-navy:    linear-gradient(135deg, var(--wm-navy) 0%, var(--wm-navy-mid) 60%, #1a3a6b 100%);
+  --wm-grad-navy:    linear-gradient(145deg, #0f172a 0%, #111f3f 65%, #1f2f55 100%);
   --wm-grad-warm:    linear-gradient(135deg, var(--wm-amber) 0%, var(--wm-amber-dark) 100%);
-  --wm-grad-hero:    linear-gradient(160deg, #f0fff9 0%, #f4f6f9 40%, #eef4ff 100%);
+  --wm-grad-hero:    linear-gradient(180deg, #eef3f1 0%, #f3f5f6 58%, #eef4f3 100%);
 
   /* ── Glass / blur surfaces ──────────────────────────────── */
   --wm-glass:        rgba(255, 255, 255, 0.72);
@@ -96,11 +96,7 @@ html, body {
   margin: 0;
   padding: 0;
   color: var(--wm-text);
-  background:
-    radial-gradient(ellipse 100% 60% at 0% 0%, rgba(0, 184, 148, 0.07) 0%, transparent 55%),
-    radial-gradient(ellipse 80% 50% at 100% 0%, rgba(12, 27, 51, 0.055) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(0, 184, 148, 0.04) 0%, transparent 60%),
-    var(--wm-bg);
+  background: var(--wm-grad-hero);
   font-family: var(--wm-font-sans);
   font-size: 16px;
   line-height: 1.6;
@@ -117,15 +113,15 @@ a {
 /* ── Headings — Syne display font ───────────────────────────── */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--wm-font-display);
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.2;
   color: var(--wm-text);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   margin: 0;
 }
 
 h1 { font-size: clamp(2rem, 4vw, 3rem);   font-weight: 800; }
-h2 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; }
+h2 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 800; }
 h3 { font-size: 1.25rem; font-weight: 700; }
 h4 { font-size: 1.0625rem; font-weight: 600; }
 h5 { font-size: 0.9375rem; font-weight: 600; }

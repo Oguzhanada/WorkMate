@@ -2,6 +2,7 @@
 
 import {motion} from 'framer-motion';
 import {ShieldCheck, Star, Users, Zap} from 'lucide-react';
+import WorkMateLogo from '@/components/ui/WorkMateLogo';
 
 import styles from './login.module.css';
 import {leftColumnVariants} from '@/styles/animations';
@@ -24,11 +25,11 @@ export function BrandColumn() {
       {/* Logo row */}
       <div className={styles.logoRow}>
         <div className={styles.logoBadge}>
-          <ShieldCheck size={26} aria-hidden="true" />
+          <WorkMateLogo size={44} />
         </div>
         <div>
           <h1 className={styles.brandTitle}>WorkMate</h1>
-          <p className={styles.brandSubtitle}>Find your work mate in Ireland</p>
+          <p className={styles.brandSubtitle}>Trusted local services across Ireland</p>
         </div>
       </div>
 

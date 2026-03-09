@@ -35,11 +35,17 @@ export default async function LocalizedPostJobPage({
   return (
     <Shell
       header={
-        <Card className="rounded-3xl">
+        <Card
+          className="rounded-[1.6rem]"
+          style={{
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.9) 100%)',
+            boxShadow: 'var(--wm-shadow-lg)',
+          }}
+        >
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1>Create Job Request</h1>
-              <p className="text-sm" style={{ color: 'var(--wm-muted)' }}>
+              <h1 className="text-3xl font-extrabold" style={{ color: '#0f172a', letterSpacing: '-0.03em' }}>Create Job Request</h1>
+              <p className="text-sm" style={{ color: '#475569' }}>
                 Share clear details to receive faster and more accurate quotes.
               </p>
             </div>

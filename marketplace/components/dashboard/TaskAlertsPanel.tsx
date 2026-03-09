@@ -26,7 +26,7 @@ type TaskAlertSuggestion = {
   counties: string[];
 };
 
-export default function TaskAlertsPanel() {
+export default function TaskAlertsPanel({ hideHeader = false }: { hideHeader?: boolean }) {
   const [alert, setAlert] = useState<TaskAlert | null>(null);
   const [suggestion, setSuggestion] = useState<TaskAlertSuggestion | null>(null);
   const [keywords, setKeywords] = useState('');
@@ -156,10 +156,14 @@ export default function TaskAlertsPanel() {
 
   return (
     <div className={styles.card}>
-      <p className={styles.title}>Job Alerts</p>
-      <p className={styles.meta}>
-        Get notified when a new job matches your preferences. You receive an in-app notification for each match.
-      </p>
+      {!hideHeader ? (
+        <>
+          <p className={styles.title}>Job Alerts</p>
+          <p className={styles.meta}>
+            Get notified when a new job matches your preferences. You receive an in-app notification for each match.
+          </p>
+        </>
+      ) : null}
       {!alert && suggestion ? (
         <div className={styles.aiSuggestionCard}>
           <div className={styles.aiSuggestionHeader}>

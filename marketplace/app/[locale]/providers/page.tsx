@@ -123,16 +123,22 @@ export default async function ProvidersPage({
   return (
     <Shell
       header={
-        <Card className="rounded-3xl">
+        <Card
+          className="rounded-[1.6rem]"
+          style={{
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.9) 100%)',
+            boxShadow: 'var(--wm-shadow-lg)',
+          }}
+        >
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1>Provider Directory</h1>
-              <p className="text-sm" style={{ color: 'var(--wm-muted)' }}>
+              <h1 className="text-3xl font-extrabold" style={{ color: '#0f172a', letterSpacing: '-0.03em' }}>Provider Directory</h1>
+              <p className="text-sm" style={{ color: '#475569' }}>
                 Explore verified providers, their service categories and coverage areas.
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button href={`/${locale}/post-job`} variant="primary">
+              <Button href={`/${locale}/post-job`} variant="navy">
                 Create job request
               </Button>
             </div>
@@ -166,12 +172,12 @@ export default async function ProvidersPage({
 
         <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {providers.map((provider) => (
-            <Card key={provider.id} className="flex flex-col justify-between transition-shadow hover:shadow-[var(--wm-shadow-lg)]">
+            <Card key={provider.id} className="flex flex-col justify-between transition-shadow hover:shadow-[var(--wm-shadow-xl)]">
               <div>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <h3
-                    className="text-base font-semibold"
-                    style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)' }}
+                    className="text-[1.45rem] font-extrabold"
+                    style={{ fontFamily: 'var(--wm-font-display)', color: '#0f172a', letterSpacing: '-0.02em' }}
                   >
                     {provider.full_name ?? 'Provider'}
                   </h3>
@@ -189,11 +195,11 @@ export default async function ProvidersPage({
                     ) : null}
                   </div>
                 </div>
-                <p className="mt-2 text-sm" style={{ color: 'var(--wm-muted)' }}>
+                <p className="mt-2 text-sm" style={{ color: '#475569' }}>
                   <span className="font-medium" style={{ color: 'var(--wm-text)' }}>Services:</span>{' '}
                   {(servicesByProvider.get(provider.id) ?? []).join(', ') || 'Not set up'}
                 </p>
-                <p className="mt-1 text-sm" style={{ color: 'var(--wm-muted)' }}>
+                <p className="mt-1 text-sm" style={{ color: '#475569' }}>
                   <span className="font-medium" style={{ color: 'var(--wm-text)' }}>Areas:</span>{' '}
                   {(areasByProvider.get(provider.id) ?? []).join(', ') || 'Not set up'}
                 </p>
@@ -202,7 +208,7 @@ export default async function ProvidersPage({
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-2">
-                <Button href={`/${locale}/post-job?mode=direct_request&provider_id=${provider.id}`} variant="primary" size="sm">
+                <Button href={`/${locale}/post-job?mode=direct_request&provider_id=${provider.id}`} variant="navy" size="sm">
                   Direct Request
                 </Button>
                 <Button href={`/${locale}/profile/public/${provider.id}`} variant="secondary" size="sm">

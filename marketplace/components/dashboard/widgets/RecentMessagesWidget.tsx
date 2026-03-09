@@ -56,7 +56,8 @@ export default function RecentMessagesWidget({ limit = 6 }: Props) {
 
   return (
     <div>
-      <p className="text-sm font-semibold">Recent Messages</p>
+      <p className="text-sm font-bold" style={{ color: '#0f172a' }}>Recent Messages</p>
+      <p className="mt-1 text-xs" style={{ color: '#64748b' }}>Latest notifications and activity updates.</p>
       {loading ? (
         <div className="mt-3">
           <Skeleton lines={3} height="h-10" />
@@ -72,9 +73,9 @@ export default function RecentMessagesWidget({ limit = 6 }: Props) {
       ) : null}
       <div className="mt-2 space-y-2">
         {rows.map((row) => (
-          <div key={row.id} className="rounded-lg border border-zinc-200 px-3 py-2 text-sm dark:border-zinc-700">
-            <p className="font-medium">{row.type.replaceAll('_', ' ')}</p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">{new Date(row.created_at).toLocaleString('en-IE')}</p>
+          <div key={row.id} className="rounded-xl px-3 py-2.5 text-sm" style={{ border: '1px solid var(--wm-border)', background: 'white' }}>
+            <p className="font-semibold" style={{ color: '#0f172a' }}>{row.type.replaceAll('_', ' ')}</p>
+            <p className="text-xs" style={{ color: '#64748b' }}>{new Date(row.created_at).toLocaleString('en-IE')}</p>
           </div>
         ))}
       </div>

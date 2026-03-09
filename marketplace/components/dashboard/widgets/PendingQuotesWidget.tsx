@@ -106,8 +106,8 @@ export default function PendingQuotesWidget({ limit = 8 }: Props) {
 
   return (
     <div>
-      <p className="text-sm font-semibold">Pending Quotes</p>
-      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Open quote activity waiting for next action.</p>
+      <p className="text-sm font-bold" style={{ color: '#0f172a' }}>Pending Quotes</p>
+      <p className="mt-1 text-xs" style={{ color: '#64748b' }}>Open quote activity waiting for next action.</p>
       {loading ? (
         <div className="mt-3">
           <Skeleton lines={3} height="h-10" />
@@ -129,12 +129,12 @@ export default function PendingQuotesWidget({ limit = 8 }: Props) {
             const isTop = !seenJobs.has(item.job_id) && (item.ranking_score ?? 0) > 0;
             seenJobs.add(item.job_id);
             return (
-              <div key={item.id} className="rounded-lg border border-zinc-200 px-3 py-2 text-xs dark:border-zinc-700">
+              <div key={item.id} className="rounded-xl px-3 py-2.5 text-xs" style={{ border: '1px solid var(--wm-border)', background: 'white' }}>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p>Job: {item.job_id.slice(0, 8)}...</p>
+                  <p style={{ color: '#0f172a' }}>Job: {item.job_id.slice(0, 8)}...</p>
                   {isTop ? <OfferRankingBadge score={item.ranking_score!} /> : null}
                 </div>
-                <p className="text-zinc-500 dark:text-zinc-400">{item.status} · {new Date(item.created_at).toLocaleDateString('en-IE')}</p>
+                <p style={{ color: '#64748b' }}>{item.status} · {new Date(item.created_at).toLocaleDateString('en-IE')}</p>
               </div>
             );
           });

@@ -432,31 +432,57 @@
 
 /* ── Footer ───────────────────────────────────────────────── */
 .footer {
-  background: var(--wm-grad-navy);
+  background: #081938;
   color: rgba(255, 255, 255, 0.75);
-  padding: 56px 0 24px;
+  padding: 72px 0 30px;
 }
 
 .footerGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 32px;
+  grid-template-columns: 1.5fr repeat(3, minmax(0, 1fr));
+  gap: 40px;
+}
+
+.footerBrand {
+  max-width: 320px;
+}
+
+.footerBrandRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.footerBrandRow h4 {
+  margin: 0;
+  font-size: 2rem;
+  letter-spacing: -0.03em;
+}
+
+.footerBrand p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.70);
+  line-height: 1.45;
+  font-size: 1.02rem;
 }
 
 .footerGrid h4 {
   margin-top: 0;
   color: #fff;
   font-family: var(--wm-font-display);
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-size: 1.25rem;
+  margin-bottom: 12px;
 }
 
 .footerGrid a {
   display: block;
   text-decoration: none;
   color: rgba(255, 255, 255, 0.65);
-  margin: 8px 0;
-  font-size: 0.9rem;
+  margin: 10px 0;
+  font-size: 1.02rem;
   transition: color var(--wm-transition);
 }
 
@@ -490,7 +516,7 @@
 /* ── Footer bottom ────────────────────────────────────────── */
 .footerBottom {
   margin-top: 36px;
-  padding-top: 20px;
+  padding-top: 22px;
   border-top: 1px solid rgba(255, 255, 255, 0.10);
   display: flex;
   flex-wrap: wrap;
@@ -639,6 +665,7 @@
 
   .footerGrid {
     grid-template-columns: 1fr;
+    gap: 24px;
   }
 
   .headerActions {

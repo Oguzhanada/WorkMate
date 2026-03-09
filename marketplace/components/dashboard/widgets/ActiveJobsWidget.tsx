@@ -91,7 +91,8 @@ export default function ActiveJobsWidget({ limit = 6 }: Props) {
 
   return (
     <div>
-      <p className="text-sm font-semibold">Active Jobs</p>
+      <p className="text-sm font-bold" style={{ color: '#0f172a' }}>Active Jobs</p>
+      <p className="mt-1 text-xs" style={{ color: '#64748b' }}>Jobs currently open or in progress.</p>
       {loading ? (
         <div className="mt-3">
           <Skeleton lines={3} height="h-10" />
@@ -110,10 +111,10 @@ export default function ActiveJobsWidget({ limit = 6 }: Props) {
           <Link
             key={job.id}
             href={withLocalePrefix(localeRoot, `/jobs/${job.id}`)}
-            className="block rounded-lg px-3 py-2 text-sm no-underline"
-            style={{ border: '1px solid var(--wm-border)' }}
+            className="block rounded-xl px-3 py-2.5 text-sm no-underline transition"
+            style={{ border: '1px solid var(--wm-border)', background: 'white' }}
           >
-            <p className="font-medium">{job.title}</p>
+            <p className="font-semibold" style={{ color: '#0f172a' }}>{job.title}</p>
             <p className="text-xs" style={{ color: 'var(--wm-muted)' }}>
               {job.status.replace('_', ' ')} · {new Date(job.created_at).toLocaleDateString('en-IE')}
             </p>

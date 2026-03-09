@@ -1,13 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import {AnimatePresence, motion} from 'framer-motion';
-import {Menu, X, BriefcaseBusiness} from 'lucide-react';
-import {useEffect, useMemo, useRef, useState} from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Menu, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import WorkMateLogo from '@/components/ui/WorkMateLogo';
-import {usePathname, useRouter} from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
-import {getSupabaseBrowserClient} from '@/lib/supabase/client';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
 
 type NavItem = {
   label: string;
@@ -24,21 +25,10 @@ type NavAuthSnapshot = {
 };
 
 const navItems: NavItem[] = [
-  {label: 'How it works', href: '#how-it-works'},
-  {label: 'Trust & Safety', href: '#trust'},
-  {label: 'Categories', href: '#categories'}
+  { label: 'Find Services', href: '/search' },
+  { label: 'How It Works', href: '/how-it-works' },
+  { label: 'Post a Job', href: '/post-job' },
 ];
-
-function getLocaleRoot(pathname: string) {
-  const match = pathname.match(/^\/([a-z]{2}(?:-[A-Z]{2})?)(?:\/|$)/);
-  if (!match?.[1]) return '/';
-  return `/${match[1]}`;
-}
-
-function withLocalePrefix(localeRoot: string, path: string) {
-  if (localeRoot === '/') return path;
-  return `${localeRoot}${path}`;
-}
 
 function readAuthSnapshot(): NavAuthSnapshot | null {
   if (typeof window === 'undefined') return null;
@@ -51,7 +41,7 @@ function readAuthSnapshot(): NavAuthSnapshot | null {
       isAuthenticated: Boolean(parsed.isAuthenticated),
       hasAdminRole: Boolean(parsed.hasAdminRole),
       hasProviderRole: Boolean(parsed.hasProviderRole),
-      profileName: typeof parsed.profileName === 'string' ? parsed.profileName : ''
+      profileName: typeof parsed.profileName === 'string' ? parsed.profileName : '',
     };
   } catch {
     return null;
@@ -86,10 +76,10 @@ export default function Navbar() {
   const hasResolvedInitialAuthRef = useRef(false);
 
   const localeRoot = useMemo(() => getLocaleRoot(pathname), [pathname]);
-  const isHome = pathname === localeRoot || pathname === `${localeRoot}/`;
+  const displayName = profileName.trim() || 'Profile';
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
+    const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
@@ -115,7 +105,7 @@ export default function Navbar() {
           promise,
           new Promise<T>((_, reject) => {
             timer = setTimeout(() => reject(new Error('auth_timeout')), timeoutMs);
-          })
+          }),
         ]);
       } finally {
         if (timer) clearTimeout(timer);
@@ -149,7 +139,6 @@ export default function Navbar() {
         }
 
         if (!active) return;
-
         if (!sessionUser) {
           resetAuthState();
           return;
@@ -158,27 +147,27 @@ export default function Navbar() {
         setIsAuthenticated(true);
         if (quickDisplayName) setProfileName(quickDisplayName);
 
-        const [{data: roles}, {data: profile}] = await withTimeout(
+        const [{ data: roles }, { data: profile }] = await withTimeout(
           Promise.all([
             supabase.from('user_roles').select('role').eq('user_id', sessionUser.id),
-            supabase.from('profiles').select('full_name').eq('id', sessionUser.id).maybeSingle()
+            supabase.from('profiles').select('full_name').eq('id', sessionUser.id).maybeSingle(),
           ])
         );
 
         if (!active) return;
         const roleList = (roles ?? []).map((item) => item.role);
         const nextProfileName = profile?.full_name?.trim() || quickDisplayName || '';
-        setHasAdminRole(roleList.includes('admin'));
-        setHasProviderRole(roleList.includes('verified_pro'));
-        setProfileName(nextProfileName);
-        writeAuthSnapshot({
+        const nextState: NavAuthSnapshot = {
           isAuthenticated: true,
           hasAdminRole: roleList.includes('admin'),
           hasProviderRole: roleList.includes('verified_pro'),
-          profileName: nextProfileName
-        });
+          profileName: nextProfileName,
+        };
+        setHasAdminRole(nextState.hasAdminRole);
+        setHasProviderRole(nextState.hasProviderRole);
+        setProfileName(nextState.profileName);
+        writeAuthSnapshot(nextState);
       } catch {
-        // Keep existing UI state after the initial auth bootstrap to avoid refresh flicker.
         if (!hasResolvedInitialAuthRef.current) resetAuthState();
       } finally {
         if (active && !hasResolvedInitialAuthRef.current) hasResolvedInitialAuthRef.current = true;
@@ -186,10 +175,9 @@ export default function Navbar() {
     };
 
     loadAuthState();
-
     const {
-      data: {subscription}
-    } = supabase.auth.onAuthStateChange(async (_event) => {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async () => {
       await loadAuthState();
     });
 
@@ -231,16 +219,16 @@ export default function Navbar() {
         promise,
         new Promise<never>((_, reject) => {
           setTimeout(() => reject(new Error('timeout')), timeoutMs);
-        })
+        }),
       ]);
     try {
-      await withTimeout(supabase.auth.signOut({scope: 'global'}), 5000);
+      await withTimeout(supabase.auth.signOut({ scope: 'global' }), 5000);
     } catch {}
     try {
-      await withTimeout(fetch('/api/auth/logout', {method: 'POST', cache: 'no-store'}), 5000);
+      await withTimeout(fetch('/api/auth/logout', { method: 'POST', cache: 'no-store' }), 5000);
     } catch {}
     try {
-      await withTimeout(supabase.auth.signOut({scope: 'local'}), 5000);
+      await withTimeout(supabase.auth.signOut({ scope: 'local' }), 5000);
     } catch {}
     clearSupabaseCookies();
     clearSupabaseStorage();
@@ -251,22 +239,6 @@ export default function Navbar() {
     setTimeout(() => setIsLoggingOut(false), 1000);
   };
 
-  const handleHashLink = (hash: string) => {
-    const targetId = hash.replace('#', '');
-    setMobileOpen(false);
-
-    if (isHome) {
-      const element = document.getElementById(targetId);
-      if (element) {
-        element.scrollIntoView({behavior: 'smooth'});
-        window.history.pushState(null, '', `${localeRoot}${hash}`);
-      }
-      return;
-    }
-
-    router.push(`${localeRoot}${hash}`);
-  };
-
   const dashboardHref = hasAdminRole
     ? withLocalePrefix(localeRoot, '/dashboard/admin')
     : hasProviderRole
@@ -274,117 +246,55 @@ export default function Navbar() {
       : withLocalePrefix(localeRoot, '/dashboard/customer');
 
   return (
-    <header className="sticky top-0 z-50 px-4 py-3 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 border-b border-[var(--wm-border)] bg-white/96 backdrop-blur-md">
       <motion.div
         initial={false}
-        animate={scrolled ? 'scrolled' : 'top'}
-        variants={{
-          top: {backgroundColor: 'rgba(255,255,255,0.84)', boxShadow: '0 0 0 rgba(0,0,0,0)'},
-          scrolled: {
-            backgroundColor: 'rgba(255,255,255,0.72)',
-            boxShadow: '0 8px 24px rgba(15,23,42,0.10)'
-          }
-        }}
-        className="mx-auto flex w-full max-w-7xl items-center justify-between rounded-2xl border border-white/70 px-4 py-3 backdrop-blur-xl"
+        animate={{ boxShadow: scrolled ? '0 8px 22px rgba(15,23,42,0.08)' : '0 1px 0 rgba(15,23,42,0.03)' }}
+        className="mx-auto flex h-[72px] w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8"
       >
         <Link href={localeRoot} className="flex items-center gap-2.5">
-          <WorkMateLogo size={38} />
-          <div>
-            <p className="font-[Poppins] text-lg font-bold tracking-tight text-[var(--wm-text)]">WorkMate</p>
-            <p className="text-xs text-[var(--wm-muted)]">🇮🇪 Ireland&apos;s service marketplace</p>
-          </div>
+          <WorkMateLogo size={42} />
+          <span className="text-[35px] font-extrabold leading-none tracking-[-0.03em] text-[var(--wm-navy)]" style={{ fontSize: 'clamp(1.65rem,3vw,2rem)' }}>
+            WorkMate
+          </span>
         </Link>
 
-        <nav className="hidden items-center gap-7 text-sm font-medium text-[var(--wm-text)] lg:flex">
+        <nav className="hidden items-center gap-8 text-[15px] font-semibold text-[#334155] lg:flex">
           {navItems.map((item) => (
-            <button
-              key={item.href}
-              type="button"
-              onClick={() => handleHashLink(item.href)}
-              className="transition-colors hover:text-[var(--wm-primary)]"
-            >
+            <Link key={item.href} href={withLocalePrefix(localeRoot, item.href)} className="transition hover:text-[#0f172a]">
               {item.label}
-            </button>
+            </Link>
           ))}
         </nav>
 
-        <div className="hidden items-center gap-2 lg:flex">
+        <div className="hidden items-center gap-3 lg:flex">
           {isAuthenticated ? (
             <>
-              {!hasProviderRole && !hasAdminRole ? (
-                <>
-                  <Link
-                    href={withLocalePrefix(localeRoot, '/post-job')}
-                    className="rounded-xl bg-[var(--wm-blue)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--wm-blue-dark)]"
-                  >
-                    📋 Post a Job
-                  </Link>
-                  <Link
-                    href={withLocalePrefix(localeRoot, '/become-provider')}
-                    className="flex items-center gap-2 rounded-xl bg-[var(--wm-primary)] px-4 py-2 text-sm font-semibold text-white transition hover:scale-[1.03] hover:bg-[var(--wm-primary-dark)]"
-                  >
-                    <BriefcaseBusiness className="h-4 w-4" />
-                    Become a Pro
-                  </Link>
-                </>
-              ) : null}
-              <Link
-                href={withLocalePrefix(localeRoot, '/profile')}
-                className="rounded-xl border border-[var(--wm-border)] px-4 py-2 text-sm font-semibold text-[var(--wm-text)] transition hover:border-[var(--wm-primary)] hover:text-[var(--wm-primary)]"
-              >
-                {profileName || 'Profile'}
-              </Link>
-              {!hasProviderRole && !hasAdminRole ? (
-                <Link
-                  href={withLocalePrefix(localeRoot, '/saved-providers')}
-                  className="rounded-xl border border-[var(--wm-border)] px-4 py-2 text-sm font-semibold text-[var(--wm-text)] transition hover:border-[var(--wm-primary)] hover:text-[var(--wm-primary)]"
-                >
-                  ❤️ Saved
-                </Link>
-              ) : null}
-              <Link
-                href={dashboardHref}
-                className="rounded-xl border border-[var(--wm-border)] px-4 py-2 text-sm font-semibold text-[var(--wm-text)] transition hover:border-[var(--wm-primary)] hover:text-[var(--wm-primary)]"
-              >
+              <Link href={dashboardHref} className="px-3 py-2 text-sm font-semibold text-[#0f172a] transition hover:text-[var(--wm-primary-dark)]">
                 Dashboard
               </Link>
-              {hasAdminRole ? (
-                <Link
-                  href={withLocalePrefix(localeRoot, '/dashboard/admin')}
-                  className="rounded-xl border border-[var(--wm-border)] px-4 py-2 text-sm font-semibold text-[var(--wm-text)] transition hover:border-[var(--wm-primary)] hover:text-[var(--wm-primary)]"
-                >
-                  Admin Panel
-                </Link>
-              ) : null}
+              <Link href={withLocalePrefix(localeRoot, '/profile')} className="px-3 py-2 text-sm font-semibold text-[#0f172a] transition hover:text-[var(--wm-primary-dark)]">
+                {displayName}
+              </Link>
               <button
                 type="button"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="rounded-xl border border-[var(--wm-border)] px-4 py-2 text-sm font-semibold text-[var(--wm-text)] transition hover:border-[var(--wm-primary)] hover:text-[var(--wm-primary)]"
+                className="rounded-[14px] bg-[var(--wm-primary)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--wm-primary-dark)]"
               >
                 {isLoggingOut ? 'Logging out...' : 'Log out'}
               </button>
             </>
           ) : (
             <>
-              <Link
-                href={withLocalePrefix(localeRoot, '/login')}
-                className="rounded-xl border border-[var(--wm-border)] px-4 py-2 text-sm font-semibold text-[var(--wm-text)] transition hover:border-[var(--wm-primary)] hover:text-[var(--wm-primary)]"
-              >
-                Log in
+              <Link href={withLocalePrefix(localeRoot, '/login')} className="px-3 py-2 text-sm font-semibold text-[#0f172a] transition hover:text-[var(--wm-primary-dark)]">
+                Sign In
               </Link>
               <Link
                 href={withLocalePrefix(localeRoot, '/sign-up')}
-                className="rounded-xl bg-[var(--wm-primary)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--wm-primary-dark)]"
+                className="rounded-[14px] bg-[var(--wm-primary)] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(16,185,129,0.25)] transition hover:bg-[var(--wm-primary-dark)]"
               >
-                Sign up free
-              </Link>
-              <Link
-                href={withLocalePrefix(localeRoot, '/become-provider')}
-                className="flex items-center gap-2 rounded-xl bg-[var(--wm-navy)] px-4 py-2 text-sm font-semibold text-white transition hover:scale-[1.03] hover:bg-[var(--wm-navy-mid)]"
-              >
-                <BriefcaseBusiness className="h-4 w-4" />
-                Become a Pro
+                Get Started
               </Link>
             </>
           )}
@@ -403,82 +313,44 @@ export default function Navbar() {
       <AnimatePresence>
         {mobileOpen ? (
           <motion.div
-            initial={{opacity: 0, y: -8}}
-            animate={{opacity: 1, y: 0}}
-            exit={{opacity: 0, y: -8}}
-            transition={{duration: 0.2, ease: 'easeOut'}}
-            className="mx-auto mt-2 w-full max-w-7xl rounded-2xl border border-[var(--wm-border)] bg-white/95 p-4 shadow-lg backdrop-blur"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="border-t border-[var(--wm-border)] bg-white px-4 py-4 sm:px-6"
           >
-            <div className="flex flex-col gap-2">
+            <div className="mx-auto grid w-full max-w-7xl gap-2">
               {navItems.map((item) => (
-                <button
+                <Link
                   key={item.href}
-                  type="button"
-                  className="rounded-lg px-3 py-2 text-left text-sm font-medium text-[var(--wm-text)] transition hover:bg-[var(--wm-primary-light)]"
-                  onClick={() => handleHashLink(item.href)}
+                  href={withLocalePrefix(localeRoot, item.href)}
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-lg px-3 py-2 text-sm font-semibold text-[var(--wm-text)] transition hover:bg-[var(--wm-primary-faint)]"
                 >
                   {item.label}
-                </button>
+                </Link>
               ))}
-            </div>
-            <div className="mt-4 grid gap-2 sm:grid-cols-2">
-          {isAuthenticated ? (
+              {isAuthenticated ? (
                 <>
-                  {!hasProviderRole && !hasAdminRole ? (
-                    <>
-                      <Link
-                        href={withLocalePrefix(localeRoot, '/post-job')}
-                        onClick={() => setMobileOpen(false)}
-                        className="rounded-lg bg-[var(--wm-blue)] px-3 py-2 text-center text-sm font-semibold text-white sm:col-span-2"
-                      >
-                        📋 Post a Job
-                      </Link>
-                      <Link
-                        href={withLocalePrefix(localeRoot, '/become-provider')}
-                        onClick={() => setMobileOpen(false)}
-                        className="rounded-lg bg-[var(--wm-primary)] px-3 py-2 text-center text-sm font-semibold text-white sm:col-span-2"
-                      >
-                        Become a Pro
-                      </Link>
-                    </>
-                  ) : null}
-                  <Link
-                    href={withLocalePrefix(localeRoot, '/profile')}
-                    onClick={() => setMobileOpen(false)}
-                    className="rounded-lg border border-[var(--wm-border)] px-3 py-2 text-center text-sm font-semibold"
-                  >
-                    {profileName || 'Profile'}
-                  </Link>
-                  {!hasProviderRole && !hasAdminRole ? (
-                    <Link
-                      href={withLocalePrefix(localeRoot, '/saved-providers')}
-                      onClick={() => setMobileOpen(false)}
-                      className="rounded-lg border border-[var(--wm-border)] px-3 py-2 text-center text-sm font-semibold"
-                    >
-                      ❤️ Saved
-                    </Link>
-                  ) : null}
                   <Link
                     href={dashboardHref}
                     onClick={() => setMobileOpen(false)}
-                    className="rounded-lg border border-[var(--wm-border)] px-3 py-2 text-center text-sm font-semibold"
+                    className="rounded-lg px-3 py-2 text-sm font-semibold text-[var(--wm-text)] transition hover:bg-[var(--wm-primary-faint)]"
                   >
                     Dashboard
                   </Link>
-                  {hasAdminRole ? (
-                    <Link
-                      href={withLocalePrefix(localeRoot, '/dashboard/admin')}
-                      onClick={() => setMobileOpen(false)}
-                      className="rounded-lg border border-[var(--wm-border)] px-3 py-2 text-center text-sm font-semibold sm:col-span-2"
-                    >
-                      Admin Panel
-                    </Link>
-                  ) : null}
+                  <Link
+                    href={withLocalePrefix(localeRoot, '/profile')}
+                    onClick={() => setMobileOpen(false)}
+                    className="rounded-lg px-3 py-2 text-sm font-semibold text-[var(--wm-text)] transition hover:bg-[var(--wm-primary-faint)]"
+                  >
+                    {displayName}
+                  </Link>
                   <button
                     type="button"
                     onClick={handleLogout}
                     disabled={isLoggingOut}
-                    className="rounded-lg border border-[var(--wm-border)] px-3 py-2 text-center text-sm font-semibold sm:col-span-2"
+                    className="mt-1 rounded-[14px] bg-[var(--wm-primary)] px-4 py-2.5 text-sm font-semibold text-white"
                   >
                     {isLoggingOut ? 'Logging out...' : 'Log out'}
                   </button>
@@ -488,23 +360,16 @@ export default function Navbar() {
                   <Link
                     href={withLocalePrefix(localeRoot, '/login')}
                     onClick={() => setMobileOpen(false)}
-                    className="rounded-lg border border-[var(--wm-border)] px-3 py-2 text-center text-sm font-semibold"
+                    className="rounded-lg px-3 py-2 text-sm font-semibold text-[var(--wm-text)] transition hover:bg-[var(--wm-primary-faint)]"
                   >
-                    Log in
+                    Sign In
                   </Link>
                   <Link
                     href={withLocalePrefix(localeRoot, '/sign-up')}
                     onClick={() => setMobileOpen(false)}
-                    className="rounded-lg bg-[var(--wm-primary)] px-3 py-2 text-center text-sm font-semibold text-white"
+                    className="mt-1 rounded-[14px] bg-[var(--wm-primary)] px-4 py-2.5 text-center text-sm font-semibold text-white"
                   >
-                    Sign up free
-                  </Link>
-                  <Link
-                    href={withLocalePrefix(localeRoot, '/become-provider')}
-                    onClick={() => setMobileOpen(false)}
-                    className="rounded-lg bg-[var(--wm-navy)] px-3 py-2 text-center text-sm font-semibold text-white sm:col-span-2"
-                  >
-                    Become a Pro
+                    Get Started
                   </Link>
                 </>
               )}
