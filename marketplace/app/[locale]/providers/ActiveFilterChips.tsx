@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import Button from '@/components/ui/Button';
 
 type ChipDef = { label: string; removeParam: string };
 
@@ -28,9 +29,10 @@ export default function ActiveFilterChips({
         Active filters:
       </span>
       {chips.map((chip) => (
-        <button
+        <Button
           key={chip.removeParam}
-          type="button"
+          variant="ghost"
+          size="sm"
           onClick={() => removeFilter(chip.removeParam)}
           className="inline-flex items-center gap-1 rounded-full px-3 py-0.5 text-xs font-semibold transition-opacity hover:opacity-70"
           style={{
@@ -42,7 +44,7 @@ export default function ActiveFilterChips({
         >
           {chip.label}
           <span aria-hidden="true" className="ml-0.5 font-bold">×</span>
-        </button>
+        </Button>
       ))}
     </div>
   );

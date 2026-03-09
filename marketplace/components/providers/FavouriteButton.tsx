@@ -52,8 +52,8 @@ export default function FavouriteButton({ providerId, initialSaved }: Props) {
       <Heart
         size={18}
         style={{
-          fill: saved ? '#ef4444' : 'none',
-          stroke: saved ? '#ef4444' : '#94a3b8',
+          fill: saved ? 'var(--wm-destructive)' : 'none',
+          stroke: saved ? 'var(--wm-destructive)' : 'var(--wm-muted)',
           transition: 'fill 0.15s, stroke 0.15s',
         }}
       />

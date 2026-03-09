@@ -1,5 +1,7 @@
 "use client";
 
+import Button from '@/components/ui/Button';
+
 export default function GlobalError({
   error,
   reset
@@ -30,21 +32,12 @@ export default function GlobalError({
             <h1 style={{marginTop: 0, color: 'var(--wm-navy)'}}>Something went wrong</h1>
             <p style={{color: 'var(--wm-text-default)'}}>An unexpected error occurred. Please try again.</p>
             {error.digest ? <p style={{color: 'var(--wm-muted)'}}>Ref: {error.digest}</p> : null}
-            <button
-              type="button"
+            <Button
+              variant="primary"
               onClick={() => reset()}
-              style={{
-                border: '1px solid var(--wm-primary)',
-                background: 'var(--wm-primary)',
-                color: 'var(--wm-surface)',
-                padding: '10px 14px',
-                borderRadius: '10px',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
             >
               Retry
-            </button>
+            </Button>
           </section>
         </main>
       </body>

@@ -16,11 +16,11 @@ export async function GET(request: NextRequest) {
 
   const profileId = request.nextUrl.searchParams.get('profile_id') ?? user.id;
   const { data, error } = await supabase
-    .from('pro_portfolio')
+    .from('portfolio_items')
     .select(
-      'id,profile_id,category_id,title,before_image_url,after_image_url,experience_note,visibility_scope,is_public,created_at'
+      'id,provider_id,category_id,title,before_image_url,after_image_url,experience_note,visibility_scope,is_public,created_at'
     )
-    .eq('profile_id', profileId)
+    .eq('provider_id', profileId)
     .order('created_at', { ascending: false })
     .limit(50);
 
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
 
   if (body.id) {
     const { data, error } = await supabase
-      .from('pro_portfolio')
+      .from('portfolio_items')
       .update({
         category_id: body.category_id ?? null,
         title: body.title,
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
         is_public: isPublic,
       })
       .eq('id', body.id)
-      .eq('profile_id', user.id)
+      .eq('provider_id', user.id)
       .select('*')
       .single();
 
@@ -89,9 +89,9 @@ export async function POST(request: NextRequest) {
   }
 
   const { data, error } = await supabase
-    .from('pro_portfolio')
+    .from('portfolio_items')
     .insert({
-      profile_id: user.id,
+      provider_id: user.id,
       category_id: body.category_id ?? null,
       title: body.title,
       before_image_url: body.before_image_url,
@@ -124,10 +124,10 @@ export async function DELETE(request: NextRequest) {
   }
 
   const { error } = await supabase
-    .from('pro_portfolio')
+    .from('portfolio_items')
     .delete()
     .eq('id', id)
-    .eq('profile_id', user.id);
+    .eq('provider_id', user.id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json({ ok: true }, { status: 200 });

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ReactNode } from 'react';
+import { ButtonHTMLAttributes, ReactNode } from 'react';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'destructive' | 'navy';
 type ButtonSize = 'sm' | 'md' | 'lg' | 'xl';
@@ -7,7 +7,7 @@ type ButtonSize = 'sm' | 'md' | 'lg' | 'xl';
 type ButtonProps = {
   children: ReactNode;
   href?: string;
-  onClick?: () => void;
+  onClick?: (e?: React.MouseEvent) => void;
   type?: 'button' | 'submit' | 'reset';
   variant?: ButtonVariant;
   size?: ButtonSize;
@@ -17,7 +17,7 @@ type ButtonProps = {
   rightIcon?: ReactNode;
   fullWidth?: boolean;
   className?: string;
-};
+} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type' | 'onClick' | 'disabled' | 'className' | 'children'>;
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
@@ -103,6 +103,7 @@ export default function Button({
   rightIcon,
   fullWidth = false,
   className,
+  ...rest
 }: ButtonProps) {
   const classes = compose(`${fullWidth ? 'w-full' : ''} ${className ?? ''}`, variant, size);
   const isDisabled = disabled || loading;
@@ -118,7 +119,7 @@ export default function Button({
     );
   }
   return (
-    <button type={type} onClick={onClick} disabled={isDisabled} className={classes} aria-busy={loading}>
+    <button type={type} onClick={onClick} disabled={isDisabled} className={classes} aria-busy={loading} {...rest}>
       {loading ? <Spinner /> : null}
       {!loading ? leftIcon : null}
       {children}

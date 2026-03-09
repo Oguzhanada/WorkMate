@@ -30,7 +30,7 @@ export default function FeaturedProviders() {
   }, [providers]);
 
   return (
-    <section className="bg-[#f3f5f6] px-4 py-16 sm:px-6 lg:px-8">
+    <section className="px-4 py-16 sm:px-6 lg:px-8" style={{ background: 'var(--wm-bg)' }}>
       <div className="mx-auto max-w-7xl">
         <div className="mb-9 text-center">
           <h2 className="text-[clamp(2rem,4.3vw,3.4rem)] font-extrabold" style={{ color: 'var(--color-text-primary)', letterSpacing: '-0.03em' }}>
@@ -72,7 +72,10 @@ export default function FeaturedProviders() {
 
                   <Link
                     href={withLocalePrefix(localeRoot, `/profile/public/${provider.id}`)}
-                    className="mt-2 inline-flex w-full items-center justify-center rounded-2xl bg-[var(--wm-navy)] px-6 py-3.5 text-lg font-semibold text-white transition hover:bg-[#0b1630]"
+                    className="mt-2 inline-flex w-full items-center justify-center rounded-2xl px-6 py-3.5 text-lg font-semibold text-white transition"
+                    style={{ background: 'var(--wm-navy)' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--wm-accent)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--wm-navy)')}
                   >
                     View Profile
                   </Link>

@@ -30,7 +30,7 @@ export default function CTASection() {
         <div
           className="relative overflow-hidden rounded-3xl"
           style={{
-            background: 'linear-gradient(145deg, var(--wm-navy) 0%, var(--wm-navy-mid) 50%, #1a3d6e 100%)'
+            background: 'linear-gradient(145deg, var(--wm-navy) 0%, var(--wm-navy-mid) 50%, var(--wm-navy-soft) 100%)'
           }}
         >
           {/* Geometric background decorations */}

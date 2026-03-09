@@ -158,9 +158,10 @@ export default function FaqPage() {
               </p>
               <div className="mt-2 grid gap-2">
                 {filtered.map((item) => (
-                  <button
+                  <Button
                     key={item.id}
-                    type="button"
+                    variant="ghost"
+                    size="sm"
                     className="rounded-lg border px-3 py-2 text-left text-sm"
                     style={{
                       borderColor: item.id === active?.id ? 'var(--wm-primary)' : 'var(--wm-border)',
@@ -169,7 +170,7 @@ export default function FaqPage() {
                     onClick={() => setActiveId(item.id)}
                   >
                     {item.title}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>

@@ -2,6 +2,7 @@
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
+import Button from '@/components/ui/Button';
 
 export default function ProviderFilterToggle() {
     const router = useRouter();
@@ -26,17 +27,18 @@ export default function ProviderFilterToggle() {
           className="flex items-center gap-3 rounded-2xl p-2"
           style={{
             border: '1px solid var(--wm-border)',
-            background: '#fff',
+            background: 'var(--wm-bg)',
             boxShadow: 'var(--wm-shadow-xs)',
           }}
         >
             <span className="pl-2 text-sm font-medium" style={{ color: 'var(--wm-text)' }}>
                 Only fully verified Irish pros
             </span>
-            <button
-                type="button"
+            <Button
+                variant="ghost"
+                size="sm"
                 onClick={toggleFilter}
-                className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none"
+                className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none !p-0"
                 style={{ background: isVerifiedOnly ? 'var(--wm-primary)' : 'var(--wm-border)' }}
                 role="switch"
                 aria-checked={isVerifiedOnly}
@@ -47,7 +49,7 @@ export default function ProviderFilterToggle() {
                     className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 ${isVerifiedOnly ? 'translate-x-6' : 'translate-x-1'
                         }`}
                 />
-            </button>
+            </Button>
         </div>
     );
 }

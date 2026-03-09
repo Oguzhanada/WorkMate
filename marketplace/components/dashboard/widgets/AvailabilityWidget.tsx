@@ -194,7 +194,7 @@ export default function AvailabilityWidget() {
                     width: '1rem',
                     height: '1rem',
                     borderRadius: '50%',
-                    background: '#ffffff',
+                    background: 'var(--wm-bg)',
                     transition: 'left 0.2s',
                     boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                   }}

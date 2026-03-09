@@ -15,6 +15,7 @@ import {
 } from '@/lib/constants/job';
 import type { JobMode, TaskType } from '@/lib/types/airtasker';
 import { useCategoriesWithFallback, type Category } from '@/lib/hooks/useCategoriesWithFallback';
+import Button from '@/components/ui/Button';
 import InfoTooltip from '@/components/ui/InfoTooltip';
 import HybridJobPost from '@/components/jobs/HybridJobPost';
 import styles from './forms.module.css';
@@ -79,7 +80,7 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   const progressPercent = Math.round((step / 3) * 100);
 
-  const getFriendlyApiError = (payload: any) => {
+  const getFriendlyApiError = (payload: { error?: string; [key: string]: unknown }) => {
     const apiError = String(payload?.error ?? '').trim().toLowerCase();
     if (!apiError) return 'We could not create your request. Please review the highlighted fields and try again.';
     if (apiError.includes('valid eircode')) {
@@ -359,13 +360,13 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
               ) : (
                 <div className={styles.inlineCta}>
                   <p className={styles.muted}>Want faster responses from one trusted provider?</p>
-                  <button
-                    type="button"
+                  <Button
+                    variant="secondary"
                     className={styles.secondary}
                     onClick={() => router.push(withLocalePrefix(localeRoot, '/providers'))}
                   >
                     Browse providers for Direct Request
-                  </button>
+                  </Button>
                 </div>
               )}
 
@@ -373,9 +374,10 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
                 <span>Task type</span>
                 <div className={styles.chipRow}>
                   {(['in_person', 'remote', 'flexible'] as TaskType[]).map((value) => (
-                    <button
+                    <Button
                       key={value}
-                      type="button"
+                      variant={taskType === value ? 'primary' : 'ghost'}
+                      size="sm"
                       className={`${styles.chip} ${taskType === value ? styles.chipActive : ''}`}
                       onClick={() => setTaskType(value)}
                     >
@@ -384,7 +386,7 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
                         : value === 'remote'
                           ? 'Remote'
                           : 'Flexible'}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -456,14 +458,15 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
                 <span>When do you need this done?</span>
                 <div className={styles.chipRow}>
                   {JOB_URGENCY_OPTIONS.map((item) => (
-                    <button
+                    <Button
                       key={item}
-                      type="button"
+                      variant={urgency === item ? 'primary' : 'ghost'}
+                      size="sm"
                       className={`${styles.chip} ${urgency === item ? styles.chipActive : ''}`}
                       onClick={() => setUrgency(item)}
                     >
                       {item}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -482,18 +485,17 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
               <div className={styles.field}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
                   <span>Additional details</span>
-                  <button
-                    type="button"
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={generateDescription}
                     disabled={isGeneratingDescription || !titleOption || !categoryId}
                     className={styles.secondary}
+                    loading={isGeneratingDescription}
                     style={{ fontSize: '0.78rem', padding: '0.25rem 0.6rem', whiteSpace: 'nowrap' }}
                   >
-                    <span className={styles.buttonContent}>
-                      {isGeneratingDescription ? <Loader2 className={styles.inlineSpinner} /> : null}
-                      {isGeneratingDescription ? 'Writing...' : '✨ AI-write'}
-                    </span>
-                  </button>
+                    {isGeneratingDescription ? 'Writing...' : '✨ AI-write'}
+                  </Button>
                 </div>
                 <textarea
                   value={additionalDetails}
@@ -504,8 +506,8 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
                 />
               </div>
               <div className={styles.buttonRow}>
-                <button
-                  type="button"
+                <Button
+                  variant="primary"
                   onClick={() => {
                     trackFunnelStep({
                       funnelName: FUNNEL_JOB_POSTING,
@@ -519,7 +521,7 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
                   disabled={Boolean(currentStepError)}
                 >
                   Continue
-                </button>
+                </Button>
               </div>
               </motion.div>
             ) : null}
@@ -559,12 +561,12 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
                 </p>
               ) : null}
               <div className={styles.buttonRow}>
-                <button type="button" onClick={() => setStep(1)} className={styles.secondary}>
+                <Button variant="secondary" onClick={() => setStep(1)} className={styles.secondary}>
                   Back
-                </button>
-                <button type="button" onClick={nextFromStep2} className={styles.primary}>
+                </Button>
+                <Button variant="primary" onClick={nextFromStep2} className={styles.primary}>
                   Continue
-                </button>
+                </Button>
               </div>
               </motion.div>
             ) : null}
@@ -582,20 +584,18 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
               <p className={styles.sectionLead}>Upload optional photos to help providers quote faster.</p>
               <input className={styles.input} type="file" accept="image/*" multiple onChange={(e) => setPhotos(Array.from(e.target.files || []))} />
               <div className={styles.buttonRow}>
-                <button type="button" onClick={() => setStep(2)} className={styles.secondary}>
+                <Button variant="secondary" onClick={() => setStep(2)} className={styles.secondary}>
                   Back
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  variant="primary"
                   onClick={submitJob}
                   disabled={isPending || Boolean(currentStepError)}
                   className={styles.primary}
+                  loading={isPending}
                 >
-                  <span className={styles.buttonContent}>
-                    {isPending ? <Loader2 className={styles.inlineSpinner} /> : null}
-                    {isPending ? 'Submitting...' : 'Create Job Request'}
-                  </span>
-                </button>
+                  {isPending ? 'Submitting...' : 'Create Job Request'}
+                </Button>
               </div>
               </motion.div>
             ) : null}

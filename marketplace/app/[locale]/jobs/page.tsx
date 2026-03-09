@@ -155,13 +155,13 @@ export default async function JobsPage({
                 <option value="budget_low">Budget: low to high</option>
                 <option value="budget_high">Budget: high to low</option>
               </select>
-              <button
+              <Button
                 type="submit"
-                className="rounded-xl border px-3 py-2 text-sm font-semibold"
-                style={{ borderColor: 'var(--wm-border)' }}
+                variant="outline"
+                size="sm"
               >
                 Apply
-              </button>
+              </Button>
             </div>
           </form>
         </Card>

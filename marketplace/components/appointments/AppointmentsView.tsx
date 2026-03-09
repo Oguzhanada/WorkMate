@@ -280,7 +280,7 @@ function ToggleTab({
         cursor:          'pointer',
         border:          'none',
         background:      active ? 'var(--wm-primary)' : 'transparent',
-        color:           active ? '#ffffff' : 'var(--wm-muted)',
+        color:           active ? 'var(--wm-bg)' : 'var(--wm-muted)',
         transition:      'background 0.15s, color 0.15s',
         outline:         'none',
       }}

@@ -78,7 +78,7 @@ export default function ProviderSubscriptionWidget() {
             borderRadius: '0.5rem',
             padding: '0.45rem 0.9rem',
             background: 'var(--wm-primary)',
-            color: '#fff',
+            color: 'var(--wm-bg)',
             fontWeight: 700,
             fontSize: '0.82rem',
             textDecoration: 'none',

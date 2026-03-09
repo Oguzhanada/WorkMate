@@ -27,6 +27,7 @@ import {PasswordChecks, PasswordStrength} from './PasswordStrength';
 import {RoleSelector, AccountRole} from './RoleSelector';
 import {SecurityDropdown} from './SecurityDropdown';
 import {SocialButtons} from './SocialButtons';
+import Button from '@/components/ui/Button';
 import styles from './login.module.css';
 
 const counties26 = [
@@ -642,8 +643,9 @@ export function SignUpForm() {
                     {eircodeStatus === 'valid' ? <CheckCircle2 size={16} color="var(--wm-primary)" /> : null}
                     {eircodeStatus === 'invalid' ? <CircleX size={16} color="var(--wm-destructive)" /> : null}
                   </div>
-                  <button
-                    type="button"
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     className={styles.smallButton}
                     onClick={handleAddressLookup}
                     disabled={eircodeStatus === 'validating'}
@@ -659,7 +661,7 @@ export function SignUpForm() {
                     ) : (
                       'Validate'
                     )}
-                  </button>
+                  </Button>
                 </div>
                 {errors.eircode ? <p className={styles.fieldError}>{errors.eircode}</p> : null}
               </label>
@@ -676,14 +678,15 @@ export function SignUpForm() {
                 onChange={(event) => updateField('password', event.target.value)}
                 placeholder="••••••••••"
               />
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 className={styles.togglePassword}
-                type="button"
                 onClick={() => setShowPassword((current) => !current)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-              </button>
+              </Button>
             </div>
             {errors.password ? <p className={styles.fieldError}>{errors.password}</p> : null}
           </label>
@@ -697,14 +700,15 @@ export function SignUpForm() {
                 onChange={(event) => updateField('confirmPassword', event.target.value)}
                 placeholder="••••••••••"
               />
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 className={styles.togglePassword}
-                type="button"
                 onClick={() => setShowConfirmPassword((current) => !current)}
                 aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
               >
                 {showConfirmPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-              </button>
+              </Button>
             </div>
             {errors.confirmPassword ? <p className={styles.fieldError}>{errors.confirmPassword}</p> : null}
           </label>
@@ -724,15 +728,16 @@ export function SignUpForm() {
           </div>
 
           <div className={styles.fullWidth}>
-            <button type="submit" className={styles.primaryButton} disabled={loading}>
-              {isPending ? (
-                <>
-                  <Loader2 size={18} className={styles.spinner} /> Creating account...
-                </>
-              ) : (
-                'Create account'
-              )}
-            </button>
+            <Button
+              type="submit"
+              variant="primary"
+              fullWidth
+              className={styles.primaryButton}
+              disabled={loading}
+              loading={isPending}
+            >
+              {isPending ? 'Creating account...' : 'Create account'}
+            </Button>
           </div>
         </motion.form>
 

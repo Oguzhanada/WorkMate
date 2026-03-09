@@ -55,7 +55,7 @@ export default function CategoriesSection() {
   const localeRoot = getLocaleRoot(pathname);
 
   return (
-    <section id="categories" className="bg-[#f3f5f6] px-4 py-16 sm:px-6 lg:px-8">
+    <section id="categories" className="px-4 py-16 sm:px-6 lg:px-8" style={{ background: 'var(--wm-bg)' }}>
       <div className="mx-auto max-w-7xl">
         <div className="mb-9 text-center">
           <h2

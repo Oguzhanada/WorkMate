@@ -162,7 +162,7 @@ export default function PortfolioGallery({ providerId }: Props) {
               className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-opacity hover:opacity-80"
               style={{
                 background: 'rgba(15,23,42,0.7)',
-                color: '#f8fafc',
+                color: 'var(--wm-bg)',
               }}
             >
               ✕

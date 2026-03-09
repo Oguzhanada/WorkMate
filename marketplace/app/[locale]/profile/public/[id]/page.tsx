@@ -80,9 +80,9 @@ export default async function PublicProfilePage({params}: {params: Params}) {
       supabase.from('pro_services').select('category_id').eq('profile_id', id),
       supabase.from('pro_service_areas').select('county').eq('profile_id', id),
       supabase
-        .from('pro_portfolio')
+        .from('portfolio_items')
         .select('id,title,before_image_url,after_image_url,experience_note,visibility_scope,created_at')
-        .eq('profile_id', id)
+        .eq('provider_id', id)
         .eq('visibility_scope', 'public')
         .order('created_at', {ascending: false})
         .limit(8),

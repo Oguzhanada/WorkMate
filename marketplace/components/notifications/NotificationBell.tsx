@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
+import Button from '@/components/ui/Button';
 
 type NotificationRow = {
   id: string;
@@ -133,10 +134,12 @@ export default function NotificationBell() {
   return (
     <div ref={dropdownRef} style={{ position: 'relative', display: 'inline-flex' }}>
       {/* Bell button */}
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="sm"
         aria-label={`Notifications${unreadCount > 0 ? ` — ${unreadCount} unread` : ''}`}
         onClick={() => setOpen((v) => !v)}
+        className="!p-0"
         style={{
           position: 'relative',
           display: 'inline-flex',
@@ -147,8 +150,6 @@ export default function NotificationBell() {
           borderRadius: '10px',
           border: '1px solid var(--wm-border)',
           background: open ? 'var(--wm-primary-faint)' : 'transparent',
-          cursor: 'pointer',
-          transition: 'background 0.15s',
           color: 'var(--wm-text)',
         }}
       >
@@ -193,7 +194,7 @@ export default function NotificationBell() {
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
-      </button>
+      </Button>
 
       {/* Dropdown */}
       {open && (
@@ -254,23 +255,20 @@ export default function NotificationBell() {
             </span>
 
             {unreadCount > 0 && (
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={handleMarkAllRead}
                 disabled={loading}
                 style={{
                   fontSize: '12px',
                   fontWeight: 600,
                   color: 'var(--wm-primary-dark)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: loading ? 'default' : 'pointer',
-                  opacity: loading ? 0.6 : 1,
                   padding: '2px 4px',
                 }}
               >
                 Mark all read
-              </button>
+              </Button>
             )}
           </div>
 
@@ -353,28 +351,24 @@ export default function NotificationBell() {
                 </div>
 
                 {/* Dismiss button */}
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
+                  size="sm"
                   aria-label="Dismiss notification"
-                  onClick={(e) => handleDismiss(n.id, e)}
+                  onClick={(e) => handleDismiss(n.id, e as React.MouseEvent)}
                   style={{
                     flexShrink: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
                     width: '20px',
                     height: '20px',
                     borderRadius: '6px',
-                    border: 'none',
-                    background: 'none',
-                    cursor: 'pointer',
                     color: 'var(--wm-muted)',
                     fontSize: '14px',
                     lineHeight: 1,
+                    padding: 0,
                   }}
                 >
                   ×
-                </button>
+                </Button>
               </li>
             ))}
           </ul>

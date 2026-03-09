@@ -338,7 +338,7 @@ export default function AppointmentCalendar({ role }: Props) {
                         fontSize:       '0.78rem',
                         fontWeight:     isToday ? 700 : 500,
                         background:     isToday ? 'var(--wm-primary)' : 'transparent',
-                        color:          isToday ? '#ffffff' : 'var(--wm-navy)',
+                        color:          isToday ? 'var(--wm-bg)' : 'var(--wm-navy)',
                         flexShrink:     0,
                       }}
                     >

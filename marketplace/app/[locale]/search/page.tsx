@@ -10,6 +10,7 @@ import {professionals, services} from '@/lib/marketplace-data';
 import VerifiedNavigationLink from '@/components/site/VerifiedNavigationLink';
 import {COUNTY_CITIES} from '@/lib/ireland-locations';
 import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
+import Button from '@/components/ui/Button';
 
 import styles from '../inner.module.css';
 import pageStyles from './search-page.module.css';
@@ -236,16 +237,17 @@ export default function SearchPage() {
         </label>
       </div>
       <div className={pageStyles.filterActions}>
-        <button
-          type="button"
-          className={`${styles.secondary} ${pageStyles.clearButton}`}
+        <Button
+          variant="secondary"
+          size="sm"
+          className={pageStyles.clearButton}
           onClick={() => {
             setMaxPriceFilter('');
             setMinRatingFilter('');
           }}
         >
           {t('clear')}
-        </button>
+        </Button>
         {footerAction}
       </div>
     </>
@@ -278,23 +280,25 @@ export default function SearchPage() {
           animate={prefersReducedMotion ? undefined : 'visible'}
           custom={0.08}
         >
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => onModeChange('services')}
             className={`${pageStyles.modeButton} ${mode === 'services' ? pageStyles.modeButtonActive : ''}`}
           >
             Services
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => onModeChange('providers')}
             className={`${pageStyles.modeButton} ${mode === 'providers' ? pageStyles.modeButtonActive : ''}`}
           >
             Providers
-          </button>
-          <button type="button" className={pageStyles.mobileFilterToggle} onClick={() => setShowMobileFilters(true)}>
+          </Button>
+          <Button variant="outline" size="sm" className={pageStyles.mobileFilterToggle} onClick={() => setShowMobileFilters(true)}>
             Filters
-          </button>
+          </Button>
         </motion.section>
         <motion.section
           className={`${styles.card} ${pageStyles.cardShell}`}
@@ -324,9 +328,9 @@ export default function SearchPage() {
               </select>
             </label>
             <div className={pageStyles.searchActions}>
-              <button type="submit" className={`${styles.primary} ${pageStyles.searchButton}`}>
+              <Button type="submit" variant="primary" className={pageStyles.searchButton}>
                 {mode === 'services' ? 'Find Service' : 'Find Provider'}
-              </button>
+              </Button>
             </div>
           </form>
         </motion.section>
@@ -360,22 +364,22 @@ export default function SearchPage() {
               >
                 <div className={pageStyles.mobileFilterHeader}>
                   <h3>{t('filtersTitle')}</h3>
-                  <button
-                    type="button"
-                    className={styles.secondary}
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => setShowMobileFilters(false)}
                   >
                     Close
-                  </button>
+                  </Button>
                 </div>
                 {filterControls(
-                  <button
-                    type="button"
-                    className={styles.primary}
+                  <Button
+                    variant="primary"
+                    size="sm"
                     onClick={() => setShowMobileFilters(false)}
                   >
                     Apply
-                  </button>
+                  </Button>
                 )}
               </motion.div>
             </motion.div>
@@ -525,9 +529,10 @@ export default function SearchPage() {
                 {mapPins.map((pin) => {
                   const coord = CITY_COORDINATES[pin.city] ?? {x: 50, y: 50};
                   return (
-                    <button
+                    <Button
                       key={pin.id}
-                      type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => setSelectedPinId(pin.id)}
                       className={`${pageStyles.mapPin} ${selectedPinId === pin.id ? pageStyles.mapPinActive : ''}`}
                       style={{left: `${coord.x}%`, top: `${coord.y}%`}}
@@ -535,15 +540,16 @@ export default function SearchPage() {
                       title={`${pin.label} • ${pin.city}`}
                     >
                       {mode === 'services' ? 'S' : 'P'}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
               <div className={pageStyles.mapList}>
                 {mapPins.slice(0, 8).map((pin) => (
-                  <button
+                  <Button
                     key={pin.id}
-                    type="button"
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setSelectedPinId(pin.id)}
                     className={`${pageStyles.mapListItem} ${selectedPinId === pin.id ? pageStyles.mapListItemActive : ''}`}
                   >
@@ -551,7 +557,7 @@ export default function SearchPage() {
                     <span>
                       {pin.city} • {pin.meta}
                     </span>
-                  </button>
+                  </Button>
                 ))}
               </div>
             </aside>

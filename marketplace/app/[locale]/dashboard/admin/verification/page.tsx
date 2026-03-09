@@ -339,27 +339,20 @@ export default function VerificationQueuePage() {
           role="tablist"
         >
           {tabs.map((tab) => (
-            <button
+            <Button
               key={tab.key}
               role="tab"
               aria-selected={activeTab === tab.key}
+              variant={activeTab === tab.key ? 'primary' : 'ghost'}
+              size="sm"
               onClick={() => {
                 setActiveTab(tab.key);
                 clearSelection();
               }}
-              className="rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-150"
-              style={
-                activeTab === tab.key
-                  ? {
-                      background: 'var(--wm-primary)',
-                      color: 'var(--wm-on-primary, white)',
-                      boxShadow: '0 2px 8px rgba(0,184,148,0.28)',
-                    }
-                  : { color: 'var(--wm-muted)' }
-              }
+              className="rounded-xl"
             >
               {tab.label}
-            </button>
+            </Button>
           ))}
         </div>
 

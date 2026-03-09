@@ -176,7 +176,7 @@ export default function PortfolioManagerWidget() {
                 className="absolute inset-0 flex flex-col items-start justify-end p-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
                 style={{ background: 'rgba(15,23,42,0.72)' }}
               >
-                <p className="mb-1 truncate text-xs font-semibold" style={{ color: '#f8fafc' }}>
+                <p className="mb-1 truncate text-xs font-semibold" style={{ color: 'var(--wm-surface)' }}>
                   {item.title}
                 </p>
                 <Button

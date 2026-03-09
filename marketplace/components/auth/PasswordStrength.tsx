@@ -18,9 +18,9 @@ type PasswordStrengthProps = {
 };
 
 function getStrengthColor(score: number) {
-  if (score < 30) return '#ff7675';
-  if (score < 70) return '#fdcb6e';
-  return '#00b894';
+  if (score < 30) return 'var(--wm-destructive)';
+  if (score < 70) return 'var(--wm-amber)';
+  return 'var(--wm-primary)';
 }
 
 export function PasswordStrength({password, checks}: PasswordStrengthProps) {

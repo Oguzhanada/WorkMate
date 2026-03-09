@@ -13,6 +13,7 @@ import {useCategoriesWithFallback, type Category} from '@/lib/hooks/useCategorie
 import {resolveProviderVerificationState} from '@/lib/onboarding/provider-verification';
 import MultiSelectDropdown from '@/components/forms/MultiSelectDropdown';
 import { trackFunnelStep, FUNNEL_PROVIDER_ONBOARDING } from '@/lib/analytics/funnel';
+import Button from '@/components/ui/Button';
 import styles from '../inner.module.css';
 
 type Step = 1 | 2 | 3 | 4;
@@ -638,9 +639,9 @@ export default function BecomeProviderPage() {
             <p className={styles.muted}>{t('applicationFlow3')}</p>
             <p className={styles.muted}>{t('prodReminder')}</p>
             <div className={styles.actions}>
-              <button type="button" className={styles.primary} onClick={() => router.push(withLocalePrefix(localeRoot, '/profile'))}>
+              <Button variant="primary" onClick={() => router.push(withLocalePrefix(localeRoot, '/profile'))}>
                 {t('goProfile')}
-              </button>
+              </Button>
             </div>
           </div>
         ) : !isAuthenticated ? (
@@ -648,12 +649,12 @@ export default function BecomeProviderPage() {
             <h2>Ready to start earning?</h2>
             <p className={styles.muted}>Create a free account or sign in to complete your provider application.</p>
             <div className={styles.actions}>
-              <button type="button" className={styles.primary} onClick={() => router.push(withLocalePrefix(localeRoot, '/sign-up'))}>
+              <Button variant="primary" onClick={() => router.push(withLocalePrefix(localeRoot, '/sign-up'))}>
                 Create free account
-              </button>
-              <button type="button" className={styles.secondary} onClick={() => router.push(withLocalePrefix(localeRoot, '/login'))}>
+              </Button>
+              <Button variant="secondary" onClick={() => router.push(withLocalePrefix(localeRoot, '/login'))}>
                 Sign in
-              </button>
+              </Button>
             </div>
           </div>
         ) : (
@@ -813,19 +814,19 @@ export default function BecomeProviderPage() {
 
               <div className={styles.actions}>
                 {step > 1 ? (
-                  <button type="button" className={styles.secondary} onClick={back}>
+                  <Button variant="secondary" onClick={back}>
                     {t('back')}
-                  </button>
+                  </Button>
                 ) : null}
 
                 {step < 4 ? (
-                  <button type="button" className={styles.primary} onClick={next} disabled={Boolean(currentStepError)}>
+                  <Button variant="primary" onClick={next} disabled={Boolean(currentStepError)}>
                     {t('next')}
-                  </button>
+                  </Button>
                 ) : (
-                  <button type="submit" className={styles.primary} disabled={isPending || Boolean(currentStepError)}>
+                  <Button type="submit" variant="primary" disabled={isPending || Boolean(currentStepError)} loading={isPending}>
                     {isPending ? t('submitting') : t('submit')}
-                  </button>
+                  </Button>
                 )}
               </div>
               {currentStepError ? <p className={styles.error}>{currentStepError}</p> : null}

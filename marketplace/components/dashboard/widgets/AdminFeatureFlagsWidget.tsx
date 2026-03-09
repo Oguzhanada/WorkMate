@@ -102,7 +102,7 @@ export default function AdminFeatureFlagsWidget() {
                   fontWeight: 700,
                   cursor: toggling === flag.flag_key ? 'not-allowed' : 'pointer',
                   background: flag.enabled ? 'var(--wm-primary)' : 'var(--wm-border)',
-                  color: flag.enabled ? '#fff' : 'var(--wm-muted)',
+                  color: flag.enabled ? 'var(--wm-bg)' : 'var(--wm-muted)',
                   opacity: toggling === flag.flag_key ? 0.6 : 1,
                   transition: 'background 0.15s',
                 }}
