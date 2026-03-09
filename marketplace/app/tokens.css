@@ -40,8 +40,8 @@
   --color-border-strong: var(--color-neutral-300);
 
   /* Typography */
-  --font-family-heading: 'Manrope', 'Inter', sans-serif;
-  --font-family-body: 'Inter', 'Manrope', system-ui, sans-serif;
+  --font-family-heading: 'Syne', 'DM Sans', sans-serif;
+  --font-family-body: 'Plus Jakarta Sans', 'DM Sans', system-ui, sans-serif;
   --font-family-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
   --font-size-xs: clamp(0.75rem, 0.72rem + 0.1vw, 0.8rem);

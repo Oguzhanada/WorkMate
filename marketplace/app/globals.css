@@ -3,8 +3,8 @@
 
 :root {
   /* ── Typography ─────────────────────────────────────────── */
-  --wm-font-display: 'Manrope', 'Inter', sans-serif;
-  --wm-font-sans:    'Inter', 'Manrope', system-ui, sans-serif;
+  --wm-font-display: 'Syne', 'DM Sans', sans-serif;
+  --wm-font-sans:    'Plus Jakarta Sans', 'DM Sans', system-ui, sans-serif;
 
   /* ── Colours — primary (teal) ───────────────────────────── */
   --wm-primary:       #10b981;
@@ -250,6 +250,80 @@ h5 { font-size: 0.9375rem; font-weight: 600; }
   height: 3px;
   background: var(--wm-grad-warm);
   border-radius: 2px;
+}
+
+/* ── Hero cinematic background ─────────────────────────────── */
+.wm-hero-bg {
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 20%, rgba(var(--wm-primary-rgb), 0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(var(--wm-primary-rgb), 0.04) 0%, transparent 60%),
+    var(--wm-grad-hero);
+}
+
+/* ── Celtic knot decorative SVG ───────────────────────────── */
+.wm-celtic-deco {
+  position: absolute;
+  width: clamp(320px, 50vw, 700px);
+  height: clamp(320px, 50vw, 700px);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.03;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400' fill='none' stroke='%230f172a' stroke-width='2'%3E%3Ccircle cx='200' cy='200' r='180'/%3E%3Ccircle cx='200' cy='200' r='140'/%3E%3Ccircle cx='200' cy='200' r='100'/%3E%3Cpath d='M200 20 Q280 100 200 200 Q120 100 200 20Z'/%3E%3Cpath d='M200 380 Q120 300 200 200 Q280 300 200 380Z'/%3E%3Cpath d='M20 200 Q100 120 200 200 Q100 280 20 200Z'/%3E%3Cpath d='M380 200 Q300 280 200 200 Q300 120 380 200Z'/%3E%3Ccircle cx='200' cy='60' r='18'/%3E%3Ccircle cx='200' cy='340' r='18'/%3E%3Ccircle cx='60' cy='200' r='18'/%3E%3Ccircle cx='340' cy='200' r='18'/%3E%3Cpath d='M120 80 Q200 140 280 80' /%3E%3Cpath d='M120 320 Q200 260 280 320' /%3E%3Cpath d='M80 120 Q140 200 80 280' /%3E%3Cpath d='M320 120 Q260 200 320 280' /%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+}
+
+/* ── Gradient text utility ────────────────────────────────── */
+.wm-text-gradient {
+  background: linear-gradient(135deg, var(--wm-primary) 0%, var(--wm-primary-dark) 60%, #047857 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Floating animation ───────────────────────────────────── */
+@keyframes wm-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.wm-float {
+  animation: wm-float 6s ease-in-out infinite;
+}
+
+/* ── Hero search glass pill ───────────────────────────────── */
+.wm-search-glass {
+  background: var(--wm-glass);
+  border: 1px solid var(--wm-glass-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: var(--wm-radius-3xl);
+  box-shadow: var(--wm-shadow-xl), 0 0 0 1px rgba(255,255,255,0.3) inset;
+  transition: transform var(--wm-transition-spring), box-shadow var(--wm-transition);
+}
+.wm-search-glass:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--wm-shadow-2xl), 0 0 0 1px rgba(255,255,255,0.4) inset;
+}
+
+/* ── Hero CTA glow button ─────────────────────────────────── */
+.wm-btn-glow {
+  background: var(--wm-grad-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--wm-radius-3xl);
+  font-family: var(--wm-font-display);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  box-shadow: 0 4px 20px rgba(var(--wm-primary-rgb), 0.35), 0 0 0 0 rgba(var(--wm-primary-rgb), 0);
+  transition: transform var(--wm-transition-spring), box-shadow var(--wm-transition);
+  cursor: pointer;
+}
+.wm-btn-glow:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 32px rgba(var(--wm-primary-rgb), 0.45), 0 0 60px rgba(var(--wm-primary-rgb), 0.12);
 }
 
 /* ── Scrollbar ──────────────────────────────────────────────── */
