@@ -1,4 +1,5 @@
 import { getResendClient } from './client';
+import { liveServices } from '../live-services';
 import {
   quoteReceivedEmail,
   quoteAcceptedEmail,
@@ -46,12 +47,9 @@ type EmailEvent =
 export function sendTransactionalEmail(event: EmailEvent): void {
   void (async () => {
     try {
-      // Block real email sends in development to avoid accidental charges / spam.
-      if (
-        process.env.NODE_ENV !== 'production' &&
-        process.env.EMAIL_SEND_ENABLED !== 'true'
-      ) {
-        console.log('[DEV EMAIL BLOCKED]', event.type, '->', event.to);
+      // Block real email sends unless live services are enabled.
+      if (!liveServices.email) {
+        console.log('[EMAIL BLOCKED — live services off]', event.type, '->', event.to);
         return;
       }
 

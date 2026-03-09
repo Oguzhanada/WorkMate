@@ -4,6 +4,7 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { suggestAlertsSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { liveServices } from '@/lib/live-services';
 
 type AISuggestion = {
   keywords: string[];
@@ -11,9 +12,9 @@ type AISuggestion = {
 };
 
 async function handler(request: NextRequest): Promise<NextResponse> {
-  // Cost guard — block live AI calls outside production
-  if (process.env.NODE_ENV !== 'production' && process.env.AI_CALLS_ENABLED !== 'true') {
-    return NextResponse.json({ error: 'AI endpoints disabled in development. Set AI_CALLS_ENABLED=true to enable.' }, { status: 503 });
+  // Cost guard — blocked until LIVE_SERVICES_ENABLED=true (or AI_CALLS_ENABLED=true)
+  if (!liveServices.ai) {
+    return NextResponse.json({ error: 'AI endpoints disabled. Set LIVE_SERVICES_ENABLED=true to enable.' }, { status: 503 });
   }
 
   // Auth check

@@ -215,6 +215,13 @@ STRIPE_CONNECT_CLIENT_ID=ca_live_...
 # Email
 RESEND_API_KEY=re_live_...
 
+# AI
+ANTHROPIC_API_KEY=sk-ant-...
+
+# ⚡ MASTER LIVE SERVICES SWITCH — flip this to enable all paid services
+# In dev this is unset (all paid calls are blocked). Must be set to 'true' in production.
+LIVE_SERVICES_ENABLED=true
+
 # Platform
 NEXT_PUBLIC_PLATFORM_BASE_URL=https://workmate.ie
 TASK_ALERT_SECRET=<random 32-char hex string>
@@ -222,6 +229,16 @@ TASK_ALERT_SECRET=<random 32-char hex string>
 # Monitoring
 SENTRY_DSN=https://...@sentry.io/...
 ```
+
+### ⚡ Live Services Activation Checklist (DO NOT SKIP)
+- [ ] **Set `LIVE_SERVICES_ENABLED=true`** in Vercel environment variables
+  - Without this: Resend emails are blocked, AI endpoints return 503
+  - File: `marketplace/lib/live-services.ts` — this is the master switch
+- [ ] Verify `STRIPE_SECRET_KEY` starts with `sk_live_` (not `sk_test_`)
+- [ ] Verify `RESEND_API_KEY` is the production key
+- [ ] Verify `ANTHROPIC_API_KEY` is the production key
+- [ ] Test a real email send after deployment (Resend dashboard → Logs)
+- [ ] Test AI endpoint: POST `/api/ai/job-description` → should return 200 (not 503)
 
 ### Deployment steps
 - [ ] Push all code to `main` branch
