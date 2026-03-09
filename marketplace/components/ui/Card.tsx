@@ -14,7 +14,7 @@ export default function Card({ children, className, style, hover = false, glass 
     'border-[var(--wm-border)] ' +
     (glass
       ? 'bg-[var(--wm-glass)] backdrop-blur-sm '
-      : 'bg-white dark:bg-zinc-900/80 ') +
+      : 'bg-[var(--color-background-secondary)] ') +
     'shadow-[var(--wm-shadow-sm)] ' +
     (hover
       ? 'transition-all duration-[var(--wm-transition-slow)] ' +

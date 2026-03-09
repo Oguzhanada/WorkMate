@@ -6,10 +6,13 @@ import DashboardShell from '@/components/dashboard/DashboardShell';
 
 export default async function LocalizedProDashboardPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams?: Promise<{ tour?: string }>;
 }) {
   const { locale } = await params;
+  const query = searchParams ? await searchParams : undefined;
   const supabase = await getSupabaseServerClient();
   const {
     data: { user },
@@ -30,6 +33,7 @@ export default async function LocalizedProDashboardPage({
         mode="provider"
         title="Provider Dashboard"
         description="Customize your workspace with lead, quote, and alert widgets."
+        showTourBanner={query?.tour === '1'}
       />
     </Shell>
   );

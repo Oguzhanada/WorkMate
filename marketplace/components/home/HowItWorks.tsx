@@ -41,11 +41,11 @@ export default function HowItWorks() {
           <span className="wm-section-label mb-3">How it works</span>
           <h2
             className="mt-4 wm-display"
-            style={{fontSize: 'clamp(1.7rem, 3.2vw, 2.4rem)', color: 'var(--wm-navy)'}}
+            style={{fontSize: 'clamp(1.7rem, 3.2vw, 2.4rem)', color: 'var(--wm-text-strong)'}}
           >
             Get It Done in 3 Simple Steps
           </h2>
-          <p className="mt-3 max-w-lg text-base leading-relaxed" style={{color: 'var(--wm-muted)'}}>
+          <p className="mt-3 max-w-lg text-base leading-relaxed" style={{color: 'var(--wm-text-muted)'}}>
             From posting to payment — we handle the complexity so you can focus on the result.
           </p>
         </div>
@@ -111,11 +111,11 @@ export default function HowItWorks() {
 
               <h3
                 className="text-lg font-bold leading-snug"
-                style={{fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)'}}
+                style={{fontFamily: 'var(--wm-font-display)', color: 'var(--wm-text-strong)'}}
               >
                 {step.title}
               </h3>
-              <p className="mt-2 text-sm leading-relaxed" style={{color: 'var(--wm-muted)'}}>
+              <p className="mt-2 text-sm leading-relaxed" style={{color: 'var(--wm-text-muted)'}}>
                 {step.description}
               </p>
               <div

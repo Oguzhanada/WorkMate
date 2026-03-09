@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="light">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -25,7 +25,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           referrerPolicy="no-referrer"
         />
       </head>
-      <body style={{ margin: 0 }}>{children}</body>
+      <body className="wm-ds-root" style={{ margin: 0 }}>
+        {children}
+      </body>
     </html>
   );
 }

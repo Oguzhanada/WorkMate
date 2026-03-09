@@ -9,6 +9,7 @@ import {AnimatePresence, motion, useReducedMotion} from 'framer-motion';
 import {professionals, services} from '@/lib/marketplace-data';
 import VerifiedNavigationLink from '@/components/site/VerifiedNavigationLink';
 import {COUNTY_CITIES} from '@/lib/ireland-locations';
+import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
 
 import styles from '../inner.module.css';
 import pageStyles from './search-page.module.css';
@@ -47,6 +48,7 @@ const CITY_COORDINATES: Record<string, {x: number; y: number}> = {
 export default function SearchPage() {
   const router = useRouter();
   const pathname = usePathname();
+  const localeRoot = getLocaleRoot(pathname || '/');
   const prefersReducedMotion = useReducedMotion();
   const t = useTranslations('search');
   const common = useTranslations('common');
@@ -427,7 +429,10 @@ export default function SearchPage() {
                           <div className={pageStyles.cardBody}>
                             <h3>{localizedServiceName(service.slug)}</h3>
                             <p className={pageStyles.meta}>{service.city}</p>
-                            <Link className={`${styles.primary} ${pageStyles.cardAction}`} href={`/service/${service.slug}`}>
+                            <Link
+                              className={`${styles.primary} ${pageStyles.cardAction}`}
+                              href={withLocalePrefix(localeRoot, `/service/${service.slug}`)}
+                            >
                               {common('viewDetails')}
                             </Link>
                           </div>
@@ -455,7 +460,7 @@ export default function SearchPage() {
                             </p>
                             <VerifiedNavigationLink
                               className={`${styles.primary} ${pageStyles.cardAction}`}
-                              href={`/post-job?pro=${encodeURIComponent(pro.id)}`}
+                              href={withLocalePrefix(localeRoot, `/post-job?pro=${encodeURIComponent(pro.id)}`)}
                             >
                               {common('requestQuote')}
                             </VerifiedNavigationLink>
@@ -485,7 +490,7 @@ export default function SearchPage() {
                             </p>
                             <VerifiedNavigationLink
                               className={`${styles.secondary} ${pageStyles.cardAction}`}
-                              href={`/post-job?pro=${encodeURIComponent(pro.id)}`}
+                              href={withLocalePrefix(localeRoot, `/post-job?pro=${encodeURIComponent(pro.id)}`)}
                             >
                               {common('requestQuote')}
                             </VerifiedNavigationLink>
@@ -498,7 +503,10 @@ export default function SearchPage() {
                           <div className={pageStyles.cardBody}>
                             <h3>{localizedServiceName(service.slug)}</h3>
                             <p className={pageStyles.meta}>{service.city}</p>
-                            <Link className={`${styles.secondary} ${pageStyles.cardAction}`} href={`/service/${service.slug}`}>
+                            <Link
+                              className={`${styles.secondary} ${pageStyles.cardAction}`}
+                              href={withLocalePrefix(localeRoot, `/service/${service.slug}`)}
+                            >
                               {common('viewDetails')}
                             </Link>
                           </div>

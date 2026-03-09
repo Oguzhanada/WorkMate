@@ -116,8 +116,15 @@ type FieldErrors = Partial<Record<keyof SignUpFormData, string>>;
 
 type EircodeStatus = 'idle' | 'validating' | 'valid' | 'invalid';
 
+type SignUpDraft = {
+  role: AccountRole;
+  form: SignUpFormData;
+  eircodeStatus: EircodeStatus;
+};
+
 const AUTH_TIMEOUT_MS = 15000;
 const AUTH_PING_TIMEOUT_MS = 5000;
+const SIGNUP_DRAFT_KEY = 'workmate.signup.draft.v1';
 
 async function canReachAuthServer() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -261,6 +268,28 @@ export function SignUpForm() {
   const [eircodeStatus, setEircodeStatus] = useState<EircodeStatus>('idle');
 
   useEffect(() => {
+    try {
+      const raw = window.sessionStorage.getItem(SIGNUP_DRAFT_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as Partial<SignUpDraft>;
+      if (parsed?.role === 'customer' || parsed?.role === 'provider') {
+        setRole(parsed.role);
+      }
+      if (parsed?.form && typeof parsed.form === 'object') {
+        setForm((prev) => ({...prev, ...parsed.form}));
+      }
+      if (
+        parsed?.eircodeStatus === 'idle' ||
+        parsed?.eircodeStatus === 'validating' ||
+        parsed?.eircodeStatus === 'valid' ||
+        parsed?.eircodeStatus === 'invalid'
+      ) {
+        setEircodeStatus(parsed.eircodeStatus);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const nextIntentId = params.get('intent') ?? '';
     const nextIntentEmail = params.get('email') ?? '';
@@ -270,6 +299,13 @@ export function SignUpForm() {
       setForm((prev) => ({...prev, email: prev.email || nextIntentEmail}));
     }
   }, []);
+
+  useEffect(() => {
+    try {
+      const draft: SignUpDraft = {role, form, eircodeStatus};
+      window.sessionStorage.setItem(SIGNUP_DRAFT_KEY, JSON.stringify(draft));
+    } catch {}
+  }, [role, form, eircodeStatus]);
 
   const passwordChecks = useMemo(() => getPasswordChecks(form.password), [form.password]);
 
@@ -406,6 +442,10 @@ export function SignUpForm() {
         setFormError('❌ Something went wrong. Please try again.');
         return;
       }
+
+      try {
+        window.sessionStorage.removeItem(SIGNUP_DRAFT_KEY);
+      } catch {}
 
       const nextQuery = intentId
         ? `?intent=${encodeURIComponent(intentId)}${intentEmail ? `&email=${encodeURIComponent(intentEmail)}` : ''}`

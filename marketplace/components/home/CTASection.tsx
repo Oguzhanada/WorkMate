@@ -61,7 +61,7 @@ export default function CTASection() {
             <div className="mb-8 flex items-center gap-3">
               <WorkMateLogo size={40} />
               <span
-                className="text-xl font-bold text-white/90"
+                className="text-xl font-bold text-white"
                 style={{fontFamily: 'var(--wm-font-display)'}}
               >
                 WorkMate
@@ -76,7 +76,7 @@ export default function CTASection() {
                 >
                   Ready to Get Things Done?
                 </h2>
-                <p className="mt-4 max-w-xl text-lg text-white/70">
+                <p className="mt-4 max-w-xl text-lg text-white/90">
                   Join thousands of Irish homeowners who stopped searching and started getting results.
                 </p>
 
@@ -85,7 +85,7 @@ export default function CTASection() {
                   {['Built for Ireland', 'Transparent pricing', 'Verified pros only'].map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full px-3 py-1 text-xs font-semibold text-white/80"
+                      className="rounded-full px-3 py-1 text-xs font-semibold text-white/95"
                       style={{
                         backgroundColor: 'rgba(255,255,255,0.10)',
                         border: '1px solid rgba(255,255,255,0.12)'
@@ -146,10 +146,10 @@ export default function CTASection() {
                 {highlights.map((item) => (
                   <div
                     key={item.text}
-                    className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-white/80"
+                    className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-white/95"
                     style={{backgroundColor: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)'}}
                   >
-                    <item.icon className="h-4 w-4 text-white/85" />
+                    <item.icon className="h-4 w-4 text-white" />
                     <span>{item.text}</span>
                   </div>
                 ))}

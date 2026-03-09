@@ -33,8 +33,10 @@ export default function FeaturedProviders() {
     <section className="bg-[#f3f5f6] px-4 py-16 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="mb-9 text-center">
-          <h2 className="text-[clamp(2rem,4.3vw,3.4rem)] font-extrabold text-[var(--wm-navy)]">Top-Rated Professionals</h2>
-          <p className="mx-auto mt-3 max-w-3xl text-[clamp(1rem,2vw,1.35rem)] text-[var(--wm-muted)]">
+          <h2 className="text-[clamp(2rem,4.3vw,3.4rem)] font-extrabold" style={{ color: 'var(--color-text-primary)', letterSpacing: '-0.03em' }}>
+            Top-Rated Professionals
+          </h2>
+          <p className="mx-auto mt-3 max-w-3xl text-[clamp(1rem,2vw,1.35rem)]" style={{ color: 'var(--color-text-secondary)' }}>
             Meet some of our most trusted and highly-rated service providers.
           </p>
         </div>
@@ -54,10 +56,10 @@ export default function FeaturedProviders() {
                       {provider.full_name}
                       <BadgeCheck className="h-6 w-6 text-[var(--wm-primary)]" />
                     </h3>
-                    <p className="mt-1 text-[1.05rem] text-[var(--wm-muted)]">{provider.profession || 'Verified service professional'}</p>
+                    <p className="mt-1 text-[1.05rem]" style={{ color: 'var(--color-text-secondary)' }}>{provider.profession || 'Verified service professional'}</p>
                   </div>
 
-                  <p className="flex items-center gap-2 text-[1.05rem] text-[var(--wm-muted)]">
+                  <p className="flex items-center gap-2 text-[1.05rem]" style={{ color: 'var(--color-text-secondary)' }}>
                     <MapPin className="h-4 w-4" />
                     {provider.county}
                   </p>
@@ -66,7 +68,7 @@ export default function FeaturedProviders() {
                     <Star className="h-4 w-4 fill-current" />
                     {Number(provider.rating || 0).toFixed(1)}
                   </p>
-                  <p className="text-[1rem] text-[var(--wm-muted)]">({provider.review_count || 0} reviews)</p>
+                  <p className="text-[1rem]" style={{ color: 'var(--color-text-secondary)' }}>({provider.review_count || 0} reviews)</p>
 
                   <Link
                     href={withLocalePrefix(localeRoot, `/profile/public/${provider.id}`)}
@@ -80,8 +82,9 @@ export default function FeaturedProviders() {
           })}
         </div>
 
-        {loading ? <p className="mt-6 text-center text-sm text-[var(--wm-muted)]">Loading providers...</p> : null}
+        {loading ? <p className="mt-6 text-center text-sm" style={{ color: 'var(--color-text-secondary)' }}>Loading providers...</p> : null}
       </div>
     </section>
   );
 }
+

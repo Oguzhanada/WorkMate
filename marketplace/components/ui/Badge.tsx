@@ -15,9 +15,9 @@ const toneClasses: Record<Tone, string> = {
   pending:   'bg-[var(--wm-amber-light)] text-[var(--wm-amber-dark)] ring-[rgba(245,158,11,0.25)]',
   amber:     'bg-[var(--wm-amber-light)] text-[var(--wm-amber-dark)] ring-[rgba(245,158,11,0.25)]',
   completed: 'bg-[var(--wm-blue-soft)] text-[var(--wm-blue-dark)] ring-[rgba(26,86,219,0.20)]',
-  assigned:  'bg-indigo-50 text-indigo-700 ring-indigo-200 dark:bg-indigo-950/50 dark:text-indigo-300 dark:ring-indigo-800',
+  assigned:  'bg-indigo-50 text-indigo-700 ring-indigo-200',
   navy:      'bg-[rgba(12,27,51,0.08)] text-[var(--wm-navy)] ring-[rgba(12,27,51,0.15)]',
-  neutral:   'bg-zinc-100 text-zinc-600 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:ring-zinc-700',
+  neutral:   'bg-zinc-100 text-zinc-600 ring-zinc-200',
 };
 
 const dotColors: Record<Tone, string> = {

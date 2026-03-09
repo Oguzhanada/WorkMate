@@ -150,3 +150,36 @@ export function paymentReleasedEmail(data: PaymentReleasedData): { subject: stri
   `);
   return { subject, html };
 }
+
+// ── Provider first quote milestone (provider notification) ───────────────────
+
+export type ProviderFirstQuoteData = {
+  to: string;
+  providerName: string;
+  jobTitle: string;
+  dashboardUrl: string;
+};
+
+export function providerFirstQuoteEmail(data: ProviderFirstQuoteData): { subject: string; html: string } {
+  const subject = `Nice start, ${data.providerName} - your first quote is live`;
+  const html = layout(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;">First quote sent</h2>
+    <p style="margin:0 0 20px;color:${MUTED};">
+      Great work. Your first quote for <strong>${data.jobTitle}</strong> is now visible to the customer.
+    </p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG};border-radius:8px;padding:16px;margin-bottom:20px;">
+      <tr><td style="padding:4px 0;">
+        <span style="color:${MUTED};font-size:13px;">What to do next</span><br />
+        <strong>Open your dashboard tour and complete your provider setup checklist.</strong>
+      </td></tr>
+    </table>
+
+    ${ctaButton('Open Provider Dashboard Tour', data.dashboardUrl)}
+
+    <p style="margin-top:24px;font-size:13px;color:${MUTED};">
+      Tip: Faster responses and complete profile details usually improve your acceptance rate.
+    </p>
+  `);
+  return { subject, html };
+}

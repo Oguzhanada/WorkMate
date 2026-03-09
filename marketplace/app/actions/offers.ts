@@ -5,6 +5,7 @@ import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { calculateOfferScore } from '@/lib/ranking/offer-ranking';
 import { submitOfferSchema } from '@/lib/validation/api';
+import { sendTransactionalEmail } from '@/lib/email/send';
 
 function parseStringList(value: FormDataEntryValue | null) {
   if (!value) return [] as string[];
@@ -104,6 +105,45 @@ export async function submitOffer(formData: FormData) {
 
   if (insertError || !insertedQuote) {
     return { error: 'Failed to submit offer.' as const };
+  }
+
+  try {
+    const [{ count: providerQuoteCount }, { data: providerProfile }] = await Promise.all([
+      serviceSupabase
+        .from('quotes')
+        .select('id', { count: 'exact', head: true })
+        .eq('pro_id', user.id),
+      serviceSupabase
+        .from('profiles')
+        .select('email,full_name')
+        .eq('id', user.id)
+        .maybeSingle(),
+    ]);
+
+    if ((providerQuoteCount ?? 0) === 1) {
+      await serviceSupabase.from('notifications').insert({
+        user_id: user.id,
+        type: 'provider_first_quote',
+        payload: {
+          quote_id: insertedQuote.id,
+          job_id: jobId,
+          dashboard_tour_path: '/dashboard/pro?tour=1',
+          message: 'First quote sent. Complete your provider dashboard tour.',
+        },
+      });
+
+      if (providerProfile?.email) {
+        sendTransactionalEmail({
+          type: 'provider_first_quote',
+          to: providerProfile.email,
+          providerName: providerProfile.full_name ?? 'Provider',
+          jobTitle: job.title ?? 'your job',
+          dashboardUrl: `${process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'https://workmate.ie'}/en/dashboard/pro?tour=1`,
+        });
+      }
+    }
+  } catch {
+    // Non-blocking milestone signaling.
   }
 
   if (job.category_id && job.created_at) {

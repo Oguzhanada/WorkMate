@@ -92,7 +92,7 @@ export default function StatsSection() {
       <div className="relative z-10 mx-auto max-w-7xl">
         <div className="mb-8 grid gap-5 lg:grid-cols-[1.05fr_1fr] lg:items-end">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/70">Platform health</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/85">Platform health</p>
             <h2
               className="mt-3 text-[clamp(1.6rem,3vw,2.35rem)] font-bold leading-tight text-white"
               style={{fontFamily: 'var(--wm-font-display)'}}
@@ -100,7 +100,7 @@ export default function StatsSection() {
               Transparent outcomes users can evaluate quickly
             </h2>
           </div>
-          <p className="max-w-xl text-sm leading-relaxed text-white/75">
+          <p className="max-w-xl text-sm leading-relaxed text-white/90">
             These indicators reflect real marketplace activity and help users understand response speed,
             coverage, and provider quality before posting.
           </p>
@@ -123,7 +123,7 @@ export default function StatsSection() {
                 >
                   <AnimatedNumber value={stat.value} suffix={stat.suffix} prefix={stat.prefix} />
                 </span>
-                <p className="mt-2 text-[11px] font-semibold uppercase tracking-wider text-white/70">{stat.label}</p>
+                <p className="mt-2 text-[11px] font-semibold uppercase tracking-wider text-white/88">{stat.label}</p>
               </motion.div>
             ))}
           </div>
@@ -142,7 +142,7 @@ export default function StatsSection() {
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-white">{point.title}</p>
-                      <p className="mt-1 text-xs leading-relaxed text-white/70">{point.detail}</p>
+                      <p className="mt-1 text-xs leading-relaxed text-white/85">{point.detail}</p>
                     </div>
                   </div>
                 </div>

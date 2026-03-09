@@ -29,19 +29,10 @@ export default function StatCard({ label, value, icon, trend, trendLabel, accent
 
   return (
     <article
-      className="rounded-2xl border bg-white p-5 dark:bg-zinc-900/80"
+      className="rounded-2xl border bg-white p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[var(--wm-shadow-xl)]"
       style={{
         borderColor: colors.border,
-        boxShadow: 'var(--wm-shadow-md)',
-        transition: 'box-shadow var(--wm-transition-slow), transform var(--wm-transition-slow)'
-      }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.boxShadow = 'var(--wm-shadow-xl)';
-        (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.boxShadow = 'var(--wm-shadow-md)';
-        (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
+        boxShadow: 'var(--wm-shadow-md)'
       }}
     >
       <div className="flex items-start justify-between gap-3">

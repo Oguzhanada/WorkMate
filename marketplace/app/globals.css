@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./tokens.css";
 
 :root {
   /* ── Typography ─────────────────────────────────────────── */
@@ -40,9 +41,13 @@
   --wm-accent:  #0f172a;
   --wm-bg:      #eef3f1;
   --wm-surface: rgba(255, 255, 255, 0.95);
+  --wm-text-strong:  #0b1324;
+  --wm-text-default: #0f172a;
+  --wm-text-muted:   #334155;
+  --wm-text-soft:    #475569;
   --wm-text:    #0f172a;
-  --wm-muted:   #475569;
-  --wm-subtle:  #64748b;
+  --wm-muted:   #334155;
+  --wm-subtle:  #475569;
   --wm-border:  #dbe1e7;
   --wm-border-soft: rgba(0,0,0,0.06);
 
@@ -105,9 +110,25 @@ html, body {
   text-rendering: optimizeLegibility;
 }
 
-a {
+.wm-ds-root {
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+}
+
+p,
+li,
+span,
+small {
   color: inherit;
+  opacity: 1;
+}
+
+a {
   text-decoration: none;
+}
+
+a:not([class]) {
+  color: inherit;
 }
 
 /* ── Headings — Syne display font ───────────────────────────── */
@@ -115,7 +136,7 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--wm-font-display);
   font-weight: 800;
   line-height: 1.2;
-  color: var(--wm-text);
+  color: inherit;
   letter-spacing: -0.03em;
   margin: 0;
 }
@@ -188,6 +209,28 @@ h5 { font-size: 0.9375rem; font-weight: 600; }
   line-height: 1.1;
 }
 
+/* ── Readability guardrail utilities (non-negotiable) ─────────────────────── */
+.wm-readable-surface {
+  opacity: 1 !important;
+}
+
+.wm-readable-surface h1,
+.wm-readable-surface h2,
+.wm-readable-surface h3,
+.wm-readable-surface h4,
+.wm-readable-surface h5,
+.wm-readable-surface h6 {
+  color: var(--wm-text-strong) !important;
+}
+
+.wm-readable-surface p,
+.wm-readable-surface li,
+.wm-readable-surface small,
+.wm-readable-surface label {
+  color: var(--wm-text-muted) !important;
+  opacity: 1 !important;
+}
+
 /* ── Teal underline decoration ──────────────────────────────── */
 .wm-underline-accent {
   position: relative;
@@ -210,29 +253,31 @@ h5 { font-size: 0.9375rem; font-weight: 600; }
 ::-webkit-scrollbar-thumb { background: var(--wm-border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--wm-muted); }
 
-/* ── Dark mode overrides ────────────────────────────────────── */
+/* ── Dark mode policy ────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
+  /* WorkMate keeps a light-first high-contrast UI to avoid mixed-theme readability regressions. */
   :root {
-    --wm-bg:         #09090e;
-    --wm-surface:    rgba(18, 18, 26, 0.88);
-    --wm-text:       #f0f2f5;
-    --wm-muted:      #94a3b8;
-    --wm-subtle:     #64748b;
-    --wm-border:     rgba(255,255,255,0.09);
-    --wm-border-soft:rgba(255,255,255,0.05);
-    --wm-glass:      rgba(18, 18, 26, 0.72);
-    --wm-glass-border: rgba(255,255,255,0.10);
-    --wm-primary-light: rgba(0, 184, 148, 0.12);
-    --wm-primary-faint: rgba(0, 184, 148, 0.07);
-    --wm-amber-light: rgba(245, 158, 11, 0.12);
-    --wm-blue-soft:   rgba(26, 86, 219, 0.12);
+    --wm-bg:         #eef3f1;
+    --wm-surface:    rgba(255, 255, 255, 0.95);
+    --wm-text-strong:#0b1324;
+    --wm-text-default:#0f172a;
+    --wm-text-muted: #334155;
+    --wm-text-soft:  #475569;
+    --wm-text:       #0f172a;
+    --wm-muted:      #334155;
+    --wm-subtle:     #475569;
+    --wm-border:     #dbe1e7;
+    --wm-border-soft:rgba(0,0,0,0.06);
+    --wm-glass:      rgba(255, 255, 255, 0.72);
+    --wm-glass-border: rgba(255, 255, 255, 0.55);
+    --wm-primary-light: #d1fae5;
+    --wm-primary-faint: #ecfdf5;
+    --wm-amber-light: #fffbeb;
+    --wm-blue-soft:   #eff6ff;
   }
 
   html, body {
-    background:
-      radial-gradient(ellipse 100% 60% at 0% 0%, rgba(0, 184, 148, 0.08) 0%, transparent 55%),
-      radial-gradient(ellipse 80% 50% at 100% 0%, rgba(12, 27, 51, 0.5) 0%, transparent 50%),
-      var(--wm-bg);
+    background: var(--wm-grad-hero);
   }
 }
 
@@ -243,3 +288,5 @@ h5 { font-size: 0.9375rem; font-weight: 600; }
     transition-duration: 0.01ms !important;
   }
 }
+
+

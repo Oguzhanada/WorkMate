@@ -97,7 +97,7 @@ export default function ServiceDetailClient({slug}: {slug: string}) {
                     </p>
                     <VerifiedNavigationLink
                       className={styles.primary}
-                      href={`/post-job?service=${encodeURIComponent(service.slug)}&pro=${encodeURIComponent(pro.id)}`}
+                      href={`/${locale}/post-job?service=${encodeURIComponent(service.slug)}&pro=${encodeURIComponent(pro.id)}`}
                     >
                       {common('requestQuote')}
                     </VerifiedNavigationLink>

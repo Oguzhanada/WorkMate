@@ -58,8 +58,13 @@ export default function CategoriesSection() {
     <section id="categories" className="bg-[#f3f5f6] px-4 py-16 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="mb-9 text-center">
-          <h2 className="text-[clamp(2rem,4.3vw,3.4rem)] font-extrabold text-[var(--wm-navy)]">Most Requested Services</h2>
-          <p className="mx-auto mt-4 max-w-3xl text-[clamp(1rem,2vw,1.5rem)] text-[var(--wm-muted)]">
+          <h2
+            className="text-[clamp(2rem,4.3vw,3.4rem)] font-extrabold"
+            style={{ color: 'var(--color-text-primary)', letterSpacing: '-0.03em' }}
+          >
+            Most Requested Services
+          </h2>
+          <p className="mx-auto mt-4 max-w-3xl text-[clamp(1rem,2vw,1.5rem)]" style={{ color: 'var(--color-text-secondary)' }}>
             Browse our most requested categories and find the perfect professional for your needs.
           </p>
         </div>
@@ -97,3 +102,4 @@ export default function CategoriesSection() {
     </section>
   );
 }
+

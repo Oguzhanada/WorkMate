@@ -3,9 +3,11 @@ import {
   quoteReceivedEmail,
   quoteAcceptedEmail,
   paymentReleasedEmail,
+  providerFirstQuoteEmail,
   type QuoteReceivedData,
   type QuoteAcceptedData,
   type PaymentReleasedData,
+  type ProviderFirstQuoteData,
 } from './templates';
 
 const FROM = 'WorkMate <notifications@workmate.ie>';
@@ -13,7 +15,8 @@ const FROM = 'WorkMate <notifications@workmate.ie>';
 type EmailEvent =
   | ({ type: 'quote_received' } & QuoteReceivedData)
   | ({ type: 'quote_accepted' } & QuoteAcceptedData)
-  | ({ type: 'payment_released' } & PaymentReleasedData);
+  | ({ type: 'payment_released' } & PaymentReleasedData)
+  | ({ type: 'provider_first_quote' } & ProviderFirstQuoteData);
 
 /**
  * Fire-and-forget transactional email. Never throws — email failure is logged
@@ -31,6 +34,8 @@ export function sendTransactionalEmail(event: EmailEvent): void {
         ({ subject, html } = quoteReceivedEmail(event));
       } else if (event.type === 'quote_accepted') {
         ({ subject, html } = quoteAcceptedEmail(event));
+      } else if (event.type === 'provider_first_quote') {
+        ({ subject, html } = providerFirstQuoteEmail(event));
       } else {
         ({ subject, html } = paymentReleasedEmail(event));
       }

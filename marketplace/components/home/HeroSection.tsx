@@ -35,13 +35,13 @@ export default function HeroSection() {
       <div className="relative mx-auto max-w-5xl text-center">
         <h1
           className="mx-auto max-w-4xl text-[clamp(2.4rem,6.5vw,5.1rem)] font-extrabold leading-[1.02]"
-          style={{ color: '#0f172a', textShadow: '0 1px 0 rgba(255,255,255,0.4)' }}
+          style={{ color: 'var(--color-text-primary)', textShadow: '0 1px 0 rgba(255,255,255,0.4)' }}
         >
-          <span style={{ color: '#0f172a' }}>Find trusted local pros</span>
+          <span style={{ color: 'var(--color-text-primary)' }}>Find trusted local pros</span>
           <br />
           <span className="text-[var(--wm-primary)]">in Ireland</span>
         </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-[clamp(1rem,2.2vw,1.35rem)] leading-relaxed text-[var(--wm-muted)]">
+        <p className="mx-auto mt-6 max-w-2xl text-[clamp(1rem,2.2vw,1.35rem)] leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
           Connect with verified professionals for all your home service needs.
         </p>
 
@@ -107,3 +107,4 @@ export default function HeroSection() {
     </section>
   );
 }
+

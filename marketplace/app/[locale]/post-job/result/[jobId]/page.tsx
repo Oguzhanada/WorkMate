@@ -22,7 +22,7 @@ export default async function JobResultPage({
 }: {
   params: Promise<{ locale: string; jobId: string }>;
 }) {
-  const { jobId } = await params;
+  const { locale, jobId } = await params;
   const supabase = await getSupabaseServerClient();
 
   const {
@@ -30,7 +30,7 @@ export default async function JobResultPage({
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/login');
+    redirect(`/${locale}/login`);
   }
 
   const { data, error } = await supabase

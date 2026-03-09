@@ -13,6 +13,9 @@ type ButtonProps = {
   size?: ButtonSize;
   disabled?: boolean;
   loading?: boolean;
+  leftIcon?: ReactNode;
+  rightIcon?: ReactNode;
+  fullWidth?: boolean;
   className?: string;
 };
 
@@ -24,13 +27,13 @@ const variantClasses: Record<ButtonVariant, string> = {
     'hover:bg-[var(--wm-primary-dark)] hover:shadow-[0_10px_24px_rgba(16,185,129,0.34)] hover:-translate-y-px ' +
     'active:translate-y-0 active:shadow-[0_4px_12px_rgba(16,185,129,0.24)]',
   secondary:
-    'bg-white dark:bg-zinc-900 text-[var(--wm-text)] dark:text-zinc-100 ' +
-    'border border-[var(--wm-border)] dark:border-zinc-700 ' +
+    'bg-[var(--color-background-secondary)] text-[var(--color-text-primary)] ' +
+    'border border-[var(--color-border-default)] ' +
     'shadow-[var(--wm-shadow-sm)] ' +
     'hover:border-[var(--wm-primary)] hover:text-[var(--wm-primary)] hover:shadow-[var(--wm-shadow-md)] hover:-translate-y-px ' +
     'active:translate-y-0',
   ghost:
-    'bg-transparent text-[var(--wm-muted)] dark:text-zinc-300 border border-transparent ' +
+    'bg-transparent text-[var(--wm-muted)] border border-transparent ' +
     'hover:bg-[var(--wm-primary-light)] hover:text-[var(--wm-primary-dark)] ' +
     'active:bg-[var(--wm-primary-light)]',
   outline:
@@ -96,23 +99,30 @@ export default function Button({
   size = 'md',
   disabled = false,
   loading = false,
+  leftIcon,
+  rightIcon,
+  fullWidth = false,
   className,
 }: ButtonProps) {
-  const classes = compose(className, variant, size);
+  const classes = compose(`${fullWidth ? 'w-full' : ''} ${className ?? ''}`, variant, size);
   const isDisabled = disabled || loading;
 
   if (href) {
     return (
       <Link href={href} className={classes} aria-disabled={isDisabled}>
         {loading ? <Spinner /> : null}
+        {!loading ? leftIcon : null}
         {children}
+        {!loading ? rightIcon : null}
       </Link>
     );
   }
   return (
     <button type={type} onClick={onClick} disabled={isDisabled} className={classes} aria-busy={loading}>
       {loading ? <Spinner /> : null}
+      {!loading ? leftIcon : null}
       {children}
+      {!loading ? rightIcon : null}
     </button>
   );
 }

@@ -130,6 +130,45 @@ export async function POST(request: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
+  let isFirstQuoteMilestone = false;
+  let providerEmail: string | null = null;
+  let providerName = 'Provider';
+  const dashboardTourPath = '/dashboard/pro?tour=1';
+
+  try {
+    const serviceSupabase = getSupabaseServiceClient();
+    const [{ count: providerQuoteCount }, { data: providerProfile }] = await Promise.all([
+      serviceSupabase
+        .from('quotes')
+        .select('id', { count: 'exact', head: true })
+        .eq('pro_id', user.id),
+      serviceSupabase
+        .from('profiles')
+        .select('email,full_name')
+        .eq('id', user.id)
+        .maybeSingle(),
+    ]);
+
+    isFirstQuoteMilestone = (providerQuoteCount ?? 0) === 1;
+    providerEmail = providerProfile?.email ?? null;
+    providerName = providerProfile?.full_name ?? providerName;
+
+    if (isFirstQuoteMilestone) {
+      await serviceSupabase.from('notifications').insert({
+        user_id: user.id,
+        type: 'provider_first_quote',
+        payload: {
+          quote_id: data.id,
+          job_id: body.job_id,
+          dashboard_tour_path: dashboardTourPath,
+          message: 'First quote sent. Complete your provider dashboard tour.',
+        },
+      });
+    }
+  } catch {
+    // Non-blocking — first quote milestone signals should never block quote creation.
+  }
+
   if (job.category_id && job.created_at) {
     const ranking = await calculateOfferScore(
       {
@@ -224,11 +263,22 @@ export async function POST(request: NextRequest) {
     })();
   }
 
+  if (isFirstQuoteMilestone && providerEmail) {
+    sendTransactionalEmail({
+      type: 'provider_first_quote',
+      to: providerEmail,
+      providerName,
+      jobTitle: job.title ?? 'your job',
+      dashboardUrl: `${process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'https://workmate.ie'}/en${dashboardTourPath}`,
+    });
+  }
+
   return NextResponse.json(
     {
       quote: data,
       provider_verification_status: providerIsVerified ? 'approved' : profile?.id_verification_status ?? 'none',
       remaining_quotes_today: remainingQuotes,
+      dashboard_tour_path: isFirstQuoteMilestone ? dashboardTourPath : null,
       upgrade_message: providerIsVerified
         ? null
         : 'Quote sent. Verify your ID for unlimited quotes and wider lead access.'

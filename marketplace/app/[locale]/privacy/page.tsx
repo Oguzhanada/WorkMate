@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 
 import Card from '@/components/ui/Card';
 import PageHeader from '@/components/ui/PageHeader';
@@ -9,10 +10,34 @@ export const metadata: Metadata = {
     'How WorkMate collects, uses, and protects your personal data under GDPR and Irish law.',
 };
 
-export default function PrivacyPage() {
+export default async function PrivacyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ returnTo?: string }>;
+}) {
+  const params = await searchParams;
+  const returnTo = typeof params.returnTo === 'string' && params.returnTo.startsWith('/')
+    ? params.returnTo
+    : null;
+
   return (
     <main className="py-14">
       <div style={{ width: 'min(860px, calc(100% - 32px))', margin: '0 auto' }}>
+        {returnTo ? (
+          <div className="mb-3">
+            <Link
+              href={returnTo}
+              className="inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-semibold"
+              style={{
+                borderColor: 'var(--wm-border)',
+                color: 'var(--wm-text-default)',
+                background: 'var(--wm-surface)',
+              }}
+            >
+              Back to sign up
+            </Link>
+          </div>
+        ) : null}
         <div className="mb-6">
           <PageHeader
             title="Privacy Policy"

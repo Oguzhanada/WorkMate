@@ -1,8 +1,10 @@
 "use client";
 
 import Link from 'next/link';
+import {usePathname, useSearchParams} from 'next/navigation';
 import {ShieldCheck} from 'lucide-react';
 
+import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
 import styles from './login.module.css';
 
 type IdentityConsentProps = {
@@ -11,6 +13,17 @@ type IdentityConsentProps = {
 };
 
 export function IdentityConsent({checked, onChange}: IdentityConsentProps) {
+  const pathname = usePathname() || '/';
+  const localeRoot = getLocaleRoot(pathname);
+  const searchParams = useSearchParams();
+  const currentQuery = searchParams.toString();
+  const returnTo = `${pathname}${currentQuery ? `?${currentQuery}` : ''}`;
+  const privacyHref = withLocalePrefix(localeRoot, `/privacy-policy?returnTo=${encodeURIComponent(returnTo)}`);
+  const guidelinesHref = withLocalePrefix(
+    localeRoot,
+    `/community-guidelines?returnTo=${encodeURIComponent(returnTo)}`
+  );
+
   return (
     <section
       className={styles.consentCard}
@@ -41,11 +54,21 @@ export function IdentityConsent({checked, onChange}: IdentityConsentProps) {
         />
         <span>
           I agree to identity verification processing and the{' '}
-          <Link href="/privacy-policy" onClick={(event) => event.stopPropagation()}>
+          <Link
+            href={privacyHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(event) => event.stopPropagation()}
+          >
             Privacy Policy
           </Link>{' '}
           and{' '}
-          <Link href="/community-guidelines" onClick={(event) => event.stopPropagation()}>
+          <Link
+            href={guidelinesHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(event) => event.stopPropagation()}
+          >
             Community Guidelines
           </Link>
           .{' '}
