@@ -83,7 +83,15 @@ These rules are mandatory for every change in this project.
 - If a requested change is risky/non-compliant:
   - Explain why (short and concrete),
   - Provide a compliant alternative,
-  - Ask for confirmation only if needed.
+- Ask for confirmation only if needed.
+
+## 7.1) Flow maturity execution order
+- Follow flow modernization order strictly:
+  1) Provider funnel
+  2) Trust/policy/dispute certainty
+  3) Ops reliability and telemetry
+- Do not start telemetry-heavy work before provider funnel and trust policy contracts are in place.
+- Source roadmap: `marketplace/docs/flow-maturity-roadmap-10w.md`
 
 ## 8) UI architecture rule
 - No new raw page-level CSS for visual redesign work unless shared tokens/components are insufficient.
@@ -93,6 +101,10 @@ These rules are mandatory for every change in this project.
   - Shadcn/Radix primitives are allowed inside `components/ui/*` wrappers.
   - Do not scatter primitive-specific utility patterns directly across page files.
   - Keep color/spacing/radius/shadow decisions mapped to `--wm-*` tokens.
+- Readability-first contrast is mandatory:
+  - On light surfaces, body/supporting text must use `--wm-text-muted` or darker.
+  - Never use reduced opacity text (`text-white/..`, `opacity-..`) on light cards/sections.
+  - Any new section must pass a manual readability check at 100% and 125% zoom before merge.
 
 ---
 
@@ -197,6 +209,23 @@ When working on these areas, activate the matching skill first:
 | General project rules + guardrails | `workmate-core` |
 | Frozen decision check / architecture audit | `workmate-schema-guardian` |
 
+## 17.1) MCP pilot matrix (DR-006)
+
+Read-only pilot matrix:
+
+| Agent role | Allowed MCP | Allowed capabilities | Forbidden capabilities |
+|---|---|---|---|
+| ProjectManager | GitHub | read PRs, read issues, read checks/workflows | create/update issues, merge, label write |
+| QAAgent | GitHub | read check runs, read failed jobs, read PR test context | rerun workflows, PR write actions |
+| BackendAgent | Supabase | read schema metadata, read RLS policies, read query diagnostics | any SQL mutation, migration apply, table writes |
+| ComplianceAgent | Supabase | read verification/dispute/payment policy evidence | data mutation, policy writes |
+
+MCP pilot rules:
+- MCP runtime is local only.
+- All MCP calls must pass `scripts/mcp/read_only_enforce.mjs`.
+- Any blocked action must be logged to `logs/mcp-readonly-violations.log`.
+- If fallback rate exceeds thresholds defined in DR-006, narrow scope immediately.
+
 ## 19) FROZEN DECISIONS — do not change without a Decision Record
 
 The following architectural decisions are **locked**. They were established through deliberate analysis and must not be changed without writing a Decision Record directly in this section.
@@ -220,6 +249,9 @@ DR-XXX | Date | Author | Decision changed | Reason | Approved by
 | FD-10 | RLS never `FOR ALL USING (true)` — all policies scoped to `auth.uid()` | Security — open policies expose all rows to all authenticated users |
 | FD-11 | No hardcoded `/en/` in hrefs, redirects, or router.push — use `lib/i18n/locale-path` helpers | Locale routing correctness; future locale expansion readiness |
 | FD-12 | Webhook delivery: HTTPS-only, HMAC-SHA256 via `X-WorkMate-Signature` from `lib/webhook/send.ts` | Security — unsigned webhooks are spoofable |
+| FD-13 | Contrast contract: text on light surfaces must use semantic text tokens (`--wm-text-strong/default/muted/soft`), never low-opacity text color hacks | Prevents recurring unreadable UI regressions across pages |
+| FD-14 | Theme application is explicit-only: light theme locked by default on `<html data-theme="light">`; no automatic `prefers-color-scheme` overrides in token source | Prevents accidental global washed-out/low-contrast regressions after unrelated changes |
+| FD-15 | No page/container-level opacity on readable content wrappers (`main`, `section`, hero/content cards) except loading/skeleton states | Prevents whole-screen faded text incidents and preserves readability baseline |
 
 **Decision Records (changes to frozen decisions):**
 _(none yet — first change must be documented here before implementation)_
@@ -236,5 +268,6 @@ Before making any change, a new AI agent must read these files in order:
 5. `marketplace/lib/auth/rbac.ts` — RBAC helpers
 6. `marketplace/lib/dashboard/widgets.ts` — widget system source of truth
 7. `marketplace/lib/i18n/locale-path.ts` — locale path helpers
+
 
 

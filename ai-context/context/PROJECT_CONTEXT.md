@@ -220,38 +220,40 @@ marketplace/
 8. [ ] E2E Playwright tests: task alerts, offer ranking, time tracking, widget drag-drop
 9. [ ] Webhook delivery observability — retry monitoring
 10. [ ] API key scopes and rotation audit trail
+11. [ ] **UI Priority (Active now)** — complete main theme rollout + cross-page readability/contrast polish as first priority
 
 ### Phase 1 — Strategic Features (Session 13 Roadmap)
 > Full roadmap: `ai-context/memory/checkpoints/CHECKPOINT_SESSION13_2026-03-06.md`
 
-11. [ ] **Migration 050** — `compliance_score` column on `profiles` + ranking view update
-12. [ ] **Irish Compliance Badge** — "Ireland Fully Verified" badge component + `/providers` filter toggle + admin compliance_score panel
-13. [ ] **Smart Match Score** — server action: `ranking_score × compliance_score × response_time_factor`, shown as "Match %" on quote cards
-14. [ ] **Rebooking 1.9% fee** — detect repeat customer/provider pair via `customer_provider_history`, apply reduced fee, show "Rebook" CTA + savings message
-15. [ ] **"Why WorkMate?" homepage section** — 3-column competitor comparison (WorkMate vs Airtasker IE vs MyBuilder)
-16. [ ] **Provider AI Suggested Alerts** — "Suggest alerts" button reads `pro_services` → auto-creates `task_alerts`
-17. [ ] **Offer Ranking Badge polish** — 48h expiry countdown on quote cards, "X providers viewed this job" counter
+12. [ ] **Migration 050** — `compliance_score` column on `profiles` + ranking view update
+13. [ ] **Irish Compliance Badge** — "Ireland Fully Verified" badge component + `/providers` filter toggle + admin compliance_score panel
+14. [ ] **Smart Match Score** — server action: `ranking_score × compliance_score × response_time_factor`, shown as "Match %" on quote cards
+15. [ ] **Rebooking 1.9% fee** — detect repeat customer/provider pair via `customer_provider_history`, apply reduced fee, show "Rebook" CTA + savings message
+16. [ ] **"Why WorkMate?" homepage section** — 3-column competitor comparison (WorkMate vs Airtasker IE vs MyBuilder)
+17. [ ] **Provider AI Suggested Alerts** — "Suggest alerts" button reads `pro_services` → auto-creates `task_alerts`
+18. [ ] **Offer Ranking Badge polish** — 48h expiry countdown on quote cards, "X providers viewed this job" counter
 
 ### Phase 2 — Medium Term (3–6 Weeks)
-18. [ ] Price estimation tool in `JobMultiStepForm` (percentile query on accepted quotes by category)
-19. [ ] Multi-dimension reviews: quality / punctuality / value — Migration 051
-20. [ ] "Same-Day Available" badge (query `provider_availability_slots` within 24h)
-21. [ ] Provider earnings dashboard widget (monthly net, fee breakdown, payout ETA)
-22. [ ] Customer "Favourite Pros" list — Migration 052
-23. [ ] AI Job Description Writer (Claude Haiku integration in job form)
-24. [ ] Remote / Virtual Consultation job type — Migration 053
-25. [ ] Fraud / anomaly detection (risk_score in admin) — Migration 054
+19. [ ] Price estimation tool in `JobMultiStepForm` (percentile query on accepted quotes by category)
+20. [ ] Multi-dimension reviews: quality / punctuality / value — Migration 051
+21. [ ] "Same-Day Available" badge (query `provider_availability_slots` within 24h)
+22. [ ] Provider earnings dashboard widget (monthly net, fee breakdown, payout ETA)
+23. [ ] Customer "Favourite Pros" list — Migration 052
+24. [ ] AI Job Description Writer (Claude Haiku integration in job form)
+25. [ ] Remote / Virtual Consultation job type — Migration 053
+26. [ ] Fraud / anomaly detection (risk_score in admin) — Migration 054
+27. [ ] **Deferred ops task** — Waybar button-driven Dark theme sync (system + app appearance), postponed until after main theme rollout
 
 ### Phase 3 — Long Term (6–12 Months)
-26. [ ] Mobile app (React Native + Expo)
-27. [ ] Garda vetting integration — Migration 055
-28. [ ] Revenue.ie Tax Clearance API auto-check
-29. [ ] Provider tax reporting tool (annual earnings PDF for Revenue)
-30. [ ] Contract templates per job category — Migration 056
-31. [ ] GDPR automation (auto-delete, data export endpoint) — Migration 057
-32. [ ] A/B test infrastructure (feature_flags) — Migration 057
-33. [ ] "WorkMate Pro" provider subscription — Migration 058
-34. [ ] UK / Northern Ireland expansion (en-GB locale, UK postcode validator)
+28. [ ] Mobile app (React Native + Expo)
+29. [ ] Garda vetting integration — Migration 055
+30. [ ] Revenue.ie Tax Clearance API auto-check
+31. [ ] Provider tax reporting tool (annual earnings PDF for Revenue)
+32. [ ] Contract templates per job category — Migration 056
+33. [ ] GDPR automation (auto-delete, data export endpoint) — Migration 057
+34. [ ] A/B test infrastructure (feature_flags) — Migration 057
+35. [ ] "WorkMate Pro" provider subscription — Migration 058
+36. [ ] UK / Northern Ireland expansion (en-GB locale, UK postcode validator)
 
 ---
 
@@ -316,6 +318,29 @@ marketplace/
 - Day summary only when user says `gün bitti`
 - Context warning: `Context health: OK` / `High usage` / `Save checkpoint now`
 - Turkish input OK, English-only code and output
+
+---
+
+## 13. FLOW MATURITY ROADMAP (LOCKED PRIORITY, 2026-03-09)
+
+Reference:
+- `marketplace/docs/flow-maturity-roadmap-10w.md`
+- `ai-context/decisions/DR-003-cancellation-refund-policy.md`
+- `ai-context/decisions/DR-004-provider-funnel-standardization.md`
+- `ai-context/decisions/DR-005-flow-maturity-consolidation.md`
+
+Priority order (must be preserved):
+1. Provider funnel
+2. Trust and policy certainty
+3. Ops reliability + telemetry
+
+Timeline policy:
+- Legacy 8-week assumption is superseded.
+- Planning baseline is now 10 weeks (realistic execution).
+
+Phase fallback:
+- If provider scope drifts, quote SLA enforcement moves from Phase A to Phase B automatically.
+- Telemetry remains "lite" in initial rollout; advanced anomaly logic is a later iteration.
 - Never auto-create checkpoints between explicit requests
 
 ---
