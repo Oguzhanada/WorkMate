@@ -8,7 +8,7 @@ import {
   PROVIDER_REQUIRED_DOCUMENTS,
   ProviderDocumentStatus,
   ProviderDocumentType,
-} from '@/lib/provider-documents';
+} from '@/lib/data/documents';
 
 import styles from './dashboard.module.css';
 

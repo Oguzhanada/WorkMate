@@ -7,8 +7,8 @@ import { CreditCard, ExternalLink, Loader2 } from 'lucide-react';
 
 import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
 import {getSupabaseBrowserClient} from '@/lib/supabase/client';
-import {IRISH_COUNTIES} from '@/lib/ireland-locations';
-import {isValidIrishPhone, normalizeIrishPhone, sanitizePhoneInput} from '@/lib/validation/phone';
+import {IRISH_COUNTIES} from '@/lib/ireland/locations';
+import {isValidIrishPhone, normalizeIrishPhone, sanitizePhoneInput} from '@/lib/ireland/phone';
 import {hasAtLeastTwoNameParts, isValidEnglishFullName} from '@/lib/validation/name';
 import {useCategoriesWithFallback, type Category} from '@/lib/hooks/useCategoriesWithFallback';
 import {resolveProviderVerificationState} from '@/lib/onboarding/provider-verification';

@@ -190,4 +190,3 @@ export const serviceFaq = [
 ];
 
 /* teamMembers removed — about page now uses inline founder description */
-

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe';
+import { stripe } from '@/lib/stripe/client';
 import { resolveJobAccessContext } from '@/lib/jobs/access';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';

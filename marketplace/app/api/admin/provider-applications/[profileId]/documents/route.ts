@@ -3,7 +3,7 @@ import { ensureAdminRoute } from '@/lib/auth/admin';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { logAdminAudit } from '@/lib/admin/audit';
 import { adminDocumentDecisionSchema } from '@/lib/validation/api';
-import { PROVIDER_REQUIRED_DOCUMENTS } from '@/lib/provider-documents';
+import { PROVIDER_REQUIRED_DOCUMENTS } from '@/lib/data/documents';
 import { fireAutomationEvent } from '@/lib/automation/engine';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
@@ -111,7 +111,7 @@ async function patchHandler(
   const reviewState = {
     ...((existing?.stripe_requirements_due as Record<string, unknown>) ?? {}),
     admin_review: {
-      ...(((existing?.stripe_requirements_due as Record<string, any>)?.admin_review as Record<string, unknown>) ??
+      ...((existing?.stripe_requirements_due as Record<string, Record<string, unknown>>)?.admin_review ??
         {}),
       document_review: {
         document_id,

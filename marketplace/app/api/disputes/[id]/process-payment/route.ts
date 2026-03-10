@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ensureAdminRoute } from '@/lib/auth/admin';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { disputeProcessPaymentSchema } from '@/lib/validation/api';
-import { stripe } from '@/lib/stripe';
+import { stripe } from '@/lib/stripe/client';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 async function postHandler(

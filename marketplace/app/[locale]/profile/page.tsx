@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { hasAtLeastTwoNameParts } from '@/lib/validation/name';
-import { isValidIrishPhone } from '@/lib/validation/phone';
+import { isValidIrishPhone } from '@/lib/ireland/phone';
 import ProfileLayout from '@/components/profile/ProfileLayout';
 import ProfileTabContent from '@/components/profile/ProfileTabContent';
 

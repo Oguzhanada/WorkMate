@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { COUNTY_COORDS, IRELAND_CENTER, IRELAND_ZOOM, getCategoryColor } from '@/lib/ireland-coordinates';
+import { COUNTY_COORDS, IRELAND_CENTER, IRELAND_ZOOM, getCategoryColor } from '@/lib/ireland/coordinates';
 import type { ProviderData } from './ProviderCard';
 import Button from '@/components/ui/Button';
 
@@ -107,14 +107,14 @@ export default function MapView({
   onBoundsChange,
   locale,
 }: MapViewProps) {
-  const markerPositionsRef = useRef(new Map<string, [number, number]>());
+  // Stable ref to persist positions across provider list changes (avoids jitter recalc)
+  const stablePositionsRef = useRef(new Map<string, [number, number]>());
 
   // Build marker positions: place each provider at the center of their first listed county
   const getProviderPosition = useCallback((provider: ProviderData): [number, number] | null => {
     for (const county of provider.counties) {
       const coords = COUNTY_COORDS[county];
       if (coords) {
-        // Jitter slightly so overlapping markers in same county don't stack exactly
         const jitter = () => (Math.random() - 0.5) * 0.08;
         return [coords[0] + jitter(), coords[1] + jitter()];
       }
@@ -122,14 +122,13 @@ export default function MapView({
     return null;
   }, []);
 
-  // Pre-compute positions for all providers
-  const providerPositions = useRef(new Map<string, [number, number]>());
+  // Pre-compute positions as state so React tracks it during render
+  const [positionMap, setPositionMap] = useState(new Map<string, [number, number]>());
 
   useEffect(() => {
     const newPositions = new Map<string, [number, number]>();
     for (const p of providers) {
-      // Reuse existing position if provider is already mapped
-      const existing = providerPositions.current.get(p.id);
+      const existing = stablePositionsRef.current.get(p.id);
       if (existing) {
         newPositions.set(p.id, existing);
       } else {
@@ -137,8 +136,8 @@ export default function MapView({
         if (pos) newPositions.set(p.id, pos);
       }
     }
-    providerPositions.current = newPositions;
-    markerPositionsRef.current = newPositions;
+    stablePositionsRef.current = newPositions;
+    queueMicrotask(() => setPositionMap(newPositions));
   }, [providers, getProviderPosition]);
 
   return (
@@ -158,11 +157,11 @@ export default function MapView({
         <BoundsListener onBoundsChange={onBoundsChange} />
         <FlyToHighlighted
           highlightedId={highlightedProviderId}
-          markerPositions={markerPositionsRef.current}
+          markerPositions={positionMap}
         />
 
         {providers.map((provider) => {
-          const pos = providerPositions.current.get(provider.id);
+          const pos = positionMap.get(provider.id);
           if (!pos) return null;
 
           const category = provider.service_categories[0] ?? 'default';

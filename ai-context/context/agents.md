@@ -265,9 +265,65 @@ DR-XXX | Date | Author | Decision changed | Reason | Approved by
 | FD-13 | Contrast contract: text on light surfaces must use semantic text tokens (`--wm-text-strong/default/muted/soft`), never low-opacity text color hacks | Prevents recurring unreadable UI regressions across pages |
 | FD-14 | Theme application is explicit-only: light theme locked by default on `<html data-theme="light">`; no automatic `prefers-color-scheme` overrides in token source | Prevents accidental global washed-out/low-contrast regressions after unrelated changes |
 | FD-15 | No page/container-level opacity on readable content wrappers (`main`, `section`, hero/content cards) except loading/skeleton states | Prevents whole-screen faded text incidents and preserves readability baseline |
+| FD-16 | Ireland-specific logic MUST live in `lib/ireland/` — never at `lib/` root | Session 27 restructure — prevents re-scattering of domain logic |
+| FD-17 | Static data/enums MUST live in `lib/data/` — never at `lib/` root or `lib/constants/` | Session 27 restructure — consolidates all enums/data in one place |
+| FD-18 | Stripe SDK MUST live in `lib/stripe/client.ts` — never as `lib/stripe.ts` | Session 27 restructure — consistent with other integrations |
+| FD-19 | Feature components in their domain dir (`jobs/`, `offers/`, `reviews/`) — NOT in `dashboard/` | Session 27 restructure — prevents dashboard/ becoming a catch-all |
+| FD-20 | No orphaned files in `lib/` root (except `live-services.ts`, `i18n.ts`) | Session 27 restructure — all utilities must live in subdirectories |
+| FD-21 | `components/ui/index.ts` barrel export must be updated when adding new UI primitives | Session 27 — barrel export exists, keep it current |
+| FD-22 | Pre-commit hooks (Husky + lint-staged) must NOT be bypassed with `--no-verify` | Session 27 — quality gates must run locally |
 
 **Decision Records (changes to frozen decisions):**
 _(none yet — first change must be documented here before implementation)_
+
+---
+
+## 20) Repository Structure — STRICT file organization rules (established session 27)
+
+These rules protect the architectural reorganization completed in session 27. Violating these rules creates import chaos and merge conflicts.
+
+### 20.1) Ireland-specific logic MUST live in `lib/ireland/`
+- Eircode validation: `lib/ireland/eircode.ts` — NEVER create a new `lib/eircode.ts`
+- Irish phone normalization: `lib/ireland/phone.ts` — NEVER create a new `lib/validation/phone.ts`
+- County coordinates: `lib/ireland/coordinates.ts` — NEVER create a new `lib/ireland-coordinates.ts`
+- Location/county mappings: `lib/ireland/locations.ts` — NEVER create a new `lib/ireland-locations.ts`
+- New Ireland-specific logic (VAT, Revenue, PSC): add to `lib/ireland/`
+
+### 20.2) Static data and enums MUST live in `lib/data/`
+- Category definitions: `lib/data/categories.ts` — NEVER create a new `lib/marketplace-data.ts`
+- Service taxonomy: `lib/data/services.ts` — NEVER create a new `lib/service-taxonomy.ts`
+- Provider document types: `lib/data/documents.ts` — NEVER create a new `lib/provider-documents.ts`
+- Budget options: `lib/data/budgets.ts` — NEVER create a new `lib/constants/job.ts`
+- New static data/enums: add to `lib/data/`
+
+### 20.3) Stripe SDK MUST live in `lib/stripe/`
+- Stripe client: `lib/stripe/client.ts` — NEVER create a new `lib/stripe.ts` at root
+- Stripe webhook handlers: `lib/stripe/handlers/` (when extracted)
+- New Stripe-related logic: add to `lib/stripe/`
+
+### 20.4) Component domain boundaries — STRICT ownership
+Components MUST live in their feature directory, NOT in `dashboard/`:
+- Job-related: `components/jobs/` (JobMessagePanel, JobPhotoUploader, JobContractPanel, etc.)
+- Quote/offer-related: `components/offers/` (QuoteActions, etc.)
+- Review-related: `components/reviews/` (LeaveReviewForm, etc.)
+- `components/dashboard/` is ONLY for dashboard-specific layout, widgets, and analytics panels
+- `components/ui/` is ONLY for design system primitives — no business logic, no data fetching
+
+### 20.5) No orphaned files in `lib/` root
+- `lib/` root should ONLY contain `live-services.ts` (master switch) and `i18n.ts`
+- All other utilities MUST be in a subdirectory (`lib/ireland/`, `lib/data/`, `lib/stripe/`, etc.)
+- If you need to add a new utility, create or use an appropriate subdirectory
+
+### 20.6) Barrel exports exist — use them
+- `components/ui/index.ts` — exports all UI primitives
+- `lib/ireland/index.ts` — exports all Ireland logic
+- `lib/data/index.ts` — exports all static data
+- New barrel exports can be added, but existing imports via direct paths also remain valid
+
+### 20.7) Pre-commit hooks are active
+- Husky + lint-staged run ESLint + tsc on every commit
+- Do NOT bypass with `--no-verify` unless explicitly approved by the user
+- If a hook fails, fix the issue — do not disable the hook
 
 ---
 

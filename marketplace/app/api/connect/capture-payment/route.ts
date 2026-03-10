@@ -3,7 +3,7 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canAccessAdmin, canPostJob, getUserRoles } from '@/lib/auth/rbac';
 import { capturePaymentSchema } from '@/lib/validation/api';
-import { stripe } from '@/lib/stripe';
+import { stripe } from '@/lib/stripe/client';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 async function postHandler(request: NextRequest) {

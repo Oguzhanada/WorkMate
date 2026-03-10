@@ -2,7 +2,7 @@
 
 import {useEffect, useMemo, useState} from 'react';
 
-import {getTaxonomyCategories} from '@/lib/service-taxonomy';
+import {getTaxonomyCategories} from '@/lib/data/services';
 
 export type Category = {
   id: string;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import styles from './dashboard.module.css';
+import styles from '@/components/dashboard/dashboard.module.css';
 
 type MessageItem = {
   id: string;

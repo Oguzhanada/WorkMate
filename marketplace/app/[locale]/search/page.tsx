@@ -6,9 +6,9 @@ import {FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState}
 import {useTranslations} from 'next-intl';
 import {AnimatePresence, motion, useReducedMotion} from 'framer-motion';
 
-import {professionals, services} from '@/lib/marketplace-data';
+import {professionals, services} from '@/lib/data/categories';
 import VerifiedNavigationLink from '@/components/site/VerifiedNavigationLink';
-import {COUNTY_CITIES} from '@/lib/ireland-locations';
+import {COUNTY_CITIES} from '@/lib/ireland/locations';
 import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
 import Button from '@/components/ui/Button';
 

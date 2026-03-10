@@ -12,7 +12,7 @@ import {
   JOB_SCOPE_OPTIONS,
   JOB_SCOPE_DESCRIPTIONS,
   JOB_URGENCY_OPTIONS,
-} from '@/lib/constants/job';
+} from '@/lib/data/budgets';
 import type { JobMode, TaskType } from '@/lib/types/airtasker';
 import { useCategoriesWithFallback, type Category } from '@/lib/hooks/useCategoriesWithFallback';
 import Button from '@/components/ui/Button';
@@ -176,7 +176,7 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
   // Track funnel start once on mount
   useEffect(() => {
     trackFunnelStep({ funnelName: FUNNEL_JOB_POSTING, stepName: 'job_posting_started', stepNumber: 1 });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   useEffect(() => {

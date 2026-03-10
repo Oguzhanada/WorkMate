@@ -3,7 +3,7 @@ import Script from 'next/script';
 import {getTranslations} from 'next-intl/server';
 
 import {isValidLocale} from '@/lib/i18n';
-import {professionals, services} from '@/lib/marketplace-data';
+import {professionals, services} from '@/lib/data/categories';
 
 import ServiceDetailClient from './ServiceDetailClient';
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isValidEircode, normalizeEircode } from '@/lib/eircode';
+import { isValidEircode, normalizeEircode } from '@/lib/ireland/eircode';
 import { addressLookupQuerySchema } from '@/lib/validation/api';
 
 export async function GET(request: NextRequest) {

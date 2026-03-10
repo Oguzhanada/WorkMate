@@ -9,7 +9,7 @@ import {
   ProviderDocumentDraft,
   ProviderDocumentType,
   validateProviderDocumentDraft,
-} from '@/lib/provider-documents';
+} from '@/lib/data/documents';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import ProgressBar from '@/components/ui/ProgressBar';
 

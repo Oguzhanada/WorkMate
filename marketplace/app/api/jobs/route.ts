@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canPostJob, getUserRoles, isIdVerified } from '@/lib/auth/rbac';
-import { isValidEircode, normalizeEircode } from '@/lib/eircode';
+import { isValidEircode, normalizeEircode } from '@/lib/ireland/eircode';
 import { fireAutomationEvent } from '@/lib/automation/engine';
 import { createJobSchema } from '@/lib/validation/api';
 import { sendWebhookEvent } from '@/lib/webhook/send';

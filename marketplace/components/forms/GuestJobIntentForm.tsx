@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { JOB_BUDGET_OPTIONS, JOB_SCOPE_OPTIONS, JOB_TITLE_OPTIONS, JOB_URGENCY_OPTIONS } from '@/lib/constants/job';
+import { JOB_BUDGET_OPTIONS, JOB_SCOPE_OPTIONS, JOB_TITLE_OPTIONS, JOB_URGENCY_OPTIONS } from '@/lib/data/budgets';
 import { useCategoriesWithFallback, type Category } from '@/lib/hooks/useCategoriesWithFallback';
 import EircodeAddressForm, { type Address } from './EircodeAddressForm';
 import InfoTooltip from '@/components/ui/InfoTooltip';

@@ -1,6 +1,6 @@
 import type {MetadataRoute} from 'next';
 
-import {services} from '@/lib/marketplace-data';
+import {services} from '@/lib/data/categories';
 
 const baseUrl = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'http://localhost:3000';
 

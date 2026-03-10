@@ -1,0 +1,1 @@
+cd marketplace && npx lint-staged

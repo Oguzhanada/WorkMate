@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { Search, SlidersHorizontal, X, Shield, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
-import { IRISH_COUNTIES } from '@/lib/ireland-locations';
+import { IRISH_COUNTIES } from '@/lib/ireland/locations';
 import Button from '@/components/ui/Button';
 
 export type SearchFiltersState = {

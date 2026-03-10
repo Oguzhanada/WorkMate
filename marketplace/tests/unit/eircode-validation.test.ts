@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 
-import {isValidEircode, normalizeEircode} from '@/lib/eircode';
+import {isValidEircode, normalizeEircode} from '@/lib/ireland/eircode';
 
 describe('eircode helpers', () => {
   it('normalizes values to uppercase format with one space', () => {

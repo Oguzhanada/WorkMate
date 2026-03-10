@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 
-import {isValidIrishPhone, normalizeIrishPhone, sanitizePhoneInput} from '@/lib/validation/phone';
+import {isValidIrishPhone, normalizeIrishPhone, sanitizePhoneInput} from '@/lib/ireland/phone';
 
 describe('phone validation helpers', () => {
   it('sanitizes spaces and non-digit symbols while keeping +', () => {

@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { createGuestJobIntentSchema } from '@/lib/validation/api';
-import { isValidEircode, normalizeEircode } from '@/lib/eircode';
+import { isValidEircode, normalizeEircode } from '@/lib/ireland/eircode';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 async function handler(request: NextRequest): Promise<NextResponse> {

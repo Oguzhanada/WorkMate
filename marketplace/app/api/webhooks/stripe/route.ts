@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { stripe } from '@/lib/stripe';
+import { stripe } from '@/lib/stripe/client';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { sendWebhookEvent } from '@/lib/webhook/send';
 import { sendTransactionalEmail } from '@/lib/email/send';

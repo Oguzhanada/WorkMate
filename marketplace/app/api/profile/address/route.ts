@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
-import { normalizeEircode, isValidEircode } from '@/lib/eircode';
+import { normalizeEircode, isValidEircode } from '@/lib/ireland/eircode';
 import { profileAddressSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { apiError, apiValidationError, apiUnauthorized } from '@/lib/api/error-response';

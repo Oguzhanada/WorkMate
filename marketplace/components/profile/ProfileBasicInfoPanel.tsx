@@ -4,7 +4,7 @@ import {useEffect, useMemo, useRef, useState} from 'react';
 import {useRouter} from 'next/navigation';
 import {getSupabaseBrowserClient} from '@/lib/supabase/client';
 import {hasAtLeastTwoNameParts, isValidEnglishFullName} from '@/lib/validation/name';
-import {isValidIrishPhone, normalizeIrishPhone, sanitizePhoneInput} from '@/lib/validation/phone';
+import {isValidIrishPhone, normalizeIrishPhone, sanitizePhoneInput} from '@/lib/ireland/phone';
 import styles from './profile-basic.module.css';
 
 type Props = {

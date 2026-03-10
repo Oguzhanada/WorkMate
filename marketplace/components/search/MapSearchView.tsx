@@ -9,7 +9,7 @@ import ProviderCard, { type ProviderData } from './ProviderCard';
 import type { MapBounds } from './MapView';
 import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
-import { COUNTY_COORDS } from '@/lib/ireland-coordinates';
+import { COUNTY_COORDS } from '@/lib/ireland/coordinates';
 
 // Dynamic import — Leaflet has no SSR support
 const MapView = dynamic(() => import('./MapView'), {

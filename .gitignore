@@ -42,6 +42,18 @@ docs/legal/
 # QA screenshots (temporary, root only)
 /*.png
 
+# Certificates & keys
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Vercel
+.vercel/
+
+# Turbopack cache
+.turbo/
+
 # Editor / OS
 .claude/*
 !.claude/skills/
@@ -50,6 +62,8 @@ docs/legal/
 !.claude/skills/ui-system-hybrid-migration/SKILL.md
 !.claude/skills/workmate-visual-qa/
 !.claude/skills/workmate-visual-qa/SKILL.md
+!.claude/skills/workmate-schema-guardian/
+!.claude/skills/workmate-schema-guardian/SKILL.md
 .sandbox/
 sandbox/
 .vscode/

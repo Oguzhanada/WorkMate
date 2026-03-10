@@ -19,8 +19,8 @@ import {z} from 'zod';
 
 import {getSupabaseBrowserClient} from '@/lib/supabase/client';
 import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
-import {getCitiesByCounty} from '@/lib/ireland-locations';
-import {isValidIrishPhone, normalizeIrishPhone} from '@/lib/validation/phone';
+import {getCitiesByCounty} from '@/lib/ireland/locations';
+import {isValidIrishPhone, normalizeIrishPhone} from '@/lib/ireland/phone';
 import {formItemVariants, formListVariants, rightColumnVariants} from '@/styles/animations';
 import {IdentityConsent} from './IdentityConsent';
 import {PasswordChecks, PasswordStrength} from './PasswordStrength';

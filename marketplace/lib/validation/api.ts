@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { JOB_BUDGET_OPTIONS } from '@/lib/constants/job';
+import { JOB_BUDGET_OPTIONS } from '@/lib/data/budgets';
 
 // ── Auth schemas ────────────────────────────────────────────────────────────
 

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import styles from './dashboard.module.css';
+import styles from '@/components/dashboard/dashboard.module.css';
 
 export default function JobPhotoUploader({
   jobId,
