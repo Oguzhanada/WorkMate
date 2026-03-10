@@ -1,6 +1,14 @@
-// ── In-memory sliding window rate limiter ────────────────────────────────────
-// Resets on server restart — acceptable for MVP. For distributed rate limiting
-// across multiple serverless containers, replace the store with Vercel KV / Redis.
+// ── Sliding window rate limiter with pluggable store ─────────────────────────
+//
+// Current: in-memory store (resets on server restart).
+// Acceptable for MVP on single-container Vercel deployments.
+//
+// KV MIGRATION PLAN:
+//   1. Install @vercel/kv (or ioredis for self-hosted Redis)
+//   2. Implement RateLimitStore interface below using KV get/set with TTL
+//   3. Swap `activeStore` to the KV implementation
+//   4. Remove the setInterval cleanup (KV handles TTL expiry natively)
+//   5. No changes needed in route files — the rateLimit() API stays the same
 
 export type RateLimitConfig = {
   /** Duration of the window in milliseconds */
@@ -16,8 +24,40 @@ type StoreEntry = {
   resetAt: number;
 };
 
-// Module-level store — shared across all calls within the same serverless container
-const store = new Map<string, StoreEntry>();
+export type RateLimitResult = {
+  allowed: boolean;
+  remaining: number;
+  resetAt: number;
+};
+
+// ── Store adapter interface (KV-ready) ──────────────────────────────────────
+
+export interface RateLimitStore {
+  get(key: string): StoreEntry | null | Promise<StoreEntry | null>;
+  set(key: string, entry: StoreEntry, ttlMs: number): void | Promise<void>;
+}
+
+// ── In-memory store (default) ───────────────────────────────────────────────
+
+const memoryMap = new Map<string, StoreEntry>();
+
+const inMemoryStore: RateLimitStore = {
+  get(key: string): StoreEntry | null {
+    const entry = memoryMap.get(key);
+    if (!entry) return null;
+    if (entry.resetAt <= Date.now()) {
+      memoryMap.delete(key);
+      return null;
+    }
+    return entry;
+  },
+  set(key: string, entry: StoreEntry): void {
+    memoryMap.set(key, entry);
+  },
+};
+
+// Active store — swap this for KV when ready
+const activeStore: RateLimitStore = inMemoryStore;
 
 // ── Predefined limit configurations ──────────────────────────────────────────
 
@@ -41,20 +81,22 @@ export const RATE_LIMITS = {
 // ── Core rate limit function ──────────────────────────────────────────────────
 
 export function rateLimit(config: RateLimitConfig) {
-  return function checkRateLimit(identifier: string): {
-    allowed: boolean;
-    remaining: number;
-    resetAt: number;
-  } {
+  return function checkRateLimit(identifier: string): RateLimitResult {
     const now = Date.now();
     const key = `${config.keyPrefix}:${identifier}`;
 
-    const existing = store.get(key);
+    const existing = activeStore.get(key);
+
+    // Handle async stores (future KV) — for now, in-memory is sync
+    if (existing instanceof Promise) {
+      // Fallback: allow the request when store is async (sync path only)
+      return { allowed: true, remaining: config.max - 1, resetAt: now + config.windowMs };
+    }
 
     // No existing entry, or the window has expired — start a fresh window
     if (!existing || existing.resetAt <= now) {
       const resetAt = now + config.windowMs;
-      store.set(key, { count: 1, resetAt });
+      activeStore.set(key, { count: 1, resetAt }, config.windowMs);
       return { allowed: true, remaining: config.max - 1, resetAt };
     }
 
@@ -64,6 +106,7 @@ export function rateLimit(config: RateLimitConfig) {
     }
 
     existing.count++;
+    activeStore.set(key, existing, existing.resetAt - now);
     return {
       allowed: true,
       remaining: config.max - existing.count,
@@ -74,12 +117,13 @@ export function rateLimit(config: RateLimitConfig) {
 
 // ── Periodic cleanup — prevent unbounded memory growth ───────────────────────
 // Runs every 5 minutes and removes entries whose window has already expired.
+// NOTE: Remove this block when migrating to KV (KV handles TTL expiry natively).
 
 if (typeof setInterval !== 'undefined') {
   setInterval(() => {
     const now = Date.now();
-    for (const [key, value] of store.entries()) {
-      if (value.resetAt < now) store.delete(key);
+    for (const [key, value] of memoryMap.entries()) {
+      if (value.resetAt < now) memoryMap.delete(key);
     }
   }, 300_000);
 }

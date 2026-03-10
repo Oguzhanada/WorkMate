@@ -273,6 +273,7 @@ DR-XXX | Date | Author | Decision changed | Reason | Approved by
 | FD-21 | `components/ui/index.ts` barrel export must be updated when adding new UI primitives | Session 27 — barrel export exists, keep it current |
 | FD-22 | Pre-commit hooks (Husky + lint-staged) must NOT be bypassed with `--no-verify` | Session 27 — quality gates must run locally |
 | FD-23 | AI agents MUST work on feature branches — NEVER commit directly to `main` | Session 27 — main protection, user-only merge |
+| FD-24 | AI agents MUST NOT create completion/audit/task report files (`*REPORT*.md`, `*COMPLETION*.md`, `*GUIDE*.md` at repo root or `docs/`) — only architectural/operational docs allowed | Session 28 — anti-doc-bloat, keep repo clean |
 
 **Decision Records (changes to frozen decisions):**
 _(none yet — first change must be documented here before implementation)_
@@ -337,6 +338,14 @@ Components MUST live in their feature directory, NOT in `dashboard/`:
 - Before starting work, check which branch you are on: `git branch --show-current`
 - If you are on `main`, create a new branch first: `git checkout -b feat/<description>`
 - **NEVER** run `git push origin main` — push your feature branch instead
+
+### 20.9) Documentation policy — NO agent self-reports (FD-24)
+- **NEVER** create `*REPORT*.md`, `*COMPLETION*.md`, `*GUIDE*.md`, `*AUDIT*.md` files
+- These are agent self-reports and add no value — they bloat the repo
+- The only allowed documentation in `docs/` is **architectural/operational**:
+  - `ARCHITECTURE_REVIEW.md`, `PRODUCTION_LAUNCH.md`, `DB_RUNBOOK.md`, `ROPA.md`, checkpoints
+- If you need to communicate what you did, use **PR description** and **commit messages** — not separate files
+- Existing `PROJECT_CONTEXT.md` is the single onboarding reference — do not create duplicates
 - The user will review and merge via PR or direct merge at their discretion
 
 ---
