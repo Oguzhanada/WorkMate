@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { toggleFavouriteSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiValidationError, apiUnauthorized } from '@/lib/api/error-response';
 
 // GET /api/favourites — list all provider IDs the current user has saved
 export async function GET() {
@@ -12,7 +13,7 @@ export async function GET() {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const { data, error } = await supabase
@@ -21,7 +22,7 @@ export async function GET() {
     .eq('customer_id', user.id)
     .order('created_at', { ascending: false });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) return apiError(error.message, 400);
 
   return NextResponse.json({ favourites: data ?? [] });
 }
@@ -36,22 +37,19 @@ async function postHandler(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = toggleFavouriteSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? 'Invalid request' },
-      { status: 400 }
-    );
+    return apiValidationError(parsed.error.issues);
   }
 
   const { provider_id } = parsed.data;
@@ -81,7 +79,7 @@ async function postHandler(request: NextRequest) {
     provider_id,
   });
 
-  if (insertError) return NextResponse.json({ error: insertError.message }, { status: 400 });
+  if (insertError) return apiError(insertError.message, 400);
 
   return NextResponse.json({ saved: true }, { status: 201 });
 }

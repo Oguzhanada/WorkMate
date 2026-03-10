@@ -5,6 +5,7 @@ import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { createDisputeSchema } from '@/lib/validation/api';
 import { getDisputeParticipantContext, isDisputeParticipant } from '@/lib/disputes';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiValidationError, apiUnauthorized, apiForbidden, apiNotFound } from '@/lib/api/error-response';
 
 async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
@@ -14,19 +15,19 @@ async function postHandler(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = createDisputeSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Validation failed', details: parsed.error.flatten() }, { status: 400 });
+    return apiValidationError(parsed.error.issues);
   }
 
   const body = parsed.data;
@@ -37,18 +38,18 @@ async function postHandler(request: NextRequest) {
     .eq('id', body.job_id)
     .maybeSingle();
 
-  if (!job) return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+  if (!job) return apiNotFound('Job not found');
   if (job.status !== 'completed') {
-    return NextResponse.json({ error: 'Disputes can only be opened for completed jobs.' }, { status: 400 });
+    return apiError('Disputes can only be opened for completed jobs.', 400);
   }
 
   if (!job.dispute_deadline || new Date(job.dispute_deadline).getTime() < Date.now()) {
-    return NextResponse.json({ error: 'Dispute deadline has passed for this job.' }, { status: 400 });
+    return apiError('Dispute deadline has passed for this job.', 400);
   }
 
   const participantContext = await getDisputeParticipantContext(supabase, body.job_id);
   if (!participantContext || !isDisputeParticipant(user.id, participantContext)) {
-    return NextResponse.json({ error: 'You are not allowed to dispute this job.' }, { status: 403 });
+    return apiForbidden('You are not allowed to dispute this job.');
   }
 
   const { data: existingActive } = await supabase
@@ -59,7 +60,7 @@ async function postHandler(request: NextRequest) {
     .maybeSingle();
 
   if (existingActive) {
-    return NextResponse.json({ error: 'An active dispute already exists for this job.' }, { status: 400 });
+    return apiError('An active dispute already exists for this job.', 400);
   }
 
   const serviceSupabase = getSupabaseServiceClient();
@@ -88,7 +89,7 @@ async function postHandler(request: NextRequest) {
     .single();
 
   if (createError || !dispute) {
-    return NextResponse.json({ error: createError?.message ?? 'Dispute could not be created.' }, { status: 400 });
+    return apiError(createError?.message ?? 'Dispute could not be created.', 400);
   }
 
   await serviceSupabase.from('jobs').update({ payment_on_hold: true }).eq('id', body.job_id);

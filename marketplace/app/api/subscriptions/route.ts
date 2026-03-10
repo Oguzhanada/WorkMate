@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { apiUnauthorized, apiServerError } from '@/lib/api/error-response';
 
 // GET /api/subscriptions — get the current provider's subscription
 export async function GET() {
@@ -11,7 +12,7 @@ export async function GET() {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const service = getSupabaseServiceClient();
@@ -21,7 +22,7 @@ export async function GET() {
     .eq('provider_id', user.id)
     .maybeSingle();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return apiServerError(error.message);
 
   // Return null subscription = basic plan (default for providers without a record)
   return NextResponse.json({

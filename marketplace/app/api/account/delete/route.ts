@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiUnauthorized, apiServerError } from '@/lib/api/error-response';
 
 async function postHandler() {
   const supabase = await getSupabaseRouteClient();
@@ -11,11 +12,11 @@ async function postHandler() {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    return apiServerError('Server configuration error');
   }
 
   const serviceClient = getSupabaseServiceClient();
@@ -23,7 +24,7 @@ async function postHandler() {
 
   if (deleteError) {
     console.error('Account deletion failed:', deleteError.message);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return apiServerError();
   }
 
   const response = NextResponse.json({ ok: true });
