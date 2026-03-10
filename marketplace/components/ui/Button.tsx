@@ -7,6 +7,7 @@ type ButtonSize = 'sm' | 'md' | 'lg' | 'xl';
 type ButtonProps = {
   children: ReactNode;
   href?: string;
+  external?: boolean;
   onClick?: (e?: React.MouseEvent) => void;
   type?: 'button' | 'submit' | 'reset';
   variant?: ButtonVariant;
@@ -103,27 +104,39 @@ export default function Button({
   rightIcon,
   fullWidth = false,
   className,
+  external = false,
   ...rest
 }: ButtonProps) {
   const classes = compose(`${fullWidth ? 'w-full' : ''} ${className ?? ''}`, variant, size);
   const isDisabled = disabled || loading;
 
+  const inner = (
+    <>
+      {loading ? <Spinner /> : null}
+      {!loading ? leftIcon : null}
+      {children}
+      {!loading ? rightIcon : null}
+    </>
+  );
+
+  if (href && external) {
+    return (
+      <a href={href} className={classes} target="_blank" rel="noopener noreferrer" aria-disabled={isDisabled}>
+        {inner}
+      </a>
+    );
+  }
+
   if (href) {
     return (
       <Link href={href} className={classes} aria-disabled={isDisabled}>
-        {loading ? <Spinner /> : null}
-        {!loading ? leftIcon : null}
-        {children}
-        {!loading ? rightIcon : null}
+        {inner}
       </Link>
     );
   }
   return (
     <button type={type} onClick={onClick} disabled={isDisabled} className={classes} aria-busy={loading} {...rest}>
-      {loading ? <Spinner /> : null}
-      {!loading ? leftIcon : null}
-      {children}
-      {!loading ? rightIcon : null}
+      {inner}
     </button>
   );
 }

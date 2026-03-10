@@ -85,16 +85,16 @@ function ServiceCard({ service }: { service: HealthCheckResult }) {
 
       {/* External link */}
       {link && (
-        <a
+        <Button
           href={link.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-auto inline-flex items-center gap-1 text-xs font-medium"
-          style={{ color: 'var(--wm-primary-dark)' }}
+          external
+          variant="ghost"
+          size="sm"
+          className="mt-auto"
+          rightIcon={<span aria-hidden="true">&rarr;</span>}
         >
           {link.label}
-          <span aria-hidden="true">&rarr;</span>
-        </a>
+        </Button>
       )}
     </div>
   );
