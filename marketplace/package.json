@@ -22,7 +22,7 @@
   },
   "scripts": {
     "check:english": "node scripts/check-english-only.mjs",
-    "check:pr-guardrails": "pwsh -File scripts/check-pr-guardrails.ps1",
+    "check:pr-guardrails": "node scripts/check-pr-guardrails.mjs",
     "check:prepublic-security": "node scripts/pre-public-security-check.mjs",
     "preflight": "node scripts/preflight.mjs",
     "health-check": "node scripts/health-check.mjs",
