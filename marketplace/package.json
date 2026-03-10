@@ -64,7 +64,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitest/coverage-v8": "^4.0.18",
     "backstopjs": "^6.3.25",
-    "eslint": "^9.39.2",
+    "eslint": "^9.39.4",
     "eslint-config-next": "^16.1.6",
     "husky": "^9.1.7",
     "jsdom": "^28.1.0",
