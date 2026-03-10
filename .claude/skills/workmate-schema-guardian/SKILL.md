@@ -87,7 +87,7 @@ Before making any change, run this checklist mentally:
 
 All 12 checked? Proceed. Any failed? Fix first or write a Decision Record.
 
-## File Organization Frozen Rules (FD-16 — FD-23, session 27)
+## File Organization Frozen Rules (FD-16 — FD-24, session 27–28)
 
 These protect the repository restructuring. **DO NOT** recreate deleted/moved files at their old locations.
 
@@ -101,6 +101,7 @@ These protect the repository restructuring. **DO NOT** recreate deleted/moved fi
 | FD-21 | `components/ui/` barrel export exists at `components/ui/index.ts` — keep it updated when adding new primitives | Adding a new UI primitive without exporting it from `index.ts` |
 | FD-22 | Pre-commit hooks (Husky + lint-staged) must not be bypassed | Using `--no-verify` flag |
 | FD-23 | AI agents must NEVER commit to `main` — use feature branches only | Running `git commit` while on `main`, or `git push origin main` |
+| FD-24 | AI agents must NOT create completion/audit/task/guide report files | Creating `TASK_COMPLETION_REPORT.md`, `PROJECT_GUIDE.md`, `SKILL_AUDIT_REPORT.md` etc. |
 
 ### File Organization Checklist (add to pre-change checklist)
 
@@ -112,6 +113,7 @@ These protect the repository restructuring. **DO NOT** recreate deleted/moved fi
 - [ ] FD-21: New UI primitive → add to `components/ui/index.ts` barrel
 - [ ] FD-22: Never `--no-verify` on commits
 - [ ] FD-23: On a feature branch (not `main`) before committing
+- [ ] FD-24: Not creating any `*REPORT*.md`, `*COMPLETION*.md`, `*GUIDE*.md`, `*AUDIT*.md` files
 
 ---
 
