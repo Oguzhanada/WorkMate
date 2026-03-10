@@ -172,10 +172,10 @@ npx vitest run --config vitest.config.ts tests/unit/my-file.test.ts
 
 - Migration files live in `marketplace/migrations/`.
 - Migrations are applied **manually** via the Supabase SQL Editor — there is no CLI push workflow.
-- The next migration file to create is **`059_*.sql`**. Migrations 001–058 are all applied.
+- The next migration file to create is **`073_*.sql`**. Migrations 001–072 are all applied.
 - Rules:
   - **Additive only.** Never rewrite or renumber an existing migration.
-  - **Descriptive names.** Format: `059_short_description.sql`.
+  - **Descriptive names.** Format: `073_short_description.sql`.
   - **RLS required.** Every new table must have Row Level Security enabled with appropriate policies. Never use `FOR ALL USING (true)`.
   - **No destructive DDL** in migrations that are intended for production (no `DROP TABLE`, no column removal without a deprecation plan).
 
