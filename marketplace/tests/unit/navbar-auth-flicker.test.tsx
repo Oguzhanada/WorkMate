@@ -1,4 +1,6 @@
-import {act, render, screen, waitFor} from '@testing-library/react';
+import {act, render} from '@testing-library/react';
+import {screen, waitFor} from '@testing-library/dom';
+import type {ReactNode} from 'react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 
 import Navbar from '@/components/home/Navbar';
@@ -23,7 +25,7 @@ function createDeferred<T>() {
 }
 
 vi.mock('next/link', () => ({
-  default: ({children, href, ...rest}: Record<string, unknown>) => (
+  default: ({children, href, ...rest}: {children?: ReactNode; href?: string; [key: string]: unknown}) => (
     <a href={typeof href === 'string' ? href : '#'} {...rest}>
       {children}
     </a>
@@ -40,9 +42,9 @@ vi.mock('next/navigation', () => ({
 }));
 
 vi.mock('framer-motion', () => ({
-  AnimatePresence: ({children}: Record<string, unknown>) => children,
+  AnimatePresence: ({children}: {children?: ReactNode; [key: string]: unknown}) => children,
   motion: {
-    div: ({children, initial: _initial, animate: _animate, variants: _variants, exit: _exit, transition: _transition, ...props}: Record<string, unknown>) => (
+    div: ({children, initial: _initial, animate: _animate, variants: _variants, exit: _exit, transition: _transition, ...props}: {children?: ReactNode; [key: string]: unknown}) => (
       <div {...props}>{children}</div>
     )
   }
