@@ -1,8 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { TrendingUp, Briefcase, Clock } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { TrendingUp, Briefcase, Clock, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
 import Skeleton from '@/components/ui/Skeleton';
 
 type EarningsSummary = {
@@ -27,6 +30,8 @@ function getMonthRange() {
 }
 
 export default function ProviderEarningsWidget() {
+  const pathname = usePathname() || '/';
+  const localeRoot = useMemo(() => getLocaleRoot(pathname), [pathname]);
   const [summary, setSummary] = useState<EarningsSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -143,6 +148,16 @@ export default function ProviderEarningsWidget() {
         <p className="mt-2 text-xs" style={{ color: 'var(--wm-muted)' }}>
           No completed jobs this month. Earnings will appear here once jobs are marked complete.
         </p>
+      ) : null}
+      {!loading && !error ? (
+        <Link
+          href={withLocalePrefix(localeRoot, '/dashboard/pro/earnings')}
+          className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold"
+          style={{ color: 'var(--wm-primary)' }}
+        >
+          View all earnings
+          <ArrowRight size={13} />
+        </Link>
       ) : null}
     </div>
   );

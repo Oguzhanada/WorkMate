@@ -85,7 +85,12 @@ const FAQ_ITEMS = [
 
 /* ── Page ── */
 
-export default function GardaVettingPage() {
+export default async function GardaVettingPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   return (
     <main className="py-14">
       <div style={{ width: 'min(860px, calc(100% - 32px))', margin: '0 auto' }}>
@@ -392,7 +397,7 @@ export default function GardaVettingPage() {
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3">
               <Link
-                href="/en/dashboard"
+                href={`/${locale}/dashboard`}
                 className="inline-flex items-center rounded-xl px-5 py-2.5 text-sm font-semibold"
                 style={{
                   background: 'var(--wm-primary)',
@@ -402,7 +407,7 @@ export default function GardaVettingPage() {
                 Go to dashboard
               </Link>
               <Link
-                href="/en/become-provider"
+                href={`/${locale}/become-provider`}
                 className="inline-flex items-center rounded-xl border px-5 py-2.5 text-sm font-semibold"
                 style={{
                   borderColor: 'var(--wm-border)',

@@ -16,9 +16,11 @@ import {
   Shield,
   Star,
   TrendingUp,
-  Users,
   Zap,
+  Crown,
 } from 'lucide-react';
+
+import FoundingProBadge from '@/components/ui/FoundingProBadge';
 
 import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
 
@@ -846,46 +848,55 @@ export default function BecomeProviderPage() {
           whileInView={{opacity: 1, y: 0}}
           viewport={{once: true}}
           transition={{duration: 0.5}}
-          className="mx-auto max-w-5xl rounded-2xl p-8 sm:p-10"
+          className="mx-auto max-w-5xl overflow-hidden rounded-2xl"
           style={{
-            background: 'linear-gradient(135deg, rgba(var(--wm-primary-rgb), 0.08) 0%, rgba(255,255,255,0.9) 100%)',
-            border: '1px solid rgba(var(--wm-primary-rgb), 0.2)',
+            background: 'linear-gradient(135deg, var(--wm-navy) 0%, #0c1a2e 60%, #0a2a29 100%)',
+            border: '1px solid rgba(var(--wm-primary-rgb), 0.25)',
           }}
         >
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-            <div className="max-w-lg">
-              <div className="mb-2 flex items-center gap-2">
-                <Users className="h-5 w-5" style={{color: 'var(--wm-primary)'}} />
-                <span
-                  className="text-sm font-bold"
-                  style={{color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)'}}
-                >
-                  Founding Pro Program
-                </span>
-              </div>
-              <h3
-                className="text-lg font-bold"
-                style={{color: 'var(--wm-navy)', fontFamily: 'var(--wm-font-display)'}}
-              >
-                Join as one of Ireland&apos;s first 100 WorkMate Pros.
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed" style={{color: 'var(--wm-muted)'}}>
-                Founding Pros get Pro features free for 6 months, a permanent &ldquo;Founding Pro&rdquo; badge on their profile,
-                and direct input into product development. Limited to 100 providers nationwide.
-              </p>
-            </div>
-            <Link
-              href={withLocalePrefix(localeRoot, '/become-provider/apply')}
-              className="inline-flex shrink-0 items-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold text-white transition-transform hover:scale-[1.03]"
+          <div className="relative px-8 py-10 sm:px-10 sm:py-12">
+            {/* Decorative glow */}
+            <div
+              className="pointer-events-none absolute -right-16 -top-16"
               style={{
-                background: 'var(--wm-grad-primary)',
-                fontFamily: 'var(--wm-font-display)',
-                boxShadow: '0 8px 30px rgba(var(--wm-primary-rgb), 0.25)',
+                width: '300px',
+                height: '300px',
+                background: 'radial-gradient(circle, rgba(var(--wm-primary-rgb), 0.15) 0%, transparent 60%)',
+                filter: 'blur(60px)',
               }}
-            >
-              Claim Your Spot
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+            />
+
+            <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+              <div className="max-w-lg">
+                <div className="mb-3 flex items-center gap-3">
+                  <Crown className="h-5 w-5" style={{color: 'var(--wm-amber)'}} />
+                  <FoundingProBadge size="md" />
+                </div>
+                <h3
+                  className="text-xl font-bold sm:text-2xl"
+                  style={{color: 'white', fontFamily: 'var(--wm-font-display)', letterSpacing: '-0.02em'}}
+                >
+                  Join as a Founding Pro — Limited to first 100 providers.
+                </h3>
+                <p className="mt-3 text-sm leading-relaxed" style={{color: 'rgba(255,255,255,0.6)'}}>
+                  Get 6 months free Pro features + a permanent Founding Pro badge on your profile.
+                  Direct input into product development. Only 100 spots available nationwide.
+                </p>
+              </div>
+              <Link
+                href={withLocalePrefix(localeRoot, '/founding-pro')}
+                className="inline-flex shrink-0 items-center gap-2 rounded-full px-8 py-4 text-sm font-bold transition-transform hover:scale-[1.03] active:scale-95"
+                style={{
+                  background: 'var(--wm-grad-warm, linear-gradient(135deg, var(--wm-amber-light), var(--wm-primary-faint)))',
+                  color: 'var(--wm-navy)',
+                  fontFamily: 'var(--wm-font-display)',
+                  boxShadow: '0 8px 30px rgba(var(--wm-primary-rgb), 0.25)',
+                }}
+              >
+                Learn More
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         </motion.div>
       </section>

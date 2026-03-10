@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { MessageSquareQuote } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import ComplianceBadge from '@/components/ui/ComplianceBadge';
+import FoundingProBadge from '@/components/ui/FoundingProBadge';
 import GardaVettingBadge from '@/components/ui/GardaVettingBadge';
 import PortfolioGallery from '@/components/profile/PortfolioGallery';
 
@@ -69,7 +71,7 @@ export default async function PublicProfilePage({ params }: { params: Params }) 
     await Promise.all([
       supabase
         .from('profiles')
-        .select('id,full_name,avatar_url,created_at,is_verified,verification_status,compliance_score,garda_vetting_status,garda_vetting_expires_at')
+        .select('id,full_name,avatar_url,created_at,is_verified,verification_status,compliance_score,garda_vetting_status,garda_vetting_expires_at,is_founding_pro')
         .eq('id', id)
         .maybeSingle(),
       supabase
@@ -247,6 +249,9 @@ export default async function PublicProfilePage({ params }: { params: Params }) 
                   status={(profile as { garda_vetting_status?: string | null }).garda_vetting_status as Parameters<typeof GardaVettingBadge>[0]['status']}
                   expiresAt={(profile as { garda_vetting_expires_at?: string | null }).garda_vetting_expires_at}
                 />
+                {(profile as { is_founding_pro?: boolean }).is_founding_pro ? (
+                  <FoundingProBadge size="md" />
+                ) : null}
               </div>
               <p className="mt-2 text-sm" style={{ color: 'rgba(255, 255, 255, 0.65)' }}>
                 Joined {joinedDate}
@@ -254,18 +259,32 @@ export default async function PublicProfilePage({ params }: { params: Params }) 
                 {profile.is_verified ? 'Verified' : profile.verification_status ?? 'Pending'}
               </p>
               {/* Status badge */}
-              <span
-                className="mt-3 inline-block rounded-full px-4 py-1.5 text-xs font-bold"
-                style={{
-                  background: profile.is_verified
-                    ? 'rgba(var(--wm-primary-rgb), 0.22)'
-                    : 'rgba(var(--wm-destructive-rgb), 0.18)',
-                  color: profile.is_verified ? 'var(--wm-primary)' : '#fca5a5',
-                  border: `1px solid ${profile.is_verified ? 'rgba(var(--wm-primary-rgb), 0.45)' : 'rgba(var(--wm-destructive-rgb), 0.35)'}`,
-                }}
-              >
-                {profile.is_verified ? 'Verified Provider' : 'Pending Verification'}
-              </span>
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <span
+                  className="inline-block rounded-full px-4 py-1.5 text-xs font-bold"
+                  style={{
+                    background: profile.is_verified
+                      ? 'rgba(var(--wm-primary-rgb), 0.22)'
+                      : 'rgba(var(--wm-destructive-rgb), 0.18)',
+                    color: profile.is_verified ? 'var(--wm-primary)' : '#fca5a5',
+                    border: `1px solid ${profile.is_verified ? 'rgba(var(--wm-primary-rgb), 0.45)' : 'rgba(var(--wm-destructive-rgb), 0.35)'}`,
+                  }}
+                >
+                  {profile.is_verified ? 'Verified Provider' : 'Pending Verification'}
+                </span>
+                <a
+                  href={`/${locale}/post-job?provider=${id}`}
+                  className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-bold no-underline transition-opacity hover:opacity-90"
+                  style={{
+                    background: 'var(--wm-grad-primary)',
+                    color: '#fff',
+                    boxShadow: 'var(--wm-shadow-md)',
+                  }}
+                >
+                  <MessageSquareQuote className="h-4 w-4" />
+                  Request a Quote
+                </a>
+              </div>
             </div>
           </div>
         </div>

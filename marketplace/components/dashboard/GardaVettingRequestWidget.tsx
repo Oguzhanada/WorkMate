@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ShieldCheck, Clock, AlertCircle, ExternalLink, Info } from 'lucide-react';
+import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
 import Button from '@/components/ui/Button';
 import GardaVettingBadge from '@/components/ui/GardaVettingBadge';
 import Skeleton from '@/components/ui/Skeleton';
@@ -16,6 +18,8 @@ type VettingData = {
 };
 
 export default function GardaVettingRequestWidget() {
+  const pathname = usePathname() || '/';
+  const localeRoot = useMemo(() => getLocaleRoot(pathname), [pathname]);
   const [data, setData] = useState<VettingData | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -315,7 +319,7 @@ export default function GardaVettingRequestWidget() {
               </ol>
               <div style={{ marginTop: '0.75rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                 <Link
-                  href="/en/garda-vetting"
+                  href={withLocalePrefix(localeRoot, '/garda-vetting')}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',

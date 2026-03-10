@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Menu, X, ArrowRight } from 'lucide-react';
+import { Menu, X, ArrowRight, MessageSquare } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import WorkMateLogo from '@/components/ui/WorkMateLogo';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -354,6 +354,21 @@ export default function Navbar() {
                   }}
                 />
               </Link>
+              <Link
+                href={withLocalePrefix(localeRoot, '/messages')}
+                className="group relative inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors"
+                style={{ color: 'var(--wm-navy)' }}
+              >
+                <MessageSquare className="h-4 w-4" />
+                Messages
+                <span
+                  className="absolute bottom-0.5 left-3 right-3 h-[2px] rounded-full transition-all duration-300 ease-out"
+                  style={{
+                    width: '0%',
+                    background: 'var(--wm-primary)',
+                  }}
+                />
+              </Link>
               <NotificationBell />
               <Link
                 href={withLocalePrefix(localeRoot, '/profile')}
@@ -480,6 +495,15 @@ export default function Navbar() {
                     style={{ color: 'var(--wm-text-muted)' }}
                   >
                     Saved Searches
+                  </Link>
+                  <Link
+                    href={withLocalePrefix(localeRoot, '/messages')}
+                    onClick={() => setMobileOpen(false)}
+                    className="inline-flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition"
+                    style={{ color: 'var(--wm-text-muted)' }}
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    Messages
                   </Link>
                   <div className="px-3 py-1">
                     <NotificationBell />
