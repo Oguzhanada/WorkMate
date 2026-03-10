@@ -53,6 +53,11 @@ const ADMIN_QUICK_LINKS = [
     description: 'Full trail of admin actions: verifications, GDPR deletions, risk reviews.',
     path: '/dashboard/admin/audit-logs',
   },
+  {
+    label: 'Service Status',
+    description: 'Real-time health of Supabase, Stripe, Resend, Anthropic, and Sentry.',
+    path: '/dashboard/admin/status',
+  },
 ] as const;
 
 export default async function LocalizedAdminDashboardPage({

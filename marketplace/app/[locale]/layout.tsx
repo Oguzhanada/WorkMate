@@ -1,17 +1,15 @@
 import type {Metadata} from 'next';
-import Script from 'next/script';
 import {NextIntlClientProvider} from 'next-intl';
 import {notFound} from 'next/navigation';
 import {Toaster} from 'sonner';
 
 import CookieConsent from '@/components/ui/CookieConsent';
+import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 import ConditionalSiteFooter from '@/components/site/ConditionalSiteFooter';
 import Navbar from '@/components/home/Navbar';
 import styles from '@/components/site/site.module.css';
 import {type Locale} from '@/i18n/config';
 import {loadMessages, isValidLocale} from '@/lib/i18n';
-
-const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 const baseUrl = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'http://localhost:3000';
 
@@ -96,17 +94,7 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      {GA_MEASUREMENT_ID && (
-        <>
-          <Script
-            src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-            strategy="afterInteractive"
-          />
-          <Script id="ga4-init" strategy="afterInteractive">
-            {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_MEASUREMENT_ID}',{anonymize_ip:true});`}
-          </Script>
-        </>
-      )}
+      <GoogleAnalytics />
       <div className={styles.siteRoot}>
         <Navbar />
         {children}

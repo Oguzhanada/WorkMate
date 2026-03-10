@@ -40,7 +40,7 @@ jobs:
           sleep 15
 
       - name: Run Lighthouse CI
-        run: lhci autorun
+        run: lhci autorun --config=.lighthouserc.json
 
       - name: Upload Lighthouse report
         if: always()
