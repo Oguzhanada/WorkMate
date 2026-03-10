@@ -76,7 +76,7 @@ export default function SocialProof() {
         >
           <span
             className="text-xs font-bold uppercase tracking-[0.2em]"
-            style={{ color: 'var(--wm-primary)' }}
+            style={{ color: 'var(--wm-primary-dark)' }}
           >
             How WorkMate works
           </span>

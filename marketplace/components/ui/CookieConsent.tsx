@@ -58,6 +58,13 @@ export default function CookieConsent() {
     setVisible(false);
   }, []);
 
+  const rejectAll = useCallback(() => {
+    const allOff: CookiePreferences = {essential: true, analytics: false, marketing: false};
+    savePreferences(allOff);
+    setPrefs(allOff);
+    setVisible(false);
+  }, []);
+
   const saveCustom = useCallback(() => {
     savePreferences(prefs);
     setVisible(false);
@@ -130,7 +137,7 @@ export default function CookieConsent() {
               <Link
                 href="/cookie-policy"
                 style={{
-                  color: 'var(--wm-primary)',
+                  color: 'var(--wm-primary-dark)',
                   textDecoration: 'underline',
                   fontWeight: 600,
                 }}
@@ -242,6 +249,24 @@ export default function CookieConsent() {
                   >
                     <Settings size={15} />
                     Manage Preferences
+                  </button>
+                  <button
+                    type="button"
+                    onClick={rejectAll}
+                    style={{
+                      background: 'transparent',
+                      color: 'var(--wm-navy)',
+                      border: '1px solid var(--wm-border)',
+                      borderRadius: 'var(--wm-radius-md)',
+                      padding: '10px 20px',
+                      fontFamily: 'var(--wm-font-display)',
+                      fontWeight: 700,
+                      fontSize: '0.9rem',
+                      cursor: 'pointer',
+                      transition: 'border-color var(--wm-transition)',
+                    }}
+                  >
+                    Reject All
                   </button>
                   <button
                     type="button"

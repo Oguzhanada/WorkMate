@@ -193,7 +193,7 @@ export default function BecomeProviderPage() {
                 }}
               >
                 <Zap className="h-3.5 w-3.5" style={{color: 'var(--wm-primary)'}} />
-                <span className="text-xs font-bold" style={{color: 'var(--wm-primary)'}}>
+                <span className="text-xs font-bold" style={{color: 'var(--wm-primary-dark)'}}>
                   Now accepting providers across Ireland
                 </span>
               </div>
@@ -286,7 +286,7 @@ export default function BecomeProviderPage() {
             >
               <h3
                 className="mb-6 text-sm font-bold uppercase tracking-[0.15em]"
-                style={{color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)'}}
+                style={{color: 'var(--wm-primary-dark)', fontFamily: 'var(--wm-font-display)'}}
               >
                 Why providers choose WorkMate
               </h3>
@@ -349,7 +349,7 @@ export default function BecomeProviderPage() {
           >
             <span
               className="text-xs font-bold uppercase tracking-[0.2em]"
-              style={{color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)'}}
+              style={{color: 'var(--wm-primary-dark)', fontFamily: 'var(--wm-font-display)'}}
             >
               Built for Irish tradespeople
             </span>
@@ -436,7 +436,7 @@ export default function BecomeProviderPage() {
           >
             <span
               className="text-xs font-bold uppercase tracking-[0.2em]"
-              style={{color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)'}}
+              style={{color: 'var(--wm-primary-dark)', fontFamily: 'var(--wm-font-display)'}}
             >
               Earnings calculator
             </span>
@@ -546,7 +546,7 @@ export default function BecomeProviderPage() {
                   background: 'linear-gradient(155deg, var(--wm-navy) 0%, #0c1a2e 100%)',
                 }}
               >
-                <p className="text-xs font-bold uppercase tracking-[0.15em]" style={{color: 'var(--wm-primary)'}}>
+                <p className="text-xs font-bold uppercase tracking-[0.15em]" style={{color: 'var(--wm-primary-dark)'}}>
                   Monthly earnings (Starter)
                 </p>
                 <div className="mt-3 flex items-baseline gap-2">
@@ -572,7 +572,7 @@ export default function BecomeProviderPage() {
               >
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-4 w-4" style={{color: 'var(--wm-primary)'}} />
-                  <p className="text-xs font-bold uppercase tracking-[0.15em]" style={{color: 'var(--wm-primary)'}}>
+                  <p className="text-xs font-bold uppercase tracking-[0.15em]" style={{color: 'var(--wm-primary-dark)'}}>
                     Monthly earnings (Pro — €19/mo)
                   </p>
                 </div>
@@ -587,7 +587,7 @@ export default function BecomeProviderPage() {
                     /month after 1.5% commission
                   </span>
                 </div>
-                <p className="mt-2 text-xs" style={{color: 'var(--wm-primary)'}}>
+                <p className="mt-2 text-xs" style={{color: 'var(--wm-primary-dark)'}}>
                   Save €{Math.round(earnings.monthlyNetPro - earnings.monthlyNet + 19).toLocaleString()}/month
                   vs Starter plan
                 </p>
@@ -621,7 +621,7 @@ export default function BecomeProviderPage() {
           >
             <span
               className="text-xs font-bold uppercase tracking-[0.2em]"
-              style={{color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)'}}
+              style={{color: 'var(--wm-primary-dark)', fontFamily: 'var(--wm-font-display)'}}
             >
               How we compare
             </span>
@@ -721,7 +721,7 @@ export default function BecomeProviderPage() {
           >
             <span
               className="text-xs font-bold uppercase tracking-[0.2em]"
-              style={{color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)'}}
+              style={{color: 'var(--wm-primary-dark)', fontFamily: 'var(--wm-font-display)'}}
             >
               Getting started
             </span>
@@ -755,7 +755,7 @@ export default function BecomeProviderPage() {
                   className="mb-3 flex h-10 w-10 items-center justify-center rounded-full text-sm font-black"
                   style={{
                     background: 'var(--wm-primary-faint)',
-                    color: 'var(--wm-primary)',
+                    color: 'var(--wm-primary-dark)',
                     fontFamily: 'var(--wm-font-display)',
                   }}
                 >
@@ -781,7 +781,7 @@ export default function BecomeProviderPage() {
           >
             <span
               className="text-xs font-bold uppercase tracking-[0.2em]"
-              style={{color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)'}}
+              style={{color: 'var(--wm-primary-dark)', fontFamily: 'var(--wm-font-display)'}}
             >
               Provider stories
             </span>

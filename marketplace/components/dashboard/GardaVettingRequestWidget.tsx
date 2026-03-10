@@ -289,7 +289,7 @@ export default function GardaVettingRequestWidget() {
               border: 'none',
               cursor: 'pointer',
               fontSize: '0.75rem',
-              color: 'var(--wm-primary)',
+              color: 'var(--wm-primary-dark)',
               fontWeight: 600,
             }}
           >
@@ -325,7 +325,7 @@ export default function GardaVettingRequestWidget() {
                     alignItems: 'center',
                     gap: '0.25rem',
                     fontSize: '0.75rem',
-                    color: 'var(--wm-primary)',
+                    color: 'var(--wm-primary-dark)',
                     fontWeight: 600,
                     textDecoration: 'underline',
                   }}
@@ -342,7 +342,7 @@ export default function GardaVettingRequestWidget() {
                     alignItems: 'center',
                     gap: '0.25rem',
                     fontSize: '0.75rem',
-                    color: 'var(--wm-primary)',
+                    color: 'var(--wm-primary-dark)',
                     fontWeight: 600,
                     textDecoration: 'underline',
                   }}
@@ -380,7 +380,7 @@ export default function GardaVettingRequestWidget() {
                 style={{
                   margin: 0,
                   fontSize: '0.8rem',
-                  color: 'var(--wm-primary)',
+                  color: 'var(--wm-primary-dark)',
                   lineHeight: 1.5,
                 }}
               >

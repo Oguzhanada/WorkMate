@@ -153,7 +153,7 @@ export default function ProviderEarningsWidget() {
         <Link
           href={withLocalePrefix(localeRoot, '/dashboard/pro/earnings')}
           className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold"
-          style={{ color: 'var(--wm-primary)' }}
+          style={{ color: 'var(--wm-primary-dark)' }}
         >
           View all earnings
           <ArrowRight size={13} />

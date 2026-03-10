@@ -153,7 +153,7 @@ export default function GdprPanel() {
                 To cancel a deletion request before the 30 days elapse, contact{' '}
                 <a
                   href="mailto:privacy@workmate.ie"
-                  style={{ color: 'var(--wm-primary)', fontWeight: 600 }}
+                  style={{ color: 'var(--wm-primary-dark)', fontWeight: 600 }}
                 >
                   privacy@workmate.ie
                 </a>
@@ -254,7 +254,7 @@ export default function GdprPanel() {
                 cancel this request before that date, email{' '}
                 <a
                   href="mailto:privacy@workmate.ie"
-                  style={{ color: 'var(--wm-primary)', fontWeight: 600 }}
+                  style={{ color: 'var(--wm-primary-dark)', fontWeight: 600 }}
                 >
                   privacy@workmate.ie
                 </a>

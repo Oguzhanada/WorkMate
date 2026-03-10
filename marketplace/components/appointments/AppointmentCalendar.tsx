@@ -535,7 +535,7 @@ function AppointmentDetailRow({ appt }: { appt: CalendarAppointment }) {
             gap:        '0.35rem',
             fontSize:   '0.75rem',
             fontWeight: 600,
-            color:      'var(--wm-primary)',
+            color:      'var(--wm-primary-dark)',
             textDecoration: 'none',
           }}
         >

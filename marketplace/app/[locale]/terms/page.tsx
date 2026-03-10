@@ -84,7 +84,7 @@ export default function TermsPage() {
                 You must notify us immediately at{' '}
                 <a
                   href="mailto:legal@workmate.ie"
-                  style={{ color: 'var(--wm-primary)', fontWeight: 600 }}
+                  style={{ color: 'var(--wm-primary-dark)', fontWeight: 600 }}
                 >
                   legal@workmate.ie
                 </a>{' '}
@@ -338,7 +338,7 @@ export default function TermsPage() {
               For legal enquiries or notices:{' '}
               <a
                 href="mailto:legal@workmate.ie"
-                style={{ color: 'var(--wm-primary)', fontWeight: 600 }}
+                style={{ color: 'var(--wm-primary-dark)', fontWeight: 600 }}
               >
                 legal@workmate.ie
               </a>

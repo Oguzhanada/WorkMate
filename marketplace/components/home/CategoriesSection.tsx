@@ -75,7 +75,7 @@ export default function CategoriesSection() {
           <div>
             <span
               className="text-xs font-bold uppercase tracking-[0.2em]"
-              style={{ color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)' }}
+              style={{ color: 'var(--wm-primary-dark)', fontFamily: 'var(--wm-font-display)' }}
             >
               Services
             </span>
@@ -189,7 +189,7 @@ export default function CategoriesSection() {
                       className="mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
                       style={{
                         background: 'rgba(var(--wm-primary-rgb), 0.2)',
-                        color: 'var(--wm-primary)',
+                        color: 'var(--wm-primary-dark)',
                         backdropFilter: 'blur(8px)',
                       }}
                     >

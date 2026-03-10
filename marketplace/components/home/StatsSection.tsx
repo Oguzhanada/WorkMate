@@ -179,7 +179,7 @@ export default function StatsSection() {
             />
             <span
               className="text-xs font-bold uppercase tracking-[0.18em]"
-              style={{color: 'var(--wm-primary)'}}
+              style={{color: 'var(--wm-primary-dark)'}}
             >
               Platform Health
             </span>

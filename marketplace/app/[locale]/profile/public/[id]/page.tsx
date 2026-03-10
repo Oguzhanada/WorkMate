@@ -266,7 +266,7 @@ export default async function PublicProfilePage({ params }: { params: Params }) 
                     background: profile.is_verified
                       ? 'rgba(var(--wm-primary-rgb), 0.22)'
                       : 'rgba(var(--wm-destructive-rgb), 0.18)',
-                    color: profile.is_verified ? 'var(--wm-primary)' : '#fca5a5',
+                    color: profile.is_verified ? 'var(--wm-primary-dark)' : '#fca5a5',
                     border: `1px solid ${profile.is_verified ? 'rgba(var(--wm-primary-rgb), 0.45)' : 'rgba(var(--wm-destructive-rgb), 0.35)'}`,
                   }}
                 >

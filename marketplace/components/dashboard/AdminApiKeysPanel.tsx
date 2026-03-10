@@ -149,7 +149,7 @@ export default function AdminApiKeysPanel() {
       </Card>
 
       {error ? <p className="text-sm text-[var(--wm-destructive)]">{error}</p> : null}
-      {ok ? <p className="text-sm" style={{ color: 'var(--wm-primary)' }}>{ok}</p> : null}
+      {ok ? <p className="text-sm" style={{ color: 'var(--wm-primary-dark)' }}>{ok}</p> : null}
     </div>
   );
 }

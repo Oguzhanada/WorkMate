@@ -150,7 +150,7 @@ function StripeConnectBanner({ stripeAccountId }: { stripeAccountId: string | nu
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 text-sm font-medium"
-          style={{ color: 'var(--wm-primary)' }}
+          style={{ color: 'var(--wm-primary-dark)' }}
         >
           Manage Stripe dashboard
           <ExternalLink size={13} />

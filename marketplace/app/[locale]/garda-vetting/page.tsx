@@ -159,7 +159,7 @@ export default async function GardaVettingPage({
               >
                 <p
                   className="text-sm font-semibold"
-                  style={{ margin: 0, color: 'var(--wm-primary)' }}
+                  style={{ margin: 0, color: 'var(--wm-primary-dark)' }}
                 >
                   NVB Registration Status: Pending
                 </p>
@@ -245,7 +245,7 @@ export default async function GardaVettingPage({
                   <span style={{ color: 'var(--wm-foreground)' }}>{row.label}</span>
                   <span
                     className="shrink-0 font-semibold"
-                    style={{ color: 'var(--wm-primary)' }}
+                    style={{ color: 'var(--wm-primary-dark)' }}
                   >
                     {row.time}
                   </span>
@@ -368,7 +368,7 @@ export default async function GardaVettingPage({
                   href="https://vetting.garda.ie"
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ color: 'var(--wm-primary)', textDecoration: 'underline' }}
+                  style={{ color: 'var(--wm-primary-dark)', textDecoration: 'underline' }}
                 >
                   vetting.garda.ie
                 </a>

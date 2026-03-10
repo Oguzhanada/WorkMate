@@ -1,5 +1,5 @@
 # WorkMate — Production Launch Guide
-> Last updated: 2026-03-05 (session 9)
+> Last updated: 2026-03-10 (session 26)
 > This file is the single source of truth for everything that must be done before
 > and during production launch. Update it as steps are completed.
 
@@ -42,7 +42,7 @@ Verify the full happy-path before spending any money.
 - [ ] `npm run lint` — 0 TypeScript errors, English-only check passes
 
 ### Supabase (dev project) checks
-- [ ] All migrations 001–049 applied and no errors
+- [ ] All migrations 001–073 applied and no errors
 - [ ] RLS enabled on all tables — no `FOR ALL USING (true)` policies
 - [ ] `pg_cron` jobs registered and running (provider_rankings refresh, automation rules)
 - [ ] Edge functions deployed and responding:
@@ -50,6 +50,8 @@ Verify the full happy-path before spending any money.
   - `auto-release-payments`
   - `escalate-stale-disputes`
   - `id-verification-retention`
+  - `message-retention`
+  - `gdpr-retention-processor` (+ pg_cron schedule for daily/weekly run)
 
 ---
 

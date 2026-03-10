@@ -1,7 +1,7 @@
 const BASE_URL = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'https://workmate.ie';
 const PLATFORM_LOCALE = process.env.NEXT_PUBLIC_DEFAULT_LOCALE ?? 'en';
 
-const BRAND_COLOR = '#1a56db';
+const BRAND_COLOR = '#059669';
 const BG = '#f8fafc';
 const CARD_BG = '#ffffff';
 const TEXT = '#1e293b';

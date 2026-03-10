@@ -138,7 +138,7 @@ export default function ApiKeyCard({ initialApiKey, initialRateLimit }: Props) {
       </div>
 
       {error ? <p className="mt-3 text-sm" style={{ color: 'var(--wm-destructive)' }}>{error}</p> : null}
-      {ok ? <p className="mt-3 text-sm" style={{ color: 'var(--wm-primary)' }}>{ok}</p> : null}
+      {ok ? <p className="mt-3 text-sm" style={{ color: 'var(--wm-primary-dark)' }}>{ok}</p> : null}
     </Card>
   );
 }

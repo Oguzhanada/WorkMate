@@ -146,7 +146,7 @@ export default function ProfileCompletenessWidget() {
                     style={{
                       fontSize: '0.7rem',
                       fontWeight: 700,
-                      color: 'var(--wm-primary)',
+                      color: 'var(--wm-primary-dark)',
                       whiteSpace: 'nowrap',
                     }}
                   >

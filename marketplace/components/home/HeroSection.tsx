@@ -115,7 +115,7 @@ export default function HeroSection() {
             />
             <span
               className="text-xs font-semibold uppercase tracking-[0.15em]"
-              style={{ color: 'var(--wm-primary)' }}
+              style={{ color: 'var(--wm-primary-dark)' }}
             >
               Ireland&apos;s Home Services Platform
             </span>

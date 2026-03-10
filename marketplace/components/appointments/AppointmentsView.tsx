@@ -228,7 +228,7 @@ export default function AppointmentsView({ role }: Props) {
                             style={{
                               fontSize:       '0.75rem',
                               fontWeight:     600,
-                              color:          'var(--wm-primary)',
+                              color:          'var(--wm-primary-dark)',
                               textDecoration: 'none',
                               display:        'inline-flex',
                               alignItems:     'center',

@@ -122,7 +122,7 @@ export default function PortfolioManagerWidget() {
           className="rounded-full px-2 py-0.5 text-xs font-medium"
           style={{
             background: atMax ? 'var(--wm-destructive-faint)' : 'var(--wm-primary-faint)',
-            color:      atMax ? 'var(--wm-destructive)'       : 'var(--wm-primary)',
+            color:      atMax ? 'var(--wm-destructive)'       : 'var(--wm-primary-dark)',
           }}
         >
           {items.length} / {MAX_ITEMS}

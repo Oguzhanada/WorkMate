@@ -156,7 +156,7 @@ function ProviderTierCard({ tier, locale }: { tier: ProviderTier; locale: string
       )}
 
       <div className="flex flex-col gap-1">
-        <span className="text-xs font-bold uppercase tracking-[0.15em]" style={{ color: 'var(--wm-primary)' }}>
+        <span className="text-xs font-bold uppercase tracking-[0.15em]" style={{ color: 'var(--wm-primary-dark)' }}>
           {tier.id === 'starter' ? 'Free forever' : tier.id === 'pro' ? 'For growing pros' : 'For top performers'}
         </span>
         <h3 className="text-xl font-bold" style={{ color: 'var(--wm-navy)', fontFamily: 'var(--wm-font-display)' }}>
@@ -218,7 +218,7 @@ export default async function PricingPage({
         <div className="mx-auto max-w-4xl text-center">
           <span
             className="text-xs font-bold uppercase tracking-[0.2em]"
-            style={{ color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)' }}
+            style={{ color: 'var(--wm-primary-dark)', fontFamily: 'var(--wm-font-display)' }}
           >
             Pricing
           </span>
@@ -247,7 +247,7 @@ export default async function PricingPage({
         <div className="mx-auto max-w-5xl">
           <h2
             className="mb-3 text-sm font-bold uppercase tracking-[0.15em]"
-            style={{ color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)' }}
+            style={{ color: 'var(--wm-primary-dark)', fontFamily: 'var(--wm-font-display)' }}
           >
             For customers
           </h2>
@@ -273,7 +273,7 @@ export default async function PricingPage({
                 <div className="flex items-start gap-4">
                   <div
                     className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-lg font-black"
-                    style={{ background: 'var(--wm-primary-faint)', color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)' }}
+                    style={{ background: 'var(--wm-primary-faint)', color: 'var(--wm-primary-dark)', fontFamily: 'var(--wm-font-display)' }}
                   >
                     €0
                   </div>
@@ -349,7 +349,7 @@ export default async function PricingPage({
                         {ex.isFree && (
                           <span
                             className="rounded-full px-2.5 py-0.5 text-xs font-bold"
-                            style={{ background: 'var(--wm-primary-faint)', color: 'var(--wm-primary)' }}
+                            style={{ background: 'var(--wm-primary-faint)', color: 'var(--wm-primary-dark)' }}
                           >
                             No fees
                           </span>
@@ -362,7 +362,7 @@ export default async function PricingPage({
                         </div>
                         <div>
                           <span className="block text-xs" style={{ color: 'var(--wm-muted)' }}>Fee</span>
-                          <span className="text-sm font-bold" style={{ color: ex.isFree ? 'var(--wm-primary)' : 'var(--wm-navy)' }}>
+                          <span className="text-sm font-bold" style={{ color: ex.isFree ? 'var(--wm-primary-dark)' : 'var(--wm-navy)' }}>
                             {ex.isFree ? '€0' : `€${fee.toFixed(2)}`}
                           </span>
                         </div>
@@ -414,7 +414,7 @@ export default async function PricingPage({
         <div className="mx-auto max-w-5xl">
           <h2
             className="mb-3 text-sm font-bold uppercase tracking-[0.15em]"
-            style={{ color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)' }}
+            style={{ color: 'var(--wm-primary-dark)', fontFamily: 'var(--wm-font-display)' }}
           >
             For providers
           </h2>
@@ -459,7 +459,7 @@ export default async function PricingPage({
                 </p>
               </div>
               <div>
-                <span className="text-2xl font-extrabold" style={{ color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)' }}>1.5%</span>
+                <span className="text-2xl font-extrabold" style={{ color: 'var(--wm-primary-dark)', fontFamily: 'var(--wm-font-display)' }}>1.5%</span>
                 <span className="ml-1 text-sm" style={{ color: 'var(--wm-muted)' }}>Pro & Pro+</span>
                 <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--wm-muted)' }}>
                   On a €250 job, we deduct €3.75 — you receive €246.25. Save €45/year on average.
@@ -503,7 +503,7 @@ export default async function PricingPage({
               <div key={s.step} className="text-center">
                 <div
                   className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full text-sm font-black"
-                  style={{ background: 'var(--wm-primary-faint)', color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)' }}
+                  style={{ background: 'var(--wm-primary-faint)', color: 'var(--wm-primary-dark)', fontFamily: 'var(--wm-font-display)' }}
                 >
                   {s.step}
                 </div>
@@ -610,7 +610,7 @@ export default async function PricingPage({
         <p className="text-xs" style={{ color: 'var(--wm-muted)' }}>
           All prices include VAT at 23% where applicable. Subscription plans can be cancelled at any time — no lock-in.
           Questions?{' '}
-          <a href="mailto:support@workmate.ie" className="underline" style={{ color: 'var(--wm-primary)' }}>
+          <a href="mailto:support@workmate.ie" className="underline" style={{ color: 'var(--wm-primary-dark)' }}>
             Contact support
           </a>
           .

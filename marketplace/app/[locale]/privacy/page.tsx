@@ -66,7 +66,7 @@ export default async function PrivacyPage({
               For any privacy-related queries, contact us at:{' '}
               <a
                 href="mailto:privacy@workmate.ie"
-                style={{ color: 'var(--wm-primary)', fontWeight: 600 }}
+                style={{ color: 'var(--wm-primary-dark)', fontWeight: 600 }}
               >
                 privacy@workmate.ie
               </a>
@@ -286,7 +286,7 @@ export default async function PrivacyPage({
                   href="https://www.dataprotection.ie"
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ color: 'var(--wm-primary)', fontWeight: 600 }}
+                  style={{ color: 'var(--wm-primary-dark)', fontWeight: 600 }}
                 >
                   www.dataprotection.ie
                 </a>
@@ -297,7 +297,7 @@ export default async function PrivacyPage({
               To exercise any of these rights, email{' '}
               <a
                 href="mailto:privacy@workmate.ie"
-                style={{ color: 'var(--wm-primary)', fontWeight: 600 }}
+                style={{ color: 'var(--wm-primary-dark)', fontWeight: 600 }}
               >
                 privacy@workmate.ie
               </a>
@@ -333,7 +333,7 @@ export default async function PrivacyPage({
               For all privacy enquiries:{' '}
               <a
                 href="mailto:privacy@workmate.ie"
-                style={{ color: 'var(--wm-primary)', fontWeight: 600 }}
+                style={{ color: 'var(--wm-primary-dark)', fontWeight: 600 }}
               >
                 privacy@workmate.ie
               </a>

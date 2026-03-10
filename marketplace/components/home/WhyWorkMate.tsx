@@ -68,7 +68,7 @@ export default function WhyWorkMate() {
         >
           <span
             className="text-xs font-bold uppercase tracking-[0.2em]"
-            style={{ color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)' }}
+            style={{ color: 'var(--wm-primary-dark)', fontFamily: 'var(--wm-font-display)' }}
           >
             The WorkMate difference
           </span>

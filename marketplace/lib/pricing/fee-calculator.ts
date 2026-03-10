@@ -9,14 +9,45 @@ export const PLATFORM_FEE_THRESHOLD = 100;
 /** Customer-side service fee (% of subtotal) */
 const CUSTOMER_SERVICE_FEE = 0.05;
 
-/** Provider-side commission (% of subtotal) */
-const PROVIDER_COMMISSION = 0.03;
+/** Provider-side commission by plan: basic/none = 3%, professional/premium = 1.5% */
+const PROVIDER_COMMISSION_BASIC = 0.03;
+const PROVIDER_COMMISSION_PRO = 0.015;
 
 /** Discounted customer fee for repeat bookings */
 const REBOOKING_CUSTOMER_FEE = 0.03;
 
-/** Discounted provider commission for repeat bookings */
-const REBOOKING_PROVIDER_COMMISSION = 0.015;
+/** Discounted provider commission for repeat bookings (applied on top of plan rate) */
+const REBOOKING_COMMISSION_BASIC = 0.015;
+const REBOOKING_COMMISSION_PRO = 0.0075;
+
+type ProviderPlan = 'basic' | 'professional' | 'premium';
+
+/** Look up a provider's active subscription plan. Returns 'basic' if no active subscription. */
+export async function getProviderPlan(providerId: string): Promise<ProviderPlan> {
+  const supabase = getSupabaseServiceClient();
+  const {data} = await supabase
+    .from('provider_subscriptions')
+    .select('plan')
+    .eq('provider_id', providerId)
+    .eq('status', 'active')
+    .order('created_at', {ascending: false})
+    .limit(1)
+    .maybeSingle();
+
+  if (!data?.plan) return 'basic';
+  const plan = data.plan as string;
+  if (plan === 'professional' || plan === 'premium') return plan;
+  return 'basic';
+}
+
+function getCommissionRates(plan: ProviderPlan, isRebooking: boolean) {
+  const isPro = plan === 'professional' || plan === 'premium';
+  return {
+    providerRate: isRebooking
+      ? (isPro ? REBOOKING_COMMISSION_PRO : REBOOKING_COMMISSION_BASIC)
+      : (isPro ? PROVIDER_COMMISSION_PRO : PROVIDER_COMMISSION_BASIC),
+  };
+}
 
 /** Stripe processing cost estimate (for internal calculations only) */
 export const STRIPE_PROCESSING_RATE = 0.0175;
@@ -64,7 +95,10 @@ export async function calculateFees(
   customerId: string,
   providerId: string
 ): Promise<FeeCalculation> {
-  const rebookingInfo = await getRebookingInfo(customerId, providerId);
+  const [rebookingInfo, providerPlan] = await Promise.all([
+    getRebookingInfo(customerId, providerId),
+    getProviderPlan(providerId),
+  ]);
   const subtotal = Math.max(priceCents, 0) / 100;
 
   // Under threshold: no platform fees — customer pays exact amount, provider receives full amount
@@ -83,12 +117,10 @@ export async function calculateFees(
     ? REBOOKING_CUSTOMER_FEE
     : CUSTOMER_SERVICE_FEE;
 
-  const providerFeeRate = rebookingInfo.hasWorkedBefore
-    ? REBOOKING_PROVIDER_COMMISSION
-    : PROVIDER_COMMISSION;
+  const {providerRate} = getCommissionRates(providerPlan, rebookingInfo.hasWorkedBefore);
 
   const serviceFee = subtotal * customerFeeRate;
-  const transactionFee = subtotal * providerFeeRate;
+  const transactionFee = subtotal * providerRate;
   const total = subtotal + serviceFee;
   const savings = rebookingInfo.hasWorkedBefore
     ? subtotal * (CUSTOMER_SERVICE_FEE - REBOOKING_CUSTOMER_FEE)
