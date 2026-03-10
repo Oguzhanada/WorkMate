@@ -162,7 +162,7 @@ router.push(withLocalePrefix(localeRoot, '/dashboard/customer'));
 - Every new table **must** have RLS enabled and explicit policies.
 - **NEVER** add `FOR ALL USING (true)` — this bypasses security entirely.
 - Every migration must be additive (001, 002… never rewrite or renumber existing files).
-- Next migration number: **059** — check `migrations/` before creating any new migration.
+- Next migration number: **073** — check `migrations/` before creating any new migration.
 - Migrations are applied manually by the user in Supabase SQL Editor — do not attempt to run them via CLI.
 
 ## 13) Zod — API validation rule
@@ -272,6 +272,9 @@ DR-XXX | Date | Author | Decision changed | Reason | Approved by
 | FD-20 | No orphaned files in `lib/` root (except `live-services.ts`, `i18n.ts`) | Session 27 restructure — all utilities must live in subdirectories |
 | FD-21 | `components/ui/index.ts` barrel export must be updated when adding new UI primitives | Session 27 — barrel export exists, keep it current |
 | FD-22 | Pre-commit hooks (Husky + lint-staged) must NOT be bypassed with `--no-verify` | Session 27 — quality gates must run locally |
+| FD-23 | AI agents MUST work on feature branches — NEVER commit directly to `main` | Session 27 — main protection, user-only merge |
+| FD-24 | AI agents MUST NOT create completion/audit/task report files (`*REPORT*.md`, `*COMPLETION*.md`, `*GUIDE*.md` at repo root or `docs/`) — only architectural/operational docs allowed | Session 28 — anti-doc-bloat, keep repo clean |
+| FD-25 | New `.claude/skills/` MUST be whitelisted in `.gitignore` before commit — unwhitelisted skills are silently ignored by git | Session 28 — skill creation requires gitignore update |
 
 **Decision Records (changes to frozen decisions):**
 _(none yet — first change must be documented here before implementation)_
@@ -324,6 +327,42 @@ Components MUST live in their feature directory, NOT in `dashboard/`:
 - Husky + lint-staged run ESLint + tsc on every commit
 - Do NOT bypass with `--no-verify` unless explicitly approved by the user
 - If a hook fails, fix the issue — do not disable the hook
+
+### 20.8) Git branching — AI agents MUST NOT commit to `main` (FD-23)
+- **NEVER** commit directly to the `main` branch
+- **ALWAYS** create a feature branch before making changes:
+  - `feat/<description>` — new features
+  - `fix/<description>` — bug fixes
+  - `chore/<description>` — maintenance, deps, config
+  - `docs/<description>` — documentation only
+- **Only the repository owner** (user) can merge branches into `main`
+- Before starting work, check which branch you are on: `git branch --show-current`
+- If you are on `main`, create a new branch first: `git checkout -b feat/<description>`
+- **NEVER** run `git push origin main` — push your feature branch instead
+
+### 20.9) Documentation policy — NO agent self-reports (FD-24)
+- **NEVER** create `*REPORT*.md`, `*COMPLETION*.md`, `*GUIDE*.md`, `*AUDIT*.md` files
+- These are agent self-reports and add no value — they bloat the repo
+- The only allowed documentation in `docs/` is **architectural/operational**:
+  - `ARCHITECTURE_REVIEW.md`, `PRODUCTION_LAUNCH.md`, `DB_RUNBOOK.md`, `ROPA.md`, checkpoints
+- If you need to communicate what you did, use **PR description** and **commit messages** — not separate files
+- Existing `PROJECT_CONTEXT.md` is the single onboarding reference — do not create duplicates
+- The user will review and merge via PR or direct merge at their discretion
+
+### 20.10) Skill creation — whitelist in `.gitignore` required (FD-25)
+- Skills live in `.claude/skills/<skill-name>/SKILL.md`
+- `.gitignore` blocks ALL skills by default (``.claude/skills/*``)
+- Only **whitelisted** skills are committed. Current whitelist:
+  - `!.claude/skills/workmate-schema-guardian/`
+  - `!.claude/skills/workmate-visual-qa/`
+  - `!.claude/skills/ui-system-hybrid-migration/`
+- **When creating a new skill**, you MUST also add whitelist entries to `.gitignore`:
+  ```
+  !.claude/skills/<new-skill-name>/
+  !.claude/skills/<new-skill-name>/SKILL.md
+  ```
+- Without this step, your skill file will be silently ignored by git and **never committed**
+- Always create skills on a **feature branch** (FD-23) and include the `.gitignore` change in the same PR
 
 ---
 

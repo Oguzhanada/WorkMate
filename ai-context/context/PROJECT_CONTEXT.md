@@ -88,7 +88,7 @@ marketplace/
 │   ├── ranking/ pricing/ types/     # Airtasker-style feature layer
 │   ├── validation/ constants/ hooks/ i18n/ onboarding/
 │   └── (no lib/supabase.ts — deleted, all use getSupabaseBrowserClient() inline)
-├── migrations/                      # 001..049 ALL APPLIED
+├── migrations/                      # 001..072 ALL APPLIED
 ├── supabase/functions/              # edge functions
 └── messages/en.json
 ```
@@ -197,8 +197,8 @@ marketplace/
 
 ## 6. CURRENT STATE
 
-- Migrations 001-058: ALL APPLIED in Supabase
-- Next migration: **059**
+- Migrations 001-072: ALL APPLIED in Supabase
+- Next migration: **073**
 - Vercel deployment: active at `work-mate-neon.vercel.app`
 - Stripe: test mode (`sk_test_*`) — no real charges
 - Email sender: `notifications@workmate.ie` — Resend domain must be verified before go-live
@@ -354,7 +354,7 @@ Phase fallback:
 - [ ] Set all env vars on Vercel (`SUPABASE_*`, `STRIPE_*`, `RESEND_API_KEY`, `TASK_ALERT_SECRET`)
 
 **Supabase**
-- [ ] Confirm migrations 001-058 applied on production Supabase project
+- [ ] Confirm migrations 001-072 applied on production Supabase project
 - [ ] Enable `pg_cron` on production project
 - [ ] Set Auth Site URL + Redirect URLs to production domain
 - [ ] Update OAuth redirect URIs in Google/Facebook consoles
