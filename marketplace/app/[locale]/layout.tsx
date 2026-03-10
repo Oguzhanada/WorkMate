@@ -3,7 +3,7 @@ import {NextIntlClientProvider} from 'next-intl';
 import {notFound} from 'next/navigation';
 import {Toaster} from 'sonner';
 
-import CookieConsentBanner from '@/components/site/CookieConsentBanner';
+import CookieConsent from '@/components/ui/CookieConsent';
 import ConditionalSiteFooter from '@/components/site/ConditionalSiteFooter';
 import Navbar from '@/components/home/Navbar';
 import styles from '@/components/site/site.module.css';
@@ -96,7 +96,7 @@ export default async function LocaleLayout({
       <div className={styles.siteRoot}>
         <Navbar />
         {children}
-        <CookieConsentBanner />
+        <CookieConsent />
         <ConditionalSiteFooter />
         <Toaster position="bottom-right" richColors closeButton />
       </div>

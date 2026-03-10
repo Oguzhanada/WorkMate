@@ -10,62 +10,50 @@ const categories = [
   {
     title: 'Plumbing',
     tagline: 'Leaks, boilers & installations',
-    slug: 'home-cleaning',
+    searchQuery: 'plumbing',
     image: 'https://images.unsplash.com/photo-1585704032915-c3400ca199e7?auto=format&fit=crop&w=1200&q=80',
     icon: Wrench,
-    span: '',
     height: '260px',
-    proCount: 45,
   },
   {
     title: 'Cleaning',
     tagline: 'Deep clean & regular visits',
-    slug: 'home-cleaning',
+    searchQuery: 'cleaning',
     image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80',
     icon: Sparkles,
-    span: '',
     height: '260px',
-    proCount: 62,
   },
   {
     title: 'Gardening',
     tagline: 'Landscaping & upkeep',
-    slug: 'garden-maintenance',
+    searchQuery: 'gardening',
     image: 'https://images.unsplash.com/photo-1558904541-efa843a96f01?auto=format&fit=crop&w=1200&q=80',
     icon: Trees,
-    span: '',
     height: '260px',
-    proCount: 38,
   },
   {
     title: 'Handyman',
     tagline: 'Repairs & odd jobs',
-    slug: 'painting-decorating',
+    searchQuery: 'handyman',
     image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=1200&q=80',
     icon: Hammer,
-    span: '',
     height: '260px',
-    proCount: 51,
   },
   {
     title: 'Electrical',
     tagline: 'Licensed & insured',
-    slug: 'ac-service',
+    searchQuery: 'electrical',
     image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=1200&q=80',
     icon: Zap,
-    span: '',
     height: '260px',
-    proCount: 29,
   },
   {
     title: 'Painting',
     tagline: 'Interior & exterior',
-    slug: 'painting-decorating',
+    searchQuery: 'painting',
     image: 'https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?auto=format&fit=crop&w=1200&q=80',
     icon: Paintbrush,
-    span: '',
     height: '260px',
-    proCount: 41,
   },
 ];
 
@@ -106,7 +94,7 @@ export default function CategoriesSection() {
             </h2>
           </div>
           <Link
-            href={withLocalePrefix(localeRoot, '/search')}
+            href={withLocalePrefix(localeRoot, '/find-services')}
             className="inline-flex items-center gap-2 self-start rounded-full px-5 py-2.5 text-sm font-semibold transition-transform hover:scale-[1.03]"
             style={{
               border: '1px solid var(--wm-border)',
@@ -135,7 +123,7 @@ export default function CategoriesSection() {
                 style={{ minHeight: cat.height }}
               >
                 <Link
-                  href={withLocalePrefix(localeRoot, `/service/${cat.slug}`)}
+                  href={withLocalePrefix(localeRoot, `/find-services?q=${cat.searchQuery}`)}
                   className="relative block h-full w-full overflow-hidden"
                   style={{ borderRadius: 'var(--wm-radius-2xl)' }}
                 >
@@ -205,7 +193,7 @@ export default function CategoriesSection() {
                         backdropFilter: 'blur(8px)',
                       }}
                     >
-                      {cat.proCount}+ pros
+                      Browse pros
                     </span>
                   </div>
 

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Search, MapPin, ArrowRight, Shield, Zap, Users, CheckCircle, CreditCard } from 'lucide-react';
+import { Search, MapPin, ArrowRight, Shield, CheckCircle, CreditCard, ShieldCheck, UserCheck } from 'lucide-react';
 import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
@@ -15,11 +15,11 @@ const counties = [
   'Wexford', 'Wicklow',
 ];
 
-const ticker = [
-  { icon: Users, value: 'Growing', label: 'Pro Network' },
-  { icon: Shield, value: 'Verified', label: 'Providers' },
-  { icon: Zap, value: 'Fast', label: 'Response' },
-  { icon: Shield, value: '26', label: 'Counties' },
+const trustBadges = [
+  { icon: MapPin, label: '26 Counties' },
+  { icon: CreditCard, label: 'Stripe Secure Payments' },
+  { icon: ShieldCheck, label: 'Garda Vetted Pros' },
+  { icon: UserCheck, label: 'Admin Verified' },
 ];
 
 export default function HeroSection() {
@@ -34,7 +34,7 @@ export default function HeroSection() {
     const params = new URLSearchParams();
     if (serviceQuery.trim()) params.set('q', serviceQuery.trim());
     if (county) params.set('county', county);
-    router.push(withLocalePrefix(localeRoot, `/search?${params.toString()}`));
+    router.push(withLocalePrefix(localeRoot, `/find-services?${params.toString()}`));
   };
 
   return (
@@ -281,36 +281,29 @@ export default function HeroSection() {
           </Link>
         </motion.div>
 
-        {/* Stats ticker — bottom of hero */}
+        {/* Trust badges — bottom of hero */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 1.1 }}
-          className="mt-auto flex flex-wrap items-center gap-8 pt-16 sm:gap-12"
+          className="mt-auto flex flex-wrap items-center gap-3 pt-16 sm:gap-4"
         >
-          {ticker.map(({ icon: Icon, value, label }) => (
-            <div key={label} className="flex items-center gap-3">
-              <div
-                className="flex h-10 w-10 items-center justify-center rounded-xl"
-                style={{
-                  background: 'rgba(var(--wm-primary-rgb), 0.1)',
-                  border: '1px solid rgba(var(--wm-primary-rgb), 0.2)',
-                }}
-              >
-                <Icon className="h-4 w-4" style={{ color: 'var(--wm-primary)' }} />
-              </div>
-              <div>
-                <span
-                  className="block text-lg font-extrabold leading-none"
-                  style={{ color: 'white', fontFamily: 'var(--wm-font-display)' }}
-                >
-                  {value}
-                </span>
-                <span className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                  {label}
-                </span>
-              </div>
-            </div>
+          {trustBadges.map(({ icon: Icon, label }, i) => (
+            <motion.span
+              key={label}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 1.2 + i * 0.1 }}
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold"
+              style={{
+                background: 'rgba(var(--wm-primary-rgb), 0.08)',
+                border: '1px solid rgba(var(--wm-primary-rgb), 0.2)',
+                color: 'rgba(255,255,255,0.8)',
+              }}
+            >
+              <Icon className="h-3.5 w-3.5" style={{ color: 'var(--wm-primary)' }} />
+              {label}
+            </motion.span>
           ))}
         </motion.div>
       </div>

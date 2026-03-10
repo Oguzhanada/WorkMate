@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import MapSearchView from '@/components/search/MapSearchView';
+import FindServicesClient from './FindServicesClient';
 
 const baseUrl = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'https://workmate.ie';
 
@@ -44,7 +44,7 @@ export default async function FindServicesPage({
   const { locale } = await params;
   const sp = await searchParams;
 
-  // Extract initial filter values from URL search params
+  // Extract initial filter values from URL search params — pure parsing, no server fetches
   const initialFilters = {
     q: typeof sp.q === 'string' ? sp.q : '',
     county: typeof sp.county === 'string' ? sp.county : 'Any',
@@ -54,5 +54,5 @@ export default async function FindServicesPage({
     budget: typeof sp.budget === 'string' ? sp.budget : '',
   };
 
-  return <MapSearchView locale={locale} initialFilters={initialFilters} />;
+  return <FindServicesClient locale={locale} initialFilters={initialFilters} />;
 }

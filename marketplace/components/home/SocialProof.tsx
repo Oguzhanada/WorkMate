@@ -1,112 +1,42 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { motion, useInView, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
-import { Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Briefcase, ShieldCheck, CreditCard, MapPin, Clock, CheckCircle } from 'lucide-react';
 
-/* ─── Stats ─── */
-interface Stat {
-  prefix?: string;
-  value: number;
-  suffix: string;
-  label: string;
-}
-
-const stats: Stat[] = [
-  { value: 26, suffix: '', label: 'Counties Covered' },
-  { prefix: '< ', value: 4, suffix: 'h', label: 'Avg Response' },
-];
-
-function AnimatedNumber({ value, suffix, prefix }: { value: number; suffix: string; prefix?: string }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-60px' });
-  const motionVal = useMotionValue(0);
-  const spring = useSpring(motionVal, { stiffness: 60, damping: 18, mass: 0.8 });
-  const isDecimal = value % 1 !== 0;
-  const display = useTransform(spring, (v) =>
-    isDecimal ? v.toFixed(1) : Math.round(v).toString()
-  );
-
-  useEffect(() => {
-    if (isInView) motionVal.set(value);
-  }, [isInView, motionVal, value]);
-
-  return (
-    <span ref={ref} className="inline-flex items-baseline gap-0.5">
-      {prefix && <span>{prefix}</span>}
-      <motion.span>{display}</motion.span>
-      <span>{suffix}</span>
-    </span>
-  );
-}
-
-/*
- * Representative examples — these illustrate the type of experience
- * WorkMate aims to deliver. They are not sourced from real user reviews.
- * Replace with genuine testimonials once available.
- */
-const testimonials = [
+const highlights = [
   {
-    id: '1',
-    text: 'Post a job, receive offers from verified pros, and pay securely — all through one platform.',
-    name: 'Happy Customer',
-    county: 'Cork',
-    role: 'Homeowner',
-    rating: 5,
+    icon: Briefcase,
+    title: 'Post a job, get offers fast',
+    description:
+      'Post a job and get offers from verified pros within hours. Compare pricing, reviews, and availability before choosing.',
+    accent: 'var(--wm-primary)',
+    lightBg: 'rgba(var(--wm-primary-rgb), 0.1)',
   },
   {
-    id: '2',
-    text: 'Get multiple offers quickly so you can compare pricing, reviews, and availability before choosing.',
-    name: 'Satisfied Client',
-    county: 'Dublin',
-    role: 'Landlord',
-    rating: 5,
+    icon: CreditCard,
+    title: 'Payment held until you approve',
+    description:
+      'Stripe holds your payment until you confirm the work is done. You stay in control from start to finish.',
+    accent: 'var(--wm-primary)',
+    lightBg: 'rgba(var(--wm-primary-rgb), 0.1)',
   },
   {
-    id: '3',
-    text: 'As a verified pro, WorkMate connects you with customers across Ireland who are ready to hire.',
-    name: 'WorkMate Pro',
-    county: 'Galway',
-    role: 'Service Provider',
-    rating: 5,
+    icon: ShieldCheck,
+    title: 'Every pro is compliance-checked',
+    description:
+      'Every provider is admin-reviewed and compliance-checked — SafePass, insurance, and tax clearance verified before they go live.',
+    accent: 'var(--wm-primary)',
+    lightBg: 'rgba(var(--wm-primary-rgb), 0.1)',
   },
 ];
 
-function initials(name: string) {
-  return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
-}
-
-const avatarColors = ['var(--wm-primary)', 'var(--wm-navy-mid)', 'var(--wm-amber-dark)'];
+const badges = [
+  { icon: MapPin, label: '26 counties covered' },
+  { icon: Clock, label: 'Offers within hours' },
+  { icon: CheckCircle, label: 'Free to post a job' },
+];
 
 export default function SocialProof() {
-  const [index, setIndex] = useState(0);
-  const [direction, setDirection] = useState(1);
-
-  const goTo = useCallback((newIndex: number) => {
-    setDirection(newIndex > index ? 1 : -1);
-    setIndex(newIndex);
-  }, [index]);
-
-  const next = useCallback(() => {
-    setDirection(1);
-    setIndex((prev) => (prev + 1) % testimonials.length);
-  }, []);
-
-  const prev = useCallback(() => {
-    setDirection(-1);
-    setIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
-  }, []);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setDirection(1);
-      setIndex((prev) => (prev + 1) % testimonials.length);
-    }, 6000);
-    return () => window.clearInterval(timer);
-  }, []);
-
-  const current = testimonials[index];
-
   return (
     <section
       className="relative overflow-hidden px-5 py-28 sm:px-8 lg:px-12"
@@ -136,200 +66,115 @@ export default function SocialProof() {
       />
 
       <div className="relative z-10 mx-auto max-w-7xl">
-        {/* Two-column: Stats left, Testimonial right */}
-        <div className="grid items-center gap-16 lg:grid-cols-2">
-          {/* Left — Stats */}
-          <div>
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="mb-14 max-w-2xl"
+        >
+          <span
+            className="text-xs font-bold uppercase tracking-[0.2em]"
+            style={{ color: 'var(--wm-primary)' }}
+          >
+            How WorkMate works
+          </span>
+          <h2
+            className="mt-3"
+            style={{
+              fontFamily: 'var(--wm-font-display)',
+              fontSize: 'clamp(2rem, 4vw, 3rem)',
+              fontWeight: 800,
+              lineHeight: 1.1,
+              letterSpacing: '-0.03em',
+              color: 'white',
+            }}
+          >
+            Built for trust,<br />designed for Ireland.
+          </h2>
+          <p
+            className="mt-4 max-w-lg text-base leading-relaxed"
+            style={{ color: 'rgba(255,255,255,0.55)' }}
+          >
+            Every feature exists to protect you and make hiring a pro straightforward.
+          </p>
+        </motion.div>
+
+        {/* Highlight cards — 3 columns */}
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {highlights.map((item, i) => (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              key={item.title}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
-              <span
-                className="text-xs font-bold uppercase tracking-[0.2em]"
-                style={{ color: 'var(--wm-primary)' }}
-              >
-                Why WorkMate
-              </span>
-              <h2
-                className="mt-3"
-                style={{
-                  fontFamily: 'var(--wm-font-display)',
-                  fontSize: 'clamp(2rem, 4vw, 3rem)',
-                  fontWeight: 800,
-                  lineHeight: 1.1,
-                  letterSpacing: '-0.03em',
-                  color: 'white',
-                }}
-              >
-                Built for Ireland,<br />ready to grow.
-              </h2>
-            </motion.div>
-
-            {/* Stat grid */}
-            <div className="mt-12 grid grid-cols-2 gap-4">
-              {stats.map((stat, i) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: i * 0.08 }}
-                  className="rounded-2xl p-5"
-                  style={{
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                  }}
-                >
-                  <span
-                    className="block text-3xl font-extrabold leading-none tracking-tight"
-                    style={{
-                      fontFamily: 'var(--wm-font-display)',
-                      color: 'white',
-                    }}
-                  >
-                    <AnimatedNumber value={stat.value} suffix={stat.suffix} prefix={stat.prefix} />
-                  </span>
-                  <span
-                    className="mt-2 block text-xs font-semibold uppercase tracking-[0.12em]"
-                    style={{ color: 'rgba(255,255,255,0.45)' }}
-                  >
-                    {stat.label}
-                  </span>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right — Testimonial card */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="relative"
-          >
-            {/* Card */}
-            <div
-              className="relative overflow-hidden rounded-3xl p-8 sm:p-10"
+              transition={{ duration: 0.5, delay: i * 0.12 }}
+              className="relative overflow-hidden rounded-2xl p-7"
               style={{
                 background: 'rgba(255,255,255,0.04)',
                 border: '1px solid rgba(255,255,255,0.1)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
               }}
             >
-              {/* Quote icon */}
-              <Quote
-                className="mb-6 h-8 w-8"
-                style={{ color: 'var(--wm-primary)', opacity: 0.4 }}
+              {/* Top accent */}
+              <div
+                className="absolute left-0 right-0 top-0 h-[2px]"
+                style={{ background: item.accent, opacity: 0.4 }}
               />
 
-              {/* Stars */}
-              <div className="mb-5 flex items-center gap-1">
-                {Array.from({ length: current.rating }).map((_, si) => (
-                  <Star
-                    key={si}
-                    className="h-4 w-4 fill-current"
-                    style={{ color: 'var(--wm-amber)' }}
-                  />
-                ))}
+              {/* Icon */}
+              <div
+                className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-xl"
+                style={{
+                  background: item.lightBg,
+                  border: `1px solid rgba(var(--wm-primary-rgb), 0.2)`,
+                }}
+              >
+                <item.icon className="h-5 w-5" style={{ color: item.accent }} />
               </div>
 
-              {/* Quote */}
-              <div className="relative min-h-[120px]">
-                <AnimatePresence mode="wait" custom={direction}>
-                  <motion.div
-                    key={current.id}
-                    custom={direction}
-                    initial={{ opacity: 0, x: direction > 0 ? 30 : -30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: direction > 0 ? -30 : 30 }}
-                    transition={{ duration: 0.4, ease: 'easeOut' }}
-                  >
-                    <p
-                      className="text-lg font-medium leading-relaxed sm:text-xl"
-                      style={{
-                        color: 'rgba(255,255,255,0.9)',
-                        fontFamily: 'var(--wm-font-display)',
-                        fontStyle: 'italic',
-                        letterSpacing: '-0.01em',
-                      }}
-                    >
-                      &ldquo;{current.text}&rdquo;
-                    </p>
+              <h3
+                className="text-base font-bold"
+                style={{
+                  fontFamily: 'var(--wm-font-display)',
+                  color: 'white',
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                {item.title}
+              </h3>
 
-                    {/* Author */}
-                    <div className="mt-6 flex items-center gap-3">
-                      <div
-                        className="flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold text-white"
-                        style={{ backgroundColor: avatarColors[index % avatarColors.length] }}
-                      >
-                        {initials(current.name)}
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold" style={{ color: 'white' }}>
-                          {current.name}
-                        </p>
-                        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                          {current.role} — {current.county}
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-
-              {/* Navigation */}
-              <div className="mt-8 flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={prev}
-                  className="flex h-9 w-9 items-center justify-center rounded-full transition-colors"
-                  style={{
-                    background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: 'rgba(255,255,255,0.7)',
-                  }}
-                  aria-label="Previous testimonial"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={next}
-                  className="flex h-9 w-9 items-center justify-center rounded-full transition-colors"
-                  style={{
-                    background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: 'rgba(255,255,255,0.7)',
-                  }}
-                  aria-label="Next testimonial"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-
-                {/* Dots */}
-                <div className="ml-auto flex items-center gap-2">
-                  {testimonials.map((t, ti) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => goTo(ti)}
-                      className="h-1.5 rounded-full transition-all duration-300"
-                      style={{
-                        width: ti === index ? '24px' : '8px',
-                        background: ti === index ? 'var(--wm-primary)' : 'rgba(255,255,255,0.2)',
-                      }}
-                      aria-label={`Go to testimonial ${ti + 1}`}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </motion.div>
+              <p
+                className="mt-3 text-sm leading-relaxed"
+                style={{ color: 'rgba(255,255,255,0.55)' }}
+              >
+                {item.description}
+              </p>
+            </motion.div>
+          ))}
         </div>
+
+        {/* Bottom badge row */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="mt-10 flex flex-wrap items-center justify-center gap-6"
+        >
+          {badges.map(({ icon: Icon, label }) => (
+            <span
+              key={label}
+              className="inline-flex items-center gap-2 text-xs font-semibold"
+              style={{ color: 'rgba(255,255,255,0.5)' }}
+            >
+              <Icon className="h-4 w-4" style={{ color: 'var(--wm-primary)', opacity: 0.7 }} />
+              {label}
+            </span>
+          ))}
+        </motion.div>
       </div>
     </section>
   );
