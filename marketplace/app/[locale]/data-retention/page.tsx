@@ -1,6 +1,12 @@
+import type { Metadata } from 'next';
 import {useTranslations} from 'next-intl';
 
 import styles from '../inner.module.css';
+
+export const metadata: Metadata = {
+  title: 'Data Retention Policy',
+  description: 'How long WorkMate retains your personal data.',
+};
 
 export default function DataRetentionPage() {
   const t = useTranslations('retention');

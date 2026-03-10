@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Heart } from 'lucide-react';
@@ -5,6 +6,11 @@ import { canAccessAdmin, canAccessProDashboard, canPostJob, getUserRoles } from 
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import Shell from '@/components/ui/Shell';
 import DashboardShell from '@/components/dashboard/DashboardShell';
+
+export const metadata: Metadata = {
+  title: 'Customer Dashboard',
+  description: 'Your WorkMate customer dashboard.',
+};
 
 export default async function CustomerDashboardPage({
   params,

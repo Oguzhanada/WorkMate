@@ -1,4 +1,10 @@
+import type { Metadata } from 'next';
 import JobMultiStepForm from '@/components/forms/JobMultiStepForm';
+
+export const metadata: Metadata = {
+  title: 'Post a Job',
+  description: 'Post a new job on WorkMate and get quotes from local professionals.',
+};
 import GuestJobIntentForm from '@/components/forms/GuestJobIntentForm';
 import { canPostJobWithIdentity, getUserRoles, type AppRole } from '@/lib/auth/rbac';
 import { getSupabaseServerClient } from '@/lib/supabase/server';

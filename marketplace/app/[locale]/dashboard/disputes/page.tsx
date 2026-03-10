@@ -1,7 +1,13 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import Shell from '@/components/ui/Shell';
 import DisputeList from '@/components/disputes/DisputeList';
+
+export const metadata: Metadata = {
+  title: 'Disputes',
+  description: 'Manage your WorkMate disputes.',
+};
 
 export default async function DisputesPage({
   params,

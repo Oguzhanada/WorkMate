@@ -3,6 +3,7 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { logAdminAudit } from '@/lib/admin/audit';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { complianceRecalcSchema } from '@/lib/validation/api';
 
 async function postHandler(req: Request) {
     try {
@@ -20,7 +21,12 @@ async function postHandler(req: Request) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const { providerId } = await req.json().catch(() => ({ providerId: null }));
+        const raw = await req.json().catch(() => ({}));
+        const parsed = complianceRecalcSchema.safeParse(raw);
+        if (!parsed.success) {
+            return NextResponse.json({ error: 'Invalid request body', details: parsed.error.issues }, { status: 400 });
+        }
+        const { providerId } = parsed.data;
 
         if (providerId) {
             // Recalculate for a single provider

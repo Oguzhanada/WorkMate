@@ -1,9 +1,15 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getUserRoles, canAccessAdmin, canAccessProDashboard, canPostJob } from '@/lib/auth/rbac';
 import Shell from '@/components/ui/Shell';
 import PageHeader from '@/components/ui/PageHeader';
 import AppointmentsView from '@/components/appointments/AppointmentsView';
+
+export const metadata: Metadata = {
+  title: 'Appointments',
+  description: 'Manage your WorkMate appointments.',
+};
 
 export default async function AppointmentsPage({
   params,

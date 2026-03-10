@@ -714,6 +714,20 @@ export const upsertTaskAlertSchema = z.object({
   enabled: z.boolean().default(true),
 });
 
+// ─── Public API: Jobs Query ───────────────────────────────────────────────────
+export const publicJobsQuerySchema = z.object({
+  limit:    z.preprocess((v) => (v === '' || v == null ? '20' : v), z.string().regex(/^\d+$/).transform(Number).pipe(z.number().int().min(1).max(100))),
+  offset:   z.preprocess((v) => (v === '' || v == null ? '0' : v), z.string().regex(/^\d+$/).transform(Number).pipe(z.number().int().min(0))),
+  status:   z.string().trim().max(30).optional(),
+  county:   z.string().trim().max(120).optional(),
+  category: z.string().trim().max(120).optional(),
+});
+
+// ─── Admin: Compliance Recalculation ─────────────────────────────────────────
+export const complianceRecalcSchema = z.object({
+  providerId: z.string().uuid().optional().nullable(),
+});
+
 // ─── Portfolio: Work Gallery ───────────────────────────────────────────────────
 export const createPortfolioItemSchema = z.object({
   title:         z.string().trim().min(1).max(100),

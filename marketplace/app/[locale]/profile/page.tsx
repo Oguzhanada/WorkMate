@@ -1,6 +1,12 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 
 import { getUserRoles } from '@/lib/auth/rbac';
+
+export const metadata: Metadata = {
+  title: 'My Profile',
+  description: 'View and edit your WorkMate profile.',
+};
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { hasAtLeastTwoNameParts } from '@/lib/validation/name';
 import { isValidIrishPhone } from '@/lib/validation/phone';

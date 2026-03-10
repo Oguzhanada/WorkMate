@@ -25,8 +25,8 @@ export async function POST(request: NextRequest) {
   try {
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Webhook signature verification failed';
-    return NextResponse.json({ error: message }, { status: 400 });
+    console.error('[stripe-webhook] signature verification failed:', error instanceof Error ? error.message : error);
+    return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 });
   }
 
   const supabase = getSupabaseServiceClient();

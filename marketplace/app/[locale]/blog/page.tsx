@@ -1,5 +1,11 @@
+import type { Metadata } from 'next';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+
+export const metadata: Metadata = {
+  title: 'Blog',
+  description: 'Latest news, tips, and updates from WorkMate Ireland.',
+};
 
 type BlogItem = {
   slug: string;

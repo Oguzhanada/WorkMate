@@ -47,8 +47,8 @@ export async function generateMetadata({
   if (!isValidLocale(locale)) return {};
 
   return {
-    title: 'More Services | WorkMate',
-    description: 'A broad catalog of services tailored to everyday needs.',
+    title: 'Other Services',
+    description: 'Explore additional services available on WorkMate.',
     alternates: {
       canonical: `${baseUrl}/other-services`,
     },

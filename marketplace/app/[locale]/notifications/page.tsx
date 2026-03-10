@@ -1,5 +1,11 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+
+export const metadata: Metadata = {
+  title: 'Notifications',
+  description: 'Your WorkMate notifications.',
+};
 import Shell from '@/components/ui/Shell';
 import PageHeader from '@/components/ui/PageHeader';
 import NotificationsInbox from '@/components/profile/NotificationsInbox';

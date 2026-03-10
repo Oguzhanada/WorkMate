@@ -1,9 +1,15 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import AdminApplicationDetail from '@/components/dashboard/AdminApplicationDetail';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import styles from '../../../../inner.module.css';
+
+export const metadata: Metadata = {
+  title: 'Application Review',
+  description: 'Review provider application details.',
+};
 
 export default async function AdminApplicationDetailPage({
   params,

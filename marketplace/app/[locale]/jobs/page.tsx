@@ -1,5 +1,11 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Briefcase, Zap, Clock } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Browse Jobs',
+  description: 'Find and browse available service jobs across Ireland.',
+};
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import Shell from '@/components/ui/Shell';
 import Card from '@/components/ui/Card';

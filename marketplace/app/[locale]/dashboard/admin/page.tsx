@@ -1,9 +1,15 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import Shell from '@/components/ui/Shell';
 import Button from '@/components/ui/Button';
 import DashboardShell from '@/components/dashboard/DashboardShell';
+
+export const metadata: Metadata = {
+  title: 'Admin Dashboard',
+  description: 'WorkMate admin dashboard overview.',
+};
 
 // Admin quick-links — surfaces key admin tools that live outside the widget grid.
 const ADMIN_QUICK_LINKS = [

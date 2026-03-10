@@ -1,7 +1,13 @@
+import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 
 import JobSubmissionResult from '@/components/forms/JobSubmissionResult';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+
+export const metadata: Metadata = {
+  title: 'Job Posted',
+  description: 'Your job has been successfully posted on WorkMate.',
+};
 
 type Job = {
   id: string;
