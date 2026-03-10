@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { upsertTaskAlertSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 async function getVerifiedPro(supabase: ReturnType<typeof getSupabaseServiceClient>, userId: string) {
   const { data } = await supabase
@@ -30,7 +31,7 @@ export async function GET() {
 }
 
 // POST — create or update task alert preferences (upsert)
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const service = getSupabaseServiceClient();
 
@@ -67,7 +68,7 @@ export async function POST(request: NextRequest) {
 }
 
 // DELETE — remove task alert
-export async function DELETE() {
+async function deleteHandler() {
   const supabase = await getSupabaseRouteClient();
   const service = getSupabaseServiceClient();
 
@@ -78,3 +79,7 @@ export async function DELETE() {
 
   return NextResponse.json({ success: true }, { status: 200 });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);
+
+export const DELETE = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, deleteHandler);

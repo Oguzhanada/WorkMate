@@ -6,8 +6,10 @@ import { acceptQuoteSchema } from '@/lib/validation/api';
 import { sendWebhookEvent } from '@/lib/webhook/send';
 import { sendTransactionalEmail } from '@/lib/email/send';
 import { sendNotification } from '@/lib/notifications/send';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiValidationError, apiUnauthorized, apiForbidden, apiNotFound } from '@/lib/api/error-response';
 
-export async function PATCH(
+async function patchHandler(
   request: NextRequest,
   { params }: { params: Promise<{ jobId: string }> }
 ) {
@@ -19,28 +21,25 @@ export async function PATCH(
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const roles = await getUserRoles(supabase, user.id);
   const isAdmin = canAccessAdmin(roles);
   if (!canPostJob(roles)) {
-    return NextResponse.json({ error: 'Only customers can accept quotes' }, { status: 403 });
+    return apiForbidden('Only customers can accept quotes');
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = acceptQuoteSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiValidationError(parsed.error.issues);
   }
 
   const quoteId = parsed.data.quote_id;
@@ -54,11 +53,11 @@ export async function PATCH(
     .maybeSingle();
 
   if (jobError || !job) {
-    return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+    return apiNotFound('Job not found');
   }
 
   if (job.customer_id !== user.id && !isAdmin) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiForbidden();
   }
 
   const { data: existingPayment } = await serviceSupabase
@@ -70,7 +69,7 @@ export async function PATCH(
     .maybeSingle();
 
   if (existingPayment) {
-    return NextResponse.json({ error: 'Cannot change accepted quote after payment authorization' }, { status: 400 });
+    return apiError('Cannot change accepted quote after payment authorization', 400);
   }
 
   const { data: quote, error: quoteError } = await serviceSupabase
@@ -81,7 +80,7 @@ export async function PATCH(
     .maybeSingle();
 
   if (quoteError || !quote) {
-    return NextResponse.json({ error: 'Quote not found for this job' }, { status: 404 });
+    return apiNotFound('Quote not found for this job');
   }
 
   const { error: quoteResetError } = await serviceSupabase
@@ -90,7 +89,7 @@ export async function PATCH(
     .eq('job_id', jobId);
 
   if (quoteResetError) {
-    return NextResponse.json({ error: quoteResetError.message }, { status: 400 });
+    return apiError(quoteResetError.message, 400);
   }
 
   const { error: quoteAcceptError } = await serviceSupabase
@@ -100,7 +99,7 @@ export async function PATCH(
     .eq('job_id', jobId);
 
   if (quoteAcceptError) {
-    return NextResponse.json({ error: quoteAcceptError.message }, { status: 400 });
+    return apiError(quoteAcceptError.message, 400);
   }
 
   let jobUpdateQuery = serviceSupabase
@@ -117,7 +116,7 @@ export async function PATCH(
     .single();
 
   if (jobUpdateError) {
-    return NextResponse.json({ error: jobUpdateError.message }, { status: 400 });
+    return apiError(jobUpdateError.message, 400);
   }
 
   void sendWebhookEvent('quote.accepted', {
@@ -163,3 +162,5 @@ export async function PATCH(
 
   return NextResponse.json({ job: updatedJob }, { status: 200 });
 }
+
+export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);

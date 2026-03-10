@@ -3,12 +3,13 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { reviewResponseSchema } from '@/lib/validation/api';
 import { sendNotification } from '@/lib/notifications/send';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 type RouteContext = { params: Promise<{ reviewId: string }> };
 
 // POST /api/reviews/[reviewId]/response
 // Allows the reviewed provider to add or update their public response.
-export async function POST(request: NextRequest, { params }: RouteContext) {
+async function postHandler(request: NextRequest, { params }: RouteContext) {
   const { reviewId } = await params;
 
   const supabase = await getSupabaseRouteClient();
@@ -86,7 +87,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
 // DELETE /api/reviews/[reviewId]/response
 // Allows the provider to remove their response.
-export async function DELETE(_request: NextRequest, { params }: RouteContext) {
+async function deleteHandler(_request: NextRequest, { params }: RouteContext) {
   const { reviewId } = await params;
 
   const supabase = await getSupabaseRouteClient();
@@ -127,3 +128,7 @@ export async function DELETE(_request: NextRequest, { params }: RouteContext) {
 
   return NextResponse.json({ ok: true }, { status: 200 });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);
+
+export const DELETE = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, deleteHandler);

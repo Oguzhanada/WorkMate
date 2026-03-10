@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { updatePortfolioItemSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 type Params = Promise<{ itemId: string }>;
 
 // DELETE /api/profile/portfolio/[itemId] — deletes item (owner only)
-export async function DELETE(_request: NextRequest, { params }: { params: Params }) {
+async function deleteHandler(_request: NextRequest, { params }: { params: Params }) {
   const { itemId } = await params;
 
   const supabase = await getSupabaseRouteClient();
@@ -48,7 +49,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Params
 }
 
 // PATCH /api/profile/portfolio/[itemId] — update title/description/display_order
-export async function PATCH(request: NextRequest, { params }: { params: Params }) {
+async function patchHandler(request: NextRequest, { params }: { params: Params }) {
   const { itemId } = await params;
 
   const supabase = await getSupabaseRouteClient();
@@ -105,3 +106,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Params }
 
   return NextResponse.json({ item }, { status: 200 });
 }
+
+export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);
+
+export const DELETE = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, deleteHandler);

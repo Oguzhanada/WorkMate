@@ -3,6 +3,8 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { getUserRoles, canQuote } from '@/lib/auth/rbac';
 import { updateAvailabilitySchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiValidationError, apiUnauthorized, apiForbidden } from '@/lib/api/error-response';
 
 // GET /api/profile/availability — returns current provider's full weekly schedule
 export async function GET() {
@@ -13,12 +15,12 @@ export async function GET() {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const roles = await getUserRoles(supabase, user.id);
   if (!canQuote(roles)) {
-    return NextResponse.json({ error: 'Forbidden: verified_pro role required' }, { status: 403 });
+    return apiForbidden('Forbidden: verified_pro role required');
   }
 
   const service = getSupabaseServiceClient();
@@ -29,14 +31,14 @@ export async function GET() {
     .order('day_of_week', { ascending: true });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return apiError(error.message, 400);
   }
 
   return NextResponse.json({ availability: data ?? [] }, { status: 200 });
 }
 
 // PUT /api/profile/availability — replaces entire weekly schedule for current user
-export async function PUT(request: NextRequest) {
+async function putHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -44,36 +46,30 @@ export async function PUT(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const roles = await getUserRoles(supabase, user.id);
   if (!canQuote(roles)) {
-    return NextResponse.json({ error: 'Forbidden: verified_pro role required' }, { status: 403 });
+    return apiForbidden('Forbidden: verified_pro role required');
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = updateAvailabilitySchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiValidationError(parsed.error.issues);
   }
 
   // Validate end_time > start_time for each day
   for (const day of parsed.data) {
     if (day.start_time >= day.end_time) {
-      return NextResponse.json(
-        { error: `end_time must be after start_time for day_of_week ${day.day_of_week}` },
-        { status: 400 }
-      );
+      return apiError(`end_time must be after start_time for day_of_week ${day.day_of_week}`, 400);
     }
   }
 
@@ -95,8 +91,10 @@ export async function PUT(request: NextRequest) {
     .order('day_of_week', { ascending: true });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return apiError(error.message, 400);
   }
 
   return NextResponse.json({ availability: data }, { status: 200 });
 }
+
+export const PUT = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, putHandler);

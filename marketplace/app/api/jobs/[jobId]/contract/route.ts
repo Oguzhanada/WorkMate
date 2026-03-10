@@ -5,6 +5,7 @@ import { resolveJobAccessContext } from '@/lib/jobs/access';
 import { sendTransactionalEmail } from '@/lib/email/send';
 import { sendNotification } from '@/lib/notifications/send';
 import { createContractSchema, signContractSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 // GET /api/jobs/[jobId]/contract — get the contract for this job
 export async function GET(
@@ -41,7 +42,7 @@ export async function GET(
 }
 
 // POST /api/jobs/[jobId]/contract — create a contract (customer only)
-export async function POST(
+async function postHandler(
   request: NextRequest,
   { params }: { params: Promise<{ jobId: string }> }
 ) {
@@ -151,7 +152,7 @@ export async function POST(
 }
 
 // PATCH /api/jobs/[jobId]/contract — sign or void
-export async function PATCH(
+async function patchHandler(
   request: NextRequest,
   { params }: { params: Promise<{ jobId: string }> }
 ) {
@@ -333,3 +334,7 @@ export async function PATCH(
 
   return NextResponse.json({ contract: updated });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);
+
+export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);

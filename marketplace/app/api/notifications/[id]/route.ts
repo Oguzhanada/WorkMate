@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 // DELETE /api/notifications/[id]
 // Deletes a single notification belonging to the current user.
-export async function DELETE(
+async function deleteHandler(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -32,3 +33,5 @@ export async function DELETE(
 
   return NextResponse.json({ deleted: id });
 }
+
+export const DELETE = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, deleteHandler);

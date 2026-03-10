@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { claimFoundingProSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 // GET /api/founding-pro — check program status, slots, and user's founding pro / referral info
 export async function GET() {
@@ -82,7 +83,7 @@ export async function GET() {
 
 // POST /api/founding-pro — claim a founding pro slot (authenticated providers only)
 // Body: { confirm: true }
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -193,3 +194,5 @@ export async function POST(request: NextRequest) {
     { status: 201 }
   );
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { updateSavedSearchSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 // DELETE /api/saved-searches/[id] — delete a saved search (user's own only)
-export async function DELETE(
+async function deleteHandler(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
@@ -33,7 +34,7 @@ export async function DELETE(
 
 // PATCH /api/saved-searches/[id] — toggle notify_email / notify_bell
 // Body: { notify_email?: boolean, notify_bell?: boolean }
-export async function PATCH(
+async function patchHandler(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
@@ -76,3 +77,7 @@ export async function PATCH(
 
   return NextResponse.json({ saved_search: data });
 }
+
+export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);
+
+export const DELETE = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, deleteHandler);

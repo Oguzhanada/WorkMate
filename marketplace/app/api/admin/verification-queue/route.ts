@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { logAdminAudit } from '@/lib/admin/audit';
 import { sendNotification } from '@/lib/notifications/send';
 import { batchVerificationSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -92,7 +93,7 @@ export async function GET(_request: NextRequest) {
 
 // ─── PATCH — batch approve / reject ──────────────────────────────────────────
 
-export async function PATCH(request: NextRequest) {
+async function patchHandler(request: NextRequest) {
   const auth = await ensureAdminRoute();
   if (auth.error) return auth.error;
 
@@ -193,3 +194,5 @@ export async function PATCH(request: NextRequest) {
 
   return NextResponse.json({ success: true, processed: profile_ids.length });
 }
+
+export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);

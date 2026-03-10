@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { resolveJobAccessContext } from '@/lib/jobs/access';
 import { patchTimeEntrySchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function PATCH(
+async function patchHandler(
   request: NextRequest,
   { params }: { params: Promise<{ jobId: string; entryId: string }> }
 ) {
@@ -107,7 +108,7 @@ export async function PATCH(
   return NextResponse.json({ entry: updated }, { status: 200 });
 }
 
-export async function DELETE(
+async function deleteHandler(
   _request: NextRequest,
   { params }: { params: Promise<{ jobId: string; entryId: string }> }
 ) {
@@ -150,3 +151,7 @@ export async function DELETE(
   if (deleteError) return NextResponse.json({ error: deleteError.message }, { status: 400 });
   return NextResponse.json({ success: true }, { status: 200 });
 }
+
+export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);
+
+export const DELETE = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, deleteHandler);

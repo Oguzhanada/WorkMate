@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 export type TaskAlertSuggestion = {
   categories: { id: string; name: string }[];
@@ -104,7 +105,7 @@ export async function GET() {
 }
 
 // POST — create task_alerts automatically from pro_services + pro_service_areas.
-export async function POST() {
+async function postHandler() {
   const service = getSupabaseServiceClient();
   const userId = await getCurrentUserId();
 
@@ -157,3 +158,5 @@ export async function POST() {
 
   return NextResponse.json({ created: true, alert, suggestion }, { status: 200 });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

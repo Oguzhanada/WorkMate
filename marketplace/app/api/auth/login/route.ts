@@ -2,21 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { loginSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiValidationError, apiUnauthorized } from '@/lib/api/error-response';
 
 async function handler(request: NextRequest): Promise<NextResponse> {
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = loginSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? 'Invalid request' },
-      { status: 400 }
-    );
+    return apiValidationError(parsed.error.issues);
   }
 
   const { email, password } = parsed.data;
@@ -28,7 +26,7 @@ async function handler(request: NextRequest): Promise<NextResponse> {
   });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 401 });
+    return apiUnauthorized(error.message);
   }
 
   return NextResponse.json({

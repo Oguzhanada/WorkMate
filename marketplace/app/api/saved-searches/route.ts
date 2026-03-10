@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { createSavedSearchSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 // GET /api/saved-searches — returns current user's saved searches
 export async function GET() {
@@ -27,7 +28,7 @@ export async function GET() {
 
 // POST /api/saved-searches — create a saved search
 // Body: { name, filters, notify_email, notify_bell }
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -74,3 +75,5 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ saved_search: data }, { status: 201 });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

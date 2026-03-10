@@ -3,6 +3,7 @@ import { stripe } from '@/lib/stripe';
 import { resolveJobAccessContext } from '@/lib/jobs/access';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 function computeBillableCents(minutes: number, hourlyRateCents: number) {
   return Math.round((minutes / 60) * hourlyRateCents);
@@ -27,7 +28,7 @@ async function getOrCreateStripeCustomer(customerId: string, fallbackEmail: stri
   return created.id;
 }
 
-export async function POST(
+async function postHandler(
   _request: NextRequest,
   { params }: { params: Promise<{ jobId: string }> }
 ) {
@@ -179,3 +180,5 @@ export async function POST(
     );
   }
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

@@ -3,6 +3,7 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { getUserRoles } from '@/lib/auth/rbac';
 import { prescreenVerificationSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 type RiskLevel = 'low' | 'medium' | 'high';
 
@@ -48,7 +49,7 @@ function computeIdPrescreen(input: { storagePath: string; documentType: string }
   };
 }
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const routeClient = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -119,3 +120,5 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ check });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

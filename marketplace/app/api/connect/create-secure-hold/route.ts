@@ -4,8 +4,9 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canPostJob, getUserRoles } from '@/lib/auth/rbac';
 import { createSecureHoldSchema } from '@/lib/validation/api';
 import { PLATFORM_COMMISSION_RATE, stripe } from '@/lib/stripe';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -114,3 +115,5 @@ export async function POST(request: NextRequest) {
     commission_cents: commission,
   });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

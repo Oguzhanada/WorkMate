@@ -3,6 +3,7 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canQuote, getUserRoles } from '@/lib/auth/rbac';
 import { calculateCompleteness } from '@/lib/profile/completeness';
+import { apiUnauthorized, apiForbidden, apiNotFound, apiServerError } from '@/lib/api/error-response';
 
 // GET /api/profile/completeness
 // Returns the profile completeness score for the authenticated provider.
@@ -15,15 +16,12 @@ export async function GET() {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const roles = await getUserRoles(supabase, user.id);
   if (!canQuote(roles)) {
-    return NextResponse.json(
-      { error: 'Forbidden: verified_pro role required' },
-      { status: 403 },
-    );
+    return apiForbidden('Forbidden: verified_pro role required');
   }
 
   const service = getSupabaseServiceClient();
@@ -44,11 +42,11 @@ export async function GET() {
     ]);
 
   if (profileError || !profile) {
-    return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    return apiNotFound('Profile not found');
   }
 
   if (servicesError) {
-    return NextResponse.json({ error: servicesError.message }, { status: 500 });
+    return apiServerError(servicesError.message);
   }
 
   const hasServices = (servicesCount ?? 0) > 0;

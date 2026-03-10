@@ -6,8 +6,9 @@ import { isValidEircode, normalizeEircode } from '@/lib/eircode';
 import { fireAutomationEvent } from '@/lib/automation/engine';
 import { createJobSchema } from '@/lib/validation/api';
 import { sendWebhookEvent } from '@/lib/webhook/send';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -209,3 +210,5 @@ export async function POST(request: NextRequest) {
     { status: 201 }
   );
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

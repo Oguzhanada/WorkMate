@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { markNotificationsReadSchema, notificationsQuerySchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiValidationError, apiUnauthorized } from '@/lib/api/error-response';
 
 // GET /api/notifications
 // Query: ?unread=true&limit=20
@@ -13,16 +15,13 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const raw = Object.fromEntries(request.nextUrl.searchParams.entries());
   const parsed = notificationsQuerySchema.safeParse(raw);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? 'Invalid query params' },
-      { status: 400 }
-    );
+    return apiValidationError(parsed.error.issues);
   }
 
   const { unread, limit = 20 } = parsed.data;
@@ -40,7 +39,7 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await query;
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) return apiError(error.message, 400);
 
   return NextResponse.json({ notifications: data ?? [] });
 }
@@ -48,7 +47,7 @@ export async function GET(request: NextRequest) {
 // PATCH /api/notifications
 // Body: { ids: string[] } | { all: true }
 // Marks the specified notifications (or all) as read for the current user.
-export async function PATCH(request: NextRequest) {
+async function patchHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -56,22 +55,19 @@ export async function PATCH(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = markNotificationsReadSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? 'Invalid request' },
-      { status: 400 }
-    );
+    return apiValidationError(parsed.error.issues);
   }
 
   const { ids, all } = parsed.data;
@@ -84,7 +80,7 @@ export async function PATCH(request: NextRequest) {
       .eq('user_id', user.id)
       .is('read_at', null);
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    if (error) return apiError(error.message, 400);
     return NextResponse.json({ updated: 'all' });
   }
 
@@ -95,7 +91,9 @@ export async function PATCH(request: NextRequest) {
     .eq('user_id', user.id)
     .in('id', ids!);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) return apiError(error.message, 400);
 
   return NextResponse.json({ updated: ids!.length });
 }
+
+export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);

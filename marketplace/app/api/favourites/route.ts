@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { toggleFavouriteSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 // GET /api/favourites — list all provider IDs the current user has saved
 export async function GET() {
@@ -27,7 +28,7 @@ export async function GET() {
 
 // POST /api/favourites — toggle favourite for a provider
 // Body: { provider_id: string }
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -84,3 +85,5 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ saved: true }, { status: 201 });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

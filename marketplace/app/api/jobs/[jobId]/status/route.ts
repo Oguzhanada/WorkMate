@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { canAccessAdmin, canPostJob, getUserRoles } from '@/lib/auth/rbac';
 import { updateJobStatusSchema } from '@/lib/validation/api';
+import { logAdminAudit } from '@/lib/admin/audit';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiValidationError, apiUnauthorized, apiForbidden } from '@/lib/api/error-response';
 
-export async function PATCH(
+async function patchHandler(
   request: NextRequest,
   { params }: { params: Promise<{ jobId: string }> }
 ) {
@@ -15,28 +18,25 @@ export async function PATCH(
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const roles = await getUserRoles(supabase, user.id);
   const isAdmin = canAccessAdmin(roles);
   if (!canPostJob(roles)) {
-    return NextResponse.json({ error: 'Only customers can update job status' }, { status: 403 });
+    return apiForbidden('Only customers can update job status');
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = updateJobStatusSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiValidationError(parsed.error.issues);
   }
 
   const patch: Record<string, unknown> = { status: parsed.data.status };
@@ -55,8 +55,23 @@ export async function PATCH(
 
   const { data, error } = await query.select('id,status,completed_at,auto_release_at,payment_released_at').single();
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return apiError(error.message, 400);
+  }
+
+  if (isAdmin) {
+    await logAdminAudit({
+      adminUserId: user.id,
+      adminEmail: user.email ?? null,
+      action: 'admin_update_job_status',
+      targetType: 'job',
+      details: {
+        job_id: jobId,
+        new_status: parsed.data.status,
+      },
+    });
   }
 
   return NextResponse.json({ job: data }, { status: 200 });
 }
+
+export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);

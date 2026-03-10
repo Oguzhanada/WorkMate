@@ -5,6 +5,7 @@ import { logAdminAudit } from '@/lib/admin/audit';
 import { adminDocumentDecisionSchema } from '@/lib/validation/api';
 import { PROVIDER_REQUIRED_DOCUMENTS } from '@/lib/provider-documents';
 import { fireAutomationEvent } from '@/lib/automation/engine';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 export async function GET(
   _request: NextRequest,
@@ -52,7 +53,7 @@ export async function GET(
   return NextResponse.json({ documents: withUrls });
 }
 
-export async function PATCH(
+async function patchHandler(
   request: NextRequest,
   { params }: { params: Promise<{ profileId: string }> }
 ) {
@@ -225,7 +226,7 @@ export async function PATCH(
   return NextResponse.json({ document: doc });
 }
 
-export async function POST(
+async function postHandler(
   request: NextRequest,
   { params }: { params: Promise<{ profileId: string }> }
 ) {
@@ -305,3 +306,7 @@ export async function POST(
 
   return NextResponse.json({ updated: targetDocIds.length });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);
+
+export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);

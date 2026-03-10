@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { logAdminAudit } from '@/lib/admin/audit';
 import { sendTransactionalEmail } from '@/lib/email/send';
 import { processGdprDeletionSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 const HOLD_DAYS = 30;
 
@@ -57,7 +58,7 @@ export async function GET(request: NextRequest) {
 //
 // Financial records (job_contracts, provider_subscriptions, stripe data) are
 // intentionally NOT deleted — retained for 7-year statutory obligation.
-export async function DELETE(request: NextRequest) {
+async function deleteHandler(request: NextRequest) {
   const auth = await ensureAdminRoute();
   if (auth.error) return auth.error;
 
@@ -205,3 +206,5 @@ export async function DELETE(request: NextRequest) {
 
   return NextResponse.json({ deleted: true, profile_id });
 }
+
+export const DELETE = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, deleteHandler);

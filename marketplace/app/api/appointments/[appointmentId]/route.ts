@@ -3,8 +3,9 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { patchAppointmentSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function PATCH(
+async function patchHandler(
   request: NextRequest,
   { params }: { params: Promise<{ appointmentId: string }> }
 ) {
@@ -117,3 +118,5 @@ export async function PATCH(
 
   return NextResponse.json({ appointment: updated }, { status: 200 });
 }
+
+export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);

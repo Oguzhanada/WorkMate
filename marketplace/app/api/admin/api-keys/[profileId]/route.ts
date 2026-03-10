@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ensureAdminRoute } from '@/lib/auth/admin';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { patchApiKeyRateLimitSchema } from '@/lib/validation/api';
+import { logAdminAudit } from '@/lib/admin/audit';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function PATCH(
+async function patchHandler(
   request: NextRequest,
   { params }: { params: Promise<{ profileId: string }> }
 ) {
@@ -37,5 +39,18 @@ export async function PATCH(
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   if (!data) return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
 
+  await logAdminAudit({
+    adminUserId: auth.user?.id ?? null,
+    adminEmail: auth.user?.email ?? null,
+    action: 'update_api_rate_limit',
+    targetType: 'api_key',
+    targetProfileId: profileId,
+    details: {
+      new_rate_limit: parsed.data.api_rate_limit,
+    },
+  });
+
   return NextResponse.json({ profile: data }, { status: 200 });
 }
+
+export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);

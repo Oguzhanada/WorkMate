@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { createPortfolioItemSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 const MAX_PORTFOLIO_ITEMS = 12;
 
@@ -33,7 +34,7 @@ export async function GET() {
 }
 
 // POST /api/profile/portfolio — adds a portfolio item
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -92,3 +93,5 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ item }, { status: 201 });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

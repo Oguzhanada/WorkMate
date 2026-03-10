@@ -3,6 +3,7 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { resolveJobAccessContext } from '@/lib/jobs/access';
 import { createTimeEntrySchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 function computeBillableCents(minutes: number, hourlyRateCents: number) {
   return Math.round((minutes / 60) * hourlyRateCents);
@@ -88,7 +89,7 @@ export async function GET(
   );
 }
 
-export async function POST(
+async function postHandler(
   request: NextRequest,
   { params }: { params: Promise<{ jobId: string }> }
 ) {
@@ -204,3 +205,5 @@ export async function POST(
 
   return NextResponse.json({ entry: updated }, { status: 200 });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

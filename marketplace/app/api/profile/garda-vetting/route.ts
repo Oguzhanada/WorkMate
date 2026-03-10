@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canQuote, getUserRoles } from '@/lib/auth/rbac';
 import { requestGardaVettingSchema } from '@/lib/validation/api';
 import { sendNotification } from '@/lib/notifications/send';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 // GET /api/profile/garda-vetting — returns current user's vetting status
 export async function GET() {
@@ -55,7 +56,7 @@ export async function GET() {
 // Individuals cannot self-apply to the NVB — only registered organisations can.
 // WorkMate acts as (or partners with) a registered organisation under the
 // National Vetting Bureau (Children and Vulnerable Persons) Acts 2012-2016.
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -156,3 +157,5 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ profile: updated }, { status: 200 });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

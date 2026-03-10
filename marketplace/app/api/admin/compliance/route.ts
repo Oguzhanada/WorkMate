@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
+import { logAdminAudit } from '@/lib/admin/audit';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function POST(req: Request) {
+async function postHandler(req: Request) {
     try {
         const supabase = await getSupabaseRouteClient();
         const {
@@ -29,6 +31,15 @@ export async function POST(req: Request) {
                 await supabase.from('profiles').update({ updated_at: new Date().toISOString() }).eq('id', providerId);
             }
 
+            await logAdminAudit({
+                adminUserId: user.id,
+                adminEmail: user.email ?? null,
+                action: 'recalculate_compliance_score',
+                targetType: 'compliance',
+                targetProfileId: providerId,
+                details: { provider_id: providerId },
+            });
+
             return NextResponse.json({ success: true, message: `Score recalculated for ${providerId}` });
         } else {
             // Recalculate ALL (by refreshing the view, triggers handle rows)
@@ -38,6 +49,14 @@ export async function POST(req: Request) {
                 return NextResponse.json({ error: error.message }, { status: 500 });
             }
 
+            await logAdminAudit({
+                adminUserId: user.id,
+                adminEmail: user.email ?? null,
+                action: 'refresh_provider_rankings',
+                targetType: 'compliance',
+                details: { scope: 'all_providers' },
+            });
+
             return NextResponse.json({ success: true, message: 'Materialized view refreshed successfully' });
         }
 
@@ -46,3 +65,5 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

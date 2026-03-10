@@ -4,8 +4,9 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { disputeEvidenceSchema, DISPUTE_EVIDENCE_MAX_FILE_SIZE } from '@/lib/validation/api';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { getDisputeParticipantContext, isDisputeParticipant } from '@/lib/disputes';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function POST(
+async function postHandler(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -83,3 +84,5 @@ export async function POST(
 
   return NextResponse.json({ evidence }, { status: 201 });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { getUserRoles } from '@/lib/auth/rbac';
 import { isModeAllowedForRoles, isWidgetAllowedForMode, normalizeDashboardMode } from '@/lib/dashboard/widgets';
 import { patchDashboardWidgetSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 async function resolveContext(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
@@ -25,7 +26,7 @@ async function resolveContext(request: NextRequest) {
   return { user, mode };
 }
 
-export async function PATCH(
+async function patchHandler(
   request: NextRequest,
   { params }: { params: Promise<{ widgetId: string }> }
 ) {
@@ -85,7 +86,7 @@ export async function PATCH(
   return NextResponse.json({ widget: data }, { status: 200 });
 }
 
-export async function DELETE(
+async function deleteHandler(
   request: NextRequest,
   { params }: { params: Promise<{ widgetId: string }> }
 ) {
@@ -123,3 +124,7 @@ export async function DELETE(
 
   return NextResponse.json({ success: true }, { status: 200 });
 }
+
+export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);
+
+export const DELETE = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, deleteHandler);

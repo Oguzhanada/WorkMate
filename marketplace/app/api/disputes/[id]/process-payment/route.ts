@@ -3,8 +3,9 @@ import { ensureAdminRoute } from '@/lib/auth/admin';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { disputeProcessPaymentSchema } from '@/lib/validation/api';
 import { stripe } from '@/lib/stripe';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function POST(
+async function postHandler(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -96,3 +97,5 @@ export async function POST(
 
   return NextResponse.json({ ok: true, payment_status: paymentStatus, stripe: stripeResult }, { status: 200 });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);
