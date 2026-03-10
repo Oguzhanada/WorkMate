@@ -1,6 +1,6 @@
 /* ─── Account Details card ────────────────────────────────────── */
 .card {
-  background: #fff;
+  background: var(--wm-surface);
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-xl);
   box-shadow: var(--wm-shadow-md);
@@ -91,7 +91,7 @@
 /* ─── Edit button ─────────────────────────────────────────────── */
 .editBtn {
   border: 1px solid var(--wm-border);
-  background: #fff;
+  background: var(--wm-surface);
   border-radius: var(--wm-radius-md);
   padding: 6px 10px;
   cursor: pointer;

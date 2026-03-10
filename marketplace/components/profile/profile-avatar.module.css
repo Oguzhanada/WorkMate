@@ -1,6 +1,6 @@
 /* ─── Avatar panel ────────────────────────────────────────────── */
 .card {
-  background: #fff;
+  background: var(--wm-surface);
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-xl);
   padding: 18px;
@@ -35,7 +35,7 @@
   object-fit: cover;
   border: 3px solid rgba(var(--wm-primary-rgb), 0.6);
   box-shadow: 0 0 0 4px rgba(var(--wm-primary-rgb), 0.16);
-  background: var(--wm-bg);
+  background: var(--wm-surface);
   transition: box-shadow var(--wm-transition-slow);
 }
 
@@ -70,7 +70,7 @@
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-md);
   padding: 9px 10px;
-  background: #fff;
+  background: var(--wm-surface);
   font: inherit;
   color: var(--wm-text);
 }
@@ -111,7 +111,7 @@
 
 .secondary {
   border: 1px solid var(--wm-border);
-  background: #fff;
+  background: var(--wm-surface);
   color: var(--wm-muted);
   border-radius: var(--wm-radius-lg);
   padding: 9px 14px;

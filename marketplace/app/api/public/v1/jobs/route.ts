@@ -19,8 +19,9 @@ export async function GET(request: NextRequest) {
   const svc = getSupabaseServiceClient();
   let query = svc
     .from('jobs')
-    .select('id,title,category,description,county,locality,budget_range,status,created_at')
+    .select('id,title,category,description,county,locality,budget_range,status,created_at,expires_at')
     .eq('review_status', 'approved')
+    .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 

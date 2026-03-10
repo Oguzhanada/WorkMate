@@ -1,9 +1,27 @@
 import {getSupabaseServiceClient} from '@/lib/supabase/service';
 import type {FeeCalculation, RebookingInfo} from '@/lib/types/airtasker';
 
-const STANDARD_SERVICE_FEE = 0.1;
-const REBOOKING_FEE = 0.019;
-const TRANSACTION_FEE = 0.019;
+/* ─── Fee constants ─── */
+
+/** Minimum job value for platform fees to apply (in euros) */
+export const PLATFORM_FEE_THRESHOLD = 100;
+
+/** Customer-side service fee (% of subtotal) */
+const CUSTOMER_SERVICE_FEE = 0.05;
+
+/** Provider-side commission (% of subtotal) */
+const PROVIDER_COMMISSION = 0.03;
+
+/** Discounted customer fee for repeat bookings */
+const REBOOKING_CUSTOMER_FEE = 0.03;
+
+/** Discounted provider commission for repeat bookings */
+const REBOOKING_PROVIDER_COMMISSION = 0.015;
+
+/** Stripe processing cost estimate (for internal calculations only) */
+export const STRIPE_PROCESSING_RATE = 0.0175;
+export const STRIPE_FIXED_FEE = 0.25;
+export const STRIPE_CONNECT_FEE = 0.0025;
 
 export async function getRebookingInfo(
   customerId: string,
@@ -24,7 +42,7 @@ export async function getRebookingInfo(
       jobsCompleted: 0,
       totalSpent: 0,
       isFavorite: false,
-      discountRate: STANDARD_SERVICE_FEE
+      discountRate: CUSTOMER_SERVICE_FEE
     };
   }
 
@@ -37,7 +55,7 @@ export async function getRebookingInfo(
     lastJobAt: data.last_job_at ?? undefined,
     totalSpent,
     isFavorite: Boolean(data.is_favorite),
-    discountRate: jobsCompleted > 0 ? REBOOKING_FEE : STANDARD_SERVICE_FEE
+    discountRate: jobsCompleted > 0 ? REBOOKING_CUSTOMER_FEE : CUSTOMER_SERVICE_FEE
   };
 }
 
@@ -49,20 +67,38 @@ export async function calculateFees(
   const rebookingInfo = await getRebookingInfo(customerId, providerId);
   const subtotal = Math.max(priceCents, 0) / 100;
 
-  const serviceFee = rebookingInfo.hasWorkedBefore
-    ? subtotal * REBOOKING_FEE
-    : subtotal * STANDARD_SERVICE_FEE;
-  const transactionFee = subtotal * TRANSACTION_FEE;
-  const total = subtotal + serviceFee + transactionFee;
+  // Under threshold: no platform fees — customer pays exact amount, provider receives full amount
+  if (subtotal < PLATFORM_FEE_THRESHOLD) {
+    return {
+      subtotal,
+      serviceFee: 0,
+      transactionFee: 0,
+      total: subtotal,
+      savings: undefined,
+      isRebooking: rebookingInfo.hasWorkedBefore
+    };
+  }
+
+  const customerFeeRate = rebookingInfo.hasWorkedBefore
+    ? REBOOKING_CUSTOMER_FEE
+    : CUSTOMER_SERVICE_FEE;
+
+  const providerFeeRate = rebookingInfo.hasWorkedBefore
+    ? REBOOKING_PROVIDER_COMMISSION
+    : PROVIDER_COMMISSION;
+
+  const serviceFee = subtotal * customerFeeRate;
+  const transactionFee = subtotal * providerFeeRate;
+  const total = subtotal + serviceFee;
   const savings = rebookingInfo.hasWorkedBefore
-    ? subtotal * (STANDARD_SERVICE_FEE - REBOOKING_FEE)
+    ? subtotal * (CUSTOMER_SERVICE_FEE - REBOOKING_CUSTOMER_FEE)
     : undefined;
 
   return {
     subtotal,
     serviceFee,
-    transactionFee,
-    total,
+    transactionFee,     // provider-side commission (deducted from payout)
+    total,              // customer pays: subtotal + serviceFee
     savings,
     isRebooking: rebookingInfo.hasWorkedBefore
   };

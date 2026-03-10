@@ -53,15 +53,15 @@ export default function ContactPage() {
             </p>
           </Card>
           <Card>
-            <h3 className="text-base font-bold">{t('phone')}</h3>
+            <h3 className="text-base font-bold">{t('hours')}</h3>
             <p className="mt-2 text-sm" style={{ color: 'var(--wm-muted)' }}>
-              +353 1 555 1000
+              Email support — we aim to respond within 24 hours on business days.
             </p>
           </Card>
           <Card>
-            <h3 className="text-base font-bold">{t('hours')}</h3>
+            <h3 className="text-base font-bold">Response time</h3>
             <p className="mt-2 text-sm" style={{ color: 'var(--wm-muted)' }}>
-              Mon-Fri 09:00 - 18:00
+              Mon–Fri, typically within 24 hours
             </p>
           </Card>
         </div>

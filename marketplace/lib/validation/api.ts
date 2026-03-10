@@ -197,10 +197,20 @@ export const disputeRespondSchema = z.object({
   response: z.string().trim().min(5).max(4000),
 });
 
+/** Maximum dispute evidence file size: 5 MB */
+export const DISPUTE_EVIDENCE_MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+
 export const disputeEvidenceSchema = z.object({
   file_url: z.string().trim().min(3).max(2000),
   file_type: z.string().trim().min(2).max(120),
   description: z.string().trim().max(600).optional().default(''),
+  /** File size in bytes — must be provided for server-side validation */
+  file_size: z
+    .number()
+    .int()
+    .min(1, 'File size must be at least 1 byte')
+    .max(DISPUTE_EVIDENCE_MAX_FILE_SIZE, 'File must not exceed 5 MB')
+    .optional(),
 });
 
 export const disputeResolveSchema = z.object({
@@ -473,6 +483,11 @@ export const jobDescriptionSchema = z.object({
   scope: z.string().trim().max(500).optional(),
   urgency: z.string().trim().max(120).optional(),
   taskType: z.string().trim().max(120).optional(),
+});
+
+// ─── Founding Pro: Claim Slot ─────────────────────────────────────────────────
+export const claimFoundingProSchema = z.object({
+  confirm: z.literal(true),
 });
 
 // ─── Favourites: Toggle ───────────────────────────────────────────────────────

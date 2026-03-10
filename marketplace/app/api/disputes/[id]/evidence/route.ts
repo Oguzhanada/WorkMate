@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
-import { disputeEvidenceSchema } from '@/lib/validation/api';
+import { disputeEvidenceSchema, DISPUTE_EVIDENCE_MAX_FILE_SIZE } from '@/lib/validation/api';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { getDisputeParticipantContext, isDisputeParticipant } from '@/lib/disputes';
 
@@ -30,6 +30,16 @@ export async function POST(
   const parsed = disputeEvidenceSchema.safeParse(rawBody);
   if (!parsed.success) {
     return NextResponse.json({ error: 'Validation failed', details: parsed.error.flatten() }, { status: 400 });
+  }
+
+  // Enforce file size limit even if Zod schema marks file_size as optional
+  // (backwards-compatible: older clients that don't send file_size still work,
+  //  but any client that does send it gets validated)
+  if (parsed.data.file_size && parsed.data.file_size > DISPUTE_EVIDENCE_MAX_FILE_SIZE) {
+    return NextResponse.json(
+      { error: `File size exceeds the ${DISPUTE_EVIDENCE_MAX_FILE_SIZE / (1024 * 1024)} MB limit.` },
+      { status: 400 }
+    );
   }
 
   const { data: dispute } = await supabase.from('disputes').select('id,job_id').eq('id', id).maybeSingle();

@@ -13,10 +13,11 @@ const fallbackImages = [
   'https://images.unsplash.com/photo-1558904541-efa843a96f01?auto=format&fit=crop&w=1200&q=80',
 ];
 
+/* Fallback placeholders shown when no real providers are loaded yet */
 const fallbackItems = [
-  { id: 'fallback-1', full_name: 'Sean Murphy', profession: 'Master Plumber', county: 'Dublin', rating: 4.9, review_count: 127 },
-  { id: 'fallback-2', full_name: "Aoife O'Brien", profession: 'Professional Cleaner', county: 'Cork', rating: 5.0, review_count: 94 },
-  { id: 'fallback-3', full_name: 'Liam Walsh', profession: 'Landscape Designer', county: 'Galway', rating: 4.8, review_count: 86 },
+  { id: 'fallback-1', full_name: 'Plumbing Pro', profession: 'Plumber', county: 'Dublin', rating: 0, review_count: 0 },
+  { id: 'fallback-2', full_name: 'Cleaning Pro', profession: 'Professional Cleaner', county: 'Cork', rating: 0, review_count: 0 },
+  { id: 'fallback-3', full_name: 'Garden Pro', profession: 'Landscape Designer', county: 'Galway', rating: 0, review_count: 0 },
 ];
 
 export default function FeaturedProviders() {
@@ -64,11 +65,17 @@ export default function FeaturedProviders() {
                     {provider.county}
                   </p>
 
-                  <p className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--wm-primary)] px-3 py-1.5 text-base font-bold text-white">
-                    <Star className="h-4 w-4 fill-current" />
-                    {Number(provider.rating || 0).toFixed(1)}
-                  </p>
-                  <p className="text-[1rem]" style={{ color: 'var(--color-text-secondary)' }}>({provider.review_count || 0} reviews)</p>
+                  {Number(provider.rating || 0) > 0 ? (
+                    <>
+                      <p className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-base font-bold text-white" style={{ background: 'var(--wm-primary)' }}>
+                        <Star className="h-4 w-4 fill-current" />
+                        {Number(provider.rating).toFixed(1)}
+                      </p>
+                      <p className="text-[1rem]" style={{ color: 'var(--color-text-secondary)' }}>({provider.review_count || 0} reviews)</p>
+                    </>
+                  ) : (
+                    <p className="text-[1rem]" style={{ color: 'var(--color-text-secondary)' }}>New on WorkMate</p>
+                  )}
 
                   <Link
                     href={withLocalePrefix(localeRoot, `/profile/public/${provider.id}`)}

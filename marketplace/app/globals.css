@@ -40,7 +40,8 @@
   /* ── Colours — base surfaces ────────────────────────────── */
   --wm-accent:  #0f172a;
   --wm-bg:      #eef3f1;
-  --wm-surface: rgba(255, 255, 255, 0.95);
+  --wm-surface:     rgba(255, 255, 255, 0.95);
+  --wm-surface-alt: rgba(248, 250, 252, 0.90);
   --wm-text-strong:  #0b1324;
   --wm-text-default: #0f172a;
   --wm-text-muted:   #334155;

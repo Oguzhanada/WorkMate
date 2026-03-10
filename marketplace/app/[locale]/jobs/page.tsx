@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Briefcase } from 'lucide-react';
+import { Briefcase, Zap, Clock } from 'lucide-react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import Shell from '@/components/ui/Shell';
 import Card from '@/components/ui/Card';
@@ -18,6 +18,11 @@ type JobRow = {
   status: string;
   review_status: string;
   created_at: string;
+  expires_at: string | null;
+  is_urgent: boolean | null;
+  max_quotes: number | null;
+  job_mode: string | null;
+  quote_count: number;
 };
 
 const STATUS_TONE: Record<string, 'open' | 'pending' | 'completed' | 'assigned' | 'neutral'> = {
@@ -44,9 +49,10 @@ export default async function JobsPage({
 
   let queryBuilder = supabase
     .from('jobs')
-    .select('id,title,description,category,county,locality,budget_range,status,review_status,created_at')
+    .select('id,title,description,category,county,locality,budget_range,status,review_status,created_at,expires_at,is_urgent,max_quotes,job_mode,quotes(count)')
     .in('status', ['open', 'quoted', 'accepted', 'in_progress'])
     .eq('review_status', 'approved')
+    .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
     .order('created_at', { ascending: false })
     .limit(100);
 
@@ -63,7 +69,13 @@ export default async function JobsPage({
   }
 
   const { data, error } = await queryBuilder;
-  const jobs = (data ?? []) as JobRow[];
+  const jobs = (data ?? []).map((row: Record<string, unknown>) => ({
+    ...row,
+    // Supabase returns quotes(count) as [{ count: N }] — extract the number
+    quote_count: Array.isArray(row.quotes) && row.quotes.length > 0
+      ? (row.quotes[0] as { count: number }).count
+      : 0,
+  })) as JobRow[];
   const categories = Array.from(new Set(jobs.map((job) => job.category))).sort((a, b) => a.localeCompare(b));
 
   const budgetRank = (value: string) => {
@@ -95,6 +107,22 @@ export default async function JobsPage({
     if (hours < 24) return `${hours}h left in quote window`;
     const days = Math.ceil(hours / 24);
     return `${days}d left in quote window`;
+  };
+
+  const getExpiryInfo = (expiresAt: string | null): { text: string; color: string } | null => {
+    if (!expiresAt) return null;
+    const diff = new Date(expiresAt).getTime() - serverNow;
+    if (diff <= 0) return { text: 'Expired', color: 'var(--wm-destructive)' };
+    const hours = Math.floor(diff / (60 * 60 * 1000));
+    const days = Math.ceil(hours / 24);
+    if (days < 2) {
+      const label = hours < 24 ? `${hours}h left` : '1 day left';
+      return { text: `Expires in ${label}`, color: 'var(--wm-destructive)' };
+    }
+    if (days < 7) {
+      return { text: `Expires in ${days} days`, color: 'var(--wm-amber, #d97706)' };
+    }
+    return { text: `Expires in ${days} days`, color: 'var(--wm-muted)' };
   };
 
   return (
@@ -207,7 +235,15 @@ export default async function JobsPage({
           >
             <Card className="h-full transition-shadow hover:shadow-[var(--wm-shadow-lg)]">
               <div className="flex items-start justify-between gap-2">
-                <h3 className="text-sm font-semibold leading-snug">{job.title}</h3>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <h3 className="text-sm font-semibold leading-snug truncate">{job.title}</h3>
+                  {job.is_urgent ? (
+                    <Badge tone="amber" dot title="Urgent — Quick Hire">
+                      <Zap style={{ width: '0.65rem', height: '0.65rem' }} />
+                      Urgent
+                    </Badge>
+                  ) : null}
+                </div>
                 <Badge tone={STATUS_TONE[job.status] ?? 'neutral'}>
                   {job.status.replace('_', ' ')}
                 </Badge>
@@ -218,12 +254,33 @@ export default async function JobsPage({
               <p className="mt-2 line-clamp-2 text-xs" style={{ color: 'var(--wm-muted)' }}>
                 {job.description?.trim() || 'No additional summary provided yet.'}
               </p>
-              <p className="mt-1 text-xs" style={{ color: 'var(--wm-muted)' }}>
-                Budget: {job.budget_range}
-              </p>
+              <div className="mt-1 flex items-center gap-2">
+                <p className="text-xs" style={{ color: 'var(--wm-muted)', margin: 0 }}>
+                  Budget: {job.budget_range}
+                </p>
+                <span className="text-xs font-medium" style={{ color: 'var(--wm-primary-dark)' }}>
+                  {job.max_quotes != null
+                    ? `${job.quote_count}/${job.max_quotes} quotes`
+                    : job.quote_count > 0
+                      ? `${job.quote_count} quote${job.quote_count !== 1 ? 's' : ''}`
+                      : null}
+                </span>
+              </div>
               <p className="mt-1 text-xs font-medium" style={{ color: 'var(--wm-primary-dark)' }}>
                 {quoteWindowText(job.created_at)}
               </p>
+              {(() => {
+                const expiry = getExpiryInfo(job.expires_at);
+                if (!expiry) return null;
+                return (
+                  <div className="mt-1 flex items-center gap-1">
+                    <Clock size={12} style={{ color: expiry.color, flexShrink: 0 }} />
+                    <span className="text-xs font-medium" style={{ color: expiry.color }}>
+                      {expiry.text}
+                    </span>
+                  </div>
+                );
+              })()}
               <p className="mt-1 text-xs" style={{ color: 'var(--wm-subtle)' }}>
                 {new Date(job.created_at).toLocaleDateString('en-IE')}
               </p>

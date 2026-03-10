@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
   const body = parsed.data;
   const { data: job, error: jobError } = await supabase
     .from('jobs')
-    .select('id,title,customer_id,status,review_status,county,job_visibility_tier,category_id,created_at,job_mode,target_provider_id')
+    .select('id,title,customer_id,status,review_status,county,job_visibility_tier,category_id,created_at,job_mode,target_provider_id,expires_at,max_quotes,is_urgent')
     .eq('id', body.job_id)
     .maybeSingle();
 
@@ -61,6 +61,51 @@ export async function POST(request: NextRequest) {
       { error: 'This job is not available for quoting yet.' },
       { status: 400 }
     );
+  }
+
+  // Reject quotes on expired jobs
+  if (job.expires_at && new Date(job.expires_at).getTime() < Date.now()) {
+    return NextResponse.json(
+      { error: 'This job has expired and is no longer accepting quotes.' },
+      { status: 400 }
+    );
+  }
+
+  // Enforce max_quotes limit (Quick Hire = 5, Get Quotes = unlimited)
+  if (job.max_quotes != null) {
+    const { count: existingQuoteCount } = await supabase
+      .from('quotes')
+      .select('id', { count: 'exact', head: true })
+      .eq('job_id', body.job_id)
+      .neq('status', 'withdrawn');
+
+    if ((existingQuoteCount ?? 0) >= job.max_quotes) {
+      return NextResponse.json(
+        { error: 'This job has reached its maximum number of quotes.' },
+        { status: 400 }
+      );
+    }
+  }
+
+  // Check provider availability — block quoting if provider has marked themselves unavailable
+  {
+    const serviceClient = getSupabaseServiceClient();
+    const todayDow = new Date().getDay(); // 0 = Sunday
+    const { data: availRows } = await serviceClient
+      .from('provider_availability')
+      .select('is_available')
+      .eq('provider_id', user.id)
+      .eq('day_of_week', todayDow)
+      .limit(1)
+      .maybeSingle();
+
+    // If the provider has an availability record for today and it's set to unavailable, block
+    if (availRows && availRows.is_available === false) {
+      return NextResponse.json(
+        { error: 'You are marked as unavailable today. Update your availability to submit quotes.' },
+        { status: 400 }
+      );
+    }
   }
 
   // direct_request: only the targeted provider may quote

@@ -7,6 +7,9 @@ import { sendNotification } from '@/lib/notifications/send';
 import { patchGardaVettingSchema } from '@/lib/validation/api';
 
 // PATCH /api/admin/garda-vetting/[profileId] — update vetting status
+// Called by WorkMate admins after receiving the NVB disclosure result.
+// The NVB sends the vetting disclosure to WorkMate (as the registered organisation),
+// and an admin reviews it and updates the provider's status here.
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ profileId: string }> }
@@ -76,12 +79,14 @@ export async function PATCH(
       userId: profileId,
       type: 'vetting_update',
       title: 'Garda Vetting Approved',
+      body: 'Your NVB disclosure has been received and verified. A "Garda Vetted" badge is now visible on your public profile. Re-vetting is due in 3 years.',
     });
   } else if (parsed.data.garda_vetting_status === 'rejected') {
     sendNotification({
       userId: profileId,
       type: 'vetting_update',
-      title: 'Garda Vetting Update — Action Required',
+      title: 'Garda Vetting — Action Required',
+      body: 'Your vetting request could not be completed. This may be due to an incomplete e-Vetting form or an expired NVB invitation link. You can re-apply from your dashboard.',
     });
   }
 

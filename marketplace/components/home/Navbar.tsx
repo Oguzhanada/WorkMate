@@ -26,8 +26,9 @@ type NavAuthSnapshot = {
 };
 
 const navItems: NavItem[] = [
-  { label: 'Find Services', href: '/search' },
+  { label: 'Find Services', href: '/find-services' },
   { label: 'How It Works', href: '/how-it-works' },
+  { label: 'Pricing', href: '/pricing' },
   { label: 'Post a Job', href: '/post-job' },
 ];
 

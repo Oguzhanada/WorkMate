@@ -1,3 +1,9 @@
+/**
+ * Placeholder catalogue data used by static pages (service detail, search, sitemap).
+ * These are illustrative examples — not real providers or listings.
+ * Replace with DB-driven data when the corresponding tables are populated.
+ */
+
 export type ServiceItem = {
   slug: string;
   name: string;
@@ -183,21 +189,5 @@ export const serviceFaq = [
   }
 ];
 
-export const teamMembers = [
-  {
-    name: 'Elif Kaya',
-    role: 'CEO',
-    image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=500&q=80'
-  },
-  {
-    name: 'Bruno Costa',
-    role: 'Head of Operations',
-    image: 'https://images.unsplash.com/photo-1541534401786-2077eed87a72?auto=format&fit=crop&w=500&q=80'
-  },
-  {
-    name: 'Laura Garcia',
-    role: 'Head of Product',
-    image: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=500&q=80'
-  }
-];
+/* teamMembers removed — about page now uses inline founder description */
 

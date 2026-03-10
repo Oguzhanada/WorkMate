@@ -78,14 +78,14 @@ const COMPLETENESS_CHECKS: CheckDefinition[] = [
     key: 'location',
     label: 'Location / service area',
     points: 10,
-    href: '/become-provider',
+    href: '/become-provider/apply',
     passes: (p) => Boolean(p.county?.trim() || p.locality?.trim()),
   },
   {
     key: 'experience',
     label: 'Experience description',
     points: 15,
-    href: '/become-provider',
+    href: '/become-provider/apply',
     passes: (p) => {
       const skills = (
         p.stripe_requirements_due as
@@ -118,7 +118,7 @@ const COMPLETENESS_CHECKS: CheckDefinition[] = [
     key: 'has_services',
     label: 'Services listed',
     points: 10,
-    href: '/become-provider',
+    href: '/become-provider/apply',
     passes: (_p, hasServices) => hasServices,
   },
 ];

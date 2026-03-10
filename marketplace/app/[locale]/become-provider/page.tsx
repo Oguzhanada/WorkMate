@@ -1,840 +1,999 @@
-"use client";
+'use client';
 
-import {FormEvent, useEffect, useMemo, useState} from 'react';
-import {usePathname, useRouter} from 'next/navigation';
-import {useTranslations} from 'next-intl';
+import Link from 'next/link';
+import {usePathname} from 'next/navigation';
+import {useMemo, useState} from 'react';
+import {motion} from 'framer-motion';
+import {
+  ArrowRight,
+  BadgeCheck,
+  BarChart3,
+  Calculator,
+  Clock,
+  CreditCard,
+  MapPin,
+  MessageSquare,
+  Shield,
+  Star,
+  TrendingUp,
+  Users,
+  Zap,
+} from 'lucide-react';
 
 import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
-import {getSupabaseBrowserClient} from '@/lib/supabase/client';
-import {IRISH_COUNTIES} from '@/lib/ireland-locations';
-import {isValidIrishPhone, normalizeIrishPhone, sanitizePhoneInput} from '@/lib/validation/phone';
-import {hasAtLeastTwoNameParts, isValidEnglishFullName} from '@/lib/validation/name';
-import {useCategoriesWithFallback, type Category} from '@/lib/hooks/useCategoriesWithFallback';
-import {resolveProviderVerificationState} from '@/lib/onboarding/provider-verification';
-import MultiSelectDropdown from '@/components/forms/MultiSelectDropdown';
-import { trackFunnelStep, FUNNEL_PROVIDER_ONBOARDING } from '@/lib/analytics/funnel';
-import Button from '@/components/ui/Button';
-import styles from '../inner.module.css';
 
-type Step = 1 | 2 | 3 | 4;
+/* ─── Earnings Calculator Logic ─── */
 
-const IRISH_CITIES = ['Dublin', 'Cork', 'Galway', 'Limerick', 'Waterford', 'Kilkenny', 'Sligo', 'Athlone', 'Wexford', 'Drogheda', 'Other'];
-const EXPERIENCE_OPTIONS = ['0-1 years', '1-2 years', '3-5 years', '5-10 years', '10+ years'];
-const AVAILABILITY_OPTIONS = ['Weekdays 08:00-12:00', 'Weekdays 12:00-18:00', 'Weekdays 18:00-22:00', 'Weekend mornings', 'Weekend afternoons', 'Weekend evenings', 'Other'];
-const RADIUS_OPTIONS = ['Up to 10 km', 'Up to 20 km', 'Up to 30 km', 'Up to 50 km', 'Ireland-wide'];
-const COUNTY_OPTIONS = [...IRISH_COUNTIES, 'Ireland-wide'];
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+function calcEarnings(jobsPerWeek: number, avgJobValue: number) {
+  const weeklyGross = jobsPerWeek * avgJobValue;
+  const monthlyGross = weeklyGross * 4.3;
+  const yearlyGross = monthlyGross * 12;
 
-const STEP_GOALS: Record<Step, string> = {
-  1: 'Confirm your personal details so customers can trust your profile.',
-  2: 'Set your services and availability so matching jobs are relevant.',
-  3: 'Define where you work and your service radius across Ireland.',
-  4: 'Upload required documents so admin review can approve your profile quickly.',
-};
+  // Commission: 0% under €100, 3% Starter, 1.5% Pro
+  const commissionRate = avgJobValue < 100 ? 0 : 0.03;
+  const proCommissionRate = avgJobValue < 100 ? 0 : 0.015;
 
-export default function BecomeProviderPage() {
-  const router = useRouter();
-  const pathname = usePathname() || '/';
-  const t = useTranslations('becomeProvider');
-  const localeRoot = useMemo(() => getLocaleRoot(pathname), [pathname]);
-  const {categories, isLoading: isLoadingCategories, notice: categoryNotice, isFallback} = useCategoriesWithFallback({
-    leafOnly: true,
-    fallbackNotice: 'Service list is temporarily unavailable. Showing fallback categories.'
-  });
+  const monthlyNet = monthlyGross * (1 - commissionRate);
+  const monthlyNetPro = monthlyGross * (1 - proCommissionRate) - 19;
+  const yearlyNet = yearlyGross * (1 - commissionRate);
+  const yearlyNetPro = yearlyGross * (1 - proCommissionRate) - 228;
 
-  const [step, setStep] = useState<Step>(1);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
-  const [prefillNotice, setPrefillNotice] = useState('');
-  const [isPending, setIsPending] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [skipPersonalInfoStep, setSkipPersonalInfoStep] = useState(false);
-
-  const [email, setEmail] = useState('');
-  const [isEmailLocked, setIsEmailLocked] = useState(true);
-  const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
-
-  const [primaryCity, setPrimaryCity] = useState('');
-  const [otherPrimaryCity, setOtherPrimaryCity] = useState('');
-
-  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
-  const [otherService, setOtherService] = useState('');
-  const [experienceRange, setExperienceRange] = useState('');
-  const [optionalLink, setOptionalLink] = useState('');
-  const [availabilitySelections, setAvailabilitySelections] = useState<string[]>([]);
-  const [otherAvailability, setOtherAvailability] = useState('');
-
-  const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
-  const [radius, setRadius] = useState('');
-
-  const [idDocument, setIdDocument] = useState<File | null>(null);
-  const [insuranceDocument, setInsuranceDocument] = useState<File | null>(null);
-  const [hasVerifiedIdentity, setHasVerifiedIdentity] = useState(false);
-  const [hasExistingIdDocument, setHasExistingIdDocument] = useState(false);
-  const [hasExistingInsuranceDocument, setHasExistingInsuranceDocument] = useState(false);
-  const [currentVerificationStatus, setCurrentVerificationStatus] = useState<string>('unverified');
-  const [currentIdVerificationStatus, setCurrentIdVerificationStatus] = useState<string>('none');
-  const [currentIdDocumentUrl, setCurrentIdDocumentUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    const run = async () => {
-      const supabase = getSupabaseBrowserClient();
-      const {
-        data: {user}
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        setIsAuthenticated(false);
-        return;
-      }
-      setIsAuthenticated(true);
-
-      // Fire-and-forget: track funnel start when authenticated user opens the form
-      trackFunnelStep({
-        funnelName: FUNNEL_PROVIDER_ONBOARDING,
-        stepName: 'onboarding_started',
-        stepNumber: 1,
-      });
-
-      const userEmail = user.email ?? '';
-      setEmail(userEmail);
-      setIsEmailLocked(Boolean(userEmail));
-
-      const {data} = await supabase.from('profiles').select('*').eq('id', user.id).single();
-      const metadata = (user.user_metadata ?? {}) as Record<string, unknown>;
-      if (data) {
-        const prefilledName =
-          (typeof data.full_name === 'string' && data.full_name.trim()) ||
-          (typeof metadata.full_name === 'string' && metadata.full_name.trim()) ||
-          (typeof metadata.name === 'string' && metadata.name.trim()) ||
-          '';
-        const prefilledPhone =
-          (typeof data.phone === 'string' && data.phone.trim()) ||
-          (typeof metadata.phone === 'string' && metadata.phone.trim()) ||
-          '';
-        const fallbackEmail =
-          userEmail ||
-          (typeof metadata.email === 'string' ? metadata.email : '');
-
-        setFullName(prefilledName);
-        setPhone(prefilledPhone);
-        if (fallbackEmail) {
-          setEmail(fallbackEmail);
-          setIsEmailLocked(true);
-        }
-        setHasVerifiedIdentity(data.is_verified === true && data.verification_status === 'verified');
-        setCurrentVerificationStatus(data.verification_status ?? 'unverified');
-        setCurrentIdVerificationStatus(data.id_verification_status ?? 'none');
-        setCurrentIdDocumentUrl(data.id_verification_document_url ?? null);
-
-        const requirements = (data.stripe_requirements_due ?? {}) as {
-          personal_info?: { primary_city?: string | null };
-          services_and_skills?: {
-            experience_range?: string | null;
-            optional_link?: string | null;
-            availability?: string[] | null;
-          };
-          areas_served?: { radius?: string | null };
-        };
-
-        const primaryCityValue =
-          requirements.personal_info?.primary_city?.trim() ||
-          (typeof data.city === 'string' ? data.city.trim() : '') ||
-          (typeof data.locality === 'string' ? data.locality.trim() : '');
-        if (primaryCityValue) {
-          if (IRISH_CITIES.includes(primaryCityValue)) {
-            setPrimaryCity(primaryCityValue);
-          } else {
-            setPrimaryCity('Other');
-            setOtherPrimaryCity(primaryCityValue);
-          }
-        }
-
-        setExperienceRange(requirements.services_and_skills?.experience_range ?? '');
-        setOptionalLink(requirements.services_and_skills?.optional_link ?? '');
-
-        const existingAvailability = requirements.services_and_skills?.availability ?? [];
-        const knownAvailability = existingAvailability.filter((slot) => AVAILABILITY_OPTIONS.includes(slot));
-        const customAvailability = existingAvailability.find((slot) => !AVAILABILITY_OPTIONS.includes(slot));
-        setAvailabilitySelections(customAvailability ? [...knownAvailability, 'Other'] : knownAvailability);
-        setOtherAvailability(customAvailability ?? '');
-
-        setRadius(requirements.areas_served?.radius ?? '');
-
-        const hasReusablePersonalInfo =
-          Boolean(prefilledName) && Boolean(prefilledPhone) && Boolean(fallbackEmail);
-
-        if (hasReusablePersonalInfo) {
-          setSkipPersonalInfoStep(true);
-          setStep(2);
-          setPrefillNotice(
-            'Your profile details were auto-filled. Please review and continue with provider details.'
-          );
-        }
-      } else {
-        const prefilledName =
-          (typeof metadata.full_name === 'string' && metadata.full_name.trim()) ||
-          (typeof metadata.name === 'string' && metadata.name.trim()) ||
-          '';
-        const prefilledPhone = typeof metadata.phone === 'string' ? metadata.phone.trim() : '';
-        if (prefilledName) setFullName(prefilledName);
-        if (prefilledPhone) setPhone(prefilledPhone);
-      }
-
-      const { data: existingDocs } = await supabase
-        .from('pro_documents')
-        .select('document_type,verification_status')
-        .eq('profile_id', user.id);
-
-      setHasExistingIdDocument(
-        (existingDocs ?? []).some(
-          (doc) =>
-            doc.document_type === 'id_verification' &&
-            (doc.verification_status === 'pending' || doc.verification_status === 'verified')
-        )
-      );
-      const hasVerifiedIdDoc = (existingDocs ?? []).some(
-        (doc) => doc.document_type === 'id_verification' && doc.verification_status === 'verified'
-      );
-      setHasExistingInsuranceDocument(
-        (existingDocs ?? []).some(
-          (doc) =>
-            doc.document_type === 'public_liability_insurance' &&
-            (doc.verification_status === 'pending' || doc.verification_status === 'verified')
-        )
-      );
-
-      if ((data?.id_verification_status ?? 'none') === 'approved' || hasVerifiedIdDoc) {
-        setHasVerifiedIdentity(true);
-        setCurrentIdVerificationStatus('approved');
-      }
-
-      const { data: existingServices } = await supabase
-        .from('pro_services')
-        .select('category_id')
-        .eq('profile_id', user.id);
-      setSelectedServiceIds((existingServices ?? []).map((service) => service.category_id).filter(Boolean));
-
-      const { data: existingAreas } = await supabase
-        .from('pro_service_areas')
-        .select('county')
-        .eq('profile_id', user.id);
-      setSelectedAreas((existingAreas ?? []).map((area) => area.county).filter(Boolean));
-
-    };
-
-    run();
-  }, []);
-
-  useEffect(() => {
-    setSelectedServiceIds((current) =>
-      current.filter((serviceId) => categories.some((item) => item.id === serviceId))
-    );
-  }, [categories]);
-
-  const selectedServicesList = useMemo(() => {
-    const selectedNames = categories
-      .filter((item) => selectedServiceIds.includes(item.id))
-      .map((item) => item.name);
-
-    return selectedNames;
-  }, [categories, selectedServiceIds]);
-
-  const selectedAreasList = useMemo(() => selectedAreas, [selectedAreas]);
-  const serviceOptions = useMemo(
-    () => {
-      const hasChildren = categories.some((category) => category.parent_id !== null);
-      const parentNamesById = new Map(
-        categories
-          .filter((category) => category.parent_id === null)
-          .map((category) => [category.id, category.name])
-      );
-
-      return (hasChildren ? categories.filter((category) => category.parent_id !== null) : categories)
-        .map((service) => ({
-          value: service.id,
-          label: service.name,
-          group: service.parent_id ? parentNamesById.get(service.parent_id) : undefined
-        }));
-    },
-    [categories]
-  );
-  const availabilityOptions = useMemo(
-    () => AVAILABILITY_OPTIONS.map((item) => ({value: item, label: item})),
-    []
-  );
-  const countyOptions = useMemo(
-    () => COUNTY_OPTIONS.map((item) => ({value: item, label: item})),
-    []
-  );
-
-  const resolvedPrimaryCity = primaryCity === 'Other' ? otherPrimaryCity.trim() : primaryCity;
-  const resolvedAvailability = useMemo(() => {
-    const filtered = availabilitySelections.filter((item) => item !== 'Other');
-    if (availabilitySelections.includes('Other') && otherAvailability.trim()) {
-      filtered.push(otherAvailability.trim());
-    }
-    return filtered;
-  }, [availabilitySelections, otherAvailability]);
-
-  const toggleSelection = (current: string[], value: string, setter: (next: string[]) => void) => {
-    if (current.includes(value)) {
-      setter(current.filter((item) => item !== value));
-      return;
-    }
-    setter([...current, value]);
-  };
-
-  const ensureAllowedDocFile = (file: File | null, label: 'ID' | 'insurance') => {
-    if (!file) return '';
-    const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
-    if (!['pdf', 'png', 'jpg', 'jpeg'].includes(ext)) {
-      return `${label} document must be PDF, PNG, JPG or JPEG.`;
-    }
-    return '';
-  };
-
-  const getStepValidationError = (targetStep: Step) => {
-    if (targetStep === 1) {
-      if (skipPersonalInfoStep) return '';
-      if (!fullName.trim()) {
-        return 'Please enter your full name.';
-      }
-      if (!isValidEnglishFullName(fullName)) {
-        return 'Full name must contain English letters only.';
-      }
-      if (!hasAtLeastTwoNameParts(fullName)) {
-        return 'Enter at least first name and last name.';
-      }
-      if (!isValidIrishPhone(phone)) {
-        return 'Enter a valid Irish mobile number (830446082, 0830446082, or +353830446082).';
-      }
-      if (!resolvedPrimaryCity) {
-        return t('errors.cityRequired');
-      }
-    }
-
-    if (targetStep === 2) {
-      if (selectedServiceIds.length === 0) {
-        return t('errors.serviceRequired');
-      }
-      if (isFallback || selectedServiceIds.some((value) => !UUID_PATTERN.test(value))) {
-        return 'Service categories are temporarily unavailable. Please retry in a moment.';
-      }
-      if (!experienceRange) {
-        return t('errors.experienceRequired');
-      }
-      if (!availabilitySelections.length) {
-        return t('errors.availabilityRequired');
-      }
-      if (availabilitySelections.includes('Other') && !otherAvailability.trim()) {
-        return t('errors.otherAvailabilityRequired');
-      }
-    }
-
-    if (targetStep === 3) {
-      if (!selectedAreas.length) {
-        return t('errors.areaRequired');
-      }
-      if (!radius) {
-        return t('errors.radiusRequired');
-      }
-    }
-
-    if (targetStep === 4) {
-      if (!hasVerifiedIdentity && !idDocument && !hasExistingIdDocument) {
-        return t('missingDoc');
-      }
-      if (!insuranceDocument && !hasExistingInsuranceDocument) {
-        return t('missingInsuranceDoc');
-      }
-      const idTypeError = ensureAllowedDocFile(idDocument, 'ID');
-      if (idTypeError) return idTypeError;
-      const insuranceTypeError = ensureAllowedDocFile(insuranceDocument, 'insurance');
-      if (insuranceTypeError) return insuranceTypeError;
-    }
-
-    return '';
-  };
-
-  const validateStep = (targetStep: Step) => {
-    const validationError = getStepValidationError(targetStep);
-    if (validationError) {
-      setError(validationError);
-      return false;
-    }
-    setError('');
-    return true;
-  };
-
-  const next = () => {
-    if (!validateStep(step)) return;
-
-    // Fire-and-forget telemetry for each completed step
-    if (step === 1) {
-      trackFunnelStep({
-        funnelName: FUNNEL_PROVIDER_ONBOARDING,
-        stepName: 'personal_info_completed',
-        stepNumber: 2,
-      });
-    } else if (step === 2) {
-      trackFunnelStep({
-        funnelName: FUNNEL_PROVIDER_ONBOARDING,
-        stepName: 'services_selected',
-        stepNumber: 3,
-        metadata: { category_count: selectedServiceIds.length },
-      });
-    } else if (step === 3) {
-      trackFunnelStep({
-        funnelName: FUNNEL_PROVIDER_ONBOARDING,
-        stepName: 'location_completed',
-        stepNumber: 4,
-        metadata: { area_count: selectedAreas.length },
-      });
-    }
-
-    setStep((prev) => (prev < 4 ? ((prev + 1) as Step) : prev));
-  };
-  const back = () => {
-    setError('');
-    setStep((prev) => {
-      if (skipPersonalInfoStep && prev === 2) return 2;
-      return prev > 1 ? ((prev - 1) as Step) : prev;
-    });
-  };
-
-  const uploadDocument = async (
-    userId: string,
-    file: File,
-    type: 'id_verification' | 'public_liability_insurance'
-  ) => {
-    const supabase = getSupabaseBrowserClient();
-    const path =
-      type === 'id_verification'
-        ? `id-verifications/${userId}/${Date.now()}-${file.name}`
-        : `pro-documents/${userId}/${Date.now()}-${file.name}`;
-
-    const {error: uploadError} = await supabase.storage.from('pro-documents').upload(path, file, {
-      upsert: false
-    });
-
-    if (uploadError) throw uploadError;
-
-    const {error: docError} = await supabase.from('pro_documents').insert({
-      profile_id: userId,
-      document_type: type,
-      storage_path: path,
-      verification_status: 'pending'
-    });
-
-    if (docError) throw docError;
-    return path;
-  };
-
-  const onSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-    setError('');
-    setMessage('');
-
-    if (
-      (!skipPersonalInfoStep && !validateStep(1)) ||
-      !validateStep(2) ||
-      !validateStep(3) ||
-      !validateStep(4)
-    )
-      return;
-
-    const supabase = getSupabaseBrowserClient();
-    const {
-      data: {user}
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      setError(t('needLogin'));
-      router.replace(withLocalePrefix(localeRoot, '/login'));
-      return;
-    }
-
-    try {
-      setIsPending(true);
-      let uploadedIdPath: string | null = null;
-
-      if (idDocument) {
-        uploadedIdPath = await uploadDocument(user.id, idDocument, 'id_verification');
-      }
-
-      if (insuranceDocument) {
-        await uploadDocument(user.id, insuranceDocument, 'public_liability_insurance');
-      }
-
-      const {
-        nextIdVerificationStatus,
-        nextProviderVerificationStatus,
-        nextIsVerified,
-        shouldSetIdSubmittedAt
-      } = resolveProviderVerificationState({
-        currentVerificationStatus,
-        currentIdVerificationStatus,
-        uploadedIdPath
-      });
-
-      const {error: profileError} = await supabase
-        .from('profiles')
-        .update({
-          full_name: fullName.trim(),
-          phone: normalizeIrishPhone(phone),
-          verification_status: nextProviderVerificationStatus,
-          id_verification_status: nextIdVerificationStatus,
-          id_verification_document_url: uploadedIdPath ?? currentIdDocumentUrl,
-          id_verification_submitted_at: shouldSetIdSubmittedAt ? new Date().toISOString() : undefined,
-          id_verification_rejected_reason: null,
-          is_verified: nextIsVerified,
-          stripe_requirements_due: {
-            application_status: 'submitted',
-            submitted_at: new Date().toISOString(),
-            personal_info: {
-                full_name: fullName.trim() || null,
-                email,
-                phone: normalizeIrishPhone(phone),
-              primary_city: resolvedPrimaryCity
-            },
-            services_and_skills: {
-              services: selectedServicesList,
-              experience_range: experienceRange,
-              optional_link: optionalLink.trim() || null,
-              availability: resolvedAvailability
-            },
-            areas_served: {
-              counties: selectedAreasList,
-              radius
-            },
-            documents_uploaded: {
-              id_document_uploaded: hasVerifiedIdentity || !!idDocument || hasExistingIdDocument,
-              insurance_document_uploaded: !!insuranceDocument || hasExistingInsuranceDocument
-            },
-            reminder: 'PRODUCTION: ID document must be mandatory before activation.'
-          }
-        })
-        .eq('id', user.id);
-
-      if (profileError) throw profileError;
-
-      const {error: deleteServicesError} = await supabase.from('pro_services').delete().eq('profile_id', user.id);
-      if (deleteServicesError) throw deleteServicesError;
-
-      if (selectedServiceIds.length > 0) {
-        const serviceRows = selectedServiceIds.map((categoryId) => ({
-          profile_id: user.id,
-          category_id: categoryId
-        }));
-        const {error: insertServicesError} = await supabase.from('pro_services').insert(serviceRows);
-        if (insertServicesError) throw insertServicesError;
-      }
-
-      const {error: deleteAreasError} = await supabase.from('pro_service_areas').delete().eq('profile_id', user.id);
-      if (deleteAreasError) throw deleteAreasError;
-
-      if (selectedAreasList.length > 0) {
-        const areaRows = selectedAreasList.map((county) => ({
-          profile_id: user.id,
-          county
-        }));
-        const {error: insertAreasError} = await supabase.from('pro_service_areas').insert(areaRows);
-        if (insertAreasError) throw insertAreasError;
-      }
-
-      // Fire-and-forget telemetry for final submission steps
-      trackFunnelStep({
-        funnelName: FUNNEL_PROVIDER_ONBOARDING,
-        stepName: 'documents_submitted',
-        stepNumber: 5,
-        metadata: {
-          id_document_uploaded: hasVerifiedIdentity || !!idDocument || hasExistingIdDocument,
-          insurance_document_uploaded: !!insuranceDocument || hasExistingInsuranceDocument,
-        },
-      });
-      trackFunnelStep({
-        funnelName: FUNNEL_PROVIDER_ONBOARDING,
-        stepName: 'application_submitted',
-        stepNumber: 6,
-      });
-
-      setIsSubmitted(true);
-      setMessage(t('submitSuccess'));
-      setStep(1);
-    } catch (err) {
-      const details =
-        err instanceof Error
-          ? err.message
-          : typeof err === 'object' && err !== null && 'message' in err
-            ? String((err as {message: unknown}).message)
-            : '';
-      if (details.toLowerCase().includes('duplicate key')) {
-        setError('Your provider profile was already submitted. Refresh the page and review your latest status.');
-      } else if (details.toLowerCase().includes('permission')) {
-        setError('We could not submit your profile due to a permission check. Please sign out and sign in again.');
-      } else {
-        setError(details ? `${t('submitError')} Please review your details and try again.` : t('submitError'));
-      }
-    } finally {
-      setIsPending(false);
-    }
-  };
-
-  const currentStepError = getStepValidationError(step);
-  const progressPercent = Math.round((step / 4) * 100);
-
-  return (
-    <main>
-      <section className={styles.section}>
-        <div className={styles.container}>
-          <div className={styles.banner}>
-            <h1>{t('title')}</h1>
-            <p>{t('subtitle')}</p>
-            <h3>{t('benefits.title')}</h3>
-            <ul className={styles.benefitList}>
-              <li>
-                <i className="fa-solid fa-check" /> {t('benefits.setPrices')}
-              </li>
-              <li>
-                <i className="fa-solid fa-check" /> {t('benefits.chooseJobs')}
-              </li>
-              <li>
-                <i className="fa-solid fa-check" /> {t('benefits.securePaid')}
-              </li>
-              <li>
-                <i className="fa-solid fa-check" /> {t('benefits.reviews')}
-              </li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      <section className={styles.formWrap}>
-        {message ? <div className={styles.toast}>{message}</div> : null}
-        {!isSubmitted && prefillNotice ? <div className={styles.toast}>{prefillNotice}</div> : null}
-        {error ? <div className={styles.error}>{error}</div> : null}
-        {!isSubmitted && categoryNotice ? <p className={styles.muted}>{categoryNotice}</p> : null}
-        <div className={styles.guidelinesCard}>
-          <p className={styles.guidelinesTitle}>Provider rules snapshot</p>
-          <ul className={styles.guidelinesList}>
-            <li>Use one account and keep your profile details accurate.</li>
-            <li>Only offer legal services you are qualified to perform in Ireland.</li>
-            <li>No off-platform payment or contact sharing for active jobs.</li>
-            <li>Accepted offers must keep the agreed total price.</li>
-          </ul>
-          <a href={withLocalePrefix(localeRoot, '/community-guidelines')} className={styles.guidelinesLink}>
-            Read full Community Guidelines
-          </a>
-        </div>
-
-        {isSubmitted ? (
-          <div className={styles.field}>
-            <h2>{t('applicationFlowTitle')}</h2>
-            <p className={styles.muted}>{t('applicationFlow1')}</p>
-            <p className={styles.muted}>{t('applicationFlow2')}</p>
-            <p className={styles.muted}>{t('applicationFlow3')}</p>
-            <p className={styles.muted}>{t('prodReminder')}</p>
-            <div className={styles.actions}>
-              <Button variant="primary" onClick={() => router.push(withLocalePrefix(localeRoot, '/profile'))}>
-                {t('goProfile')}
-              </Button>
-            </div>
-          </div>
-        ) : !isAuthenticated ? (
-          <div className={styles.field}>
-            <h2>Ready to start earning?</h2>
-            <p className={styles.muted}>Create a free account or sign in to complete your provider application.</p>
-            <div className={styles.actions}>
-              <Button variant="primary" onClick={() => router.push(withLocalePrefix(localeRoot, '/sign-up'))}>
-                Create free account
-              </Button>
-              <Button variant="secondary" onClick={() => router.push(withLocalePrefix(localeRoot, '/login'))}>
-                Sign in
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <p className={styles.muted}>Step {step} of 4</p>
-            <div className={styles.progressTrack}>
-              <div className={styles.progressFill} style={{width: `${progressPercent}%`}} />
-            </div>
-            <p className={styles.muted}>Progress: {progressPercent}% complete</p>
-            <h2>{t(`steps.${step === 1 ? 'one' : step === 2 ? 'two' : step === 3 ? 'three' : 'four'}`)}</h2>
-            <p className={styles.muted}>{STEP_GOALS[step]}</p>
-            {skipPersonalInfoStep && step === 2 ? (
-              <p className={styles.muted}>Step 1 was auto-completed from your existing profile details.</p>
-            ) : null}
-
-            <form onSubmit={onSubmit}>
-              {step === 1 ? (
-                <div className={styles.formRow}>
-                  <label className={styles.field}>
-                    <span>{t('form.fullName')}</span>
-                    <input value={fullName} onChange={(event) => setFullName(event.target.value)} />
-                  </label>
-                  <label className={styles.field}>
-                    <span>{t('form.email')}</span>
-                    <input
-                      value={email}
-                      readOnly={isEmailLocked}
-                      onChange={(event) => {
-                        if (!isEmailLocked) setEmail(event.target.value);
-                      }}
-                    />
-                  </label>
-                  <label className={styles.field}>
-                    <span>{t('form.phone')}</span>
-                      <input
-                        value={phone}
-                        onChange={(event) => setPhone(sanitizePhoneInput(event.target.value))}
-                        inputMode="tel"
-                        placeholder="830446082"
-                      />
-                  </label>
-                  <label className={styles.field}>
-                    <span>{t('form.primaryCity')}</span>
-                    <select value={primaryCity} onChange={(event) => setPrimaryCity(event.target.value)}>
-                      <option value="">{t('form.selectCity')}</option>
-                      {IRISH_CITIES.map((city) => (
-                        <option key={city} value={city}>
-                          {city}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  {primaryCity === 'Other' ? (
-                    <label className={styles.field}>
-                      <span>{t('form.otherCity')}</span>
-                      <input value={otherPrimaryCity} onChange={(event) => setOtherPrimaryCity(event.target.value)} />
-                    </label>
-                  ) : null}
-                </div>
-              ) : null}
-
-              {step === 2 ? (
-                <div className={styles.field}>
-                  <MultiSelectDropdown
-                    label={t('form.primaryServices')}
-                    options={serviceOptions}
-                    selectedValues={selectedServiceIds}
-                    placeholder="Select services"
-                    disabled={isLoadingCategories || serviceOptions.length === 0}
-                    emptyMessage="No services are available right now. Please refresh and try again."
-                    onToggle={(value) => toggleSelection(selectedServiceIds, value, setSelectedServiceIds)}
-                  />
-
-                  <label className={styles.field}>
-                    <span>{t('form.experienceRange')}</span>
-                    <select value={experienceRange} onChange={(event) => setExperienceRange(event.target.value)}>
-                      <option value="">{t('form.selectExperience')}</option>
-                      {EXPERIENCE_OPTIONS.map((item) => (
-                        <option key={item} value={item}>
-                          {item}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <label className={styles.field}>
-                    <span>{t('form.optionalLink')}</span>
-                    <input value={optionalLink} onChange={(event) => setOptionalLink(event.target.value)} placeholder="https://" />
-                  </label>
-
-                  <MultiSelectDropdown
-                    label={t('form.availability')}
-                    options={availabilityOptions}
-                    selectedValues={availabilitySelections}
-                    placeholder="Select availability"
-                    onToggle={(value) =>
-                      toggleSelection(availabilitySelections, value, setAvailabilitySelections)
-                    }
-                  />
-                  {availabilitySelections.includes('Other') ? (
-                    <label className={styles.field}>
-                      <span>{t('form.otherAvailability')}</span>
-                      <input value={otherAvailability} onChange={(event) => setOtherAvailability(event.target.value)} />
-                    </label>
-                  ) : null}
-                </div>
-              ) : null}
-
-              {step === 3 ? (
-                <div className={styles.field}>
-                  <MultiSelectDropdown
-                    label={t('form.secondaryAreas')}
-                    options={countyOptions}
-                    selectedValues={selectedAreas}
-                    placeholder="Select service areas"
-                    onToggle={(value) => toggleSelection(selectedAreas, value, setSelectedAreas)}
-                  />
-
-                  <label className={styles.field}>
-                    <span>{t('form.radius')}</span>
-                    <select value={radius} onChange={(event) => setRadius(event.target.value)}>
-                      <option value="">{t('form.selectRadius')}</option>
-                      {RADIUS_OPTIONS.map((item) => (
-                        <option key={item} value={item}>
-                          {item}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              ) : null}
-
-              {step === 4 ? (
-                <div className={styles.field}>
-                  <span>{t('docsHint')}</span>
-                  <label className={styles.field}>
-                    <span>{t('idDoc')}</span>
-                    {hasVerifiedIdentity ? (
-                      <small className={styles.muted}>
-                        Existing verified identity found. ID upload is not required again.
-                      </small>
-                    ) : (
-                      <>
-                        <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(event) => setIdDocument(event.target.files?.[0] ?? null)} />
-                        {hasExistingIdDocument ? <small className={styles.muted}>Existing ID document found.</small> : null}
-                      </>
-                    )}
-                  </label>
-                  <label className={styles.field}>
-                    <span>{t('insuranceDoc')}</span>
-                    <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(event) => setInsuranceDocument(event.target.files?.[0] ?? null)} />
-                    {hasExistingInsuranceDocument ? <small className={styles.muted}>Existing insurance document found.</small> : null}
-                  </label>
-                  <p className={styles.muted}>{t('form.bankInfo')}</p>
-                </div>
-              ) : null}
-
-              <div className={styles.actions}>
-                {step > 1 ? (
-                  <Button variant="secondary" onClick={back}>
-                    {t('back')}
-                  </Button>
-                ) : null}
-
-                {step < 4 ? (
-                  <Button variant="primary" onClick={next} disabled={Boolean(currentStepError)}>
-                    {t('next')}
-                  </Button>
-                ) : (
-                  <Button type="submit" variant="primary" disabled={isPending || Boolean(currentStepError)} loading={isPending}>
-                    {isPending ? t('submitting') : t('submit')}
-                  </Button>
-                )}
-              </div>
-              {currentStepError ? <p className={styles.error}>{currentStepError}</p> : null}
-            </form>
-          </>
-        )}
-      </section>
-    </main>
-  );
+  return {monthlyGross, monthlyNet, monthlyNetPro, yearlyNet, yearlyNetPro};
 }
 
+/* ─── Data ─── */
+
+const BENEFITS = [
+  {
+    icon: CreditCard,
+    title: 'Secure payment, every time',
+    desc: 'Stripe holds funds before work begins. No chasing invoices. No bad debts.',
+    accent: 'var(--wm-primary)',
+    bg: 'var(--wm-primary-faint)',
+  },
+  {
+    icon: MapPin,
+    title: 'Jobs in your area',
+    desc: 'County-first matching across all 26 Irish counties. Work close to home or go nationwide.',
+    accent: 'var(--wm-blue)',
+    bg: 'var(--wm-blue-soft)',
+  },
+  {
+    icon: Star,
+    title: 'Build your reputation',
+    desc: 'Verified reviews, portfolio gallery, and compliance badges that customers trust.',
+    accent: 'var(--wm-amber-dark)',
+    bg: 'var(--wm-amber-light)',
+  },
+  {
+    icon: Shield,
+    title: 'Irish compliance built in',
+    desc: 'SafePass, Public Liability, Tax Clearance, Garda Vetting — all managed in one place.',
+    accent: 'var(--wm-primary)',
+    bg: 'var(--wm-primary-faint)',
+  },
+  {
+    icon: BarChart3,
+    title: 'Analytics dashboard',
+    desc: 'Track earnings, job conversion rates, and customer satisfaction in real time.',
+    accent: 'var(--wm-blue)',
+    bg: 'var(--wm-blue-soft)',
+  },
+  {
+    icon: MessageSquare,
+    title: 'Direct messaging',
+    desc: 'Chat with customers before, during, and after jobs. No middlemen, no phone tag.',
+    accent: 'var(--wm-amber-dark)',
+    bg: 'var(--wm-amber-light)',
+  },
+];
+
+const HOW_STEPS = [
+  {num: '1', title: 'Create your profile', desc: 'Sign up free. Add your services, areas, and availability in under 5 minutes.'},
+  {num: '2', title: 'Get verified', desc: 'Upload ID and insurance. Our team reviews within 24 hours — no auto-approvals.'},
+  {num: '3', title: 'Receive job matches', desc: 'Get notified when customers post jobs in your area and category.'},
+  {num: '4', title: 'Quote and earn', desc: 'Send competitive quotes. Win the job. Get paid securely via Stripe.'},
+];
+
+const COMPARISON = [
+  {platform: 'WorkMate', model: '3% per job (1.5% Pro)', leads: 'Free matching', upfront: '€0', highlight: true},
+  {platform: 'Bark', model: '€2-€15 per lead', leads: 'Pay to contact', upfront: '€0', highlight: false},
+  {platform: 'TaskRabbit', model: '15% per job', leads: 'Free matching', upfront: '€0', highlight: false},
+  {platform: 'MyBuilder', model: '8-12% + sub', leads: 'Pay to quote', upfront: '€20+/mo', highlight: false},
+  {platform: 'Rated People', model: '£5-£30 per lead', leads: 'Pay per lead', upfront: '£0', highlight: false},
+];
+
+const TESTIMONIALS = [
+  {
+    name: 'Darren K.',
+    role: 'Electrician, Dublin',
+    text: 'I was paying €15 per lead on Bark with no guarantee. WorkMate sends me matched jobs and I only pay 3% when I actually earn. Massive difference.',
+    rating: 5,
+  },
+  {
+    name: 'Sinéad M.',
+    role: 'Cleaner, Cork',
+    text: 'The secure payment hold changed everything. I used to lose 2-3 jobs a month to non-payers. Now I start every job knowing the money is already there.',
+    rating: 5,
+  },
+  {
+    name: 'Pádraig O.',
+    role: 'Plumber, Galway',
+    text: 'Upgraded to Pro after the first month. The lower commission plus priority listing pays for itself within 2 jobs. Best investment in my business.',
+    rating: 5,
+  },
+];
+
+/* ─── Page Component ─── */
+
+export default function BecomeProviderPage() {
+  const pathname = usePathname() || '/';
+  const localeRoot = getLocaleRoot(pathname);
+
+  const [jobsPerWeek, setJobsPerWeek] = useState(4);
+  const [avgJobValue, setAvgJobValue] = useState(200);
+
+  const earnings = useMemo(() => calcEarnings(jobsPerWeek, avgJobValue), [jobsPerWeek, avgJobValue]);
+
+  return (
+    <div className="min-h-screen" style={{background: 'var(--wm-bg)'}}>
+      {/* ─── HERO ─── */}
+      <section
+        className="relative overflow-hidden px-5 pb-20 pt-16 sm:px-8 lg:px-12"
+        style={{
+          background: 'linear-gradient(155deg, var(--wm-navy) 0%, #0c1a2e 40%, #0a2a29 100%)',
+          minHeight: '85vh',
+        }}
+      >
+        {/* Grid pattern */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage:
+              'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)',
+            backgroundSize: '80px 80px',
+          }}
+        />
+
+        {/* Glow orbs */}
+        <div
+          className="pointer-events-none absolute -left-32 top-1/4"
+          style={{
+            width: '600px',
+            height: '600px',
+            background: 'radial-gradient(circle, rgba(var(--wm-primary-rgb), 0.12) 0%, transparent 60%)',
+            filter: 'blur(100px)',
+          }}
+        />
+        <div
+          className="pointer-events-none absolute -right-32 bottom-0"
+          style={{
+            width: '500px',
+            height: '500px',
+            background: 'radial-gradient(circle, rgba(56,189,248,0.08) 0%, transparent 60%)',
+            filter: 'blur(80px)',
+          }}
+        />
+
+        <div className="relative z-10 mx-auto max-w-7xl">
+          <div className="grid items-center gap-12 lg:grid-cols-2">
+            {/* Left: Copy */}
+            <motion.div
+              initial={{opacity: 0, y: 30}}
+              animate={{opacity: 1, y: 0}}
+              transition={{duration: 0.6}}
+            >
+              <div
+                className="mb-6 inline-flex items-center gap-2 rounded-full px-4 py-1.5"
+                style={{
+                  background: 'rgba(var(--wm-primary-rgb), 0.15)',
+                  border: '1px solid rgba(var(--wm-primary-rgb), 0.25)',
+                }}
+              >
+                <Zap className="h-3.5 w-3.5" style={{color: 'var(--wm-primary)'}} />
+                <span className="text-xs font-bold" style={{color: 'var(--wm-primary)'}}>
+                  Now accepting providers across Ireland
+                </span>
+              </div>
+
+              <h1
+                style={{
+                  fontFamily: 'var(--wm-font-display)',
+                  fontSize: 'clamp(2.5rem, 6vw, 4.5rem)',
+                  fontWeight: 800,
+                  lineHeight: 1.05,
+                  letterSpacing: '-0.03em',
+                }}
+              >
+                <span style={{color: 'white'}}>Grow your trade.</span>
+                <br />
+                <span
+                  style={{
+                    background: 'linear-gradient(135deg, var(--wm-primary) 0%, #34d399 50%, var(--wm-amber) 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
+                >
+                  Not your overheads.
+                </span>
+              </h1>
+
+              <p
+                className="mt-6 max-w-lg text-lg leading-relaxed"
+                style={{color: 'rgba(255,255,255,0.65)'}}
+              >
+                WorkMate connects you with verified customers in your area.
+                No upfront fees. No lead costs. You only pay a small commission when you actually earn.
+              </p>
+
+              <div className="mt-8 flex flex-wrap items-center gap-4">
+                <Link
+                  href={withLocalePrefix(localeRoot, '/become-provider/apply')}
+                  className="inline-flex items-center gap-2 rounded-full px-8 py-4 text-sm font-bold transition-transform hover:scale-[1.03] active:scale-95"
+                  style={{
+                    background: 'var(--wm-grad-primary)',
+                    color: 'white',
+                    fontFamily: 'var(--wm-font-display)',
+                    boxShadow: '0 8px 32px rgba(var(--wm-primary-rgb), 0.3)',
+                  }}
+                >
+                  Apply Now — It&apos;s Free
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href={withLocalePrefix(localeRoot, '/pricing')}
+                  className="inline-flex items-center gap-2 rounded-full px-7 py-4 text-sm font-semibold transition-colors"
+                  style={{
+                    color: 'rgba(255,255,255,0.8)',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                  }}
+                >
+                  View Pricing
+                </Link>
+              </div>
+
+              {/* Trust signals */}
+              <div className="mt-10 flex flex-wrap items-center gap-6">
+                {[
+                  {icon: BadgeCheck, label: 'Admin-verified'},
+                  {icon: Shield, label: 'Stripe secure hold'},
+                  {icon: Clock, label: '<24h approval'},
+                ].map((item) => (
+                  <div key={item.label} className="flex items-center gap-2">
+                    <item.icon className="h-4 w-4" style={{color: 'var(--wm-primary)'}} />
+                    <span className="text-xs font-medium" style={{color: 'rgba(255,255,255,0.5)'}}>
+                      {item.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Right: Stats card */}
+            <motion.div
+              initial={{opacity: 0, y: 30}}
+              animate={{opacity: 1, y: 0}}
+              transition={{duration: 0.6, delay: 0.2}}
+              className="rounded-3xl p-8"
+              style={{
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                backdropFilter: 'blur(20px)',
+              }}
+            >
+              <h3
+                className="mb-6 text-sm font-bold uppercase tracking-[0.15em]"
+                style={{color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)'}}
+              >
+                Why providers choose WorkMate
+              </h3>
+              <div className="grid grid-cols-2 gap-5">
+                {[
+                  {value: '€0', label: 'To get started', sub: 'No signup fees ever'},
+                  {value: '3%', label: 'Commission', sub: '1.5% with Pro plan'},
+                  {value: '<24h', label: 'Approval time', sub: 'Manual review by our team'},
+                  {value: '26', label: 'Counties covered', sub: 'All of Ireland'},
+                ].map((stat, i) => (
+                  <motion.div
+                    key={stat.label}
+                    initial={{opacity: 0, y: 15}}
+                    animate={{opacity: 1, y: 0}}
+                    transition={{delay: 0.4 + i * 0.1}}
+                    className="rounded-2xl p-4"
+                    style={{
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.06)',
+                    }}
+                  >
+                    <span
+                      className="text-2xl font-extrabold"
+                      style={{
+                        fontFamily: 'var(--wm-font-display)',
+                        color: 'var(--wm-primary)',
+                      }}
+                    >
+                      {stat.value}
+                    </span>
+                    <p className="mt-1 text-sm font-semibold" style={{color: 'white'}}>
+                      {stat.label}
+                    </p>
+                    <p className="text-xs" style={{color: 'rgba(255,255,255,0.4)'}}>
+                      {stat.sub}
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Bottom fade */}
+        <div
+          className="pointer-events-none absolute bottom-0 left-0 right-0 h-32"
+          style={{background: 'linear-gradient(to top, var(--wm-bg), transparent)'}}
+        />
+      </section>
+
+      {/* ─── BENEFITS GRID ─── */}
+      <section className="px-5 py-24 sm:px-8 lg:px-12">
+        <div className="mx-auto max-w-7xl">
+          <motion.div
+            className="mb-14 max-w-2xl"
+            initial={{opacity: 0, y: 20}}
+            whileInView={{opacity: 1, y: 0}}
+            viewport={{once: true, amount: 0.3}}
+            transition={{duration: 0.5}}
+          >
+            <span
+              className="text-xs font-bold uppercase tracking-[0.2em]"
+              style={{color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)'}}
+            >
+              Built for Irish tradespeople
+            </span>
+            <h2
+              className="mt-3"
+              style={{
+                fontFamily: 'var(--wm-font-display)',
+                fontSize: 'clamp(2rem, 4.5vw, 3rem)',
+                fontWeight: 800,
+                lineHeight: 1.1,
+                letterSpacing: '-0.03em',
+                color: 'var(--wm-navy)',
+              }}
+            >
+              Everything you need to grow your business.
+            </h2>
+          </motion.div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {BENEFITS.map((b, i) => (
+              <motion.article
+                key={b.title}
+                initial={{opacity: 0, y: 24}}
+                whileInView={{opacity: 1, y: 0}}
+                viewport={{once: true, amount: 0.2}}
+                transition={{duration: 0.4, delay: i * 0.06}}
+                className="group relative overflow-hidden rounded-2xl p-6 transition-all duration-300"
+                style={{
+                  background: 'var(--wm-surface)',
+                  border: '1px solid var(--wm-border)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = b.accent;
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.06)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--wm-border)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <div
+                  className="absolute left-0 right-0 top-0 h-[2px]"
+                  style={{background: b.accent, opacity: 0.4}}
+                />
+                <div
+                  className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl"
+                  style={{background: b.bg, color: b.accent}}
+                >
+                  <b.icon className="h-5 w-5" />
+                </div>
+                <h3
+                  className="text-base font-bold"
+                  style={{
+                    fontFamily: 'var(--wm-font-display)',
+                    color: 'var(--wm-navy)',
+                    letterSpacing: '-0.01em',
+                  }}
+                >
+                  {b.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed" style={{color: 'var(--wm-muted)'}}>
+                  {b.desc}
+                </p>
+              </motion.article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── EARNINGS CALCULATOR ─── */}
+      <section
+        className="px-5 py-24 sm:px-8 lg:px-12"
+        style={{background: 'linear-gradient(180deg, rgba(240,253,244,0.3) 0%, var(--wm-bg) 100%)'}}
+      >
+        <div className="mx-auto max-w-5xl">
+          <motion.div
+            className="mb-12 text-center"
+            initial={{opacity: 0, y: 20}}
+            whileInView={{opacity: 1, y: 0}}
+            viewport={{once: true}}
+            transition={{duration: 0.5}}
+          >
+            <span
+              className="text-xs font-bold uppercase tracking-[0.2em]"
+              style={{color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)'}}
+            >
+              Earnings calculator
+            </span>
+            <h2
+              className="mt-3"
+              style={{
+                fontFamily: 'var(--wm-font-display)',
+                fontSize: 'clamp(1.8rem, 4vw, 2.8rem)',
+                fontWeight: 800,
+                lineHeight: 1.1,
+                letterSpacing: '-0.03em',
+                color: 'var(--wm-navy)',
+              }}
+            >
+              See what you could earn on WorkMate.
+            </h2>
+            <p className="mx-auto mt-3 max-w-lg text-base" style={{color: 'var(--wm-muted)'}}>
+              Adjust the sliders to match your workload. All figures after WorkMate commission.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{opacity: 0, y: 20}}
+            whileInView={{opacity: 1, y: 0}}
+            viewport={{once: true}}
+            transition={{duration: 0.5, delay: 0.1}}
+            className="grid gap-8 lg:grid-cols-2"
+          >
+            {/* Sliders */}
+            <div
+              className="rounded-2xl p-6"
+              style={{background: 'var(--wm-surface)', border: '1px solid var(--wm-border)'}}
+            >
+              <div className="mb-8">
+                <div className="mb-2 flex items-center justify-between">
+                  <label className="text-sm font-semibold" style={{color: 'var(--wm-navy)'}}>
+                    Jobs per week
+                  </label>
+                  <span
+                    className="text-lg font-extrabold"
+                    style={{color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)'}}
+                  >
+                    {jobsPerWeek}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={1}
+                  max={15}
+                  value={jobsPerWeek}
+                  onChange={(e) => setJobsPerWeek(Number(e.target.value))}
+                  className="w-full accent-[var(--wm-primary)]"
+                />
+                <div className="mt-1 flex justify-between text-xs" style={{color: 'var(--wm-muted)'}}>
+                  <span>1</span>
+                  <span>15</span>
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <label className="text-sm font-semibold" style={{color: 'var(--wm-navy)'}}>
+                    Average job value
+                  </label>
+                  <span
+                    className="text-lg font-extrabold"
+                    style={{color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)'}}
+                  >
+                    €{avgJobValue}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={50}
+                  max={2000}
+                  step={50}
+                  value={avgJobValue}
+                  onChange={(e) => setAvgJobValue(Number(e.target.value))}
+                  className="w-full accent-[var(--wm-primary)]"
+                />
+                <div className="mt-1 flex justify-between text-xs" style={{color: 'var(--wm-muted)'}}>
+                  <span>€50</span>
+                  <span>€2,000</span>
+                </div>
+              </div>
+
+              {avgJobValue < 100 && (
+                <div
+                  className="mt-6 rounded-xl p-3"
+                  style={{background: 'var(--wm-primary-faint)', border: '1px solid rgba(var(--wm-primary-rgb), 0.15)'}}
+                >
+                  <p className="text-xs font-bold" style={{color: 'var(--wm-primary-dark)'}}>
+                    Jobs under €100 = 0% commission
+                  </p>
+                  <p className="mt-0.5 text-xs" style={{color: 'var(--wm-muted)'}}>
+                    You keep 100% of the job value. Payment arranged directly with the customer.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Results */}
+            <div className="space-y-4">
+              <div
+                className="rounded-2xl p-6"
+                style={{
+                  background: 'linear-gradient(155deg, var(--wm-navy) 0%, #0c1a2e 100%)',
+                }}
+              >
+                <p className="text-xs font-bold uppercase tracking-[0.15em]" style={{color: 'var(--wm-primary)'}}>
+                  Monthly earnings (Starter)
+                </p>
+                <div className="mt-3 flex items-baseline gap-2">
+                  <span
+                    className="text-4xl font-extrabold text-white"
+                    style={{fontFamily: 'var(--wm-font-display)'}}
+                  >
+                    €{Math.round(earnings.monthlyNet).toLocaleString()}
+                  </span>
+                  <span className="text-sm" style={{color: 'rgba(255,255,255,0.4)'}}>
+                    /month after 3% commission
+                  </span>
+                </div>
+              </div>
+
+              <div
+                className="rounded-2xl p-6"
+                style={{
+                  background: 'var(--wm-surface)',
+                  border: '2px solid var(--wm-primary)',
+                  boxShadow: 'var(--wm-glow-primary)',
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" style={{color: 'var(--wm-primary)'}} />
+                  <p className="text-xs font-bold uppercase tracking-[0.15em]" style={{color: 'var(--wm-primary)'}}>
+                    Monthly earnings (Pro — €19/mo)
+                  </p>
+                </div>
+                <div className="mt-3 flex items-baseline gap-2">
+                  <span
+                    className="text-4xl font-extrabold"
+                    style={{color: 'var(--wm-navy)', fontFamily: 'var(--wm-font-display)'}}
+                  >
+                    €{Math.round(earnings.monthlyNetPro).toLocaleString()}
+                  </span>
+                  <span className="text-sm" style={{color: 'var(--wm-muted)'}}>
+                    /month after 1.5% commission
+                  </span>
+                </div>
+                <p className="mt-2 text-xs" style={{color: 'var(--wm-primary)'}}>
+                  Save €{Math.round(earnings.monthlyNetPro - earnings.monthlyNet + 19).toLocaleString()}/month
+                  vs Starter plan
+                </p>
+              </div>
+
+              <div
+                className="rounded-xl p-4"
+                style={{background: 'var(--wm-primary-faint)'}}
+              >
+                <div className="flex items-center gap-2">
+                  <Calculator className="h-4 w-4" style={{color: 'var(--wm-primary-dark)'}} />
+                  <p className="text-xs font-bold" style={{color: 'var(--wm-primary-dark)'}}>
+                    Yearly projection: €{Math.round(earnings.yearlyNetPro).toLocaleString()} (Pro)
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ─── COMPARISON TABLE ─── */}
+      <section className="px-5 py-24 sm:px-8 lg:px-12">
+        <div className="mx-auto max-w-4xl">
+          <motion.div
+            className="mb-12 text-center"
+            initial={{opacity: 0, y: 20}}
+            whileInView={{opacity: 1, y: 0}}
+            viewport={{once: true}}
+            transition={{duration: 0.5}}
+          >
+            <span
+              className="text-xs font-bold uppercase tracking-[0.2em]"
+              style={{color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)'}}
+            >
+              How we compare
+            </span>
+            <h2
+              className="mt-3"
+              style={{
+                fontFamily: 'var(--wm-font-display)',
+                fontSize: 'clamp(1.8rem, 4vw, 2.8rem)',
+                fontWeight: 800,
+                lineHeight: 1.1,
+                letterSpacing: '-0.03em',
+                color: 'var(--wm-navy)',
+              }}
+            >
+              Stop paying for leads you never convert.
+            </h2>
+          </motion.div>
+
+          <motion.div
+            initial={{opacity: 0, y: 20}}
+            whileInView={{opacity: 1, y: 0}}
+            viewport={{once: true}}
+            transition={{duration: 0.5, delay: 0.1}}
+            className="overflow-hidden rounded-2xl"
+            style={{border: '1px solid var(--wm-border)'}}
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[500px]">
+                <thead>
+                  <tr style={{background: 'var(--wm-surface)'}}>
+                    <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-[0.1em]" style={{color: 'var(--wm-muted)'}}>Platform</th>
+                    <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-[0.1em]" style={{color: 'var(--wm-muted)'}}>Commission</th>
+                    <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-[0.1em]" style={{color: 'var(--wm-muted)'}}>Lead cost</th>
+                    <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-[0.1em]" style={{color: 'var(--wm-muted)'}}>Upfront</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {COMPARISON.map((row) => (
+                    <tr
+                      key={row.platform}
+                      style={{
+                        background: row.highlight ? 'var(--wm-primary-faint)' : 'var(--wm-bg)',
+                        borderTop: '1px solid var(--wm-border)',
+                      }}
+                    >
+                      <td className="px-5 py-4">
+                        <span
+                          className="text-sm font-bold"
+                          style={{
+                            color: row.highlight ? 'var(--wm-primary-dark)' : 'var(--wm-navy)',
+                            fontFamily: row.highlight ? 'var(--wm-font-display)' : undefined,
+                          }}
+                        >
+                          {row.platform}
+                          {row.highlight && (
+                            <BadgeCheck
+                              className="ml-1.5 inline-block h-4 w-4"
+                              style={{color: 'var(--wm-primary)'}}
+                            />
+                          )}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-sm" style={{color: row.highlight ? 'var(--wm-primary-dark)' : 'var(--wm-text)', fontWeight: row.highlight ? 700 : 400}}>
+                        {row.model}
+                      </td>
+                      <td className="px-5 py-4 text-sm" style={{color: row.highlight ? 'var(--wm-primary-dark)' : 'var(--wm-text)', fontWeight: row.highlight ? 700 : 400}}>
+                        {row.leads}
+                      </td>
+                      <td className="px-5 py-4 text-sm" style={{color: row.highlight ? 'var(--wm-primary-dark)' : 'var(--wm-text)', fontWeight: row.highlight ? 700 : 400}}>
+                        {row.upfront}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+
+          <p className="mt-4 text-center text-xs" style={{color: 'var(--wm-muted)'}}>
+            Competitor data sourced from public pricing pages as of March 2026.
+          </p>
+        </div>
+      </section>
+
+      {/* ─── HOW IT WORKS ─── */}
+      <section
+        className="px-5 py-24 sm:px-8 lg:px-12"
+        style={{background: 'linear-gradient(180deg, rgba(240,253,244,0.2) 0%, var(--wm-bg) 100%)'}}
+      >
+        <div className="mx-auto max-w-5xl">
+          <motion.div
+            className="mb-12 text-center"
+            initial={{opacity: 0, y: 20}}
+            whileInView={{opacity: 1, y: 0}}
+            viewport={{once: true}}
+            transition={{duration: 0.5}}
+          >
+            <span
+              className="text-xs font-bold uppercase tracking-[0.2em]"
+              style={{color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)'}}
+            >
+              Getting started
+            </span>
+            <h2
+              className="mt-3"
+              style={{
+                fontFamily: 'var(--wm-font-display)',
+                fontSize: 'clamp(1.8rem, 4vw, 2.8rem)',
+                fontWeight: 800,
+                lineHeight: 1.1,
+                letterSpacing: '-0.03em',
+                color: 'var(--wm-navy)',
+              }}
+            >
+              From signup to first job in 4 steps.
+            </h2>
+          </motion.div>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {HOW_STEPS.map((s, i) => (
+              <motion.div
+                key={s.num}
+                initial={{opacity: 0, y: 24}}
+                whileInView={{opacity: 1, y: 0}}
+                viewport={{once: true}}
+                transition={{duration: 0.4, delay: i * 0.08}}
+                className="rounded-2xl p-5"
+                style={{background: 'var(--wm-surface)', border: '1px solid var(--wm-border)'}}
+              >
+                <div
+                  className="mb-3 flex h-10 w-10 items-center justify-center rounded-full text-sm font-black"
+                  style={{
+                    background: 'var(--wm-primary-faint)',
+                    color: 'var(--wm-primary)',
+                    fontFamily: 'var(--wm-font-display)',
+                  }}
+                >
+                  {s.num}
+                </div>
+                <h4 className="text-sm font-bold" style={{color: 'var(--wm-navy)'}}>{s.title}</h4>
+                <p className="mt-1.5 text-xs leading-relaxed" style={{color: 'var(--wm-muted)'}}>{s.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── TESTIMONIALS ─── */}
+      <section className="px-5 py-24 sm:px-8 lg:px-12">
+        <div className="mx-auto max-w-5xl">
+          <motion.div
+            className="mb-12 text-center"
+            initial={{opacity: 0, y: 20}}
+            whileInView={{opacity: 1, y: 0}}
+            viewport={{once: true}}
+            transition={{duration: 0.5}}
+          >
+            <span
+              className="text-xs font-bold uppercase tracking-[0.2em]"
+              style={{color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)'}}
+            >
+              Provider stories
+            </span>
+            <h2
+              className="mt-3"
+              style={{
+                fontFamily: 'var(--wm-font-display)',
+                fontSize: 'clamp(1.8rem, 4vw, 2.8rem)',
+                fontWeight: 800,
+                lineHeight: 1.1,
+                letterSpacing: '-0.03em',
+                color: 'var(--wm-navy)',
+              }}
+            >
+              Hear from providers across Ireland.
+            </h2>
+          </motion.div>
+
+          <div className="grid gap-6 sm:grid-cols-3">
+            {TESTIMONIALS.map((t, i) => (
+              <motion.blockquote
+                key={t.name}
+                initial={{opacity: 0, y: 24}}
+                whileInView={{opacity: 1, y: 0}}
+                viewport={{once: true}}
+                transition={{duration: 0.4, delay: i * 0.08}}
+                className="rounded-2xl p-6"
+                style={{background: 'var(--wm-surface)', border: '1px solid var(--wm-border)'}}
+              >
+                <div className="mb-3 flex gap-0.5">
+                  {Array.from({length: t.rating}).map((_, si) => (
+                    <Star
+                      key={si}
+                      className="h-4 w-4"
+                      style={{color: 'var(--wm-amber-dark)', fill: 'var(--wm-amber-dark)'}}
+                    />
+                  ))}
+                </div>
+                <p className="text-sm leading-relaxed" style={{color: 'var(--wm-text)'}}>
+                  &ldquo;{t.text}&rdquo;
+                </p>
+                <div className="mt-4 flex items-center gap-3">
+                  <div
+                    className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white"
+                    style={{background: 'var(--wm-grad-primary)'}}
+                  >
+                    {t.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold" style={{color: 'var(--wm-navy)'}}>{t.name}</p>
+                    <p className="text-xs" style={{color: 'var(--wm-muted)'}}>{t.role}</p>
+                  </div>
+                </div>
+              </motion.blockquote>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── FOUNDING PRO BANNER ─── */}
+      <section className="px-5 py-8 sm:px-8 lg:px-12">
+        <motion.div
+          initial={{opacity: 0, y: 20}}
+          whileInView={{opacity: 1, y: 0}}
+          viewport={{once: true}}
+          transition={{duration: 0.5}}
+          className="mx-auto max-w-5xl rounded-2xl p-8 sm:p-10"
+          style={{
+            background: 'linear-gradient(135deg, rgba(var(--wm-primary-rgb), 0.08) 0%, rgba(255,255,255,0.9) 100%)',
+            border: '1px solid rgba(var(--wm-primary-rgb), 0.2)',
+          }}
+        >
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="max-w-lg">
+              <div className="mb-2 flex items-center gap-2">
+                <Users className="h-5 w-5" style={{color: 'var(--wm-primary)'}} />
+                <span
+                  className="text-sm font-bold"
+                  style={{color: 'var(--wm-primary)', fontFamily: 'var(--wm-font-display)'}}
+                >
+                  Founding Pro Program
+                </span>
+              </div>
+              <h3
+                className="text-lg font-bold"
+                style={{color: 'var(--wm-navy)', fontFamily: 'var(--wm-font-display)'}}
+              >
+                Join as one of Ireland&apos;s first 100 WorkMate Pros.
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed" style={{color: 'var(--wm-muted)'}}>
+                Founding Pros get Pro features free for 6 months, a permanent &ldquo;Founding Pro&rdquo; badge on their profile,
+                and direct input into product development. Limited to 100 providers nationwide.
+              </p>
+            </div>
+            <Link
+              href={withLocalePrefix(localeRoot, '/become-provider/apply')}
+              className="inline-flex shrink-0 items-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold text-white transition-transform hover:scale-[1.03]"
+              style={{
+                background: 'var(--wm-grad-primary)',
+                fontFamily: 'var(--wm-font-display)',
+                boxShadow: '0 8px 30px rgba(var(--wm-primary-rgb), 0.25)',
+              }}
+            >
+              Claim Your Spot
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* ─── FINAL CTA ─── */}
+      <section className="px-5 py-8 pb-20 sm:px-8 lg:px-12">
+        <div
+          className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] px-8 py-20 sm:px-16 sm:py-28"
+          style={{
+            background: 'linear-gradient(155deg, var(--wm-navy) 0%, #0c1a2e 50%, #0a2a29 100%)',
+          }}
+        >
+          {/* Grid pattern */}
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              backgroundImage:
+                'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
+              backgroundSize: '64px 64px',
+            }}
+          />
+
+          <div
+            className="pointer-events-none absolute -right-20 -top-20"
+            style={{
+              width: '500px',
+              height: '500px',
+              background: 'radial-gradient(circle, rgba(var(--wm-primary-rgb), 0.15) 0%, transparent 60%)',
+              filter: 'blur(80px)',
+            }}
+          />
+
+          <div className="relative z-10 mx-auto max-w-2xl text-center">
+            <motion.div
+              initial={{opacity: 0, y: 20}}
+              whileInView={{opacity: 1, y: 0}}
+              viewport={{once: true}}
+              transition={{duration: 0.5}}
+            >
+              <h2
+                style={{
+                  fontFamily: 'var(--wm-font-display)',
+                  fontSize: 'clamp(2rem, 5vw, 3.5rem)',
+                  fontWeight: 800,
+                  lineHeight: 1.05,
+                  letterSpacing: '-0.03em',
+                }}
+              >
+                <span style={{color: 'white'}}>Ready to build</span>
+                <br />
+                <span
+                  style={{
+                    background: 'linear-gradient(135deg, var(--wm-primary) 0%, #34d399 50%, var(--wm-amber) 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
+                >
+                  your reputation?
+                </span>
+              </h2>
+
+              <p
+                className="mx-auto mt-5 max-w-md text-base leading-relaxed"
+                style={{color: 'rgba(255,255,255,0.6)'}}
+              >
+                Join hundreds of Irish tradespeople who stopped paying for leads and
+                started building their business on WorkMate.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{opacity: 0, y: 20}}
+              whileInView={{opacity: 1, y: 0}}
+              viewport={{once: true}}
+              transition={{duration: 0.5, delay: 0.15}}
+              className="mt-10 flex flex-wrap items-center justify-center gap-4"
+            >
+              <Link
+                href={withLocalePrefix(localeRoot, '/become-provider/apply')}
+                className="inline-flex items-center gap-2 rounded-full px-8 py-4 text-sm font-bold transition-transform hover:scale-[1.03] active:scale-95"
+                style={{
+                  background: 'white',
+                  color: 'var(--wm-navy)',
+                  fontFamily: 'var(--wm-font-display)',
+                  boxShadow: '0 8px 32px rgba(255,255,255,0.12)',
+                }}
+              >
+                Apply Now — Free
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href={withLocalePrefix(localeRoot, '/pricing')}
+                className="inline-flex items-center gap-2 rounded-full px-7 py-4 text-sm font-semibold"
+                style={{
+                  color: 'white',
+                  background: 'var(--wm-grad-primary)',
+                  boxShadow: '0 8px 30px rgba(var(--wm-primary-rgb), 0.3)',
+                  fontFamily: 'var(--wm-font-display)',
+                }}
+              >
+                See Full Pricing
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}

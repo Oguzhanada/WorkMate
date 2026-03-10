@@ -7,6 +7,7 @@ type BadgeProps = {
   tone?: Tone;
   className?: string;
   dot?: boolean;
+  title?: string;
 };
 
 const toneClasses: Record<Tone, string> = {
@@ -31,10 +32,11 @@ const dotColors: Record<Tone, string> = {
   neutral:   'bg-[var(--wm-subtle)]',
 };
 
-export default function Badge({ children, tone = 'neutral', className, dot = false }: BadgeProps) {
+export default function Badge({ children, tone = 'neutral', className, dot = false, title }: BadgeProps) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${toneClasses[tone]}${className ? ` ${className}` : ''}`}
+      title={title}
     >
       {dot ? (
         <span className={`inline-block h-1.5 w-1.5 rounded-full ${dotColors[tone]}`} aria-hidden="true" />

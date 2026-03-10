@@ -1,25 +1,63 @@
 'use client';
 
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { useLocale } from 'next-intl';
+import { useEffect, useMemo, useState } from 'react';
 import { JOB_BUDGET_OPTIONS, JOB_SCOPE_OPTIONS, JOB_TITLE_OPTIONS, JOB_URGENCY_OPTIONS } from '@/lib/constants/job';
 import { useCategoriesWithFallback, type Category } from '@/lib/hooks/useCategoriesWithFallback';
 import EircodeAddressForm, { type Address } from './EircodeAddressForm';
 import InfoTooltip from '@/components/ui/InfoTooltip';
+import Button from '@/components/ui/Button';
 import styles from './forms.module.css';
+
+// Keep JOB_TITLE_OPTIONS import for backward compat — not used in this form
+void JOB_TITLE_OPTIONS;
 
 const STEP_LABELS = ['Title and details', 'Location and budget', 'Email confirmation'] as const;
 
+/* ── Test-data filter for categories ─────────────────────── */
+const TEST_CATEGORY_PATTERN = /QA|E2E|test|^\d+$/i;
+
+type GroupedCategory = { parentName: string; children: Category[] };
+
+function groupCategories(allCategories: Category[], leafCategories: Category[]): GroupedCategory[] {
+  const parentMap = new Map<string, Category>();
+  for (const cat of allCategories) {
+    if (cat.parent_id === null) parentMap.set(cat.id, cat);
+  }
+
+  const groups = new Map<string, GroupedCategory>();
+  const ungrouped: Category[] = [];
+
+  for (const leaf of leafCategories) {
+    if (TEST_CATEGORY_PATTERN.test(leaf.name)) continue;
+    if (leaf.parent_id && parentMap.has(leaf.parent_id)) {
+      const parent = parentMap.get(leaf.parent_id)!;
+      if (!groups.has(parent.id)) {
+        groups.set(parent.id, { parentName: parent.name, children: [] });
+      }
+      groups.get(parent.id)!.children.push(leaf);
+    } else {
+      ungrouped.push(leaf);
+    }
+  }
+
+  const sorted = [...groups.values()].sort((a, b) => a.parentName.localeCompare(b.parentName));
+  if (ungrouped.length > 0) {
+    sorted.push({ parentName: 'Other', children: ungrouped });
+  }
+  return sorted;
+}
+
 export default function GuestJobIntentForm() {
-  const locale = useLocale();
   const [step, setStep] = useState(1);
-  const {categories, isLoading: isLoadingCategories, notice: categoryNotice} = useCategoriesWithFallback({
-    leafOnly: true
+
+  /* ── Categories — fetch ALL (parents + leaves) for grouping ── */
+  const { categories: leafCategories, isLoading: isLoadingCategories, notice: categoryNotice } = useCategoriesWithFallback({
+    leafOnly: true,
   });
+  const { categories: allCategories } = useCategoriesWithFallback({ leafOnly: false });
+
   const [categoryId, setCategoryId] = useState('');
-  const [titleOption, setTitleOption] = useState<(typeof JOB_TITLE_OPTIONS)[number] | ''>('');
-  const [customTitle, setCustomTitle] = useState('');
+  const [title, setTitle] = useState('');
   const [scope, setScope] = useState<(typeof JOB_SCOPE_OPTIONS)[number] | ''>('');
   const [urgency, setUrgency] = useState<(typeof JOB_URGENCY_OPTIONS)[number] | ''>('');
   const [details, setDetails] = useState('');
@@ -38,28 +76,33 @@ export default function GuestJobIntentForm() {
   const [success, setSuccess] = useState('');
   const [intentId, setIntentId] = useState('');
 
-  useEffect(() => {
-    queueMicrotask(() => {
-      setCategoryId((current) => {
-        if (current && categories.some((item) => item.id === current)) return current;
-        return categories[0]?.id || '';
-      });
-    });
-  }, [categories]);
+  /* ── Filter out test categories and group by parent ─────── */
+  const filteredLeafCategories = useMemo(
+    () => leafCategories.filter((c) => !TEST_CATEGORY_PATTERN.test(c.name)),
+    [leafCategories],
+  );
+  const grouped = useMemo(
+    () => groupCategories(allCategories, leafCategories),
+    [allCategories, leafCategories],
+  );
 
   useEffect(() => {
     queueMicrotask(() => {
-      if (categories.length === 0 && !isLoadingCategories) {
+      if (filteredLeafCategories.length === 0 && !isLoadingCategories) {
         setError('No active categories are available right now. Please try again shortly.');
       } else {
-        setError((prev) => prev.startsWith('No active categories') ? '' : prev);
+        setError((prev) => (prev.startsWith('No active categories') ? '' : prev));
       }
     });
-  }, [categories.length, isLoadingCategories]);
+  }, [filteredLeafCategories.length, isLoadingCategories]);
 
   const nextFromStep1 = () => {
-    if (!categoryId || !titleOption || (titleOption === 'Other' && !customTitle.trim())) {
-      setError('Category and job type are required.');
+    if (!title.trim() || title.trim().length < 5) {
+      setError('Job title must be at least 5 characters.');
+      return;
+    }
+    if (!categoryId) {
+      setError('Please select a service category.');
       return;
     }
     setError('');
@@ -80,7 +123,7 @@ export default function GuestJobIntentForm() {
   };
 
   const onSubmit = async () => {
-    const title = titleOption === 'Other' ? customTitle.trim() : titleOption.trim();
+    const trimmedTitle = title.trim();
     const description = [
       `Scope: ${scope}`,
       `Urgency: ${urgency}`,
@@ -89,7 +132,7 @@ export default function GuestJobIntentForm() {
       .filter(Boolean)
       .join(' | ');
 
-    if (!email.trim() || !title || !description || !address.eircode || !address.county || !address.locality || !categoryId) {
+    if (!email.trim() || !trimmedTitle || !description || !address.eircode || !address.county || !address.locality || !categoryId) {
       setError('Please fill all required fields.');
       return;
     }
@@ -103,7 +146,7 @@ export default function GuestJobIntentForm() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email: email.trim().toLowerCase(),
-        title,
+        title: trimmedTitle,
         category_id: categoryId,
         description,
         eircode: address.eircode,
@@ -162,43 +205,46 @@ export default function GuestJobIntentForm() {
               <p className={styles.sectionLead}>Add the core details so providers understand your request.</p>
 
               <label className={styles.field}>
+                <span>In a few words, what do you need done?</span>
+                <input
+                  type="text"
+                  className={styles.input}
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  placeholder="e.g. Fix a leaking tap, Paint living room walls, Deep clean 3-bed house"
+                  minLength={5}
+                />
+                {title.trim().length > 0 && title.trim().length < 5 ? (
+                  <small style={{ color: 'var(--wm-destructive)' }}>At least 5 characters required</small>
+                ) : null}
+              </label>
+
+              <label className={styles.field}>
                 <span>Service category</span>
                 <select
                   value={categoryId}
                   onChange={(event) => setCategoryId(event.target.value)}
                   className={styles.select}
-                  disabled={isLoadingCategories || categories.length === 0}
+                  disabled={isLoadingCategories || filteredLeafCategories.length === 0}
                 >
-                  <option value="">{isLoadingCategories ? 'Loading categories...' : 'Select category'}</option>
-                  {categories.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name}
-                    </option>
+                  <option value="">{isLoadingCategories ? 'Loading categories...' : 'Select a category'}</option>
+                  {grouped.map((group) => (
+                    <optgroup key={group.parentName} label={group.parentName}>
+                      {group.children.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
                 {categoryNotice ? <small className={styles.muted}>{categoryNotice}</small> : null}
               </label>
 
-              <label className={styles.field}>
-                <span>In a few words, what do you need done?</span>
-                <select value={titleOption} onChange={(event) => setTitleOption(event.target.value as (typeof JOB_TITLE_OPTIONS)[number])} className={styles.select}>
-                  <option value="">Select job type</option>
-                  {JOB_TITLE_OPTIONS.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              {titleOption === 'Other' ? (
-                <input className={styles.input} value={customTitle} onChange={(event) => setCustomTitle(event.target.value)} placeholder="Type job title" />
-              ) : null}
-
               <div className={styles.buttonRow}>
-                <button type="button" className={styles.primary} onClick={nextFromStep1}>
+                <Button variant="primary" onClick={nextFromStep1}>
                   Continue
-                </button>
+                </Button>
               </div>
             </div>
           ) : null}
@@ -246,12 +292,12 @@ export default function GuestJobIntentForm() {
               </select>
               <EircodeAddressForm value={address} onChange={setAddress} />
               <div className={styles.buttonRow}>
-                <button type="button" className={styles.secondary} onClick={() => setStep(1)}>
+                <Button variant="secondary" onClick={() => setStep(1)}>
                   Back
-                </button>
-                <button type="button" className={styles.primary} onClick={nextFromStep2}>
+                </Button>
+                <Button variant="primary" onClick={nextFromStep2}>
                   Continue
-                </button>
+                </Button>
               </div>
             </div>
           ) : null}
@@ -271,21 +317,21 @@ export default function GuestJobIntentForm() {
                 />
               </label>
               <div className={styles.buttonRow}>
-                <button type="button" className={styles.secondary} onClick={() => setStep(2)}>
+                <Button variant="secondary" onClick={() => setStep(2)}>
                   Back
-                </button>
-                <button type="button" className={styles.primary} onClick={onSubmit} disabled={isPending}>
-                  {isPending ? 'Saving...' : 'Save Request'}
-                </button>
+                </Button>
+                <Button variant="primary" onClick={onSubmit} loading={isPending} disabled={isPending}>
+                  Save Request
+                </Button>
               </div>
               {intentId ? (
                 <div className={styles.buttonRow}>
-                  <Link className={styles.primary} href={`/sign-up?intent=${intentId}&email=${encodeURIComponent(email.trim().toLowerCase())}`}>
+                  <Button variant="primary" href={`/sign-up?intent=${intentId}&email=${encodeURIComponent(email.trim().toLowerCase())}`}>
                     Create account and publish listing
-                  </Link>
-                  <Link className={styles.secondary} href={`/login`}>
+                  </Button>
+                  <Button variant="secondary" href="/login">
                     Sign in and continue
-                  </Link>
+                  </Button>
                 </div>
               ) : null}
             </div>
@@ -295,4 +341,3 @@ export default function GuestJobIntentForm() {
     </div>
   );
 }
-

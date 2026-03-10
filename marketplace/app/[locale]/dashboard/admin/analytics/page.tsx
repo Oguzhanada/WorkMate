@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button';
 import StatCard from '@/components/ui/StatCard';
 import Badge from '@/components/ui/Badge';
 import EmptyState from '@/components/ui/EmptyState';
+import { TrendingDown, ArrowRight } from 'lucide-react';
 
 export const metadata = { title: 'Funnel Analytics — WorkMate Admin' };
 
@@ -212,6 +213,115 @@ function FunnelPanel({ group }: { group: FunnelGroup }) {
   );
 }
 
+function FunnelDropOffPanel({ groups }: { groups: FunnelGroup[] }) {
+  if (groups.length === 0) return null;
+
+  return (
+    <div
+      className="rounded-2xl border p-6"
+      style={{ borderColor: 'var(--wm-border)', background: 'var(--wm-surface)', boxShadow: 'var(--wm-shadow-sm)' }}
+    >
+      <div className="mb-4 flex items-center gap-3">
+        <TrendingDown size={18} style={{ color: 'var(--wm-destructive)' }} />
+        <h2
+          className="text-base font-bold"
+          style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)' }}
+        >
+          Conversion &amp; Drop-Off Summary
+        </h2>
+      </div>
+      <div className="space-y-4">
+        {groups.map((group) => {
+          if (group.steps.length < 2) return null;
+          const first = group.steps[0];
+          const last = group.steps[group.steps.length - 1];
+          const overallConversion = first.count > 0 ? Math.round((last.count / first.count) * 100) : 0;
+
+          // Find the worst drop-off step
+          let worstDropIdx = 1;
+          let worstDropPct = 100;
+          for (let i = 1; i < group.steps.length; i++) {
+            if (group.steps[i].pctFromPrev < worstDropPct) {
+              worstDropPct = group.steps[i].pctFromPrev;
+              worstDropIdx = i;
+            }
+          }
+          const dropOffPct = 100 - worstDropPct;
+
+          return (
+            <div
+              key={group.name}
+              className="rounded-xl border p-4"
+              style={{ borderColor: 'var(--wm-border)', background: 'var(--wm-subtle)' }}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <h3
+                  className="text-sm font-bold"
+                  style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-foreground)' }}
+                >
+                  {group.label}
+                </h3>
+                <Badge tone={overallConversion >= 50 ? 'primary' : overallConversion >= 20 ? 'amber' : 'pending'}>
+                  {overallConversion}% overall conversion
+                </Badge>
+              </div>
+
+              {/* Step-by-step drop-offs */}
+              <div className="flex flex-wrap items-center gap-1 text-xs" style={{ color: 'var(--wm-muted)' }}>
+                {group.steps.map((step, i) => (
+                  <span key={step.step_name} className="flex items-center gap-1">
+                    <span
+                      className="font-medium"
+                      style={{ color: i === 0 ? 'var(--wm-foreground)' : undefined }}
+                    >
+                      {formatStepName(step.step_name)}
+                    </span>
+                    <span className="tabular-nums" style={{ color: 'var(--wm-navy)' }}>
+                      ({step.count.toLocaleString()})
+                    </span>
+                    {i < group.steps.length - 1 && (
+                      <>
+                        <ArrowRight size={12} style={{ color: 'var(--wm-muted)', flexShrink: 0 }} />
+                        <span
+                          className="font-semibold tabular-nums"
+                          style={{
+                            color: group.steps[i + 1].pctFromPrev < 60
+                              ? 'var(--wm-destructive)'
+                              : 'var(--wm-muted)',
+                          }}
+                        >
+                          {100 - group.steps[i + 1].pctFromPrev}% drop
+                        </span>
+                        <ArrowRight size={12} style={{ color: 'var(--wm-muted)', flexShrink: 0 }} />
+                      </>
+                    )}
+                  </span>
+                ))}
+              </div>
+
+              {/* Worst drop-off callout */}
+              <div
+                className="mt-3 rounded-lg px-3 py-2 text-xs"
+                style={{
+                  background: dropOffPct > 50
+                    ? 'rgba(var(--wm-destructive-rgb, 220, 38, 38), 0.08)'
+                    : 'rgba(var(--wm-amber-rgb, 245, 158, 11), 0.08)',
+                  color: dropOffPct > 50 ? 'var(--wm-destructive)' : 'var(--wm-amber-dark, var(--wm-foreground))',
+                }}
+              >
+                Biggest drop-off: <strong>{dropOffPct}%</strong> between{' '}
+                <strong>{formatStepName(group.steps[worstDropIdx - 1].step_name)}</strong>
+                {' and '}
+                <strong>{formatStepName(group.steps[worstDropIdx].step_name)}</strong>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function DateFilterBar({ locale, currentDays }: { locale: string; currentDays: DaysParam }) {
   const options: { label: string; value: DaysParam }[] = [
     { label: 'Last 7 days', value: '7' },
@@ -401,6 +511,11 @@ export default async function AdminAnalyticsPage({
 
         {/* Date filter */}
         <DateFilterBar locale={locale} currentDays={days} />
+
+        {/* Conversion & Drop-Off Summary — derived from the same funnel data */}
+        {!fetchError && groups.length > 0 && (
+          <FunnelDropOffPanel groups={groups} />
+        )}
 
         {/* Error state */}
         {fetchError && (

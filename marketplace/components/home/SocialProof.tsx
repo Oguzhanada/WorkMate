@@ -13,9 +13,7 @@ interface Stat {
 }
 
 const stats: Stat[] = [
-  { value: 500, suffix: '+', label: 'Verified Providers' },
   { value: 26, suffix: '', label: 'Counties Covered' },
-  { value: 4.8, suffix: '★', label: 'Average Rating' },
   { prefix: '< ', value: 4, suffix: 'h', label: 'Avg Response' },
 ];
 
@@ -42,30 +40,34 @@ function AnimatedNumber({ value, suffix, prefix }: { value: number; suffix: stri
   );
 }
 
-/* ─── Testimonials ─── */
+/*
+ * Representative examples — these illustrate the type of experience
+ * WorkMate aims to deliver. They are not sourced from real user reviews.
+ * Replace with genuine testimonials once available.
+ */
 const testimonials = [
   {
     id: '1',
-    text: 'I solved my painting task in one day with WorkMate. The provider was punctual, pricing was clear, and payment felt secure.',
-    name: 'Selin A.',
+    text: 'Post a job, receive offers from verified pros, and pay securely — all through one platform.',
+    name: 'Happy Customer',
     county: 'Cork',
     role: 'Homeowner',
     rating: 5,
   },
   {
     id: '2',
-    text: 'For an urgent plumbing issue, I received 3 offers within 30 minutes. The full process was smoother than expected.',
-    name: 'Michael D.',
+    text: 'Get multiple offers quickly so you can compare pricing, reviews, and availability before choosing.',
+    name: 'Satisfied Client',
     county: 'Dublin',
     role: 'Landlord',
     rating: 5,
   },
   {
     id: '3',
-    text: 'As a verified pro, WorkMate brought me 4 new clients in my first week. The admin approval gives customers real confidence.',
-    name: 'Ciarán O.',
+    text: 'As a verified pro, WorkMate connects you with customers across Ireland who are ready to hire.',
+    name: 'WorkMate Pro',
     county: 'Galway',
-    role: 'Electrician',
+    role: 'Service Provider',
     rating: 5,
   },
 ];
@@ -148,7 +150,7 @@ export default function SocialProof() {
                 className="text-xs font-bold uppercase tracking-[0.2em]"
                 style={{ color: 'var(--wm-primary)' }}
               >
-                Platform metrics
+                Why WorkMate
               </span>
               <h2
                 className="mt-3"
@@ -161,7 +163,7 @@ export default function SocialProof() {
                   color: 'white',
                 }}
               >
-                Numbers that<br />speak for themselves.
+                Built for Ireland,<br />ready to grow.
               </h2>
             </motion.div>
 
