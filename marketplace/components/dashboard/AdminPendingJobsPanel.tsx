@@ -83,7 +83,9 @@ export default function AdminPendingJobsPanel() {
   const pendingCount = useMemo(() => items.length, [items]);
 
   useEffect(() => {
-    load();
+    let active = true;
+    queueMicrotask(() => { if (active) load(); });
+    return () => { active = false; };
   }, [load]);
 
   return (

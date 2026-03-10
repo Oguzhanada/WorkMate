@@ -3,9 +3,10 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canAccessAdmin, canPostJob, getUserRoles } from '@/lib/auth/rbac';
 import { capturePaymentSchema } from '@/lib/validation/api';
-import { stripe } from '@/lib/stripe';
+import { stripe } from '@/lib/stripe/client';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -90,3 +91,5 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ status: captured.status, payment_intent_id: captured.id });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

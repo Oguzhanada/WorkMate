@@ -1,5 +1,11 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+
+export const metadata: Metadata = {
+  title: 'Messages',
+  description: 'Your WorkMate conversations.',
+};
 import Shell from '@/components/ui/Shell';
 import Card from '@/components/ui/Card';
 import EmptyState from '@/components/ui/EmptyState';

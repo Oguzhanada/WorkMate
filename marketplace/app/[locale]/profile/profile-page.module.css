@@ -210,7 +210,7 @@
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-lg);
   padding: 14px 16px;
-  background: #fff;
+  background: var(--wm-surface);
   transition: box-shadow var(--wm-transition), transform var(--wm-transition);
 }
 

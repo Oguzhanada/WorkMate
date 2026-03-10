@@ -1,6 +1,7 @@
 "use client";
 
 import {useEffect, useMemo, useRef, useState} from 'react';
+import Link from 'next/link';
 import {useRouter} from 'next/navigation';
 
 import {getSupabaseBrowserClient} from '@/lib/supabase/client';
@@ -324,7 +325,7 @@ export default function ProfileVerificationPanel({
                 />
                 <span>
                   I consent to the processing of my identity documents for verification purposes under{' '}
-                  <a href="/privacy-policy">WorkMate Privacy Policy</a>.
+                  <Link href="/privacy-policy">WorkMate Privacy Policy</Link>.
                 </span>
               </label>
             </label>

@@ -1,6 +1,6 @@
 import type {MetadataRoute} from 'next';
 
-import {services} from '@/lib/marketplace-data';
+import {services} from '@/lib/data/categories';
 
 const baseUrl = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'http://localhost:3000';
 
@@ -8,21 +8,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const staticPaths = [
     '',
     '/about',
+    '/how-it-works',
+    '/pricing',
     '/login',
     '/sign-up',
     '/become-provider',
-    '/profile',
     '/search',
     '/jobs',
     '/providers',
     '/contact',
     '/faq',
     '/blog',
-    '/privacy-policy',
-    '/community-guidelines',
+    '/privacy',
     '/terms',
     '/cookie-policy',
-    '/data-retention'
+    '/data-retention',
+    '/community-guidelines',
   ];
 
   const entries: MetadataRoute.Sitemap = [];

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 
 import Card from '@/components/ui/Card';
 import PageHeader from '@/components/ui/PageHeader';
@@ -9,10 +10,34 @@ export const metadata: Metadata = {
     'How WorkMate collects, uses, and protects your personal data under GDPR and Irish law.',
 };
 
-export default function PrivacyPage() {
+export default async function PrivacyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ returnTo?: string }>;
+}) {
+  const params = await searchParams;
+  const returnTo = typeof params.returnTo === 'string' && params.returnTo.startsWith('/')
+    ? params.returnTo
+    : null;
+
   return (
     <main className="py-14">
       <div style={{ width: 'min(860px, calc(100% - 32px))', margin: '0 auto' }}>
+        {returnTo ? (
+          <div className="mb-3">
+            <Link
+              href={returnTo}
+              className="inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-semibold"
+              style={{
+                borderColor: 'var(--wm-border)',
+                color: 'var(--wm-text-default)',
+                background: 'var(--wm-surface)',
+              }}
+            >
+              Back to sign up
+            </Link>
+          </div>
+        ) : null}
         <div className="mb-6">
           <PageHeader
             title="Privacy Policy"
@@ -41,7 +66,7 @@ export default function PrivacyPage() {
               For any privacy-related queries, contact us at:{' '}
               <a
                 href="mailto:privacy@workmate.ie"
-                style={{ color: 'var(--wm-primary)', fontWeight: 600 }}
+                style={{ color: 'var(--wm-primary-dark)', fontWeight: 600 }}
               >
                 privacy@workmate.ie
               </a>
@@ -261,7 +286,7 @@ export default function PrivacyPage() {
                   href="https://www.dataprotection.ie"
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ color: 'var(--wm-primary)', fontWeight: 600 }}
+                  style={{ color: 'var(--wm-primary-dark)', fontWeight: 600 }}
                 >
                   www.dataprotection.ie
                 </a>
@@ -272,7 +297,7 @@ export default function PrivacyPage() {
               To exercise any of these rights, email{' '}
               <a
                 href="mailto:privacy@workmate.ie"
-                style={{ color: 'var(--wm-primary)', fontWeight: 600 }}
+                style={{ color: 'var(--wm-primary-dark)', fontWeight: 600 }}
               >
                 privacy@workmate.ie
               </a>
@@ -296,19 +321,168 @@ export default function PrivacyPage() {
             </p>
           </Card>
 
-          {/* 9. Contact */}
+          {/* 9. International Data Transfers */}
           <Card>
             <h2
               className="mb-3 text-base font-bold"
               style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)' }}
             >
-              9. Contact &amp; Updates
+              9. International Data Transfers
+            </h2>
+            <ul
+              className="ml-5 flex list-disc flex-col gap-1 text-sm"
+              style={{ color: 'var(--wm-muted)' }}
+            >
+              <li>
+                WorkMate primarily stores data within the EU (Supabase EU region).
+              </li>
+              <li>
+                Some processors (Stripe, Sentry, Vercel) may transfer data to the United States.
+              </li>
+              <li>
+                All international transfers are covered by{' '}
+                <strong style={{ color: 'var(--wm-text)' }}>Standard Contractual Clauses (SCCs)</strong>{' '}
+                or EU adequacy decisions.
+              </li>
+              <li>
+                Data Processing Agreements (DPAs) have been signed with all third-party processors.
+              </li>
+            </ul>
+          </Card>
+
+          {/* 10. Data Security */}
+          <Card>
+            <h2
+              className="mb-3 text-base font-bold"
+              style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)' }}
+            >
+              10. Data Security
+            </h2>
+            <ul
+              className="ml-5 flex list-disc flex-col gap-1 text-sm"
+              style={{ color: 'var(--wm-muted)' }}
+            >
+              <li>
+                Industry-standard encryption: TLS 1.2+ for data in transit, AES-256 for data at rest.
+              </li>
+              <li>
+                <strong style={{ color: 'var(--wm-text)' }}>Row Level Security (RLS)</strong> enforced
+                on all database tables to ensure users can only access their own data.
+              </li>
+              <li>Regular security audits and penetration testing.</li>
+              <li>
+                Incident response within{' '}
+                <strong style={{ color: 'var(--wm-text)' }}>72 hours</strong> as required by GDPR
+                Article 33.
+              </li>
+              <li>Access controls and audit logging for all administrative actions.</li>
+            </ul>
+          </Card>
+
+          {/* 11. Automated Decision-Making */}
+          <Card>
+            <h2
+              className="mb-3 text-base font-bold"
+              style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)' }}
+            >
+              11. Automated Decision-Making
+            </h2>
+            <ul
+              className="ml-5 flex list-disc flex-col gap-1 text-sm"
+              style={{ color: 'var(--wm-muted)' }}
+            >
+              <li>
+                WorkMate uses automated risk scoring for fraud prevention purposes.
+              </li>
+              <li>
+                Provider compliance scores are calculated automatically to support platform safety.
+              </li>
+              <li>
+                No solely automated decisions are made that produce legal effects — human review is
+                always available.
+              </li>
+              <li>
+                You may request human review of any automated decision by contacting{' '}
+                <a
+                  href="mailto:privacy@workmate.ie"
+                  style={{ color: 'var(--wm-primary-dark)', fontWeight: 600 }}
+                >
+                  privacy@workmate.ie
+                </a>
+                .
+              </li>
+            </ul>
+          </Card>
+
+          {/* 12. Children's Data */}
+          <Card>
+            <h2
+              className="mb-3 text-base font-bold"
+              style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)' }}
+            >
+              12. Children&apos;s Data
+            </h2>
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--wm-muted)' }}>
+              WorkMate is not intended for users under the age of 18. We do not knowingly collect
+              personal data from children. If we become aware that data has been collected from a
+              minor, it will be deleted promptly. If you believe a child has provided us with personal
+              data, please contact{' '}
+              <a
+                href="mailto:privacy@workmate.ie"
+                style={{ color: 'var(--wm-primary-dark)', fontWeight: 600 }}
+              >
+                privacy@workmate.ie
+              </a>
+              .
+            </p>
+          </Card>
+
+          {/* 13. Data Protection Officer */}
+          <Card>
+            <h2
+              className="mb-3 text-base font-bold"
+              style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)' }}
+            >
+              13. Data Protection Officer
+            </h2>
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--wm-muted)' }}>
+              Our Data Protection Officer can be contacted at{' '}
+              <a
+                href="mailto:dpo@workmate.ie"
+                style={{ color: 'var(--wm-primary-dark)', fontWeight: 600 }}
+              >
+                dpo@workmate.ie
+              </a>{' '}
+              for any data protection concerns or queries.
+            </p>
+            <p className="mt-3 text-sm leading-relaxed" style={{ color: 'var(--wm-muted)' }}>
+              <strong style={{ color: 'var(--wm-text)' }}>Supervisory authority:</strong> Data
+              Protection Commission, 21 Fitzwilliam Square South, Dublin 2, D02 RD28, Ireland —{' '}
+              <a
+                href="https://www.dataprotection.ie"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: 'var(--wm-primary-dark)', fontWeight: 600 }}
+              >
+                www.dataprotection.ie
+              </a>
+              .
+            </p>
+          </Card>
+
+          {/* 14. Contact & Updates */}
+          <Card>
+            <h2
+              className="mb-3 text-base font-bold"
+              style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)' }}
+            >
+              14. Contact &amp; Updates
             </h2>
             <p className="text-sm leading-relaxed" style={{ color: 'var(--wm-muted)' }}>
               For all privacy enquiries:{' '}
               <a
                 href="mailto:privacy@workmate.ie"
-                style={{ color: 'var(--wm-primary)', fontWeight: 600 }}
+                style={{ color: 'var(--wm-primary-dark)', fontWeight: 600 }}
               >
                 privacy@workmate.ie
               </a>

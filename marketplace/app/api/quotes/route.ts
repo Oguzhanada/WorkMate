@@ -6,8 +6,9 @@ import { createQuoteSchema } from '@/lib/validation/api';
 import { fireAutomationEvent } from '@/lib/automation/engine';
 import { calculateOfferScore } from '@/lib/ranking/offer-ranking';
 import { sendTransactionalEmail } from '@/lib/email/send';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
   const body = parsed.data;
   const { data: job, error: jobError } = await supabase
     .from('jobs')
-    .select('id,title,customer_id,status,review_status,county,job_visibility_tier,category_id,created_at,job_mode,target_provider_id')
+    .select('id,title,customer_id,status,review_status,county,job_visibility_tier,category_id,created_at,job_mode,target_provider_id,expires_at,max_quotes,is_urgent')
     .eq('id', body.job_id)
     .maybeSingle();
 
@@ -61,6 +62,51 @@ export async function POST(request: NextRequest) {
       { error: 'This job is not available for quoting yet.' },
       { status: 400 }
     );
+  }
+
+  // Reject quotes on expired jobs
+  if (job.expires_at && new Date(job.expires_at).getTime() < Date.now()) {
+    return NextResponse.json(
+      { error: 'This job has expired and is no longer accepting quotes.' },
+      { status: 400 }
+    );
+  }
+
+  // Enforce max_quotes limit (Quick Hire = 5, Get Quotes = unlimited)
+  if (job.max_quotes != null) {
+    const { count: existingQuoteCount } = await supabase
+      .from('quotes')
+      .select('id', { count: 'exact', head: true })
+      .eq('job_id', body.job_id)
+      .neq('status', 'withdrawn');
+
+    if ((existingQuoteCount ?? 0) >= job.max_quotes) {
+      return NextResponse.json(
+        { error: 'This job has reached its maximum number of quotes.' },
+        { status: 400 }
+      );
+    }
+  }
+
+  // Check provider availability — block quoting if provider has marked themselves unavailable
+  {
+    const serviceClient = getSupabaseServiceClient();
+    const todayDow = new Date().getDay(); // 0 = Sunday
+    const { data: availRows } = await serviceClient
+      .from('provider_availability')
+      .select('is_available')
+      .eq('provider_id', user.id)
+      .eq('day_of_week', todayDow)
+      .limit(1)
+      .maybeSingle();
+
+    // If the provider has an availability record for today and it's set to unavailable, block
+    if (availRows && availRows.is_available === false) {
+      return NextResponse.json(
+        { error: 'You are marked as unavailable today. Update your availability to submit quotes.' },
+        { status: 400 }
+      );
+    }
   }
 
   // direct_request: only the targeted provider may quote
@@ -129,6 +175,45 @@ export async function POST(request: NextRequest) {
   }).select('*').single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+  let isFirstQuoteMilestone = false;
+  let providerEmail: string | null = null;
+  let providerName = 'Provider';
+  const dashboardTourPath = '/dashboard/pro?tour=1';
+
+  try {
+    const serviceSupabase = getSupabaseServiceClient();
+    const [{ count: providerQuoteCount }, { data: providerProfile }] = await Promise.all([
+      serviceSupabase
+        .from('quotes')
+        .select('id', { count: 'exact', head: true })
+        .eq('pro_id', user.id),
+      serviceSupabase
+        .from('profiles')
+        .select('email,full_name')
+        .eq('id', user.id)
+        .maybeSingle(),
+    ]);
+
+    isFirstQuoteMilestone = (providerQuoteCount ?? 0) === 1;
+    providerEmail = providerProfile?.email ?? null;
+    providerName = providerProfile?.full_name ?? providerName;
+
+    if (isFirstQuoteMilestone) {
+      await serviceSupabase.from('notifications').insert({
+        user_id: user.id,
+        type: 'provider_first_quote',
+        payload: {
+          quote_id: data.id,
+          job_id: body.job_id,
+          dashboard_tour_path: dashboardTourPath,
+          message: 'First quote sent. Complete your provider dashboard tour.',
+        },
+      });
+    }
+  } catch {
+    // Non-blocking — first quote milestone signals should never block quote creation.
+  }
 
   if (job.category_id && job.created_at) {
     const ranking = await calculateOfferScore(
@@ -224,11 +309,22 @@ export async function POST(request: NextRequest) {
     })();
   }
 
+  if (isFirstQuoteMilestone && providerEmail) {
+    sendTransactionalEmail({
+      type: 'provider_first_quote',
+      to: providerEmail,
+      providerName,
+      jobTitle: job.title ?? 'your job',
+      dashboardUrl: `${process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'https://workmate.ie'}/en${dashboardTourPath}`,
+    });
+  }
+
   return NextResponse.json(
     {
       quote: data,
       provider_verification_status: providerIsVerified ? 'approved' : profile?.id_verification_status ?? 'none',
       remaining_quotes_today: remainingQuotes,
+      dashboard_tour_path: isFirstQuoteMilestone ? dashboardTourPath : null,
       upgrade_message: providerIsVerified
         ? null
         : 'Quote sent. Verify your ID for unlimited quotes and wider lead access.'
@@ -236,3 +332,5 @@ export async function POST(request: NextRequest) {
     { status: 201 }
   );
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

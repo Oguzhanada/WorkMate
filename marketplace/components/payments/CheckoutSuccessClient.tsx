@@ -11,8 +11,10 @@ export default function CheckoutSuccessClient() {
   useEffect(() => {
     const sessionId = searchParams.get('session_id');
     if (!sessionId) {
-      setStatus('error');
-      setMessage('Checkout session was not found.');
+      queueMicrotask(() => {
+        setStatus('error');
+        setMessage('Checkout session was not found.');
+      });
       return;
     }
 
@@ -41,7 +43,7 @@ export default function CheckoutSuccessClient() {
       setMessage('Payment hold created successfully. After job completion, capture the payment to release it to the professional.');
     }
 
-    finalizeHold();
+    queueMicrotask(() => { if (active) finalizeHold(); });
 
     return () => {
       active = false;

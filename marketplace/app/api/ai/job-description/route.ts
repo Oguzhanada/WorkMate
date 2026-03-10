@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { jobDescriptionSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { liveServices } from '@/lib/live-services';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-export async function POST(request: NextRequest) {
+async function handler(request: NextRequest): Promise<NextResponse> {
+  // Cost guard — blocked until LIVE_SERVICES_ENABLED=true (or AI_CALLS_ENABLED=true)
+  if (!liveServices.ai) {
+    return NextResponse.json({ error: 'AI endpoints disabled. Set LIVE_SERVICES_ENABLED=true to enable.' }, { status: 503 });
+  }
+
   // Auth guard — only logged-in users
   const supabase = await getSupabaseRouteClient();
   const {
@@ -23,24 +31,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const body = rawBody as {
-    jobTitle?: string;
-    categoryName?: string;
-    scope?: string;
-    urgency?: string;
-    taskType?: string;
-  };
-
-  if (!body.jobTitle || !body.categoryName) {
-    return NextResponse.json({ error: 'jobTitle and categoryName are required' }, { status: 400 });
+  const parsed = jobDescriptionSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message ?? 'Invalid request' },
+      { status: 400 }
+    );
   }
 
+  const { jobTitle, categoryName, scope, urgency, taskType } = parsed.data;
+
   const promptParts = [
-    `Job type: ${body.jobTitle}`,
-    `Service category: ${body.categoryName}`,
-    body.scope ? `Scope: ${body.scope}` : null,
-    body.urgency ? `Urgency: ${body.urgency}` : null,
-    body.taskType ? `Task type: ${body.taskType}` : null,
+    `Job type: ${jobTitle}`,
+    `Service category: ${categoryName}`,
+    scope ? `Scope: ${scope}` : null,
+    urgency ? `Urgency: ${urgency}` : null,
+    taskType ? `Task type: ${taskType}` : null,
   ].filter(Boolean);
 
   try {
@@ -80,3 +86,5 @@ Return only the description text, no preamble.`,
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+
+export const POST = withRateLimit(RATE_LIMITS.AI_ENDPOINT, handler);

@@ -3,8 +3,9 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { claimGuestJobIntentSchema } from '@/lib/validation/api';
 import { canPostJob, getUserRoles, isIdVerified } from '@/lib/auth/rbac';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const routeClient = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -61,13 +62,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ job_id: intent.published_job_id, status: 'already_published' }, { status: 200 });
   }
 
+  // The intent must have status 'ready_to_publish' before it can be claimed.
+  // In production, this requires the guest to click the email verification link
+  // which transitions the status from 'pending_verification' to 'ready_to_publish'.
+  // In dev/test, verification is skipped and the intent is created as 'ready_to_publish'.
   if (intent.status !== 'ready_to_publish') {
     return NextResponse.json(
-      {
-        error: 'Intent is not verified yet',
-        prod_reminder:
-          'PROD TODO: allow publishing only after email verification link is completed.',
-      },
+      { error: 'Intent is not verified yet. The guest must complete email verification first.' },
       { status: 400 }
     );
   }
@@ -144,3 +145,5 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ job_id: jobRow.id, status: 'published' }, { status: 200 });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

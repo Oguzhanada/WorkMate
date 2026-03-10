@@ -1,0 +1,63 @@
+{
+  "version": "1.0.0",
+  "pilot": {
+    "name": "workmate-mcp-readonly-pilot",
+    "mode": "read_only",
+    "runtime": "local",
+    "decision_record": "ai-context/decisions/DR-006-mcp-readonly-pilot.md"
+  },
+  "servers": [
+    {
+      "name": "github",
+      "mode": "read_only",
+      "auth_source": "GITHUB_TOKEN_READONLY",
+      "allowed_capabilities": [
+        "read_pull_requests",
+        "read_issues",
+        "read_check_runs",
+        "read_workflow_runs"
+      ],
+      "healthcheck": {
+        "type": "command",
+        "command": "gh --version"
+      },
+      "timeout_ms": 10000,
+      "retry_policy": {
+        "max_attempts": 2,
+        "backoff_ms": 300
+      }
+    },
+    {
+      "name": "supabase",
+      "mode": "read_only",
+      "auth_source": "SUPABASE_READONLY_URL + SUPABASE_READONLY_ANON_KEY",
+      "allowed_capabilities": [
+        "read_schema_metadata",
+        "read_rls_policies",
+        "read_query_diagnostics"
+      ],
+      "healthcheck": {
+        "type": "env",
+        "required_variables": [
+          "SUPABASE_READONLY_URL",
+          "SUPABASE_READONLY_ANON_KEY"
+        ]
+      },
+      "timeout_ms": 12000,
+      "retry_policy": {
+        "max_attempts": 2,
+        "backoff_ms": 400
+      }
+    }
+  ],
+  "guardrails": {
+    "enforce_script": "scripts/mcp/read_only_enforce.mjs",
+    "violation_log_path": "logs/mcp-readonly-violations.log",
+    "zero_write_tolerance": true
+  },
+  "reporting": {
+    "baseline_output": "docs/mcp-pilot/baseline.json",
+    "results_output": "docs/mcp-pilot/results.json",
+    "daily_report_dir": "docs/mcp-pilot/daily"
+  }
+}

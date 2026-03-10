@@ -4,7 +4,7 @@ import Link from 'next/link';
 import {useMemo, useState} from 'react';
 import {useLocale, useTranslations} from 'next-intl';
 
-import {professionals, services} from '@/lib/marketplace-data';
+import {professionals, services} from '@/lib/data/categories';
 import VerifiedNavigationLink from '@/components/site/VerifiedNavigationLink';
 
 import styles from '../../inner.module.css';
@@ -97,7 +97,7 @@ export default function ServiceDetailClient({slug}: {slug: string}) {
                     </p>
                     <VerifiedNavigationLink
                       className={styles.primary}
-                      href={`/post-job?service=${encodeURIComponent(service.slug)}&pro=${encodeURIComponent(pro.id)}`}
+                      href={`/${locale}/post-job?service=${encodeURIComponent(service.slug)}&pro=${encodeURIComponent(pro.id)}`}
                     >
                       {common('requestQuote')}
                     </VerifiedNavigationLink>

@@ -18,6 +18,7 @@ marketplace/tsconfig.tsbuildinfo
 # Test artifacts
 marketplace/playwright-report/
 marketplace/test-results/
+marketplace/.lighthouseci/
 
 # BackstopJS — keep bitmaps_reference committed, ignore test outputs
 backstop_data/bitmaps_test/
@@ -27,6 +28,33 @@ backstop_data/ci_report/
 # Supabase local
 marketplace/supabase/.temp/
 
+# MCP config (contains secrets)
+.mcp.json
+
+# Sentry
+.sentryclirc
+
+# Legal documents (DPAs, contracts — sensitive, do not commit)
+docs/legal/
+
+# Root build artifacts
+.next/
+
+# QA screenshots (temporary, root only)
+/*.png
+
+# Certificates & keys
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Vercel
+.vercel/
+
+# Turbopack cache
+.turbo/
+
 # Editor / OS
 .claude/*
 !.claude/skills/
@@ -35,6 +63,10 @@ marketplace/supabase/.temp/
 !.claude/skills/ui-system-hybrid-migration/SKILL.md
 !.claude/skills/workmate-visual-qa/
 !.claude/skills/workmate-visual-qa/SKILL.md
+!.claude/skills/workmate-schema-guardian/
+!.claude/skills/workmate-schema-guardian/SKILL.md
+.sandbox/
+sandbox/
 .vscode/
 .DS_Store
 Thumbs.db

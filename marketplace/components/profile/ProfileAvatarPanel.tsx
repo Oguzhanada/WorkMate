@@ -22,6 +22,8 @@ type Props = {
   initialFullName: string;
   compact?: boolean;
   autoOpenPicker?: boolean;
+  /** When true, renders without its own card wrapper (for embedding in ProfileSection) */
+  embedded?: boolean;
 };
 
 export default function ProfileAvatarPanel({
@@ -29,6 +31,7 @@ export default function ProfileAvatarPanel({
   initialFullName,
   compact = false,
   autoOpenPicker = false,
+  embedded = false,
 }: Props) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -94,9 +97,12 @@ export default function ProfileAvatarPanel({
     return () => clearTimeout(timer);
   }, [autoOpenPicker]);
 
+  const Wrapper = embedded ? 'div' : 'article';
+  const wrapperClass = embedded ? '' : compact ? styles.compactCard : styles.card;
+
   return (
-    <article className={compact ? styles.compactCard : styles.card}>
-      {compact ? null : <h2>Profile photo</h2>}
+    <Wrapper className={wrapperClass}>
+      {compact || embedded ? null : <h2>Profile photo</h2>}
       <div className={styles.row}>
         {avatarUrl ? (
           <img src={avatarUrl} alt="Profile avatar" className={styles.avatar} />
@@ -159,6 +165,6 @@ export default function ProfileAvatarPanel({
       </div>
       {error ? <p className={styles.error}>{error}</p> : null}
       {message ? <p className={styles.ok}>{message}</p> : null}
-    </article>
+    </Wrapper>
   );
 }

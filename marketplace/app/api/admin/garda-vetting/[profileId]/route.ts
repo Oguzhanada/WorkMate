@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
-
-const patchGardaVettingSchema = z.object({
-  garda_vetting_status: z.enum(['not_required', 'pending', 'approved', 'rejected', 'expired']),
-  garda_vetting_reference: z.string().trim().max(100).optional().nullable(),
-  garda_vetting_expires_at: z.string().date().optional().nullable(),
-});
+import { sendTransactionalEmail } from '@/lib/email/send';
+import { sendNotification } from '@/lib/notifications/send';
+import { patchGardaVettingSchema } from '@/lib/validation/api';
+import { logAdminAudit } from '@/lib/admin/audit';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 // PATCH /api/admin/garda-vetting/[profileId] — update vetting status
-export async function PATCH(
+// Called by WorkMate admins after receiving the NVB disclosure result.
+// The NVB sends the vetting disclosure to WorkMate (as the registered organisation),
+// and an admin reviews it and updates the provider's status here.
+async function patchHandler(
   request: NextRequest,
   { params }: { params: Promise<{ profileId: string }> }
 ) {
@@ -74,6 +75,62 @@ export async function PATCH(
     return NextResponse.json({ error: updateError.message }, { status: 400 });
   }
 
+  // In-app notification for approved/rejected — fire-and-forget
+  if (parsed.data.garda_vetting_status === 'approved') {
+    sendNotification({
+      userId: profileId,
+      type: 'vetting_update',
+      title: 'Garda Vetting Approved',
+      body: 'Your NVB disclosure has been received and verified. A "Garda Vetted" badge is now visible on your public profile. Re-vetting is due in 3 years.',
+    });
+  } else if (parsed.data.garda_vetting_status === 'rejected') {
+    sendNotification({
+      userId: profileId,
+      type: 'vetting_update',
+      title: 'Garda Vetting — Action Required',
+      body: 'Your vetting request could not be completed. This may be due to an incomplete e-Vetting form or an expired NVB invitation link. You can re-apply from your dashboard.',
+    });
+  }
+
+  // Email provider on actionable status transitions — fire-and-forget
+  const emailableStatuses = ['approved', 'rejected'] as const;
+  type EmailableStatus = typeof emailableStatuses[number];
+  if (emailableStatuses.includes(parsed.data.garda_vetting_status as EmailableStatus)) {
+    void (async () => {
+      try {
+        const { data: providerProfile } = await service
+          .from('profiles')
+          .select('email,full_name')
+          .eq('id', profileId)
+          .maybeSingle();
+        if (providerProfile?.email) {
+          sendTransactionalEmail({
+            type: 'garda_vetting_status',
+            to: providerProfile.email,
+            providerName: providerProfile.full_name ?? 'Provider',
+            status: parsed.data.garda_vetting_status as EmailableStatus,
+            expiresAt: parsed.data.garda_vetting_expires_at ?? undefined,
+          });
+        }
+      } catch {
+        // Non-blocking — email lookup failure is swallowed.
+      }
+    })();
+  }
+
+  await logAdminAudit({
+    adminUserId: user.id,
+    adminEmail: user.email ?? null,
+    action: 'update_garda_vetting',
+    targetType: 'garda_vetting',
+    targetProfileId: profileId,
+    details: {
+      new_status: parsed.data.garda_vetting_status,
+      reference: parsed.data.garda_vetting_reference ?? null,
+      expires_at: parsed.data.garda_vetting_expires_at ?? null,
+    },
+  });
+
   return NextResponse.json({ profile: updated });
 }
 
@@ -111,3 +168,5 @@ export async function GET(
 
   return NextResponse.json({ profile });
 }
+
+export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);

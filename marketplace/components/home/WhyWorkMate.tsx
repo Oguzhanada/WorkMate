@@ -1,145 +1,188 @@
 'use client';
 
-import {motion} from 'framer-motion';
-import {Check, X, ShieldCheck, Lock, RefreshCw, Star, MapPin, UserCheck} from 'lucide-react';
-import {sectionRevealVariants} from '@/styles/animations';
+import { motion } from 'framer-motion';
+import { Lock, ShieldCheck, UserCheck, RefreshCw, Star, MapPin } from 'lucide-react';
 
 const features = [
   {
     icon: Lock,
-    label: 'Secure payment hold',
-    workmate: 'Stripe secure hold — released only when job is done',
-    others: 'Direct transfer, no protection if job is abandoned',
+    problem: 'Worried about paying upfront?',
+    title: 'Secure Payment Hold',
+    description: 'Stripe holds funds until you confirm work is complete. Zero risk.',
+    accent: 'var(--wm-primary)',
+    lightBg: 'var(--wm-primary-faint)',
   },
   {
     icon: ShieldCheck,
-    label: 'Irish compliance stack',
-    workmate: 'SafePass + Public Liability Insurance + Tax Clearance verified',
-    others: 'Self-declaration only, no document checks',
+    problem: 'How do you know they\'re legit?',
+    title: 'Irish Compliance Stack',
+    description: 'SafePass, Public Liability Insurance, Tax Clearance — all verified.',
+    accent: 'var(--wm-blue)',
+    lightBg: 'var(--wm-blue-soft)',
   },
   {
     icon: UserCheck,
-    label: 'Manual admin approval',
-    workmate: 'Every provider reviewed by WorkMate team before going live',
-    others: 'Auto-approval, anyone can list immediately',
+    problem: 'Tired of unreliable tradespeople?',
+    title: 'Admin-Approved Pros',
+    description: 'Every provider manually reviewed before going live. No auto-approvals.',
+    accent: 'var(--wm-primary)',
+    lightBg: 'var(--wm-primary-faint)',
   },
   {
     icon: RefreshCw,
-    label: 'Repeat booking discount',
-    workmate: '1.9% service fee when you rebook the same provider',
-    others: 'Full platform fee on every booking',
+    problem: 'Fees eating into every booking?',
+    title: 'Repeat Booking Discount',
+    description: '1.9% fee when you rebook the same provider. Loyalty rewarded.',
+    accent: 'var(--wm-amber-dark)',
+    lightBg: 'var(--wm-amber-light)',
   },
   {
     icon: Star,
-    label: 'Smart Match ranking',
-    workmate: 'Offers ranked by price, rating, compliance score and response time',
-    others: 'Sorted by date posted or paid placement',
+    problem: 'Overwhelmed choosing the right pro?',
+    title: 'Smart Match Ranking',
+    description: 'Offers ranked by price, rating, compliance score and response time.',
+    accent: 'var(--wm-blue)',
+    lightBg: 'var(--wm-blue-soft)',
   },
   {
     icon: MapPin,
-    label: 'Built for Ireland',
-    workmate: 'Eircode validation, EUR only, county-first matching',
-    others: 'Generic EU/UK tools, no Irish address support',
+    problem: 'Platforms that don\'t understand Ireland?',
+    title: 'Built for Ireland',
+    description: 'Eircode validation, EUR only, county-first matching across all 26 counties.',
+    accent: 'var(--wm-amber-dark)',
+    lightBg: 'var(--wm-amber-light)',
   },
 ];
 
 export default function WhyWorkMate() {
   return (
-    <section className="bg-white px-4 py-20 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-5xl">
+    <section className="px-5 py-28 sm:px-8 lg:px-12" style={{ background: 'var(--wm-bg)' }}>
+      <div className="mx-auto max-w-7xl">
+        {/* Header */}
         <motion.div
-          initial="hidden"
-          whileInView="show"
-          viewport={{once: true, amount: 0.2}}
-          variants={sectionRevealVariants}
-          className="mb-12 text-center"
+          className="mb-16 max-w-2xl"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.5 }}
         >
-          <span className="wm-section-label mx-auto mb-3">The WorkMate Difference</span>
-          <h2
-            className="mt-4 wm-display"
-            style={{fontSize: 'clamp(1.7rem, 3.2vw, 2.4rem)', color: 'var(--wm-navy)'}}
+          <span
+            className="text-xs font-bold uppercase tracking-[0.2em]"
+            style={{ color: 'var(--wm-primary-dark)', fontFamily: 'var(--wm-font-display)' }}
           >
-            Why professionals and customers<br className="hidden sm:block" /> choose WorkMate
+            The WorkMate difference
+          </span>
+          <h2
+            className="mt-3"
+            style={{
+              fontFamily: 'var(--wm-font-display)',
+              fontSize: 'clamp(2rem, 4.5vw, 3.2rem)',
+              fontWeight: 800,
+              lineHeight: 1.1,
+              letterSpacing: '-0.03em',
+              color: 'var(--wm-navy)',
+            }}
+          >
+            Frustrated finding<br />reliable tradespeople?
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed" style={{color: 'var(--wm-muted)'}}>
-            Other platforms connect people. WorkMate verifies them — with Ireland&#39;s most complete
-            compliance stack and the only secure payment hold in the Irish trades market.
+          <p
+            className="mt-4 text-base leading-relaxed"
+            style={{ color: 'var(--wm-muted)' }}
+          >
+            WorkMate solves every pain point. Admin-approved providers and Stripe secure hold as standard.
           </p>
         </motion.div>
 
-        {/* Column headers */}
-        <div
-          className="mb-2 grid grid-cols-1 gap-3 px-5 text-xs font-bold uppercase tracking-wider sm:grid-cols-[1fr_220px_130px]"
-          style={{color: 'var(--wm-muted)', fontFamily: 'var(--wm-font-display)'}}
-        >
-          <span>Feature</span>
-          <span className="hidden sm:block" style={{color: 'var(--wm-primary-dark)'}}>WorkMate</span>
-          <span className="hidden sm:block">Others</span>
-        </div>
-
-        <div
-          className="overflow-hidden rounded-2xl border"
-          style={{borderColor: 'var(--wm-border)', boxShadow: 'var(--wm-shadow-md)'}}
-        >
+        {/* Feature grid — 3x2 cards */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature, i) => (
-            <motion.div
-              key={feature.label}
-              initial={{opacity: 0, x: -14}}
-              whileInView={{opacity: 1, x: 0}}
-              viewport={{once: true, amount: 0.3}}
-              transition={{duration: 0.35, delay: i * 0.06}}
-              className="grid grid-cols-1 gap-3 p-5 sm:grid-cols-[1fr_220px_130px] sm:items-center"
+            <motion.article
+              key={feature.title}
+              initial={{ opacity: 0, y: 30, scale: 0.97 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+              className="group relative overflow-hidden rounded-2xl p-6 transition-all duration-300"
               style={{
-                backgroundColor: i % 2 === 0 ? 'white' : 'var(--wm-bg)',
-                borderBottom: i !== features.length - 1 ? '1px solid var(--wm-border)' : undefined
+                background: 'var(--wm-surface)',
+                border: '1px solid var(--wm-border)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = feature.accent;
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = `0 20px 40px rgba(0,0,0,0.06)`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--wm-border)';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
               }}
             >
-              {/* Feature label */}
-              <div className="flex items-center gap-3">
-                <div
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
-                  style={{backgroundColor: 'var(--wm-primary-light)', color: 'var(--wm-primary)'}}
-                >
-                  <feature.icon className="h-4 w-4" />
-                </div>
-                <span className="text-sm font-semibold" style={{color: 'var(--wm-navy)'}}>{feature.label}</span>
+              {/* Top accent line */}
+              <div
+                className="absolute left-0 right-0 top-0 h-[2px]"
+                style={{ background: feature.accent, opacity: 0.4 }}
+              />
+
+              {/* Icon */}
+              <div
+                className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl"
+                style={{
+                  background: feature.lightBg,
+                  color: feature.accent,
+                }}
+              >
+                <feature.icon className="h-5 w-5" />
               </div>
 
-              {/* WorkMate column */}
-              <div className="flex items-start gap-2 sm:items-center">
-                <div
-                  className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full sm:mt-0"
-                  style={{backgroundColor: 'var(--wm-primary-light)'}}
-                >
-                  <Check className="h-2.5 w-2.5" style={{color: 'var(--wm-primary)'}} />
-                </div>
-                <span className="text-sm" style={{color: 'var(--wm-text)'}}>{feature.workmate}</span>
-              </div>
+              {/* Problem line */}
+              <p
+                className="mb-2 text-xs font-semibold italic"
+                style={{ color: 'var(--wm-muted)', opacity: 0.7 }}
+              >
+                {feature.problem}
+              </p>
 
-              {/* Others column */}
-              <div className="flex items-start gap-2 sm:items-center">
-                <div
-                  className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full sm:mt-0"
-                  style={{backgroundColor: 'var(--wm-destructive-light)'}}
-                >
-                  <X className="h-2.5 w-2.5" style={{color: 'var(--wm-destructive)'}} />
-                </div>
-                <span className="text-sm" style={{color: 'var(--wm-muted)'}}>{feature.others}</span>
-              </div>
-            </motion.div>
+              <h3
+                className="text-base font-bold"
+                style={{
+                  fontFamily: 'var(--wm-font-display)',
+                  color: 'var(--wm-navy)',
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                {feature.title}
+              </h3>
+
+              <p
+                className="mt-2 text-sm leading-relaxed"
+                style={{ color: 'var(--wm-muted)' }}
+              >
+                {feature.description}
+              </p>
+            </motion.article>
           ))}
         </div>
 
-        <motion.p
-          initial={{opacity: 0}}
-          whileInView={{opacity: 1}}
-          viewport={{once: true}}
-          transition={{delay: 0.5}}
-          className="mt-6 text-center text-sm"
-          style={{color: 'var(--wm-subtle)'}}
+        {/* Happiness Pledge */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.4 }}
+          className="mt-8 rounded-2xl p-5"
+          style={{
+            background: 'linear-gradient(135deg, rgba(var(--wm-primary-rgb), 0.06) 0%, rgba(255,255,255,0.8) 100%)',
+            border: '1px solid rgba(var(--wm-primary-rgb), 0.15)',
+          }}
         >
-          WorkMate is Ireland&#39;s only platform with admin-approved providers and Stripe secure hold as standard.
-        </motion.p>
+          <p className="text-sm font-bold" style={{ color: 'var(--wm-primary-dark)' }}>
+            Happiness Pledge
+          </p>
+          <p className="mt-1 text-sm" style={{ color: 'var(--wm-muted)' }}>
+            Not satisfied? Request a resolution review within 7 days and our team will assess refund options based on evidence.
+          </p>
+        </motion.div>
       </div>
     </section>
   );

@@ -326,8 +326,8 @@ export default function TimeTracking({ jobId, isCustomer, isProvider, isAdmin }:
         ))}
       </div>
 
-      {error ? <p className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p> : null}
-      {ok ? <p className="mt-3 text-sm" style={{ color: 'var(--wm-primary)' }}>{ok}</p> : null}
+      {error ? <p className="mt-3 text-sm text-[var(--wm-destructive)]">{error}</p> : null}
+      {ok ? <p className="mt-3 text-sm" style={{ color: 'var(--wm-primary-dark)' }}>{ok}</p> : null}
     </Card>
   );
 }

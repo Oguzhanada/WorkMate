@@ -4,10 +4,9 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 
 type RoleRow = { user_id: string; role: string };
 
-function maskKey(value: string | null) {
+function maskHash(value: string | null) {
   if (!value) return null;
-  if (value.length <= 12) return value;
-  return `${value.slice(0, 8)}...${value.slice(-4)}`;
+  return `${value.slice(0, 8)}...`;
 }
 
 export async function GET() {
@@ -17,8 +16,8 @@ export async function GET() {
   const svc = getSupabaseServiceClient();
   const { data: profiles, error } = await svc
     .from('profiles')
-    .select('id,full_name,api_key,api_rate_limit,created_at')
-    .not('api_key', 'is', null)
+    .select('id,full_name,api_key_hash,api_rate_limit,created_at')
+    .not('api_key_hash', 'is', null)
     .order('created_at', { ascending: false })
     .limit(500);
 
@@ -41,7 +40,7 @@ export async function GET() {
       items: (profiles ?? []).map((item) => ({
         id: item.id,
         full_name: item.full_name,
-        api_key_masked: maskKey(item.api_key),
+        api_key_hash_prefix: maskHash(item.api_key_hash),
         api_rate_limit: item.api_rate_limit,
         roles: rolesByUser.get(item.id) ?? [],
         created_at: item.created_at,

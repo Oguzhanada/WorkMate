@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { toggleFavouriteSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiValidationError, apiUnauthorized } from '@/lib/api/error-response';
 
 // GET /api/favourites — list all provider IDs the current user has saved
 export async function GET() {
@@ -10,7 +13,7 @@ export async function GET() {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const { data, error } = await supabase
@@ -19,14 +22,14 @@ export async function GET() {
     .eq('customer_id', user.id)
     .order('created_at', { ascending: false });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) return apiError(error.message, 400);
 
   return NextResponse.json({ favourites: data ?? [] });
 }
 
 // POST /api/favourites — toggle favourite for a provider
 // Body: { provider_id: string }
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -34,27 +37,29 @@ export async function POST(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
-  const body = rawBody as { provider_id?: string };
-  if (!body.provider_id || typeof body.provider_id !== 'string') {
-    return NextResponse.json({ error: 'provider_id is required' }, { status: 400 });
+  const parsed = toggleFavouriteSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    return apiValidationError(parsed.error.issues);
   }
+
+  const { provider_id } = parsed.data;
 
   // Check if already favourited
   const { data: existing } = await supabase
     .from('favourite_providers')
     .select('id')
     .eq('customer_id', user.id)
-    .eq('provider_id', body.provider_id)
+    .eq('provider_id', provider_id)
     .maybeSingle();
 
   if (existing) {
@@ -63,7 +68,7 @@ export async function POST(request: NextRequest) {
       .from('favourite_providers')
       .delete()
       .eq('customer_id', user.id)
-      .eq('provider_id', body.provider_id);
+      .eq('provider_id', provider_id);
 
     return NextResponse.json({ saved: false });
   }
@@ -71,10 +76,12 @@ export async function POST(request: NextRequest) {
   // Add favourite
   const { error: insertError } = await supabase.from('favourite_providers').insert({
     customer_id: user.id,
-    provider_id: body.provider_id,
+    provider_id,
   });
 
-  if (insertError) return NextResponse.json({ error: insertError.message }, { status: 400 });
+  if (insertError) return apiError(insertError.message, 400);
 
   return NextResponse.json({ saved: true }, { status: 201 });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

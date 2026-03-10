@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { isValidLocale } from '@/lib/i18n';
+import Button from '@/components/ui/Button';
 import styles from './other.module.css';
 
 const baseUrl = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'http://localhost:3000';
@@ -46,8 +47,8 @@ export async function generateMetadata({
   if (!isValidLocale(locale)) return {};
 
   return {
-    title: 'More Services | WorkMate',
-    description: 'A broad catalog of services tailored to everyday needs.',
+    title: 'Other Services',
+    description: 'Explore additional services available on WorkMate.',
     alternates: {
       canonical: `${baseUrl}/other-services`,
     },
@@ -70,7 +71,7 @@ export default async function OtherServicesPage({
           <h1>{data.title}</h1>
           <form className={styles.searchBar} action={`/search`}>
             <input name="q" type="text" placeholder={data.searchPlaceholder} />
-            <button type="submit">{data.searchButton}</button>
+            <Button type="submit" variant="primary" size="sm">{data.searchButton}</Button>
           </form>
         </div>
       </section>

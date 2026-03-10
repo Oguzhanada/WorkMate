@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canQuote, getUserRoles } from '@/lib/auth/rbac';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function POST(
+async function postHandler(
   _request: Request,
   { params }: { params: Promise<{ jobId: string }> }
 ) {
@@ -78,3 +79,5 @@ export async function POST(
 
   return NextResponse.json({ ok: true, reminded_at: nowIso }, { status: 200 });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

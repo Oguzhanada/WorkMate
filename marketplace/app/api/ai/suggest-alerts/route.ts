@@ -3,13 +3,20 @@ import Anthropic from '@anthropic-ai/sdk';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { suggestAlertsSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { liveServices } from '@/lib/live-services';
 
 type AISuggestion = {
   keywords: string[];
   category_hint: string;
 };
 
-export async function POST(request: NextRequest) {
+async function handler(request: NextRequest): Promise<NextResponse> {
+  // Cost guard — blocked until LIVE_SERVICES_ENABLED=true (or AI_CALLS_ENABLED=true)
+  if (!liveServices.ai) {
+    return NextResponse.json({ error: 'AI endpoints disabled. Set LIVE_SERVICES_ENABLED=true to enable.' }, { status: 503 });
+  }
+
   // Auth check
   const supabase = await getSupabaseRouteClient();
   const {
@@ -51,10 +58,10 @@ export async function POST(request: NextRequest) {
   }
   const { max_suggestions } = parsed.data;
 
-  // Fetch provider's services
+  // Fetch provider's services via category join
   const { data: proServices, error: servicesError } = await service
     .from('pro_services')
-    .select('service_name, description')
+    .select('category_id, categories(name)')
     .eq('profile_id', user.id);
 
   if (servicesError) {
@@ -69,7 +76,10 @@ export async function POST(request: NextRequest) {
   }
 
   const serviceList = proServices
-    .map((s) => s.service_name)
+    .map((s) => {
+      const cat = s.categories as unknown as { name: string } | null;
+      return cat?.name ?? null;
+    })
     .filter(Boolean)
     .join(', ');
 
@@ -163,3 +173,5 @@ Return ONLY valid JSON array: [{"keywords": ["word1", "word2"], "category_hint":
 
   return NextResponse.json({ created: newSuggestions.length, suggestions });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.AI_ENDPOINT, handler);

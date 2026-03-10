@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
-import { getTaxonomyCategories } from '@/lib/service-taxonomy';
+import { getTaxonomyCategories } from '@/lib/data/services';
 
 export async function GET() {
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {

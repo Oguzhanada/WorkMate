@@ -1,7 +1,13 @@
+import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 
 import JobSubmissionResult from '@/components/forms/JobSubmissionResult';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+
+export const metadata: Metadata = {
+  title: 'Job Posted',
+  description: 'Your job has been successfully posted on WorkMate.',
+};
 
 type Job = {
   id: string;
@@ -22,7 +28,7 @@ export default async function JobResultPage({
 }: {
   params: Promise<{ locale: string; jobId: string }>;
 }) {
-  const { jobId } = await params;
+  const { locale, jobId } = await params;
   const supabase = await getSupabaseServerClient();
 
   const {
@@ -30,7 +36,7 @@ export default async function JobResultPage({
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/login');
+    redirect(`/${locale}/login`);
   }
 
   const { data, error } = await supabase

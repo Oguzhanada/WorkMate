@@ -6,7 +6,6 @@ import {
   webhookSubscribeSchema,
   createProviderAvailabilitySchema,
   createMessageSchema,
-  createJobMessageSchema,
   acceptQuoteSchema,
   submitOfferSchema,
   updateJobStatusSchema,

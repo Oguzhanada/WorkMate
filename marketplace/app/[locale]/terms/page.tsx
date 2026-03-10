@@ -84,7 +84,7 @@ export default function TermsPage() {
                 You must notify us immediately at{' '}
                 <a
                   href="mailto:legal@workmate.ie"
-                  style={{ color: 'var(--wm-primary)', fontWeight: 600 }}
+                  style={{ color: 'var(--wm-primary-dark)', fontWeight: 600 }}
                 >
                   legal@workmate.ie
                 </a>{' '}
@@ -326,19 +326,149 @@ export default function TermsPage() {
             </p>
           </Card>
 
-          {/* 12. Contact */}
+          {/* 12. Intellectual Property */}
           <Card>
             <h2
               className="mb-3 text-base font-bold"
               style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)' }}
             >
-              12. Contact
+              12. Intellectual Property
+            </h2>
+            <ul
+              className="ml-5 flex list-disc flex-col gap-1 text-sm"
+              style={{ color: 'var(--wm-muted)' }}
+            >
+              <li>
+                All platform content, logos, and branding are owned by WorkMate Ltd and protected
+                under Irish and EU intellectual property law.
+              </li>
+              <li>
+                Users retain ownership of content they submit (job descriptions, reviews, portfolio
+                photos).
+              </li>
+              <li>
+                By posting content on WorkMate, you grant us a non-exclusive, royalty-free licence to
+                display, reproduce, and distribute that content on the platform for the purpose of
+                operating the marketplace.
+              </li>
+              <li>
+                Users must not upload or submit content that infringes third-party intellectual
+                property rights.
+              </li>
+            </ul>
+          </Card>
+
+          {/* 13. Indemnification */}
+          <Card>
+            <h2
+              className="mb-3 text-base font-bold"
+              style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)' }}
+            >
+              13. Indemnification
+            </h2>
+            <ul
+              className="ml-5 flex list-disc flex-col gap-1 text-sm"
+              style={{ color: 'var(--wm-muted)' }}
+            >
+              <li>
+                You agree to indemnify and hold harmless WorkMate Ltd, its directors, employees, and
+                agents against any claims, losses, or damages arising from your use of the platform
+                or breach of these terms.
+              </li>
+              <li>
+                This includes claims from third parties related to user-generated content or services
+                you provide or receive through WorkMate.
+              </li>
+              <li>
+                WorkMate will notify you promptly of any such claim and cooperate reasonably in its
+                defence.
+              </li>
+            </ul>
+          </Card>
+
+          {/* 14. Force Majeure */}
+          <Card>
+            <h2
+              className="mb-3 text-base font-bold"
+              style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)' }}
+            >
+              14. Force Majeure
+            </h2>
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--wm-muted)' }}>
+              Neither party shall be liable for failure to perform obligations under these terms where
+              such failure results from circumstances beyond reasonable control, including but not
+              limited to natural disasters, pandemics, government actions, or internet outages. The
+              affected party must notify the other as soon as reasonably practicable.
+            </p>
+          </Card>
+
+          {/* 15. Dispute Resolution */}
+          <Card>
+            <h2
+              className="mb-3 text-base font-bold"
+              style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)' }}
+            >
+              15. Dispute Resolution
+            </h2>
+            <ul
+              className="ml-5 flex list-disc flex-col gap-1 text-sm"
+              style={{ color: 'var(--wm-muted)' }}
+            >
+              <li>
+                Users should first contact{' '}
+                <a
+                  href="mailto:support@workmate.ie"
+                  style={{ color: 'var(--wm-primary-dark)', fontWeight: 600 }}
+                >
+                  support@workmate.ie
+                </a>{' '}
+                to attempt to resolve disputes informally.
+              </li>
+              <li>
+                If a dispute cannot be resolved within{' '}
+                <strong style={{ color: 'var(--wm-text)' }}>30 days</strong>, either party may refer
+                the matter to mediation.
+              </li>
+              <li>
+                Mediation shall be conducted under the rules of the Mediators&apos; Institute of
+                Ireland.
+              </li>
+              <li>
+                Nothing in this clause prevents either party from seeking urgent injunctive relief
+                from the Irish courts.
+              </li>
+            </ul>
+          </Card>
+
+          {/* 16. Severability */}
+          <Card>
+            <h2
+              className="mb-3 text-base font-bold"
+              style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)' }}
+            >
+              16. Severability
+            </h2>
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--wm-muted)' }}>
+              If any provision of these Terms &amp; Conditions is found by a court of competent
+              jurisdiction to be invalid or unenforceable, the remaining provisions shall continue in
+              full force and effect. The unenforceable provision will be modified to the minimum extent
+              necessary to make it enforceable while preserving its original intent.
+            </p>
+          </Card>
+
+          {/* 17. Contact */}
+          <Card>
+            <h2
+              className="mb-3 text-base font-bold"
+              style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)' }}
+            >
+              17. Contact
             </h2>
             <p className="text-sm leading-relaxed" style={{ color: 'var(--wm-muted)' }}>
               For legal enquiries or notices:{' '}
               <a
                 href="mailto:legal@workmate.ie"
-                style={{ color: 'var(--wm-primary)', fontWeight: 600 }}
+                style={{ color: 'var(--wm-primary-dark)', fontWeight: 600 }}
               >
                 legal@workmate.ie
               </a>

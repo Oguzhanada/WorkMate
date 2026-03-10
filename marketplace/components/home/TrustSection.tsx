@@ -95,6 +95,22 @@ export default function TrustSection() {
             </motion.article>
           ))}
         </div>
+
+        <div
+          className="mt-6 rounded-2xl border p-4"
+          style={{
+            borderColor: 'rgba(16,185,129,0.24)',
+            background: 'linear-gradient(135deg, rgba(16,185,129,0.10) 0%, rgba(255,255,255,0.96) 100%)',
+            boxShadow: 'var(--wm-shadow-xs)',
+          }}
+        >
+          <p className="text-sm font-bold" style={{ color: 'var(--wm-primary-dark)' }}>
+            Happiness Pledge
+          </p>
+          <p className="mt-1 text-sm" style={{ color: 'var(--wm-text-soft)' }}>
+            If you are not satisfied, request a resolution review within 7 days and our team will assess refund options based on evidence.
+          </p>
+        </div>
       </div>
     </section>
   );

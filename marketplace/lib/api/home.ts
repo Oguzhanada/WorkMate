@@ -39,18 +39,20 @@ export function useFeaturedProviders() {
 
   useEffect(() => {
     const controller = new AbortController();
-    setLoading(true);
 
-    fetchFeaturedProviders(controller.signal)
-      .then((data) => {
-        setProviders(data);
-        setError(null);
-      })
-      .catch((err: unknown) => {
-        if ((err as Error).name === 'AbortError') return;
-        setError(err instanceof Error ? err.message : 'Unknown error');
-      })
-      .finally(() => setLoading(false));
+    queueMicrotask(() => {
+      setLoading(true);
+      fetchFeaturedProviders(controller.signal)
+        .then((data) => {
+          setProviders(data);
+          setError(null);
+        })
+        .catch((err: unknown) => {
+          if ((err as Error).name === 'AbortError') return;
+          setError(err instanceof Error ? err.message : 'Unknown error');
+        })
+        .finally(() => setLoading(false));
+    });
 
     return () => controller.abort();
   }, []);

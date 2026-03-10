@@ -2,7 +2,6 @@ import type {Metadata} from 'next';
 import {getTranslations} from 'next-intl/server';
 
 import {isValidLocale} from '@/lib/i18n';
-import {teamMembers} from '@/lib/marketplace-data';
 
 import styles from '../inner.module.css';
 
@@ -53,17 +52,12 @@ export default async function AboutPage({
 
           <section className={styles.section}>
             <h2>{t('teamTitle')}</h2>
-            <div className={styles.teamGrid}>
-              {teamMembers.map((member) => (
-                <article key={member.name} className={styles.teamCard}>
-                  <img src={member.image} alt={member.name} />
-                  <div>
-                    <h3>{member.name}</h3>
-                    <p className={styles.muted}>{member.role}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
+            <p className={styles.muted}>
+              WorkMate was founded by a husband-and-wife team based in Ireland, building a
+              platform they wished existed when they first needed reliable local services.
+              We are a small, focused team committed to making the marketplace trustworthy
+              and transparent for both customers and providers.
+            </p>
           </section>
 
           <section>

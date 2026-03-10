@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { createMessageSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 export async function GET(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ messages }, { status: 200 });
 }
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -103,3 +104,5 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ message: data }, { status: 201 });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

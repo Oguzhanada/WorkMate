@@ -1,4 +1,4 @@
-import { ProviderDocumentType, PROVIDER_DOCUMENT_LABELS } from '@/lib/provider-documents';
+import { ProviderDocumentType, PROVIDER_DOCUMENT_LABELS } from '@/lib/data/documents';
 
 type TemplateInput = {
   fullName?: string | null;

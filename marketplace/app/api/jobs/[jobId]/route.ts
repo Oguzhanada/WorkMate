@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { normalizeEircode, isValidEircode } from '@/lib/eircode';
+import { normalizeEircode, isValidEircode } from '@/lib/ireland/eircode';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { updateJobDraftSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import {
+  apiError,
+  apiValidationError,
+  apiUnauthorized,
+  apiNotFound,
+  apiServerError,
+} from '@/lib/api/error-response';
 
 export async function GET(
   _request: NextRequest,
@@ -17,7 +25,7 @@ export async function GET(
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const { data: job, error } = await supabase
@@ -28,17 +36,17 @@ export async function GET(
     .maybeSingle();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return apiServerError(error.message);
   }
 
   if (!job) {
-    return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+    return apiNotFound('Job not found');
   }
 
   return NextResponse.json({ job }, { status: 200 });
 }
 
-export async function PATCH(
+async function patchHandler(
   request: NextRequest,
   { params }: { params: Promise<{ jobId: string }> }
 ) {
@@ -51,27 +59,24 @@ export async function PATCH(
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = updateJobDraftSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiValidationError(parsed.error.issues);
   }
 
   const eircode = normalizeEircode(parsed.data.eircode);
   if (!isValidEircode(eircode)) {
-    return NextResponse.json({ error: 'Please enter a valid Eircode.' }, { status: 400 });
+    return apiError('Please enter a valid Eircode.', 400);
   }
 
   const { data: existing, error: existingError } = await supabase
@@ -82,18 +87,15 @@ export async function PATCH(
     .maybeSingle();
 
   if (existingError) {
-    return NextResponse.json({ error: existingError.message }, { status: 500 });
+    return apiServerError(existingError.message);
   }
 
   if (!existing) {
-    return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+    return apiNotFound('Job not found');
   }
 
   if (!['open', 'quoted'].includes(existing.status)) {
-    return NextResponse.json(
-      { error: 'Only open/quoted jobs can be edited from this summary page.' },
-      { status: 400 }
-    );
+    return apiError('Only open/quoted jobs can be edited from this summary page.', 400);
   }
 
   const { data: updated, error: updateError } = await supabase
@@ -112,8 +114,10 @@ export async function PATCH(
     .single();
 
   if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 500 });
+    return apiServerError(updateError.message);
   }
 
   return NextResponse.json({ job: updated }, { status: 200 });
 }
+
+export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);

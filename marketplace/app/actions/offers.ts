@@ -5,6 +5,8 @@ import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { calculateOfferScore } from '@/lib/ranking/offer-ranking';
 import { submitOfferSchema } from '@/lib/validation/api';
+import { sendTransactionalEmail } from '@/lib/email/send';
+import { sendNotification } from '@/lib/notifications/send';
 
 function parseStringList(value: FormDataEntryValue | null) {
   if (!value) return [] as string[];
@@ -68,6 +70,22 @@ export async function submitOffer(formData: FormData) {
     return { error: 'This job is not accepting offers right now.' as const };
   }
 
+  // Check provider availability — block quoting if provider has marked themselves unavailable
+  {
+    const todayDow = new Date().getDay();
+    const { data: availRow } = await serviceSupabase
+      .from('provider_availability')
+      .select('is_available')
+      .eq('provider_id', user.id)
+      .eq('day_of_week', todayDow)
+      .limit(1)
+      .maybeSingle();
+
+    if (availRow && availRow.is_available === false) {
+      return { error: 'You are marked as unavailable today. Update your availability to submit offers.' as const };
+    }
+  }
+
   const { data: existingQuote } = await serviceSupabase
     .from('quotes')
     .select('id')
@@ -106,6 +124,45 @@ export async function submitOffer(formData: FormData) {
     return { error: 'Failed to submit offer.' as const };
   }
 
+  try {
+    const [{ count: providerQuoteCount }, { data: providerProfile }] = await Promise.all([
+      serviceSupabase
+        .from('quotes')
+        .select('id', { count: 'exact', head: true })
+        .eq('pro_id', user.id),
+      serviceSupabase
+        .from('profiles')
+        .select('email,full_name')
+        .eq('id', user.id)
+        .maybeSingle(),
+    ]);
+
+    if ((providerQuoteCount ?? 0) === 1) {
+      await serviceSupabase.from('notifications').insert({
+        user_id: user.id,
+        type: 'provider_first_quote',
+        payload: {
+          quote_id: insertedQuote.id,
+          job_id: jobId,
+          dashboard_tour_path: '/dashboard/pro?tour=1',
+          message: 'First quote sent. Complete your provider dashboard tour.',
+        },
+      });
+
+      if (providerProfile?.email) {
+        sendTransactionalEmail({
+          type: 'provider_first_quote',
+          to: providerProfile.email,
+          providerName: providerProfile.full_name ?? 'Provider',
+          jobTitle: job.title ?? 'your job',
+          dashboardUrl: `${process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'https://workmate.ie'}/${process.env.NEXT_PUBLIC_DEFAULT_LOCALE ?? 'en'}/dashboard/pro?tour=1`,
+        });
+      }
+    }
+  } catch {
+    // Non-blocking milestone signaling.
+  }
+
   if (job.category_id && job.created_at) {
     const ranking = await calculateOfferScore(
       {
@@ -136,6 +193,14 @@ export async function submitOffer(formData: FormData) {
       title: job.title,
       quote_amount_cents: priceCents,
     },
+  });
+
+  // In-app notification via sendNotification — fire-and-forget
+  sendNotification({
+    userId: job.customer_id,
+    type: 'job_offer',
+    title: 'New Offer on Your Job',
+    data: { job_id: jobId },
   });
 
   revalidatePath(`/jobs/${jobId}`);
@@ -214,8 +279,85 @@ export async function acceptOffer(offerId: string) {
     },
   });
 
+  // In-app notification via sendNotification — fire-and-forget
+  sendNotification({
+    userId: offer.pro_id,
+    type: 'job_offer',
+    title: 'Your Offer Was Accepted!',
+    data: { job_id: offer.job_id },
+  });
+
   revalidatePath(`/jobs/${offer.job_id}`);
   revalidatePath('/dashboard/customer');
+
+  return { success: true as const, jobId: offer.job_id };
+}
+
+export async function withdrawOffer(offerId: string) {
+  const supabase = await getSupabaseServerClient();
+  const serviceSupabase = getSupabaseServiceClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: 'Unauthorized' as const };
+  }
+
+  const { data: offer } = await serviceSupabase
+    .from('quotes')
+    .select('id,job_id,pro_id,status')
+    .eq('id', offerId)
+    .maybeSingle();
+
+  if (!offer) {
+    return { error: 'Offer not found.' as const };
+  }
+
+  // Only the provider who submitted the quote can withdraw it
+  if (offer.pro_id !== user.id) {
+    return { error: 'Unauthorized' as const };
+  }
+
+  if (offer.status !== 'pending') {
+    return { error: `Cannot withdraw offer with status "${offer.status}".` as const };
+  }
+
+  const { error: updateError } = await serviceSupabase
+    .from('quotes')
+    .update({ status: 'withdrawn' })
+    .eq('id', offer.id);
+
+  if (updateError) {
+    return { error: 'Failed to withdraw offer.' as const };
+  }
+
+  // Look up job details for the notification
+  const { data: job } = await serviceSupabase
+    .from('jobs')
+    .select('id,title,customer_id')
+    .eq('id', offer.job_id)
+    .maybeSingle();
+
+  // Notify the customer that the provider withdrew their quote
+  if (job?.customer_id) {
+    const { data: providerProfile } = await serviceSupabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    sendNotification({
+      userId: job.customer_id,
+      type: 'quote_withdrawn',
+      title: 'A provider withdrew their quote',
+      body: `${providerProfile?.full_name ?? 'A provider'} withdrew their quote on "${job.title ?? 'your job'}".`,
+      data: { job_id: offer.job_id, quote_id: offer.id },
+    });
+  }
+
+  revalidatePath(`/jobs/${offer.job_id}`);
+  revalidatePath('/dashboard/pro');
 
   return { success: true as const, jobId: offer.job_id };
 }

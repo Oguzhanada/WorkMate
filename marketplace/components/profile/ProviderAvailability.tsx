@@ -130,14 +130,14 @@ export default function ProviderAvailability({ providerId }: Props) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3>Provider Availability</h3>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="mt-1 text-sm" style={{ color: 'var(--wm-muted)' }}>
             Set your weekly and one-time slots for appointment booking.
           </p>
         </div>
         <Badge tone="assigned">Scheduler</Badge>
       </div>
 
-      <div className="mt-4 rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
+      <div className="mt-4 rounded-xl border p-3" style={{ borderColor: 'var(--wm-border)' }}>
         <div className="flex flex-wrap gap-2">
           <Button
             size="sm"
@@ -160,7 +160,8 @@ export default function ProviderAvailability({ providerId }: Props) {
         <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-4">
           {isRecurring ? (
             <select
-              className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+              className="rounded-lg border px-3 py-2 text-sm"
+              style={{ borderColor: 'var(--wm-border)', background: 'var(--wm-surface)' }}
               value={dayOfWeek}
               onChange={(event) => setDayOfWeek(event.target.value)}
               disabled={pending}
@@ -174,7 +175,8 @@ export default function ProviderAvailability({ providerId }: Props) {
           ) : (
             <input
               type="date"
-              className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+              className="rounded-lg border px-3 py-2 text-sm"
+              style={{ borderColor: 'var(--wm-border)', background: 'var(--wm-surface)' }}
               value={specificDate}
               onChange={(event) => setSpecificDate(event.target.value)}
               disabled={pending}
@@ -183,14 +185,16 @@ export default function ProviderAvailability({ providerId }: Props) {
 
           <input
             type="time"
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+            className="rounded-lg border px-3 py-2 text-sm"
+            style={{ borderColor: 'var(--wm-border)', background: 'var(--wm-surface)' }}
             value={startTime}
             onChange={(event) => setStartTime(event.target.value)}
             disabled={pending}
           />
           <input
             type="time"
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+            className="rounded-lg border px-3 py-2 text-sm"
+            style={{ borderColor: 'var(--wm-border)', background: 'var(--wm-surface)' }}
             value={endTime}
             onChange={(event) => setEndTime(event.target.value)}
             disabled={pending}
@@ -203,14 +207,14 @@ export default function ProviderAvailability({ providerId }: Props) {
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-        <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
+        <div className="rounded-xl border p-3" style={{ borderColor: 'var(--wm-border)' }}>
           <p className="text-sm font-semibold">Weekly recurring</p>
           <div className="mt-2 space-y-2">
             {weeklyRows.length === 0 ? (
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">No weekly slots yet.</p>
+              <p className="text-sm" style={{ color: 'var(--wm-muted)' }}>No weekly slots yet.</p>
             ) : (
               weeklyRows.map((slot) => (
-                <div key={slot.id} className="flex items-center justify-between gap-2 rounded-lg border border-zinc-200 p-2 dark:border-zinc-700">
+                <div key={slot.id} className="flex items-center justify-between gap-2 rounded-lg border p-2" style={{ borderColor: 'var(--wm-border)' }}>
                   <p className="text-sm">
                     {dayOptions.find((option) => option.value === slot.day_of_week)?.label ?? 'Day'}
                     {' '}
@@ -225,14 +229,14 @@ export default function ProviderAvailability({ providerId }: Props) {
           </div>
         </div>
 
-        <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
+        <div className="rounded-xl border p-3" style={{ borderColor: 'var(--wm-border)' }}>
           <p className="text-sm font-semibold">One-time dates</p>
           <div className="mt-2 space-y-2">
             {oneTimeRows.length === 0 ? (
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">No one-time slots yet.</p>
+              <p className="text-sm" style={{ color: 'var(--wm-muted)' }}>No one-time slots yet.</p>
             ) : (
               oneTimeRows.map((slot) => (
-                <div key={slot.id} className="flex items-center justify-between gap-2 rounded-lg border border-zinc-200 p-2 dark:border-zinc-700">
+                <div key={slot.id} className="flex items-center justify-between gap-2 rounded-lg border p-2" style={{ borderColor: 'var(--wm-border)' }}>
                   <p className="text-sm">
                     {slot.specific_date} {formatHHMM(slot.start_time)}-{formatHHMM(slot.end_time)}
                   </p>
@@ -247,8 +251,8 @@ export default function ProviderAvailability({ providerId }: Props) {
       </div>
 
       {loading ? <p className="mt-3 text-sm" style={{ color: 'var(--wm-muted)' }}>Loading availability...</p> : null}
-      {error ? <p className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p> : null}
-      {ok ? <p className="mt-3 text-sm" style={{ color: 'var(--wm-primary)' }}>{ok}</p> : null}
+      {error ? <p className="mt-3 text-sm" style={{ color: 'var(--wm-destructive)' }}>{error}</p> : null}
+      {ok ? <p className="mt-3 text-sm" style={{ color: 'var(--wm-primary-dark)' }}>{ok}</p> : null}
     </Card>
   );
 }

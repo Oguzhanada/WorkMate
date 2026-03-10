@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canPostJob, getUserRoles, isIdVerified } from '@/lib/auth/rbac';
-import { isValidEircode, normalizeEircode } from '@/lib/eircode';
+import { isValidEircode, normalizeEircode } from '@/lib/ireland/eircode';
 import { fireAutomationEvent } from '@/lib/automation/engine';
 import { createJobSchema } from '@/lib/validation/api';
 import { sendWebhookEvent } from '@/lib/webhook/send';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -68,6 +69,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Direct request requires a target provider.' }, { status: 400 });
   }
 
+  // ── Mode-specific defaults ──────────────────────────────
+  const isQuickHire = body.job_mode === 'quick_hire';
+
   const { data, error } = await supabase.from('jobs').insert({
     customer_id: user.id,
     title: body.title,
@@ -86,6 +90,10 @@ export async function POST(request: NextRequest) {
     created_by_verified_id: customerIsVerified,
     job_visibility_tier: customerIsVerified ? 'verified_tier' : 'basic',
     review_status: 'pending_review',
+    // Job mode differentiation
+    is_urgent: isQuickHire,
+    max_quotes: isQuickHire ? 5 : null,
+    auto_close_on_accept: true,
   }).select('*').single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -123,6 +131,33 @@ export async function POST(request: NextRequest) {
         budget_range: data.budget_range,
       },
     });
+  }
+
+  // Notify matching providers for quick_hire jobs with urgency flag
+  if (data.job_mode === 'quick_hire' && data.category_id) {
+    const { data: matchingProviders } = await serviceSupabase
+      .from('pro_service_areas')
+      .select('profile_id')
+      .eq('county', data.county ?? '')
+      .limit(50);
+
+    if (matchingProviders && matchingProviders.length > 0) {
+      const uniqueProviderIds = [...new Set(matchingProviders.map((p) => p.profile_id))];
+      await serviceSupabase.from('notifications').insert(
+        uniqueProviderIds.map((providerId) => ({
+          user_id: providerId,
+          type: 'urgent_job_posted',
+          payload: {
+            job_id: data.id,
+            title: data.title,
+            customer_id: user.id,
+            budget_range: data.budget_range,
+            urgency_label: 'urgent',
+            message: 'Urgent job posted — respond quickly! Limited to 5 quotes.',
+          },
+        }))
+      );
+    }
   }
 
   // Fire automation rules for job_created — non-blocking
@@ -175,3 +210,5 @@ export async function POST(request: NextRequest) {
     { status: 201 }
   );
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

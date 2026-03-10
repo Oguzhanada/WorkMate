@@ -1,6 +1,6 @@
 /* ─── Profile Completion card ─────────────────────────────────── */
 .card {
-  background: #fff;
+  background: var(--wm-surface);
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-xl);
   box-shadow: var(--wm-shadow-md);
@@ -88,7 +88,7 @@
 .item {
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-lg);
-  background: #fff;
+  background: var(--wm-surface);
   animation: fadeUp 420ms ease both;
   transition:
     background-color var(--wm-transition),

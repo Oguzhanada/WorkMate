@@ -96,21 +96,21 @@ function LineChart({ series, days }: { series: DayPoint[]; days: number }) {
       {/* Grid */}
       {gridLines.map(({ y, label }) => (
         <g key={y}>
-          <line x1={PAD.left} y1={y} x2={PAD.left + innerW} y2={y} stroke="#e2e8f0" strokeWidth={1} />
-          <text x={PAD.left - 6} y={y + 4} textAnchor="end" fontSize={10} fill="#94a3b8">{label}</text>
+          <line x1={PAD.left} y1={y} x2={PAD.left + innerW} y2={y} stroke="var(--wm-border)" strokeWidth={1} />
+          <text x={PAD.left - 6} y={y + 4} textAnchor="end" fontSize={10} fill="var(--wm-subtle)">{label}</text>
         </g>
       ))}
       {/* X axis labels */}
       {ticks.map(({ i, label }) => (
-        <text key={i} x={xScale(i)} y={CHART_H - 6} textAnchor="middle" fontSize={10} fill="#94a3b8">{label}</text>
+        <text key={i} x={xScale(i)} y={CHART_H - 6} textAnchor="middle" fontSize={10} fill="var(--wm-subtle)">{label}</text>
       ))}
       {/* Lines */}
-      <polyline points={polyline('jobs')} fill="none" stroke="#0ea5e9" strokeWidth={2} strokeLinejoin="round" />
-      <polyline points={polyline('quotes')} fill="none" stroke="#f59e0b" strokeWidth={1.5} strokeLinejoin="round" strokeDasharray="4 2" />
-      <polyline points={polyline('completed')} fill="none" stroke="#10b981" strokeWidth={1.5} strokeLinejoin="round" />
+      <polyline points={polyline('jobs')} fill="none" stroke="var(--wm-chart-blue)" strokeWidth={2} strokeLinejoin="round" />
+      <polyline points={polyline('quotes')} fill="none" stroke="var(--wm-amber)" strokeWidth={1.5} strokeLinejoin="round" strokeDasharray="4 2" />
+      <polyline points={polyline('completed')} fill="none" stroke="var(--wm-primary)" strokeWidth={1.5} strokeLinejoin="round" />
       {/* Dots on jobs line */}
       {series.map((d, i) => (
-        <circle key={i} cx={xScale(i)} cy={yScale(d.jobs)} r={2.5} fill="#0ea5e9" />
+        <circle key={i} cx={xScale(i)} cy={yScale(d.jobs)} r={2.5} fill="var(--wm-chart-blue)" />
       ))}
     </svg>
   );
@@ -137,7 +137,11 @@ export default function AnalyticsDashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { load(days); }, [days, load]);
+  useEffect(() => {
+    let active = true;
+    queueMicrotask(() => { if (active) load(days); });
+    return () => { active = false; };
+  }, [days, load]);
 
   if (error) return <p className={styles.errorMsg}>{error}</p>;
   if (loading || !data) return <p className={styles.muted}>Loading analytics...</p>;
@@ -173,14 +177,14 @@ export default function AnalyticsDashboard() {
 
       {/* KPI row */}
       <div className={styles.kpiGrid}>
-        <KpiCard label="Total Jobs" value={summary.totalJobs.toLocaleString()} accent="#0ea5e9" />
-        <KpiCard label="Active Jobs" value={summary.activeJobs.toLocaleString()} accent="#f59e0b" />
-        <KpiCard label="Completed Jobs" value={summary.completedJobs.toLocaleString()} accent="#10b981" />
-        <KpiCard label="Total Revenue" value={eur(summary.totalRevenueCents)} accent="#8b5cf6" />
-        <KpiCard label="Platform Commission" value={eur(summary.totalCommissionCents)} accent="#ec4899" />
-        <KpiCard label="Avg Job Value" value={eur(summary.avgJobValueCents)} accent="#64748b" />
-        <KpiCard label="Verified Users" value={summary.verifiedUsers.toLocaleString()} accent="#0ea5e9" />
-        <KpiCard label="Pending Applications" value={summary.pendingApplications.toLocaleString()} accent="#ef4444" />
+        <KpiCard label="Total Jobs" value={summary.totalJobs.toLocaleString()} accent="var(--wm-chart-blue)" />
+        <KpiCard label="Active Jobs" value={summary.activeJobs.toLocaleString()} accent="var(--wm-amber)" />
+        <KpiCard label="Completed Jobs" value={summary.completedJobs.toLocaleString()} accent="var(--wm-primary)" />
+        <KpiCard label="Total Revenue" value={eur(summary.totalRevenueCents)} accent="var(--wm-chart-purple)" />
+        <KpiCard label="Platform Commission" value={eur(summary.totalCommissionCents)} accent="var(--wm-chart-pink)" />
+        <KpiCard label="Avg Job Value" value={eur(summary.avgJobValueCents)} accent="var(--wm-subtle)" />
+        <KpiCard label="Verified Users" value={summary.verifiedUsers.toLocaleString()} accent="var(--wm-chart-blue)" />
+        <KpiCard label="Pending Applications" value={summary.pendingApplications.toLocaleString()} accent="var(--wm-destructive)" />
       </div>
 
       {/* Activity chart */}
@@ -188,9 +192,9 @@ export default function AnalyticsDashboard() {
         <div className={styles.cardHeader}>
           <h3 className={styles.cardTitle}>Daily Activity — Last {days} days</h3>
           <div className={styles.legend}>
-            <span className={styles.legendDot} style={{ background: '#0ea5e9' }} />Jobs
-            <span className={styles.legendDot} style={{ background: '#f59e0b' }} />Quotes
-            <span className={styles.legendDot} style={{ background: '#10b981' }} />Completed
+            <span className={styles.legendDot} style={{ background: 'var(--wm-chart-blue)' }} />Jobs
+            <span className={styles.legendDot} style={{ background: 'var(--wm-amber)' }} />Quotes
+            <span className={styles.legendDot} style={{ background: 'var(--wm-primary)' }} />Completed
           </div>
         </div>
         <div className={styles.chartWrap}>

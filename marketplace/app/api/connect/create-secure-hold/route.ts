@@ -3,9 +3,11 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canPostJob, getUserRoles } from '@/lib/auth/rbac';
 import { createSecureHoldSchema } from '@/lib/validation/api';
-import { PLATFORM_COMMISSION_RATE, stripe } from '@/lib/stripe';
+import { stripe } from '@/lib/stripe/client';
+import { calculateFees } from '@/lib/pricing/fee-calculator';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -81,7 +83,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: `Payment already exists with status: ${existingPayment.status}` }, { status: 400 });
   }
 
-  const commission = Math.round(amount_cents * PLATFORM_COMMISSION_RATE);
+  const fees = await calculateFees(amount_cents, customer_id, pro_id);
+  const commission = Math.round(fees.transactionFee * 100);
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: 'payment',
     success_url: `${platformBaseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
@@ -114,3 +117,5 @@ export async function POST(request: NextRequest) {
     commission_cents: commission,
   });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

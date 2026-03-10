@@ -18,6 +18,7 @@ type Props = {
   mode: DashboardMode;
   title: string;
   description: string;
+  showTourBanner?: boolean;
 };
 
 function getLocaleRoot(pathname: string) {
@@ -26,7 +27,7 @@ function getLocaleRoot(pathname: string) {
   return `/${match[1]}`;
 }
 
-export default function DashboardShell({ mode, title, description }: Props) {
+export default function DashboardShell({ mode, title, description, showTourBanner = false }: Props) {
   const pathname = usePathname() || '/';
   const localeRoot = getLocaleRoot(pathname);
   const [widgets, setWidgets] = useState<DashboardWidgetRow[]>([]);
@@ -151,11 +152,11 @@ export default function DashboardShell({ mode, title, description }: Props) {
           <div>
             <h1
               className="text-3xl font-extrabold tracking-tight"
-              style={{ fontFamily: 'var(--wm-font-display)', color: '#0f172a', letterSpacing: '-0.03em' }}
+              style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)', letterSpacing: '-0.03em' }}
             >
               {title}
             </h1>
-            <p className="mt-1 text-base" style={{ color: '#475569' }}>{description}</p>
+            <p className="mt-1 text-base" style={{ color: 'var(--wm-muted)' }}>{description}</p>
           </div>
           {mode === 'customer' ? (
             <Button href={`${localeRoot}/post-job`} variant="navy" size="md">
@@ -181,6 +182,24 @@ export default function DashboardShell({ mode, title, description }: Props) {
           ))}
         </div>
       </div>
+
+      {mode === 'provider' && showTourBanner ? (
+        <div
+          className="rounded-2xl border p-4"
+          style={{
+            borderColor: 'var(--wm-primary-light)',
+            background: 'var(--wm-primary-faint)',
+            boxShadow: 'var(--wm-shadow-xs)',
+          }}
+        >
+          <p className="text-sm font-bold" style={{ color: 'var(--wm-primary-dark)' }}>
+            Dashboard tour
+          </p>
+          <p className="mt-1 text-sm" style={{ color: 'var(--wm-text-soft)' }}>
+            Start with Task Alerts, then review Pending Quotes, and keep Provider Earnings visible for weekly tracking.
+          </p>
+        </div>
+      ) : null}
 
       {loading ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

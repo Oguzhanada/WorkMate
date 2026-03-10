@@ -117,6 +117,28 @@ tests/
 - `.github/workflows/workmate-ci-tests.yml`
 - `.github/workflows/workmate-nightly-e2e.yml`
 
+## MCP Pilot Quickstart (Read-Only)
+
+Pilot artifacts:
+- Registry: `../mcp/registry.json` (repo root)
+- Decision: `../ai-context/decisions/DR-006-mcp-readonly-pilot.md`
+- Baseline/results: `../docs/mcp-pilot/`
+- Ops runbook: `docs/agent-ops-runbook.md`
+
+Commands (from repo root):
+
+```powershell
+pwsh -File scripts/mcp/start-pilot.ps1
+pwsh -File scripts/mcp/verify-readonly.ps1
+pwsh -File scripts/mcp/daily-report.ps1 -Baseline
+pwsh -File scripts/mcp/daily-report.ps1
+pwsh -File scripts/mcp/bootstrap.ps1
+```
+
+Notes:
+- If GitHub CLI is missing, baseline/report files are still generated with blocked status.
+- Write-intent MCP actions are blocked and logged in `logs/mcp-readonly-violations.log`.
+
 ## Documentation
 
 - Active docs: `docs/`

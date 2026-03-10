@@ -1,8 +1,10 @@
 import { randomBytes } from 'crypto';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getUserRoles } from '@/lib/auth/rbac';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { hashApiKey } from '@/lib/api/public-auth';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 const ALLOWED_ROLES = new Set(['customer', 'verified_pro', 'admin']);
 
@@ -14,7 +16,7 @@ function createApiKey() {
   return `wm_live_${randomBytes(24).toString('hex')}`;
 }
 
-export async function POST() {
+async function postHandler(_req: NextRequest): Promise<NextResponse> {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -34,20 +36,23 @@ export async function POST() {
   }
 
   const service = getSupabaseServiceClient();
-  const apiKey = createApiKey();
+  const plaintext = createApiKey();
+  const keyHash = hashApiKey(plaintext);
+
   const { data, error } = await service
     .from('profiles')
-    .update({ api_key: apiKey })
+    .update({ api_key_hash: keyHash })
     .eq('id', user.id)
-    .select('id,api_key,api_rate_limit')
+    .select('id, api_rate_limit')
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-  return NextResponse.json({ profile: data }, { status: 200 });
+  // Return plaintext key once — it is never stored and cannot be retrieved again
+  return NextResponse.json({ api_key: plaintext, api_rate_limit: data.api_rate_limit }, { status: 200 });
 }
 
-export async function DELETE() {
+async function deleteHandler(_req: NextRequest): Promise<NextResponse> {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -67,8 +72,15 @@ export async function DELETE() {
   }
 
   const service = getSupabaseServiceClient();
-  const { error } = await service.from('profiles').update({ api_key: null }).eq('id', user.id);
+  const { error } = await service
+    .from('profiles')
+    .update({ api_key_hash: null })
+    .eq('id', user.id);
+
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
   return NextResponse.json({ success: true }, { status: 200 });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.AUTH_ENDPOINT, postHandler);
+export const DELETE = withRateLimit(RATE_LIMITS.AUTH_ENDPOINT, deleteHandler);

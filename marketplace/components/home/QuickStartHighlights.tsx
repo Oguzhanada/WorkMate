@@ -58,7 +58,7 @@ export default function QuickStartHighlights() {
             <h2 className="mt-3 wm-display text-[clamp(1.5rem,3vw,2.1rem)]" style={{ color: 'var(--wm-navy)' }}>
               Popular tasks and how to get started
             </h2>
-            <p className="mt-2 max-w-2xl text-sm" style={{ color: 'var(--wm-muted)' }}>
+            <p className="mt-2 max-w-2xl text-sm" style={{ color: 'var(--wm-text-muted)' }}>
               Discover what people book most, then launch your first task in minutes with clear steps.
             </p>
           </div>
@@ -80,7 +80,7 @@ export default function QuickStartHighlights() {
             <h3 className="text-base font-bold" style={{ color: 'var(--wm-navy)' }}>
               Popular categories
             </h3>
-            <ul className="mt-3 space-y-2 text-sm" style={{ color: 'var(--wm-muted)' }}>
+            <ul className="mt-3 space-y-2 text-sm" style={{ color: 'var(--wm-text-muted)' }}>
               {popularTasks.map((task) => (
                 <li key={task} className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4" style={{ color: 'var(--wm-amber-dark)' }} />
@@ -94,7 +94,7 @@ export default function QuickStartHighlights() {
             <h3 className="text-base font-bold" style={{ color: 'var(--wm-navy)' }}>
               Most preferred services
             </h3>
-            <ul className="mt-3 space-y-2 text-sm" style={{ color: 'var(--wm-muted)' }}>
+            <ul className="mt-3 space-y-2 text-sm" style={{ color: 'var(--wm-text-muted)' }}>
               {topServices.map((entry) => (
                 <li key={entry.label} className="flex items-center justify-between gap-2 rounded-lg bg-[var(--wm-primary-faint)] px-3 py-2">
                   <span>{entry.label}</span>
@@ -123,7 +123,7 @@ export default function QuickStartHighlights() {
                     <step.icon className="mt-0.5 h-4 w-4 shrink-0" style={{ color: 'var(--wm-primary)' }} />
                     <div>
                       <p className="text-sm font-semibold" style={{ color: 'var(--wm-text)' }}>{step.title}</p>
-                      <p className="text-xs" style={{ color: 'var(--wm-muted)' }}>{step.detail}</p>
+                      <p className="text-xs" style={{ color: 'var(--wm-text-soft)' }}>{step.detail}</p>
                     </div>
                   </div>
                 </motion.li>

@@ -3,7 +3,8 @@ import {NextIntlClientProvider} from 'next-intl';
 import {notFound} from 'next/navigation';
 import {Toaster} from 'sonner';
 
-import CookieConsentBanner from '@/components/site/CookieConsentBanner';
+import CookieConsent from '@/components/ui/CookieConsent';
+import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 import ConditionalSiteFooter from '@/components/site/ConditionalSiteFooter';
 import Navbar from '@/components/home/Navbar';
 import styles from '@/components/site/site.module.css';
@@ -45,18 +46,34 @@ export async function generateMetadata({
       siteName: 'WorkMate',
       locale: 'en_IE',
       type: 'website',
+      images: [
+        {
+          url: `/og?title=${encodeURIComponent(seo.defaultTitle)}&description=${encodeURIComponent(seo.defaultDescription)}`,
+          width: 1200,
+          height: 630,
+          alt: seo.defaultTitle,
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title: seo.defaultTitle,
       description: seo.defaultDescription,
+      images: [`/og?title=${encodeURIComponent(seo.defaultTitle)}`],
     },
     robots: {
       index: true,
       follow: true,
       googleBot: { index: true, follow: true },
     },
-    icons: { icon: '/favicon.ico' },
+    icons: {
+      icon: [
+        { url: '/favicon.ico', sizes: '48x48' },
+        { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+        { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+      ],
+      apple: '/apple-touch-icon.png',
+    },
   };
 }
 
@@ -77,10 +94,11 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
+      <GoogleAnalytics />
       <div className={styles.siteRoot}>
         <Navbar />
         {children}
-        <CookieConsentBanner />
+        <CookieConsent />
         <ConditionalSiteFooter />
         <Toaster position="bottom-right" richColors closeButton />
       </div>

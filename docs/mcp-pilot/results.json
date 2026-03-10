@@ -1,0 +1,27 @@
+{
+  "pilot": "workmate-mcp-readonly-pilot",
+  "status": "not_started",
+  "period": {
+    "start_date": null,
+    "end_date": null
+  },
+  "usage": {
+    "agent_tasks_total": 0,
+    "agent_tasks_with_mcp": 0,
+    "mcp_fallback_rate_percent": null
+  },
+  "quality": {
+    "guard_false_positive_percent": null,
+    "write_violations": 0,
+    "daily_report_fail_streak": 0
+  },
+  "outcomes": {
+    "pr_lead_time_improvement_percent": null,
+    "issue_triage_time_trend": null,
+    "ambiguous_task_ratio_reduction_percent": null
+  },
+  "go_no_go": {
+    "eligible_for_phase2": false,
+    "reason": "Pilot not executed yet."
+  }
+}

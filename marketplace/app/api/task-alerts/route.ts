@@ -1,23 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
-
-const IRELAND_COUNTIES = [
-  'Carlow', 'Cavan', 'Clare', 'Cork', 'Donegal', 'Dublin', 'Galway',
-  'Kerry', 'Kildare', 'Kilkenny', 'Laois', 'Leitrim', 'Limerick',
-  'Longford', 'Louth', 'Mayo', 'Meath', 'Monaghan', 'Offaly',
-  'Roscommon', 'Sligo', 'Tipperary', 'Waterford', 'Westmeath',
-  'Wexford', 'Wicklow', 'Ireland-wide',
-] as const;
-
-const upsertSchema = z.object({
-  keywords: z.array(z.string().trim().min(1).max(60)).max(20).default([]),
-  categories: z.array(z.string().uuid()).max(20).default([]),
-  counties: z.array(z.enum(IRELAND_COUNTIES)).max(27).default([]),
-  budget_min: z.number().int().min(0).nullable().default(null),
-  enabled: z.boolean().default(true),
-});
+import { upsertTaskAlertSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 async function getVerifiedPro(supabase: ReturnType<typeof getSupabaseServiceClient>, userId: string) {
   const { data } = await supabase
@@ -46,7 +31,7 @@ export async function GET() {
 }
 
 // POST — create or update task alert preferences (upsert)
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const service = getSupabaseServiceClient();
 
@@ -61,7 +46,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const parsed = upsertSchema.safeParse(raw);
+  const parsed = upsertTaskAlertSchema.safeParse(raw);
   if (!parsed.success) {
     return NextResponse.json({ error: 'Validation failed', details: parsed.error.flatten() }, { status: 400 });
   }
@@ -83,7 +68,7 @@ export async function POST(request: NextRequest) {
 }
 
 // DELETE — remove task alert
-export async function DELETE() {
+async function deleteHandler() {
   const supabase = await getSupabaseRouteClient();
   const service = getSupabaseServiceClient();
 
@@ -94,3 +79,7 @@ export async function DELETE() {
 
   return NextResponse.json({ success: true }, { status: 200 });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);
+
+export const DELETE = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, deleteHandler);

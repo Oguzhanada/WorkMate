@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ensureAdminRoute } from '@/lib/auth/admin';
 import { adminRunVerificationSchema } from '@/lib/validation/api';
+import { logAdminAudit } from '@/lib/admin/audit';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 function computePlaceholderRisk(documentCount: number, hasIdDoc: boolean) {
   if (!hasIdDoc) {
@@ -12,7 +14,7 @@ function computePlaceholderRisk(documentCount: number, hasIdDoc: boolean) {
   return { risk_level: 'medium', risk_score: 0.46, summary: 'Limited document set; manual review advised' };
 }
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const auth = await ensureAdminRoute();
   if (auth.error) return auth.error;
 
@@ -77,5 +79,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: insertError.message }, { status: 400 });
   }
 
+  await logAdminAudit({
+    adminUserId: user?.id ?? null,
+    adminEmail: user?.email ?? null,
+    action: 'run_verification_check',
+    targetType: 'verification_check',
+    targetProfileId: profile_id,
+    details: {
+      check_id: check.id,
+      risk_level: risk.risk_level,
+      risk_score: risk.risk_score,
+      document_count: documentCount,
+    },
+  });
+
   return NextResponse.json({ check });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

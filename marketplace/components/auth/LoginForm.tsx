@@ -12,6 +12,7 @@ import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
 import {formItemVariants, formListVariants, rightColumnVariants} from '@/styles/animations';
 import {SecurityDropdown} from '@/components/auth/SecurityDropdown';
 import {SocialButtons} from '@/components/auth/SocialButtons';
+import Button from '@/components/ui/Button';
 import styles from './login.module.css';
 
 type FieldErrors = {
@@ -186,14 +187,15 @@ export function LoginForm() {
                 }}
                 onBlur={() => setFieldErrors((prev) => ({...prev, password: validatePassword(password)}))}
               />
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 className={styles.togglePassword}
-                type="button"
                 onClick={() => setShowPassword((current) => !current)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-              </button>
+              </Button>
             </div>
             {fieldErrors.password ? <p className={styles.fieldError}>{fieldErrors.password}</p> : null}
           </motion.div>
@@ -205,15 +207,16 @@ export function LoginForm() {
           </motion.div>
 
           <motion.div variants={formItemVariants}>
-            <button type="submit" className={styles.primaryButton} disabled={hasAnyLoading}>
-              {isPending ? (
-                <>
-                  <Loader2 size={18} className={styles.spinner} /> Logging in...
-                </>
-              ) : (
-                'Login'
-              )}
-            </button>
+            <Button
+              type="submit"
+              variant="primary"
+              fullWidth
+              className={styles.primaryButton}
+              disabled={hasAnyLoading}
+              loading={isPending}
+            >
+              {isPending ? 'Logging in...' : 'Login'}
+            </Button>
           </motion.div>
         </form>
 

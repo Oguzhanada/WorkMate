@@ -13,10 +13,11 @@ const fallbackImages = [
   'https://images.unsplash.com/photo-1558904541-efa843a96f01?auto=format&fit=crop&w=1200&q=80',
 ];
 
+/* Fallback placeholders shown when no real providers are loaded yet */
 const fallbackItems = [
-  { id: 'fallback-1', full_name: 'Sean Murphy', profession: 'Master Plumber', county: 'Dublin', rating: 4.9, review_count: 127 },
-  { id: 'fallback-2', full_name: "Aoife O'Brien", profession: 'Professional Cleaner', county: 'Cork', rating: 5.0, review_count: 94 },
-  { id: 'fallback-3', full_name: 'Liam Walsh', profession: 'Landscape Designer', county: 'Galway', rating: 4.8, review_count: 86 },
+  { id: 'fallback-1', full_name: 'Plumbing Pro', profession: 'Plumber', county: 'Dublin', rating: 0, review_count: 0 },
+  { id: 'fallback-2', full_name: 'Cleaning Pro', profession: 'Professional Cleaner', county: 'Cork', rating: 0, review_count: 0 },
+  { id: 'fallback-3', full_name: 'Garden Pro', profession: 'Landscape Designer', county: 'Galway', rating: 0, review_count: 0 },
 ];
 
 export default function FeaturedProviders() {
@@ -30,11 +31,13 @@ export default function FeaturedProviders() {
   }, [providers]);
 
   return (
-    <section className="bg-[#f3f5f6] px-4 py-16 sm:px-6 lg:px-8">
+    <section className="px-4 py-16 sm:px-6 lg:px-8" style={{ background: 'var(--wm-bg)' }}>
       <div className="mx-auto max-w-7xl">
         <div className="mb-9 text-center">
-          <h2 className="text-[clamp(2rem,4.3vw,3.4rem)] font-extrabold text-[var(--wm-navy)]">Top-Rated Professionals</h2>
-          <p className="mx-auto mt-3 max-w-3xl text-[clamp(1rem,2vw,1.35rem)] text-[var(--wm-muted)]">
+          <h2 className="text-[clamp(2rem,4.3vw,3.4rem)] font-extrabold" style={{ color: 'var(--color-text-primary)', letterSpacing: '-0.03em' }}>
+            Top-Rated Professionals
+          </h2>
+          <p className="mx-auto mt-3 max-w-3xl text-[clamp(1rem,2vw,1.35rem)]" style={{ color: 'var(--color-text-secondary)' }}>
             Meet some of our most trusted and highly-rated service providers.
           </p>
         </div>
@@ -54,23 +57,32 @@ export default function FeaturedProviders() {
                       {provider.full_name}
                       <BadgeCheck className="h-6 w-6 text-[var(--wm-primary)]" />
                     </h3>
-                    <p className="mt-1 text-[1.05rem] text-[var(--wm-muted)]">{provider.profession || 'Verified service professional'}</p>
+                    <p className="mt-1 text-[1.05rem]" style={{ color: 'var(--color-text-secondary)' }}>{provider.profession || 'Verified service professional'}</p>
                   </div>
 
-                  <p className="flex items-center gap-2 text-[1.05rem] text-[var(--wm-muted)]">
+                  <p className="flex items-center gap-2 text-[1.05rem]" style={{ color: 'var(--color-text-secondary)' }}>
                     <MapPin className="h-4 w-4" />
                     {provider.county}
                   </p>
 
-                  <p className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--wm-primary)] px-3 py-1.5 text-base font-bold text-white">
-                    <Star className="h-4 w-4 fill-current" />
-                    {Number(provider.rating || 0).toFixed(1)}
-                  </p>
-                  <p className="text-[1rem] text-[var(--wm-muted)]">({provider.review_count || 0} reviews)</p>
+                  {Number(provider.rating || 0) > 0 ? (
+                    <>
+                      <p className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-base font-bold text-white" style={{ background: 'var(--wm-primary)' }}>
+                        <Star className="h-4 w-4 fill-current" />
+                        {Number(provider.rating).toFixed(1)}
+                      </p>
+                      <p className="text-[1rem]" style={{ color: 'var(--color-text-secondary)' }}>({provider.review_count || 0} reviews)</p>
+                    </>
+                  ) : (
+                    <p className="text-[1rem]" style={{ color: 'var(--color-text-secondary)' }}>New on WorkMate</p>
+                  )}
 
                   <Link
                     href={withLocalePrefix(localeRoot, `/profile/public/${provider.id}`)}
-                    className="mt-2 inline-flex w-full items-center justify-center rounded-2xl bg-[var(--wm-navy)] px-6 py-3.5 text-lg font-semibold text-white transition hover:bg-[#0b1630]"
+                    className="mt-2 inline-flex w-full items-center justify-center rounded-2xl px-6 py-3.5 text-lg font-semibold text-white transition"
+                    style={{ background: 'var(--wm-navy)' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--wm-accent)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--wm-navy)')}
                   >
                     View Profile
                   </Link>
@@ -80,8 +92,9 @@ export default function FeaturedProviders() {
           })}
         </div>
 
-        {loading ? <p className="mt-6 text-center text-sm text-[var(--wm-muted)]">Loading providers...</p> : null}
+        {loading ? <p className="mt-6 text-center text-sm" style={{ color: 'var(--color-text-secondary)' }}>Loading providers...</p> : null}
       </div>
     </section>
   );
 }
+

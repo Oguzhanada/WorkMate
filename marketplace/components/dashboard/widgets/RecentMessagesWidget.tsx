@@ -56,14 +56,14 @@ export default function RecentMessagesWidget({ limit = 6 }: Props) {
 
   return (
     <div>
-      <p className="text-sm font-bold" style={{ color: '#0f172a' }}>Recent Messages</p>
-      <p className="mt-1 text-xs" style={{ color: '#64748b' }}>Latest notifications and activity updates.</p>
+      <p className="text-sm font-bold" style={{ color: 'var(--wm-navy)' }}>Recent Messages</p>
+      <p className="mt-1 text-xs" style={{ color: 'var(--wm-muted)' }}>Latest notifications and activity updates.</p>
       {loading ? (
         <div className="mt-3">
           <Skeleton lines={3} height="h-10" />
         </div>
       ) : null}
-      {error ? <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p> : null}
+      {error ? <p className="mt-2 text-sm" style={{ color: 'var(--wm-destructive)' }}>{error}</p> : null}
       {!loading && !error && rows.length === 0 ? (
         <EmptyState
           icon={<Bell size={28} />}
@@ -73,9 +73,9 @@ export default function RecentMessagesWidget({ limit = 6 }: Props) {
       ) : null}
       <div className="mt-2 space-y-2">
         {rows.map((row) => (
-          <div key={row.id} className="rounded-xl px-3 py-2.5 text-sm" style={{ border: '1px solid var(--wm-border)', background: 'white' }}>
-            <p className="font-semibold" style={{ color: '#0f172a' }}>{row.type.replaceAll('_', ' ')}</p>
-            <p className="text-xs" style={{ color: '#64748b' }}>{new Date(row.created_at).toLocaleString('en-IE')}</p>
+          <div key={row.id} className="rounded-xl px-3 py-2.5 text-sm" style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)' }}>
+            <p className="font-semibold" style={{ color: 'var(--wm-navy)' }}>{row.type.replaceAll('_', ' ')}</p>
+            <p className="text-xs" style={{ color: 'var(--wm-muted)' }}>{new Date(row.created_at).toLocaleString('en-IE')}</p>
           </div>
         ))}
       </div>

@@ -1,5 +1,7 @@
-import {render, screen, waitFor} from '@testing-library/react';
+import {render} from '@testing-library/react';
+import {screen, waitFor} from '@testing-library/dom';
 import userEvent from '@testing-library/user-event';
+import type {ReactNode} from 'react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 
 import SearchPage from '@/app/[locale]/search/page';
@@ -7,7 +9,7 @@ import SearchPage from '@/app/[locale]/search/page';
 const pushMock = vi.fn();
 
 vi.mock('next/link', () => ({
-  default: ({children, href, ...rest}: any) => (
+  default: ({children, href, ...rest}: {children?: ReactNode; href?: string; [key: string]: unknown}) => (
     <a href={typeof href === 'string' ? href : '#'} {...rest}>
       {children}
     </a>
@@ -15,7 +17,7 @@ vi.mock('next/link', () => ({
 }));
 
 vi.mock('@/components/site/VerifiedNavigationLink', () => ({
-  default: ({children, href, ...rest}: any) => (
+  default: ({children, href, ...rest}: {children?: ReactNode; href?: string; [key: string]: unknown}) => (
     <a href={typeof href === 'string' ? href : '#'} {...rest}>
       {children}
     </a>

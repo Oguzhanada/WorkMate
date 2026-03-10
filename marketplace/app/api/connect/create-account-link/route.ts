@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { canQuote, getUserRoles } from '@/lib/auth/rbac';
 import { createAccountLinkSchema } from '@/lib/validation/api';
-import { stripe } from '@/lib/stripe';
+import { stripe } from '@/lib/stripe/client';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -56,3 +57,5 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ url: accountLink.url });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

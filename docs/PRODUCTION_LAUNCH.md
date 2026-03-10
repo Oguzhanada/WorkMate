@@ -1,5 +1,5 @@
 # WorkMate — Production Launch Guide
-> Last updated: 2026-03-05 (session 9)
+> Last updated: 2026-03-10 (session 26)
 > This file is the single source of truth for everything that must be done before
 > and during production launch. Update it as steps are completed.
 
@@ -42,7 +42,7 @@ Verify the full happy-path before spending any money.
 - [ ] `npm run lint` — 0 TypeScript errors, English-only check passes
 
 ### Supabase (dev project) checks
-- [ ] All migrations 001–049 applied and no errors
+- [ ] All migrations 001–073 applied and no errors
 - [ ] RLS enabled on all tables — no `FOR ALL USING (true)` policies
 - [ ] `pg_cron` jobs registered and running (provider_rankings refresh, automation rules)
 - [ ] Edge functions deployed and responding:
@@ -50,6 +50,8 @@ Verify the full happy-path before spending any money.
   - `auto-release-payments`
   - `escalate-stale-disputes`
   - `id-verification-retention`
+  - `message-retention`
+  - `gdpr-retention-processor` (+ pg_cron schedule for daily/weekly run)
 
 ---
 
@@ -69,7 +71,7 @@ Set up third-party accounts. Most have free tiers to start.
 ### Supabase (Production project — separate from dev)
 - [ ] Create a new Supabase project for production (do NOT use dev project)
 - [ ] Note: production URL + anon key + service role key
-- [ ] Apply all migrations 001–049 in Supabase SQL Editor (production)
+- [ ] Apply all migrations 001–072 in Supabase SQL Editor (production)
 - [ ] Enable `pg_cron` extension on production project
 - [ ] Set Auth → Site URL: `https://workmate.ie`
 - [ ] Set Auth → Redirect URLs: `https://workmate.ie/auth/callback`
@@ -215,6 +217,13 @@ STRIPE_CONNECT_CLIENT_ID=ca_live_...
 # Email
 RESEND_API_KEY=re_live_...
 
+# AI
+ANTHROPIC_API_KEY=sk-ant-...
+
+# ⚡ MASTER LIVE SERVICES SWITCH — flip this to enable all paid services
+# In dev this is unset (all paid calls are blocked). Must be set to 'true' in production.
+LIVE_SERVICES_ENABLED=true
+
 # Platform
 NEXT_PUBLIC_PLATFORM_BASE_URL=https://workmate.ie
 TASK_ALERT_SECRET=<random 32-char hex string>
@@ -222,6 +231,16 @@ TASK_ALERT_SECRET=<random 32-char hex string>
 # Monitoring
 SENTRY_DSN=https://...@sentry.io/...
 ```
+
+### ⚡ Live Services Activation Checklist (DO NOT SKIP)
+- [ ] **Set `LIVE_SERVICES_ENABLED=true`** in Vercel environment variables
+  - Without this: Resend emails are blocked, AI endpoints return 503
+  - File: `marketplace/lib/live-services.ts` — this is the master switch
+- [ ] Verify `STRIPE_SECRET_KEY` starts with `sk_live_` (not `sk_test_`)
+- [ ] Verify `RESEND_API_KEY` is the production key
+- [ ] Verify `ANTHROPIC_API_KEY` is the production key
+- [ ] Test a real email send after deployment (Resend dashboard → Logs)
+- [ ] Test AI endpoint: POST `/api/ai/job-description` → should return 200 (not 503)
 
 ### Deployment steps
 - [ ] Push all code to `main` branch

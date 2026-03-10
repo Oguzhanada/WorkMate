@@ -3,8 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authenticatePublicRequest } from '@/lib/api/public-auth';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { webhookSubscribeSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const auth = await authenticatePublicRequest(request);
   if (auth.error) return auth.error;
 
@@ -49,3 +50,5 @@ export async function POST(request: NextRequest) {
     { status: 201 }
   );
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

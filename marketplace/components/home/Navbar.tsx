@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ArrowRight, MessageSquare } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import WorkMateLogo from '@/components/ui/WorkMateLogo';
+import NotificationBell from '@/components/notifications/NotificationBell';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -25,8 +26,9 @@ type NavAuthSnapshot = {
 };
 
 const navItems: NavItem[] = [
-  { label: 'Find Services', href: '/search' },
+  { label: 'Find Services', href: '/find-services' },
   { label: 'How It Works', href: '/how-it-works' },
+  { label: 'Pricing', href: '/pricing' },
   { label: 'Post a Job', href: '/post-job' },
 ];
 
@@ -60,6 +62,12 @@ function clearAuthSnapshot() {
   try {
     window.localStorage.removeItem(NAV_AUTH_CACHE_KEY);
   } catch {}
+}
+
+/** Check if a nav href matches the current pathname */
+function isActiveLink(pathname: string, href: string, localeRoot: string): boolean {
+  const full = withLocalePrefix(localeRoot, href);
+  return pathname === full || pathname.startsWith(full + '/');
 }
 
 export default function Navbar() {
@@ -246,103 +254,265 @@ export default function Navbar() {
       : withLocalePrefix(localeRoot, '/dashboard/customer');
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--wm-border)] bg-white/96 backdrop-blur-md">
+    <motion.header
+      className="sticky top-0 z-50"
+      initial={false}
+      animate={{
+        backgroundColor: scrolled ? 'var(--wm-glass)' : 'rgba(255,255,255,0)',
+        backdropFilter: scrolled ? 'blur(20px) saturate(1.2)' : 'blur(0px)',
+        borderBottomColor: scrolled ? 'var(--wm-border-soft)' : 'transparent',
+      }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      style={{
+        borderBottom: '1px solid transparent',
+      }}
+    >
+      {/* Scroll glow line */}
       <motion.div
+        className="absolute bottom-0 left-0 right-0 h-[1px]"
         initial={false}
-        animate={{ boxShadow: scrolled ? '0 8px 22px rgba(15,23,42,0.08)' : '0 1px 0 rgba(15,23,42,0.03)' }}
-        className="mx-auto flex h-[72px] w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8"
-      >
+        animate={{
+          opacity: scrolled ? 1 : 0,
+          background: scrolled
+            ? 'linear-gradient(90deg, transparent 0%, rgba(16,185,129,0.2) 30%, rgba(16,185,129,0.35) 50%, rgba(16,185,129,0.2) 70%, transparent 100%)'
+            : 'transparent',
+        }}
+        transition={{ duration: 0.4 }}
+      />
+
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        {/* Logo */}
         <Link href={localeRoot} className="flex items-center gap-2.5">
-          <WorkMateLogo size={42} />
-          <span className="text-[35px] font-extrabold leading-none tracking-[-0.03em] text-[var(--wm-navy)]" style={{ fontSize: 'clamp(1.65rem,3vw,2rem)' }}>
+          <WorkMateLogo size={38} />
+          <span
+            className="font-extrabold leading-none"
+            style={{
+              fontSize: 'clamp(1.4rem, 2.6vw, 1.7rem)',
+              letterSpacing: '0.04em',
+              color: 'var(--wm-navy)',
+              fontFamily: 'var(--wm-font-display)',
+            }}
+          >
             WorkMate
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-8 text-[15px] font-semibold text-[#334155] lg:flex">
-          {navItems.map((item) => (
-            <Link key={item.href} href={withLocalePrefix(localeRoot, item.href)} className="transition hover:text-[#0f172a]">
-              {item.label}
-            </Link>
-          ))}
+        {/* Desktop nav links */}
+        <nav className="hidden items-center gap-8 lg:flex">
+          {navItems.map((item) => {
+            const active = isActiveLink(pathname, item.href, localeRoot);
+            return (
+              <Link
+                key={item.href}
+                href={withLocalePrefix(localeRoot, item.href)}
+                className="group relative py-1 text-[15px] font-medium transition-colors"
+                style={{ color: active ? 'var(--wm-navy)' : 'var(--wm-text-muted)' }}
+              >
+                {item.label}
+                {/* Animated underline */}
+                <span
+                  className="absolute -bottom-0.5 left-0 h-[2px] rounded-full transition-all duration-300 ease-out group-hover:w-full"
+                  style={{
+                    width: active ? '100%' : '0%',
+                    background: 'var(--wm-primary)',
+                  }}
+                />
+              </Link>
+            );
+          })}
         </nav>
 
+        {/* Desktop right-side actions */}
         <div className="hidden items-center gap-3 lg:flex">
           {isAuthenticated ? (
             <>
-              <Link href={dashboardHref} className="px-3 py-2 text-sm font-semibold text-[#0f172a] transition hover:text-[var(--wm-primary-dark)]">
+              <Link
+                href={dashboardHref}
+                className="group relative px-3 py-2 text-sm font-medium transition-colors"
+                style={{ color: 'var(--wm-navy)' }}
+              >
                 Dashboard
+                <span
+                  className="absolute bottom-0.5 left-3 right-3 h-[2px] rounded-full transition-all duration-300 ease-out"
+                  style={{
+                    width: '0%',
+                    background: 'var(--wm-primary)',
+                  }}
+                />
               </Link>
-              <Link href={withLocalePrefix(localeRoot, '/profile')} className="px-3 py-2 text-sm font-semibold text-[#0f172a] transition hover:text-[var(--wm-primary-dark)]">
+              <Link
+                href={withLocalePrefix(localeRoot, '/saved-searches')}
+                className="group relative px-3 py-2 text-sm font-medium transition-colors"
+                style={{ color: 'var(--wm-navy)' }}
+              >
+                Saved Searches
+                <span
+                  className="absolute bottom-0.5 left-3 right-3 h-[2px] rounded-full transition-all duration-300 ease-out"
+                  style={{
+                    width: '0%',
+                    background: 'var(--wm-primary)',
+                  }}
+                />
+              </Link>
+              <Link
+                href={withLocalePrefix(localeRoot, '/messages')}
+                className="group relative inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors"
+                style={{ color: 'var(--wm-navy)' }}
+              >
+                <MessageSquare className="h-4 w-4" />
+                Messages
+                <span
+                  className="absolute bottom-0.5 left-3 right-3 h-[2px] rounded-full transition-all duration-300 ease-out"
+                  style={{
+                    width: '0%',
+                    background: 'var(--wm-primary)',
+                  }}
+                />
+              </Link>
+              <NotificationBell />
+              <Link
+                href={withLocalePrefix(localeRoot, '/profile')}
+                className="group relative px-3 py-2 text-sm font-medium transition-colors"
+                style={{ color: 'var(--wm-navy)' }}
+              >
                 {displayName}
+                <span
+                  className="absolute bottom-0.5 left-3 right-3 h-[2px] rounded-full transition-all duration-300 ease-out"
+                  style={{
+                    width: '0%',
+                    background: 'var(--wm-primary)',
+                  }}
+                />
               </Link>
               <button
                 type="button"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="rounded-[14px] bg-[var(--wm-primary)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--wm-primary-dark)]"
+                className="text-sm font-medium text-white transition-all"
+                style={{
+                  background: 'var(--wm-grad-primary)',
+                  padding: '0.55rem 1.25rem',
+                  borderRadius: '999px',
+                  boxShadow: '0 4px 14px rgba(16,185,129,0.3)',
+                }}
               >
                 {isLoggingOut ? 'Logging out...' : 'Log out'}
               </button>
             </>
           ) : (
             <>
-              <Link href={withLocalePrefix(localeRoot, '/login')} className="px-3 py-2 text-sm font-semibold text-[#0f172a] transition hover:text-[var(--wm-primary-dark)]">
+              <Link
+                href={withLocalePrefix(localeRoot, '/login')}
+                className="group relative px-3 py-2 text-sm font-medium transition-colors"
+                style={{ color: 'var(--wm-navy)' }}
+              >
                 Sign In
+                <span
+                  className="absolute bottom-0.5 left-3 right-3 h-[2px] rounded-full transition-all duration-300 ease-out group-hover:w-full"
+                  style={{
+                    width: '0%',
+                    background: 'var(--wm-primary)',
+                  }}
+                />
               </Link>
               <Link
-                href={withLocalePrefix(localeRoot, '/sign-up')}
-                className="rounded-[14px] bg-[var(--wm-primary)] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(16,185,129,0.25)] transition hover:bg-[var(--wm-primary-dark)]"
+                href={withLocalePrefix(localeRoot, '/post-job')}
+                className="inline-flex items-center gap-1.5 text-sm font-bold text-white transition-all hover:brightness-110"
+                style={{
+                  background: 'var(--wm-grad-primary)',
+                  padding: '0.55rem 1.5rem',
+                  borderRadius: '999px',
+                  boxShadow: '0 4px 14px rgba(16,185,129,0.3)',
+                  fontFamily: 'var(--wm-font-display)',
+                }}
               >
-                Get Started
+                Post a Job
+                <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </>
           )}
         </div>
 
+        {/* Mobile hamburger */}
         <button
           type="button"
-          className="inline-flex rounded-xl border border-[var(--wm-border)] p-2 text-[var(--wm-text)] lg:hidden"
+          className="inline-flex rounded-xl p-2 lg:hidden"
+          style={{ border: '1px solid var(--wm-border)', color: 'var(--wm-text)' }}
           onClick={() => setMobileOpen((prev) => !prev)}
           aria-label="Toggle mobile navigation"
         >
           {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
-      </motion.div>
+      </div>
 
+      {/* Mobile menu */}
       <AnimatePresence>
         {mobileOpen ? (
           <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="border-t border-[var(--wm-border)] bg-white px-4 py-4 sm:px-6"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden lg:hidden"
+            style={{
+              background: 'var(--wm-glass)',
+              backdropFilter: 'blur(20px) saturate(1.2)',
+              borderTop: '1px solid var(--wm-border-soft)',
+            }}
           >
-            <div className="mx-auto grid w-full max-w-7xl gap-2">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={withLocalePrefix(localeRoot, item.href)}
-                  onClick={() => setMobileOpen(false)}
-                  className="rounded-lg px-3 py-2 text-sm font-semibold text-[var(--wm-text)] transition hover:bg-[var(--wm-primary-faint)]"
-                >
-                  {item.label}
-                </Link>
-              ))}
+            <div className="mx-auto grid w-full max-w-7xl gap-1 px-4 py-4 sm:px-6">
+              {navItems.map((item) => {
+                const active = isActiveLink(pathname, item.href, localeRoot);
+                return (
+                  <Link
+                    key={item.href}
+                    href={withLocalePrefix(localeRoot, item.href)}
+                    onClick={() => setMobileOpen(false)}
+                    className="rounded-lg px-3 py-2.5 text-sm font-medium transition"
+                    style={{
+                      color: active ? 'var(--wm-navy)' : 'var(--wm-text-muted)',
+                      background: active ? 'var(--wm-primary-faint)' : 'transparent',
+                    }}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
               {isAuthenticated ? (
                 <>
                   <Link
                     href={dashboardHref}
                     onClick={() => setMobileOpen(false)}
-                    className="rounded-lg px-3 py-2 text-sm font-semibold text-[var(--wm-text)] transition hover:bg-[var(--wm-primary-faint)]"
+                    className="rounded-lg px-3 py-2.5 text-sm font-medium transition"
+                    style={{ color: 'var(--wm-text-muted)' }}
                   >
                     Dashboard
                   </Link>
                   <Link
+                    href={withLocalePrefix(localeRoot, '/saved-searches')}
+                    onClick={() => setMobileOpen(false)}
+                    className="rounded-lg px-3 py-2.5 text-sm font-medium transition"
+                    style={{ color: 'var(--wm-text-muted)' }}
+                  >
+                    Saved Searches
+                  </Link>
+                  <Link
+                    href={withLocalePrefix(localeRoot, '/messages')}
+                    onClick={() => setMobileOpen(false)}
+                    className="inline-flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition"
+                    style={{ color: 'var(--wm-text-muted)' }}
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    Messages
+                  </Link>
+                  <div className="px-3 py-1">
+                    <NotificationBell />
+                  </div>
+                  <Link
                     href={withLocalePrefix(localeRoot, '/profile')}
                     onClick={() => setMobileOpen(false)}
-                    className="rounded-lg px-3 py-2 text-sm font-semibold text-[var(--wm-text)] transition hover:bg-[var(--wm-primary-faint)]"
+                    className="rounded-lg px-3 py-2.5 text-sm font-medium transition"
+                    style={{ color: 'var(--wm-text-muted)' }}
                   >
                     {displayName}
                   </Link>
@@ -350,7 +520,13 @@ export default function Navbar() {
                     type="button"
                     onClick={handleLogout}
                     disabled={isLoggingOut}
-                    className="mt-1 rounded-[14px] bg-[var(--wm-primary)] px-4 py-2.5 text-sm font-semibold text-white"
+                    className="mt-2 text-sm font-medium text-white"
+                    style={{
+                      background: 'var(--wm-grad-primary)',
+                      padding: '0.6rem 1rem',
+                      borderRadius: '999px',
+                      boxShadow: '0 4px 14px rgba(16,185,129,0.3)',
+                    }}
                   >
                     {isLoggingOut ? 'Logging out...' : 'Log out'}
                   </button>
@@ -360,16 +536,24 @@ export default function Navbar() {
                   <Link
                     href={withLocalePrefix(localeRoot, '/login')}
                     onClick={() => setMobileOpen(false)}
-                    className="rounded-lg px-3 py-2 text-sm font-semibold text-[var(--wm-text)] transition hover:bg-[var(--wm-primary-faint)]"
+                    className="rounded-lg px-3 py-2.5 text-sm font-medium transition"
+                    style={{ color: 'var(--wm-text-muted)' }}
                   >
                     Sign In
                   </Link>
                   <Link
-                    href={withLocalePrefix(localeRoot, '/sign-up')}
+                    href={withLocalePrefix(localeRoot, '/post-job')}
                     onClick={() => setMobileOpen(false)}
-                    className="mt-1 rounded-[14px] bg-[var(--wm-primary)] px-4 py-2.5 text-center text-sm font-semibold text-white"
+                    className="mt-2 text-center text-sm font-bold text-white"
+                    style={{
+                      background: 'var(--wm-grad-primary)',
+                      padding: '0.6rem 1rem',
+                      borderRadius: '999px',
+                      boxShadow: '0 4px 14px rgba(16,185,129,0.3)',
+                      fontFamily: 'var(--wm-font-display)',
+                    }}
                   >
-                    Get Started
+                    Post a Job
                   </Link>
                 </>
               )}
@@ -377,6 +561,6 @@ export default function Navbar() {
           </motion.div>
         ) : null}
       </AnimatePresence>
-    </header>
+    </motion.header>
   );
 }

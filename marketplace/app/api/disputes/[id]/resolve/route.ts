@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ensureAdminRoute } from '@/lib/auth/admin';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { disputeResolveSchema } from '@/lib/validation/api';
+import { logAdminAudit } from '@/lib/admin/audit';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function POST(
+async function postHandler(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -110,5 +112,23 @@ export async function POST(
 
   await serviceSupabase.from('jobs').update({ payment_on_hold: false }).eq('id', dispute.job_id);
 
+  await logAdminAudit({
+    adminUserId: auth.user?.id ?? null,
+    adminEmail: auth.user?.email ?? null,
+    action: 'resolve_dispute',
+    targetType: 'dispute',
+    targetLabel: id,
+    details: {
+      dispute_id: id,
+      job_id: dispute.job_id,
+      old_status: dispute.status,
+      new_status: parsed.data.status,
+      resolution_type: parsed.data.resolution_type,
+      resolution_amount_cents: parsed.data.resolution_amount_cents ?? null,
+    },
+  });
+
   return NextResponse.json({ dispute: updated }, { status: 200 });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

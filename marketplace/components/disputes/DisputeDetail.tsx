@@ -4,6 +4,9 @@ import { useCallback, useEffect, useState } from 'react';
 import DisputeResolutionModal from './DisputeResolutionModal';
 import styles from './disputes.module.css';
 
+/** Maximum file size for dispute evidence: 5 MB */
+const MAX_EVIDENCE_FILE_SIZE = 5 * 1024 * 1024;
+
 type DisputeDetailData = {
   dispute: {
     id: string;
@@ -36,6 +39,7 @@ export default function DisputeDetail({ disputeId }: { disputeId: string }) {
   const [responseText, setResponseText] = useState('');
   const [evidenceUrl, setEvidenceUrl] = useState('');
   const [evidenceType, setEvidenceType] = useState('image/jpeg');
+  const [evidenceFileSize, setEvidenceFileSize] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     const response = await fetch(`/api/disputes/${disputeId}`, { cache: 'no-store' });
@@ -49,7 +53,9 @@ export default function DisputeDetail({ disputeId }: { disputeId: string }) {
   }, [disputeId]);
 
   useEffect(() => {
-    load();
+    let active = true;
+    queueMicrotask(() => { if (active) load(); });
+    return () => { active = false; };
   }, [load]);
 
   const submitProviderResponse = async () => {
@@ -68,12 +74,19 @@ export default function DisputeDetail({ disputeId }: { disputeId: string }) {
   };
 
   const addEvidence = async () => {
+    // Client-side file size check
+    if (evidenceFileSize && evidenceFileSize > MAX_EVIDENCE_FILE_SIZE) {
+      setError(`File exceeds the ${MAX_EVIDENCE_FILE_SIZE / (1024 * 1024)} MB limit.`);
+      return;
+    }
+
     const response = await fetch(`/api/disputes/${disputeId}/evidence`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         file_url: evidenceUrl,
         file_type: evidenceType,
+        ...(evidenceFileSize ? { file_size: evidenceFileSize } : {}),
       }),
     });
     const payload = await response.json();
@@ -82,6 +95,7 @@ export default function DisputeDetail({ disputeId }: { disputeId: string }) {
       return;
     }
     setEvidenceUrl('');
+    setEvidenceFileSize(null);
     await load();
   };
 

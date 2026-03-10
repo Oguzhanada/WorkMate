@@ -1,6 +1,12 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 
 import styles from '../inner.module.css';
+
+export const metadata: Metadata = {
+  title: 'Community Guidelines',
+  description: 'Rules and standards for the WorkMate community.',
+};
 
 const quickRules = [
   '18+ only and one active account per person.',

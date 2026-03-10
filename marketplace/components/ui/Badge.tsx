@@ -7,6 +7,7 @@ type BadgeProps = {
   tone?: Tone;
   className?: string;
   dot?: boolean;
+  title?: string;
 };
 
 const toneClasses: Record<Tone, string> = {
@@ -15,9 +16,9 @@ const toneClasses: Record<Tone, string> = {
   pending:   'bg-[var(--wm-amber-light)] text-[var(--wm-amber-dark)] ring-[rgba(245,158,11,0.25)]',
   amber:     'bg-[var(--wm-amber-light)] text-[var(--wm-amber-dark)] ring-[rgba(245,158,11,0.25)]',
   completed: 'bg-[var(--wm-blue-soft)] text-[var(--wm-blue-dark)] ring-[rgba(26,86,219,0.20)]',
-  assigned:  'bg-indigo-50 text-indigo-700 ring-indigo-200 dark:bg-indigo-950/50 dark:text-indigo-300 dark:ring-indigo-800',
+  assigned:  'bg-[var(--wm-blue-soft)] text-[var(--wm-blue)] ring-[var(--wm-blue-soft)]',
   navy:      'bg-[rgba(12,27,51,0.08)] text-[var(--wm-navy)] ring-[rgba(12,27,51,0.15)]',
-  neutral:   'bg-zinc-100 text-zinc-600 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:ring-zinc-700',
+  neutral:   'bg-[var(--wm-surface-alt)] text-[var(--wm-muted)] ring-[var(--wm-border)]',
 };
 
 const dotColors: Record<Tone, string> = {
@@ -26,15 +27,16 @@ const dotColors: Record<Tone, string> = {
   pending:   'bg-[var(--wm-amber)]',
   amber:     'bg-[var(--wm-amber)]',
   completed: 'bg-[var(--wm-blue)]',
-  assigned:  'bg-indigo-500',
+  assigned:  'bg-[var(--wm-blue)]',
   navy:      'bg-[var(--wm-navy)]',
   neutral:   'bg-[var(--wm-subtle)]',
 };
 
-export default function Badge({ children, tone = 'neutral', className, dot = false }: BadgeProps) {
+export default function Badge({ children, tone = 'neutral', className, dot = false, title }: BadgeProps) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${toneClasses[tone]}${className ? ` ${className}` : ''}`}
+      title={title}
     >
       {dot ? (
         <span className={`inline-block h-1.5 w-1.5 rounded-full ${dotColors[tone]}`} aria-hidden="true" />

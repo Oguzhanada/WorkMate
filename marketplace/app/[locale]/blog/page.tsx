@@ -1,6 +1,11 @@
-import Link from 'next/link';
+import type { Metadata } from 'next';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+
+export const metadata: Metadata = {
+  title: 'Blog',
+  description: 'Latest news, tips, and updates from WorkMate Ireland.',
+};
 
 type BlogItem = {
   slug: string;
@@ -76,13 +81,10 @@ export default async function BlogPage({
               <p className="mt-2 text-xs" style={{ color: 'var(--wm-subtle)' }}>
                 {new Date(post.publishedAt).toLocaleDateString('en-IE')}
               </p>
-              <div className="mt-3 flex items-center justify-between gap-2">
-                <Link href="#" className="text-sm font-semibold" style={{ color: 'var(--wm-primary-dark)' }}>
-                  Read article
-                </Link>
-                <div className="text-xs" style={{ color: 'var(--wm-muted)' }}>
-                  Share: X / LinkedIn
-                </div>
+              <div className="mt-3">
+                <span className="text-sm font-semibold" style={{ color: 'var(--wm-muted)', opacity: 0.6 }}>
+                  Full article coming soon
+                </span>
               </div>
             </Card>
           ))}

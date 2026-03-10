@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { IRISH_COUNTIES, getCitiesByCounty } from '@/lib/ireland-locations';
+import { IRISH_COUNTIES, getCitiesByCounty } from '@/lib/ireland/locations';
 import styles from './forms.module.css';
 
 export type Address = {

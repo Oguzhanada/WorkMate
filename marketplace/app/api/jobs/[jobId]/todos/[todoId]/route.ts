@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getUserRoles } from '@/lib/auth/rbac';
 import { patchJobTodoSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 async function resolveJobAccess(
   supabase: Awaited<ReturnType<typeof getSupabaseRouteClient>>,
@@ -30,7 +31,7 @@ async function resolveJobAccess(
   return roles.includes('admin') || userId === job.customer_id || userId === proId;
 }
 
-export async function PATCH(
+async function patchHandler(
   request: NextRequest,
   { params }: { params: Promise<{ jobId: string; todoId: string }> }
 ) {
@@ -66,7 +67,7 @@ export async function PATCH(
   return NextResponse.json({ todo: updated });
 }
 
-export async function DELETE(
+async function deleteHandler(
   _request: NextRequest,
   { params }: { params: Promise<{ jobId: string; todoId: string }> }
 ) {
@@ -102,3 +103,7 @@ export async function DELETE(
 
   return NextResponse.json({ success: true });
 }
+
+export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);
+
+export const DELETE = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, deleteHandler);

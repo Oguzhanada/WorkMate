@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 
 import {
@@ -9,11 +9,45 @@ import {
   ProviderDocumentDraft,
   ProviderDocumentType,
   validateProviderDocumentDraft,
-} from '@/lib/provider-documents';
+} from '@/lib/data/documents';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import ProgressBar from '@/components/ui/ProgressBar';
 
 import styles from './pro-onboarding.module.css';
+
+/* ─── Auto-save helpers ─── */
+const DRAFT_STORAGE_KEY = 'wm_onboarding_draft';
+
+interface SavedDraft {
+  mode: 'customer' | 'provider';
+  primaryCategory: string;
+  secondaryCategories: string[];
+  draftType: string;
+  expiresAt: string;
+  coverageAmountEur: string;
+  croNumber: string;
+  licenseCode: string;
+  otherDescription: string;
+}
+
+function loadDraft(): SavedDraft | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as SavedDraft;
+  } catch {
+    return null;
+  }
+}
+
+function saveDraft(draft: SavedDraft) {
+  localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+}
+
+function clearDraft() {
+  localStorage.removeItem(DRAFT_STORAGE_KEY);
+}
 
 type ExistingDocument = {
   id: string;
@@ -74,22 +108,43 @@ export default function ProOnboardingForm({
   existingDocuments = [],
   onSubmitted,
 }: Props) {
-  const [mode, setMode] = useState<'customer' | 'provider'>(accountRole);
+  const saved = useMemo(() => loadDraft(), []);
+
+  const [mode, setMode] = useState<'customer' | 'provider'>(saved?.mode ?? accountRole);
   const [draft, setDraft] = useState<ProviderDocumentDraft>({
-    type: 'id_verification',
+    type: (saved?.draftType as ProviderDocumentType) ?? 'id_verification',
     file: null,
-    expiresAt: '',
-    coverageAmountEur: '',
-    croNumber: '',
-    licenseCode: '',
-    otherDescription: '',
+    expiresAt: saved?.expiresAt ?? '',
+    coverageAmountEur: saved?.coverageAmountEur ?? '',
+    croNumber: saved?.croNumber ?? '',
+    licenseCode: saved?.licenseCode ?? '',
+    otherDescription: saved?.otherDescription ?? '',
   });
   const [uploaded, setUploaded] = useState<ExistingDocument[]>(existingDocuments);
-  const [primaryCategory, setPrimaryCategory] = useState('');
-  const [secondaryCategories, setSecondaryCategories] = useState<string[]>([]);
+  const [primaryCategory, setPrimaryCategory] = useState(saved?.primaryCategory ?? '');
+  const [secondaryCategories, setSecondaryCategories] = useState<string[]>(saved?.secondaryCategories ?? []);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [isPending, setIsPending] = useState(false);
+
+  // Auto-save form state on changes
+  const persistDraft = useCallback(() => {
+    saveDraft({
+      mode,
+      primaryCategory,
+      secondaryCategories,
+      draftType: draft.type,
+      expiresAt: draft.expiresAt ?? '',
+      coverageAmountEur: draft.coverageAmountEur ?? '',
+      croNumber: draft.croNumber ?? '',
+      licenseCode: draft.licenseCode ?? '',
+      otherDescription: draft.otherDescription ?? '',
+    });
+  }, [mode, primaryCategory, secondaryCategories, draft]);
+
+  useEffect(() => {
+    persistDraft();
+  }, [persistDraft]);
 
   const requiredByMode = useMemo(
     () => (mode === 'provider' ? PROVIDER_REQUIRED_DOCUMENTS : (['id_verification'] as ProviderDocumentType[])),
@@ -211,6 +266,7 @@ export default function ProOnboardingForm({
       return;
     }
 
+    clearDraft();
     setMessage('Application submitted. Admin will review each document and notify you.');
     await onSubmitted?.();
   };

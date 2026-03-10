@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 const AVATAR_BUCKET = 'profile-avatars';
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
@@ -29,7 +30,7 @@ async function ensureAvatarBucket() {
   return createError ? createError.message : null;
 }
 
-export async function POST(request: Request) {
+async function postHandler(request: Request) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -99,7 +100,7 @@ export async function POST(request: Request) {
   return NextResponse.json({ avatar_url: avatarUrl }, { status: 200 });
 }
 
-export async function DELETE() {
+async function deleteHandler() {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -127,3 +128,7 @@ export async function DELETE() {
 
   return NextResponse.json({ ok: true }, { status: 200 });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);
+
+export const DELETE = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, deleteHandler);

@@ -45,9 +45,9 @@ export default function ProfileCompletionCard({items, showProviderCta = false}: 
     [items.length, completeCount]
   );
   const progressColor = useMemo(() => {
-    if (animatedPercent < 30) return '#ff7675';
-    if (animatedPercent < 70) return '#e59b2e';
-    return '#00b894';
+    if (animatedPercent < 30) return 'var(--wm-destructive)';
+    if (animatedPercent < 70) return 'var(--wm-amber)';
+    return 'var(--wm-primary)';
   }, [animatedPercent]);
 
   useEffect(() => {

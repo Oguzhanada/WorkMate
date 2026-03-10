@@ -66,9 +66,9 @@ function SortableWidgetCard({
         className={`h-full rounded-[1.4rem] transition-shadow duration-300 ${
           isDragging ? 'shadow-xl' : 'hover:shadow-[var(--wm-shadow-lg)]'
         }`}
-        style={{ border: '1px solid var(--wm-border)', background: 'rgba(255,255,255,0.96)' }}
+        style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)' }}
       >
-        <div className="mb-3 flex items-center justify-between gap-2 border-b pb-2.5" style={{ borderColor: 'rgba(15,23,42,0.08)' }}>
+        <div className="mb-3 flex items-center justify-between gap-2 border-b pb-2.5" style={{ borderColor: 'var(--wm-border)' }}>
           <button
             type="button"
             {...attributes}
@@ -79,10 +79,10 @@ function SortableWidgetCard({
           >
             <GripVertical className="h-4 w-4" />
           </button>
-          <p className="text-sm font-bold" style={{ color: '#0f172a' }}>{getWidgetLabel(widget.widget_type as WidgetType)}</p>
+          <p className="text-sm font-bold" style={{ color: 'var(--wm-foreground)' }}>{getWidgetLabel(widget.widget_type as WidgetType)}</p>
           <button
             type="button"
-            className="rounded-lg p-1 hover:text-red-500" style={{ color: 'var(--wm-subtle)' }}
+            className="rounded-lg p-1 transition-colors [&:hover]:text-[var(--wm-destructive)]" style={{ color: 'var(--wm-subtle)' }}
             onClick={() => onRemove(widget.id)}
             disabled={disabled}
             aria-label={`Remove ${widget.widget_type}`}

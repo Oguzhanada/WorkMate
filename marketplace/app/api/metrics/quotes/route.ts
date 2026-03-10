@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
+import { ensureAdminRoute } from '@/lib/auth/admin';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 
 export async function GET() {
+  const auth = await ensureAdminRoute();
+  if (auth.error) return auth.error;
+
   const supabase = getSupabaseServiceClient();
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 

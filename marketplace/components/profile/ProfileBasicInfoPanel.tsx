@@ -4,7 +4,7 @@ import {useEffect, useMemo, useRef, useState} from 'react';
 import {useRouter} from 'next/navigation';
 import {getSupabaseBrowserClient} from '@/lib/supabase/client';
 import {hasAtLeastTwoNameParts, isValidEnglishFullName} from '@/lib/validation/name';
-import {isValidIrishPhone, normalizeIrishPhone, sanitizePhoneInput} from '@/lib/validation/phone';
+import {isValidIrishPhone, normalizeIrishPhone, sanitizePhoneInput} from '@/lib/ireland/phone';
 import styles from './profile-basic.module.css';
 
 type Props = {
@@ -13,6 +13,8 @@ type Props = {
   email: string;
   statusLabel: string;
   initialEditField?: 'name' | 'phone' | null;
+  /** When true, skip the outer card wrapper (for embedding inside ProfileSection) */
+  embedded?: boolean;
 };
 
 export default function ProfileBasicInfoPanel({
@@ -21,6 +23,7 @@ export default function ProfileBasicInfoPanel({
   email,
   statusLabel,
   initialEditField = null,
+  embedded = false,
 }: Props) {
   const router = useRouter();
   const [fullName, setFullName] = useState(initialFullName);
@@ -88,8 +91,8 @@ export default function ProfileBasicInfoPanel({
   };
 
   return (
-    <div className={styles.card}>
-      <h2>Account Details</h2>
+    <div className={embedded ? undefined : styles.card}>
+      {embedded ? null : <h2>Account Details</h2>}
 
       <div className={styles.row}>
         <div className={styles.left}>

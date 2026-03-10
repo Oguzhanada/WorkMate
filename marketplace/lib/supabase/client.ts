@@ -1,3 +1,14 @@
+/**
+ * Browser Supabase Client
+ *
+ * Use in: Client components, browser-only code, useEffect hooks
+ * Pattern: Module-scope singleton with lazy initialization (safe in browser)
+ * Auth: Uses anon key — respects RLS policies
+ *
+ * @example
+ * import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+ * const supabase = getSupabaseBrowserClient();
+ */
 'use client';
 
 import {createBrowserClient} from '@supabase/ssr';

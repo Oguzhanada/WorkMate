@@ -80,19 +80,19 @@ export default function ApiKeyCard({ initialApiKey, initialRateLimit }: Props) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3>Public API Access</h3>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="mt-1 text-sm" style={{ color: 'var(--wm-muted)' }}>
             Manage your API key for `/api/public/v1/*` integrations.
           </p>
         </div>
         <Badge tone={apiKey ? 'open' : 'neutral'}>{apiKey ? 'Active key' : 'No key'}</Badge>
       </div>
 
-      <div className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900/60">
+      <div className="mt-4 rounded-xl px-3 py-2 text-sm" style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-bg)' }}>
         <p className="font-medium">API key</p>
         <code className="mt-1 block break-all text-xs">{displayKey}</code>
       </div>
 
-      <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">Rate limit: {rateLimit} requests/day</p>
+      <p className="mt-3 text-sm" style={{ color: 'var(--wm-muted)' }}>Rate limit: {rateLimit} requests/day</p>
 
       <div className="mt-4 flex flex-wrap gap-2">
         <Button
@@ -137,8 +137,8 @@ export default function ApiKeyCard({ initialApiKey, initialRateLimit }: Props) {
         </Button>
       </div>
 
-      {error ? <p className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p> : null}
-      {ok ? <p className="mt-3 text-sm" style={{ color: 'var(--wm-primary)' }}>{ok}</p> : null}
+      {error ? <p className="mt-3 text-sm" style={{ color: 'var(--wm-destructive)' }}>{error}</p> : null}
+      {ok ? <p className="mt-3 text-sm" style={{ color: 'var(--wm-primary-dark)' }}>{ok}</p> : null}
     </Card>
   );
 }

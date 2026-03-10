@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
-import { normalizeEircode, isValidEircode } from '@/lib/eircode';
+import { normalizeEircode, isValidEircode } from '@/lib/ireland/eircode';
 import { profileAddressSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiValidationError, apiUnauthorized } from '@/lib/api/error-response';
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -11,7 +13,7 @@ export async function POST(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   // Some OAuth signups may miss a profile row if setup triggers were not applied.
@@ -29,28 +31,25 @@ export async function POST(request: NextRequest) {
     );
 
   if (ensureProfileError) {
-    return NextResponse.json({ error: ensureProfileError.message }, { status: 400 });
+    return apiError(ensureProfileError.message, 400);
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = profileAddressSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiValidationError(parsed.error.issues);
   }
 
   const body = parsed.data;
   const eircode = normalizeEircode(body.eircode);
   if (!isValidEircode(eircode)) {
-    return NextResponse.json({ error: 'Invalid Eircode format' }, { status: 400 });
+    return apiError('Invalid Eircode format', 400);
   }
 
   const payload = {
@@ -79,15 +78,17 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return apiError(error.message, 400);
     }
     return NextResponse.json({ address: data }, { status: 200 });
   }
 
   const { data, error } = await supabase.from('addresses').insert(payload).select('*').single();
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return apiError(error.message, 400);
   }
 
   return NextResponse.json({ address: data }, { status: 201 });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

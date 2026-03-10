@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
@@ -9,6 +10,11 @@ import Shell from '@/components/ui/Shell';
 import PageHeader from '@/components/ui/PageHeader';
 import ComplianceBadge from '@/components/ui/ComplianceBadge';
 import FavouriteButton from '@/components/providers/FavouriteButton';
+
+export const metadata: Metadata = {
+  title: 'Saved Providers',
+  description: 'Your saved service providers on WorkMate.',
+};
 
 export default async function SavedProvidersPage({
   params,

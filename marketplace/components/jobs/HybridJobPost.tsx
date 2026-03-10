@@ -1,115 +1,96 @@
 'use client';
 
-import type { ReactNode } from 'react';
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Check, FileText, Target, Zap } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Check, FileText, Target, Zap } from 'lucide-react';
 import type { JobMode } from '@/lib/types/airtasker';
 import styles from './hybrid-job-post.module.css';
 
 type JobModeOption = {
   id: JobMode;
-  icon: ReactNode;
+  icon: React.ReactNode;
   title: string;
   description: string;
-  bestFor: string;
-  colorClass: string;
 };
 
 const JOB_MODES: JobModeOption[] = [
   {
+    id: 'get_quotes',
+    icon: <FileText className={styles.modeIconSvg} />,
+    title: 'Get Quotes',
+    description: 'Receive unlimited quotes and compare at your pace. Best for: complex work and detailed comparison.',
+  },
+  {
     id: 'quick_hire',
     icon: <Zap className={styles.modeIconSvg} />,
     title: 'Quick Hire',
-    description: 'Post fast and compare offers from available providers.',
-    bestFor: 'Flexible budget and fast turnaround',
-    colorClass: styles.modeIconQuick,
+    description: 'Urgent flag + limited to 5 quotes for fast decisions. Best for: flexible budget, fast turnaround.',
   },
   {
     id: 'direct_request',
     icon: <Target className={styles.modeIconSvg} />,
     title: 'Direct Request',
-    description: 'Choose a specific provider and request a direct booking.',
-    bestFor: 'Known provider and urgent timeline',
-    colorClass: styles.modeIconDirect,
-  },
-  {
-    id: 'get_quotes',
-    icon: <FileText className={styles.modeIconSvg} />,
-    title: 'Get Quotes',
-    description: 'Share project details and receive structured quotes.',
-    bestFor: 'Complex work and detailed comparison',
-    colorClass: styles.modeIconQuotes,
+    description: 'Send to a specific provider you already know. Only they can respond.',
   },
 ];
 
 type HybridJobPostProps = {
   selectedMode?: JobMode;
   onModeSelect: (mode: JobMode) => void;
+  collapsed?: boolean;
 };
 
-export default function HybridJobPost({ selectedMode, onModeSelect }: HybridJobPostProps) {
-  const [hoveredMode, setHoveredMode] = useState<JobMode | null>(null);
+export default function HybridJobPost({ selectedMode, onModeSelect, collapsed = false }: HybridJobPostProps) {
+  const [expanded, setExpanded] = useState(!collapsed);
+
+  if (!expanded) {
+    const current = JOB_MODES.find((m) => m.id === selectedMode) ?? JOB_MODES[0];
+    return (
+      <button
+        type="button"
+        className={styles.collapsedToggle}
+        onClick={() => setExpanded(true)}
+      >
+        <span className={styles.collapsedIcon}>{current.icon}</span>
+        <span className={styles.collapsedLabel}>
+          Posting as <strong>{current.title}</strong>
+        </span>
+        <span className={styles.collapsedChange}>Change</span>
+      </button>
+    );
+  }
 
   return (
-    <section className={styles.wrapper} aria-label="Job posting mode selector">
-      <header className={styles.header}>
-        <h2 className={styles.title}>Choose your posting mode</h2>
-        <p className={styles.subtitle}>Select the flow that best matches your hiring intent.</p>
-      </header>
-
+    <div className={styles.wrapper} role="radiogroup" aria-label="Job posting mode">
+      <p className={styles.label}>How would you like to hire?</p>
       <div className={styles.grid}>
         {JOB_MODES.map((mode) => {
           const isSelected = selectedMode === mode.id;
-          const isHovered = hoveredMode === mode.id;
-
           return (
             <motion.button
               key={mode.id}
               type="button"
-              onHoverStart={() => setHoveredMode(mode.id)}
-              onHoverEnd={() => setHoveredMode(null)}
-              onClick={() => onModeSelect(mode.id)}
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.995 }}
+              onClick={() => {
+                onModeSelect(mode.id);
+                if (collapsed) setExpanded(false);
+              }}
+              whileTap={{ scale: 0.98 }}
               className={`${styles.card} ${isSelected ? styles.cardSelected : ''}`}
+              role="radio"
+              aria-checked={isSelected}
             >
-              <div className={`${styles.modeIcon} ${mode.colorClass}`}>{mode.icon}</div>
-              <h3 className={styles.cardTitle}>{mode.title}</h3>
-              <p className={styles.cardDescription}>{mode.description}</p>
-              <p className={styles.cardHint}>Best for: {mode.bestFor}</p>
-
-              <AnimatePresence>
-                {isSelected ? (
-                  <motion.span
-                    key="selected"
-                    initial={{ opacity: 0, scale: 0.6 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.6 }}
-                    className={styles.selectedBadge}
-                  >
-                    <Check className={styles.selectedBadgeIcon} />
-                  </motion.span>
-                ) : null}
-              </AnimatePresence>
-
-              <AnimatePresence>
-                {isHovered || isSelected ? (
-                  <motion.span
-                    key="arrow"
-                    initial={{ opacity: 0, x: -6 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -6 }}
-                    className={styles.arrow}
-                  >
-                    <ArrowRight className={styles.arrowIcon} />
-                  </motion.span>
-                ) : null}
-              </AnimatePresence>
+              <span className={`${styles.radio} ${isSelected ? styles.radioActive : ''}`}>
+                {isSelected ? <Check className={styles.radioCheck} /> : null}
+              </span>
+              <span className={styles.modeIcon}>{mode.icon}</span>
+              <span className={styles.cardBody}>
+                <span className={styles.cardTitle}>{mode.title}</span>
+                <span className={styles.cardDescription}>{mode.description}</span>
+              </span>
             </motion.button>
           );
         })}
       </div>
-    </section>
+    </div>
   );
 }

@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 
@@ -6,12 +7,12 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 // Vercel KV / Redis in production.
 const rateLimitStore = new Map<string, { count: number; day: string }>();
 
-function checkRateLimit(apiKey: string, limit: number): boolean {
+function checkRateLimit(keyHash: string, limit: number): boolean {
   const today = new Date().toISOString().slice(0, 10);
-  const current = rateLimitStore.get(apiKey);
+  const current = rateLimitStore.get(keyHash);
 
   if (!current || current.day !== today) {
-    rateLimitStore.set(apiKey, { count: 1, day: today });
+    rateLimitStore.set(keyHash, { count: 1, day: today });
     return true;
   }
 
@@ -19,6 +20,10 @@ function checkRateLimit(apiKey: string, limit: number): boolean {
 
   current.count++;
   return true;
+}
+
+export function hashApiKey(plaintext: string): string {
+  return createHash('sha256').update(plaintext).digest('hex');
 }
 
 // ── Auth result type ───────────────────────────────────────────────────────
@@ -31,6 +36,7 @@ export type PublicAuthResult =
 
 /**
  * Validates `x-api-key` header and enforces per-key daily rate limits.
+ * The plaintext key is hashed (SHA-256) before DB lookup — never stored raw.
  * Used by all `/api/public/v1/*` route handlers.
  */
 export async function authenticatePublicRequest(
@@ -48,11 +54,13 @@ export async function authenticatePublicRequest(
     };
   }
 
+  const keyHash = hashApiKey(apiKey);
+
   const svc = getSupabaseServiceClient();
   const { data: profile, error } = await svc
     .from('profiles')
     .select('id, api_rate_limit')
-    .eq('api_key', apiKey)
+    .eq('api_key_hash', keyHash)
     .maybeSingle();
 
   if (error || !profile) {
@@ -62,7 +70,7 @@ export async function authenticatePublicRequest(
     };
   }
 
-  const allowed = checkRateLimit(apiKey, profile.api_rate_limit ?? 1000);
+  const allowed = checkRateLimit(keyHash, profile.api_rate_limit ?? 1000);
   if (!allowed) {
     return {
       profileId: null,

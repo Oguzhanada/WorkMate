@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import Button from '@/components/ui/Button';
 import styles from '../inner.module.css';
 
 export default function ResetPasswordPage() {
@@ -35,7 +36,7 @@ export default function ResetPasswordPage() {
   };
   const isStrong = Object.values(checks).every(Boolean);
   const score = Math.round((Object.values(checks).filter(Boolean).length / 5) * 100);
-  const strengthColor = score < 40 ? '#e67e22' : score < 80 ? '#f1c40f' : '#22a55c';
+  const strengthColor = score < 40 ? 'var(--wm-destructive)' : score < 80 ? 'var(--wm-amber)' : 'var(--wm-primary)';
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -125,9 +126,9 @@ export default function ResetPasswordPage() {
         </div>
 
         <div className={styles.actions}>
-          <button type="submit" className={styles.primary} disabled={isPending || !isSessionReady}>
+          <Button type="submit" variant="primary" disabled={isPending || !isSessionReady} loading={isPending}>
             {isPending ? t('resetting') : t('resetPassword')}
-          </button>
+          </Button>
           <Link href={`/login`} className={styles.secondary}>
             {t('backToLogin')}
           </Link>

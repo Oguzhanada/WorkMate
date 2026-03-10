@@ -1,0 +1,176 @@
+:root {
+  /* Semantic color scale */
+  --color-primary-50: #ecfdf5;
+  --color-primary-100: #d1fae5;
+  --color-primary-200: #a7f3d0;
+  --color-primary-300: #6ee7b7;
+  --color-primary-400: #34d399;
+  --color-primary-500: #10b981;
+  --color-primary-600: #059669;
+  --color-primary-700: #047857;
+  --color-primary-800: #065f46;
+  --color-primary-900: #064e3b;
+
+  --color-neutral-50: #f8fafc;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #64748b;
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-800: #1e293b;
+  --color-neutral-900: #0f172a;
+
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-error: #dc2626;
+  --color-info: #2563eb;
+
+  --color-background-primary: #eef3f1;
+  --color-background-secondary: #ffffff;
+  --color-surface: rgba(255, 255, 255, 0.95);
+
+  --color-text-primary: var(--color-neutral-900);
+  --color-text-secondary: var(--color-neutral-700);
+  --color-text-muted: var(--color-neutral-600);
+  --color-text-soft: var(--color-neutral-500);
+
+  --color-border-default: #dbe1e7;
+  --color-border-strong: var(--color-neutral-300);
+
+  /* Typography */
+  --font-family-heading: 'Syne', 'DM Sans', sans-serif;
+  --font-family-body: 'Plus Jakarta Sans', 'DM Sans', system-ui, sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  --font-size-xs: clamp(0.75rem, 0.72rem + 0.1vw, 0.8rem);
+  --font-size-sm: clamp(0.875rem, 0.84rem + 0.15vw, 0.95rem);
+  --font-size-md: clamp(1rem, 0.96rem + 0.2vw, 1.05rem);
+  --font-size-lg: clamp(1.125rem, 1.05rem + 0.3vw, 1.25rem);
+  --font-size-xl: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+  --font-size-2xl: clamp(1.5rem, 1.3rem + 0.8vw, 2rem);
+  --font-size-3xl: clamp(1.875rem, 1.6rem + 1vw, 2.5rem);
+  --font-size-4xl: clamp(2.25rem, 1.9rem + 1.2vw, 3rem);
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* 8px spacing system */
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  --radius-none: 0;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-full: 9999px;
+
+  --border-width-thin: 1px;
+  --border-width-medium: 2px;
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 10px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 10px 24px rgba(15, 23, 42, 0.12);
+  --shadow-xl: 0 18px 40px rgba(15, 23, 42, 0.16);
+
+  /* Backward-compatible WorkMate aliases */
+  --wm-font-display: var(--font-family-heading);
+  --wm-font-sans: var(--font-family-body);
+
+  --wm-primary: var(--color-primary-500);
+  --wm-primary-dark: var(--color-primary-600);
+  --wm-primary-mid: #0ea878;
+  --wm-primary-rgb: 16, 185, 129;
+  --wm-primary-light: var(--color-primary-100);
+  --wm-primary-faint: var(--color-primary-50);
+
+  --wm-navy: var(--color-neutral-900);
+  --wm-navy-mid: var(--color-neutral-800);
+  --wm-navy-soft: var(--color-neutral-700);
+  --wm-navy-rgb: 15, 23, 42;
+
+  --wm-amber: #f59e0b;
+  --wm-amber-dark: var(--color-warning);
+  --wm-amber-light: #fffbeb;
+  --wm-amber-faint: #fefce8;
+
+  --wm-blue: var(--color-info);
+  --wm-blue-dark: #1d4ed8;
+  --wm-blue-soft: #eff6ff;
+
+  --wm-destructive: var(--color-error);
+  --wm-destructive-dark: #b91c1c;
+  --wm-destructive-rgb: 220, 38, 38;
+  --wm-destructive-light: #fef2f2;
+
+  --wm-accent: var(--wm-navy);
+  --wm-bg: var(--color-background-primary);
+  --wm-surface: var(--color-surface);
+  --wm-text-strong: #0b1324;
+  --wm-text-default: var(--color-text-primary);
+  --wm-text-muted: var(--color-text-secondary);
+  --wm-text-soft: var(--color-text-muted);
+  --wm-text: var(--color-text-primary);
+  --wm-muted: var(--color-text-secondary);
+  --wm-subtle: var(--color-text-muted);
+  --wm-border: var(--color-border-default);
+  --wm-border-soft: rgba(0, 0, 0, 0.06);
+
+  --wm-radius-xs: 0.375rem;
+  --wm-radius-sm: 0.5rem;
+  --wm-radius-md: 0.75rem;
+  --wm-radius-lg: 1rem;
+  --wm-radius-xl: 1.25rem;
+  --wm-radius-2xl: 1.5rem;
+  --wm-radius-3xl: 2rem;
+
+  --wm-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --wm-shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.07);
+  --wm-shadow-md: 0 8px 20px rgba(15, 23, 42, 0.08);
+  --wm-shadow-lg: 0 14px 36px rgba(15, 23, 42, 0.1);
+  --wm-shadow-xl: 0 22px 50px rgba(15, 23, 42, 0.14);
+  --wm-shadow-2xl: 0 40px 80px rgba(0, 0, 0, 0.12), 0 16px 32px rgba(0, 0, 0, 0.06);
+
+  --wm-glow-primary: 0 0 0 3px rgba(0, 184, 148, 0.18), 0 8px 24px rgba(0, 184, 148, 0.22);
+  --wm-glow-navy: 0 0 0 3px rgba(12, 27, 51, 0.15), 0 8px 24px rgba(12, 27, 51, 0.18);
+  --wm-glow-amber: 0 0 0 3px rgba(245, 158, 11, 0.18), 0 8px 24px rgba(245, 158, 11, 0.2);
+
+  --wm-grad-primary: linear-gradient(135deg, var(--wm-primary) 0%, var(--wm-primary-dark) 100%);
+  --wm-grad-navy: linear-gradient(145deg, #0f172a 0%, #111f3f 65%, #1f2f55 100%);
+  --wm-grad-warm: linear-gradient(135deg, var(--wm-amber) 0%, var(--wm-amber-dark) 100%);
+  --wm-grad-hero: linear-gradient(180deg, #eef3f1 0%, #f3f5f6 58%, #eef4f3 100%);
+
+  --wm-glass: rgba(255, 255, 255, 0.72);
+  --wm-glass-border: rgba(255, 255, 255, 0.55);
+  --wm-glass-dark: rgba(12, 27, 51, 0.65);
+
+  --wm-transition-fast: 100ms cubic-bezier(0.4, 0, 0.2, 1);
+  --wm-transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --wm-transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+  --wm-transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+[data-theme="dark"] {
+  --color-background-primary: var(--color-neutral-900);
+  --color-background-secondary: var(--color-neutral-800);
+  --color-surface: rgba(30, 41, 59, 0.95);
+  --color-text-primary: var(--color-neutral-50);
+  --color-text-secondary: var(--color-neutral-200);
+  --color-text-muted: var(--color-neutral-300);
+  --color-border-default: #334155;
+  --color-border-strong: #475569;
+}

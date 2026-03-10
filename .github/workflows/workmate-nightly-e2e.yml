@@ -2,8 +2,9 @@ name: WorkMate Nightly E2E
 
 on:
   schedule:
-    - cron: '0 2 * * *'
+    - cron: '0 2 * * *'  # nightly at 02:00 UTC
   workflow_dispatch:
+  # NOTE: no push trigger — CI Tests already runs smoke E2E on every push
 
 jobs:
   nightly-e2e:

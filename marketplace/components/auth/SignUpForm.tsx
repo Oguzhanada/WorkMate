@@ -19,14 +19,15 @@ import {z} from 'zod';
 
 import {getSupabaseBrowserClient} from '@/lib/supabase/client';
 import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
-import {getCitiesByCounty} from '@/lib/ireland-locations';
-import {isValidIrishPhone, normalizeIrishPhone} from '@/lib/validation/phone';
+import {getCitiesByCounty} from '@/lib/ireland/locations';
+import {isValidIrishPhone, normalizeIrishPhone} from '@/lib/ireland/phone';
 import {formItemVariants, formListVariants, rightColumnVariants} from '@/styles/animations';
 import {IdentityConsent} from './IdentityConsent';
 import {PasswordChecks, PasswordStrength} from './PasswordStrength';
 import {RoleSelector, AccountRole} from './RoleSelector';
 import {SecurityDropdown} from './SecurityDropdown';
 import {SocialButtons} from './SocialButtons';
+import Button from '@/components/ui/Button';
 import styles from './login.module.css';
 
 const counties26 = [
@@ -116,8 +117,15 @@ type FieldErrors = Partial<Record<keyof SignUpFormData, string>>;
 
 type EircodeStatus = 'idle' | 'validating' | 'valid' | 'invalid';
 
+type SignUpDraft = {
+  role: AccountRole;
+  form: SignUpFormData;
+  eircodeStatus: EircodeStatus;
+};
+
 const AUTH_TIMEOUT_MS = 15000;
 const AUTH_PING_TIMEOUT_MS = 5000;
+const SIGNUP_DRAFT_KEY = 'workmate.signup.draft.v1';
 
 async function canReachAuthServer() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -261,6 +269,28 @@ export function SignUpForm() {
   const [eircodeStatus, setEircodeStatus] = useState<EircodeStatus>('idle');
 
   useEffect(() => {
+    try {
+      const raw = window.sessionStorage.getItem(SIGNUP_DRAFT_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as Partial<SignUpDraft>;
+      if (parsed?.role === 'customer' || parsed?.role === 'provider') {
+        setRole(parsed.role);
+      }
+      if (parsed?.form && typeof parsed.form === 'object') {
+        setForm((prev) => ({...prev, ...parsed.form}));
+      }
+      if (
+        parsed?.eircodeStatus === 'idle' ||
+        parsed?.eircodeStatus === 'validating' ||
+        parsed?.eircodeStatus === 'valid' ||
+        parsed?.eircodeStatus === 'invalid'
+      ) {
+        setEircodeStatus(parsed.eircodeStatus);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const nextIntentId = params.get('intent') ?? '';
     const nextIntentEmail = params.get('email') ?? '';
@@ -270,6 +300,13 @@ export function SignUpForm() {
       setForm((prev) => ({...prev, email: prev.email || nextIntentEmail}));
     }
   }, []);
+
+  useEffect(() => {
+    try {
+      const draft: SignUpDraft = {role, form, eircodeStatus};
+      window.sessionStorage.setItem(SIGNUP_DRAFT_KEY, JSON.stringify(draft));
+    } catch {}
+  }, [role, form, eircodeStatus]);
 
   const passwordChecks = useMemo(() => getPasswordChecks(form.password), [form.password]);
 
@@ -406,6 +443,10 @@ export function SignUpForm() {
         setFormError('❌ Something went wrong. Please try again.');
         return;
       }
+
+      try {
+        window.sessionStorage.removeItem(SIGNUP_DRAFT_KEY);
+      } catch {}
 
       const nextQuery = intentId
         ? `?intent=${encodeURIComponent(intentId)}${intentEmail ? `&email=${encodeURIComponent(intentEmail)}` : ''}`
@@ -602,8 +643,9 @@ export function SignUpForm() {
                     {eircodeStatus === 'valid' ? <CheckCircle2 size={16} color="var(--wm-primary)" /> : null}
                     {eircodeStatus === 'invalid' ? <CircleX size={16} color="var(--wm-destructive)" /> : null}
                   </div>
-                  <button
-                    type="button"
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     className={styles.smallButton}
                     onClick={handleAddressLookup}
                     disabled={eircodeStatus === 'validating'}
@@ -619,7 +661,7 @@ export function SignUpForm() {
                     ) : (
                       'Validate'
                     )}
-                  </button>
+                  </Button>
                 </div>
                 {errors.eircode ? <p className={styles.fieldError}>{errors.eircode}</p> : null}
               </label>
@@ -636,14 +678,15 @@ export function SignUpForm() {
                 onChange={(event) => updateField('password', event.target.value)}
                 placeholder="••••••••••"
               />
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 className={styles.togglePassword}
-                type="button"
                 onClick={() => setShowPassword((current) => !current)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-              </button>
+              </Button>
             </div>
             {errors.password ? <p className={styles.fieldError}>{errors.password}</p> : null}
           </label>
@@ -657,14 +700,15 @@ export function SignUpForm() {
                 onChange={(event) => updateField('confirmPassword', event.target.value)}
                 placeholder="••••••••••"
               />
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 className={styles.togglePassword}
-                type="button"
                 onClick={() => setShowConfirmPassword((current) => !current)}
                 aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
               >
                 {showConfirmPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-              </button>
+              </Button>
             </div>
             {errors.confirmPassword ? <p className={styles.fieldError}>{errors.confirmPassword}</p> : null}
           </label>
@@ -684,15 +728,16 @@ export function SignUpForm() {
           </div>
 
           <div className={styles.fullWidth}>
-            <button type="submit" className={styles.primaryButton} disabled={loading}>
-              {isPending ? (
-                <>
-                  <Loader2 size={18} className={styles.spinner} /> Creating account...
-                </>
-              ) : (
-                'Create account'
-              )}
-            </button>
+            <Button
+              type="submit"
+              variant="primary"
+              fullWidth
+              className={styles.primaryButton}
+              disabled={loading}
+              loading={isPending}
+            >
+              {isPending ? 'Creating account...' : 'Create account'}
+            </Button>
           </div>
         </motion.form>
 

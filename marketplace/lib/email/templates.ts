@@ -1,6 +1,7 @@
 const BASE_URL = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'https://workmate.ie';
+const PLATFORM_LOCALE = process.env.NEXT_PUBLIC_DEFAULT_LOCALE ?? 'en';
 
-const BRAND_COLOR = '#1a56db';
+const BRAND_COLOR = '#059669';
 const BG = '#f8fafc';
 const CARD_BG = '#ffffff';
 const TEXT = '#1e293b';
@@ -50,7 +51,7 @@ export type QuoteReceivedData = {
 };
 
 export function quoteReceivedEmail(data: QuoteReceivedData): { subject: string; html: string } {
-  const jobUrl = `${BASE_URL}/en/jobs/${data.jobId}`;
+  const jobUrl = `${BASE_URL}/${PLATFORM_LOCALE}/jobs/${data.jobId}`;
   const subject = `New quote received for "${data.jobTitle}"`;
   const html = layout(`
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;">You have a new quote</h2>
@@ -89,7 +90,7 @@ export type QuoteAcceptedData = {
 };
 
 export function quoteAcceptedEmail(data: QuoteAcceptedData): { subject: string; html: string } {
-  const jobUrl = `${BASE_URL}/en/jobs/${data.jobId}`;
+  const jobUrl = `${BASE_URL}/${PLATFORM_LOCALE}/jobs/${data.jobId}`;
   const subject = `Your quote for "${data.jobTitle}" was accepted!`;
   const html = layout(`
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;">Quote accepted</h2>
@@ -127,7 +128,7 @@ export type PaymentReleasedData = {
 };
 
 export function paymentReleasedEmail(data: PaymentReleasedData): { subject: string; html: string } {
-  const jobUrl = `${BASE_URL}/en/jobs/${data.jobId}`;
+  const jobUrl = `${BASE_URL}/${PLATFORM_LOCALE}/jobs/${data.jobId}`;
   const subject = `Payment of €${data.amountEur} released for "${data.jobTitle}"`;
   const html = layout(`
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;">Payment released</h2>
@@ -147,6 +148,277 @@ export function paymentReleasedEmail(data: PaymentReleasedData): { subject: stri
     ${ctaButton('View job', jobUrl)}
 
     <p style="margin-top:24px;font-size:13px;color:${MUTED};">Funds typically arrive in your Stripe-connected account within 2 business days.</p>
+  `);
+  return { subject, html };
+}
+
+// ── Contract: created (provider notification) ────────────────────────────────
+
+export type ContractCreatedData = {
+  to: string;
+  providerName: string;
+  customerName: string;
+  jobTitle: string;
+  contractUrl: string;
+};
+
+export function contractCreatedEmail(data: ContractCreatedData): { subject: string; html: string } {
+  const subject = `New contract awaiting your signature — "${data.jobTitle}"`;
+  const html = layout(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;">Contract ready to sign</h2>
+    <p style="margin:0 0 20px;color:${MUTED};">${data.customerName} has created a contract for the following job and is awaiting your signature.</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG};border-radius:8px;padding:16px;margin-bottom:20px;">
+      <tr><td style="padding:4px 0;">
+        <span style="color:${MUTED};font-size:13px;">Job</span><br />
+        <strong>${data.jobTitle}</strong>
+      </td></tr>
+      <tr><td style="padding:12px 0 4px;">
+        <span style="color:${MUTED};font-size:13px;">Customer</span><br />
+        <strong>${data.customerName}</strong>
+      </td></tr>
+    </table>
+
+    ${ctaButton('Review and sign contract', data.contractUrl)}
+
+    <p style="margin-top:24px;font-size:13px;color:${MUTED};">Please review the contract terms carefully before signing.</p>
+  `);
+  return { subject, html };
+}
+
+// ── Contract: signed (customer notification) ──────────────────────────────────
+
+export type ContractSignedData = {
+  to: string;
+  customerName: string;
+  jobTitle: string;
+  contractUrl: string;
+};
+
+export function contractSignedEmail(data: ContractSignedData): { subject: string; html: string } {
+  const subject = `Contract signed for "${data.jobTitle}"`;
+  const html = layout(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;">Contract signed</h2>
+    <p style="margin:0 0 20px;color:${MUTED};">Hi ${data.customerName}, the service provider has signed the contract for your job.</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG};border-radius:8px;padding:16px;margin-bottom:20px;">
+      <tr><td style="padding:4px 0;">
+        <span style="color:${MUTED};font-size:13px;">Job</span><br />
+        <strong>${data.jobTitle}</strong>
+      </td></tr>
+    </table>
+
+    ${ctaButton('View contract', data.contractUrl)}
+
+    <p style="margin-top:24px;font-size:13px;color:${MUTED};">Both parties have now signed the contract. Work can proceed as agreed.</p>
+  `);
+  return { subject, html };
+}
+
+// ── Contract: voided (both parties notification) ──────────────────────────────
+
+export type ContractVoidedData = {
+  to: string;
+  recipientName: string;
+  jobTitle: string;
+};
+
+export function contractVoidedEmail(data: ContractVoidedData): { subject: string; html: string } {
+  const subject = `Contract voided for "${data.jobTitle}"`;
+  const html = layout(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;">Contract voided</h2>
+    <p style="margin:0 0 20px;color:${MUTED};">Hi ${data.recipientName}, the contract for the following job has been voided.</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG};border-radius:8px;padding:16px;margin-bottom:20px;">
+      <tr><td style="padding:4px 0;">
+        <span style="color:${MUTED};font-size:13px;">Job</span><br />
+        <strong>${data.jobTitle}</strong>
+      </td></tr>
+    </table>
+
+    <p style="margin-top:8px;font-size:13px;color:${MUTED};">If you believe this was a mistake, please contact the other party or reach out to WorkMate support.</p>
+  `);
+  return { subject, html };
+}
+
+// ── Garda Vetting: status update (provider notification) ──────────────────────
+
+export type GardaVettingStatusData = {
+  to: string;
+  providerName: string;
+  status: 'approved' | 'rejected';
+  expiresAt?: string;
+};
+
+export function gardaVettingStatusEmail(data: GardaVettingStatusData): { subject: string; html: string } {
+  const dashboardUrl = `${BASE_URL}/${PLATFORM_LOCALE}/dashboard`;
+  const isApproved = data.status === 'approved';
+  const subject = isApproved
+    ? 'Your Garda Vetting has been approved'
+    : 'Your Garda Vetting application was not approved';
+  const html = layout(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;">
+      Garda Vetting ${isApproved ? 'Approved' : 'Not Approved'}
+    </h2>
+    <p style="margin:0 0 20px;color:${MUTED};">Hi ${data.providerName}, here is an update on your Garda Vetting application.</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG};border-radius:8px;padding:16px;margin-bottom:20px;">
+      <tr><td style="padding:4px 0;">
+        <span style="color:${MUTED};font-size:13px;">Status</span><br />
+        <strong style="color:${isApproved ? '#16a34a' : '#dc2626'};">${isApproved ? 'Approved' : 'Rejected'}</strong>
+      </td></tr>
+      ${data.expiresAt ? `
+      <tr><td style="padding:12px 0 4px;">
+        <span style="color:${MUTED};font-size:13px;">Valid until</span><br />
+        <strong>${data.expiresAt}</strong>
+      </td></tr>` : ''}
+    </table>
+
+    ${isApproved
+      ? ctaButton('View your profile', dashboardUrl)
+      : `<p style="margin-top:8px;font-size:13px;color:${MUTED};">If you have questions about this decision, please contact WorkMate support.</p>`
+    }
+  `);
+  return { subject, html };
+}
+
+// ── Garda Vetting: request received (provider notification) ───────────────────
+
+export type GardaVettingRequestedData = {
+  to: string;
+  providerName: string;
+  reference?: string;
+};
+
+export function gardaVettingRequestedEmail(data: GardaVettingRequestedData): { subject: string; html: string } {
+  const subject = 'Garda Vetting request received';
+  const html = layout(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;">Vetting request received</h2>
+    <p style="margin:0 0 20px;color:${MUTED};">Hi ${data.providerName}, we have received your Garda Vetting request and it is now under review.</p>
+
+    ${data.reference ? `
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG};border-radius:8px;padding:16px;margin-bottom:20px;">
+      <tr><td style="padding:4px 0;">
+        <span style="color:${MUTED};font-size:13px;">Reference number</span><br />
+        <strong>${data.reference}</strong>
+      </td></tr>
+    </table>` : ''}
+
+    <p style="margin-top:8px;font-size:13px;color:${MUTED};">Our team will review your application and notify you of the outcome. This process typically takes 5–10 business days.</p>
+  `);
+  return { subject, html };
+}
+
+// ── Subscription: status change (provider notification) ───────────────────────
+
+export type SubscriptionStatusData = {
+  to: string;
+  providerName: string;
+  status: 'active' | 'past_due' | 'cancelled';
+  planName: string;
+};
+
+export function subscriptionStatusEmail(data: SubscriptionStatusData): { subject: string; html: string } {
+  const dashboardUrl = `${BASE_URL}/${PLATFORM_LOCALE}/dashboard`;
+  const statusLabels: Record<string, string> = {
+    active: 'Active',
+    past_due: 'Payment Past Due',
+    cancelled: 'Cancelled',
+  };
+  const statusColors: Record<string, string> = {
+    active: '#16a34a',
+    past_due: '#d97706',
+    cancelled: '#dc2626',
+  };
+  const subjectMap: Record<string, string> = {
+    active: `Your ${data.planName} subscription is active`,
+    past_due: `Action required: your ${data.planName} subscription payment is overdue`,
+    cancelled: `Your ${data.planName} subscription has been cancelled`,
+  };
+  const subject = subjectMap[data.status] ?? `Subscription update: ${data.planName}`;
+  const html = layout(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;">Subscription update</h2>
+    <p style="margin:0 0 20px;color:${MUTED};">Hi ${data.providerName}, there has been a change to your WorkMate subscription.</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG};border-radius:8px;padding:16px;margin-bottom:20px;">
+      <tr><td style="padding:4px 0;">
+        <span style="color:${MUTED};font-size:13px;">Plan</span><br />
+        <strong>${data.planName}</strong>
+      </td></tr>
+      <tr><td style="padding:12px 0 4px;">
+        <span style="color:${MUTED};font-size:13px;">Status</span><br />
+        <strong style="color:${statusColors[data.status] ?? TEXT};">${statusLabels[data.status] ?? data.status}</strong>
+      </td></tr>
+    </table>
+
+    ${data.status === 'past_due'
+      ? `<p style="margin-bottom:16px;font-size:14px;color:#d97706;">Please update your payment method to avoid losing access to your subscription features.</p>` + ctaButton('Update payment details', dashboardUrl)
+      : ctaButton('View your dashboard', dashboardUrl)
+    }
+  `);
+  return { subject, html };
+}
+
+// ── Provider first quote milestone (provider notification) ───────────────────
+
+export type ProviderFirstQuoteData = {
+  to: string;
+  providerName: string;
+  jobTitle: string;
+  dashboardUrl: string;
+};
+
+// ── GDPR account deletion confirmation ──────────────────────────────────────
+
+export type GdprDeletionConfirmData = {
+  to: string;
+  recipientName?: string;
+};
+
+export function gdprDeletionConfirmEmail(data: GdprDeletionConfirmData): { subject: string; html: string } {
+  const subject = 'Your WorkMate account has been permanently deleted';
+  const html = layout(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;">Account deleted</h2>
+    <p style="margin:0 0 20px;color:${MUTED};">Hi${data.recipientName ? ` ${data.recipientName}` : ''}, your WorkMate account and personal data have been permanently deleted as requested.</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG};border-radius:8px;padding:16px;margin-bottom:20px;">
+      <tr><td style="padding:4px 0;">
+        <span style="color:${MUTED};font-size:13px;">What was deleted</span><br />
+        <strong>Your profile, reviews, jobs, appointments, and saved preferences.</strong>
+      </td></tr>
+      <tr><td style="padding:12px 0 4px;">
+        <span style="color:${MUTED};font-size:13px;">What was retained</span><br />
+        <strong>Financial transaction records (7-year statutory requirement).</strong>
+      </td></tr>
+    </table>
+
+    <p style="margin-top:8px;font-size:13px;color:${MUTED};">This action is irreversible. If you wish to use WorkMate in the future, you will need to create a new account. Thank you for being part of our community.</p>
+  `);
+  return { subject, html };
+}
+
+// ── Provider first quote milestone (provider notification) ───────────────────
+
+export function providerFirstQuoteEmail(data: ProviderFirstQuoteData): { subject: string; html: string } {
+  const subject = `Nice start, ${data.providerName} - your first quote is live`;
+  const html = layout(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;">First quote sent</h2>
+    <p style="margin:0 0 20px;color:${MUTED};">
+      Great work. Your first quote for <strong>${data.jobTitle}</strong> is now visible to the customer.
+    </p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG};border-radius:8px;padding:16px;margin-bottom:20px;">
+      <tr><td style="padding:4px 0;">
+        <span style="color:${MUTED};font-size:13px;">What to do next</span><br />
+        <strong>Open your dashboard tour and complete your provider setup checklist.</strong>
+      </td></tr>
+    </table>
+
+    ${ctaButton('Open Provider Dashboard Tour', data.dashboardUrl)}
+
+    <p style="margin-top:24px;font-size:13px;color:${MUTED};">
+      Tip: Faster responses and complete profile details usually improve your acceptance rate.
+    </p>
   `);
   return { subject, html };
 }

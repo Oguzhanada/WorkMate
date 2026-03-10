@@ -3,8 +3,9 @@ import { ensureAdminRoute } from '@/lib/auth/admin';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { logAdminAudit } from '@/lib/admin/audit';
 import { bulkNotificationSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const auth = await ensureAdminRoute();
   if (auth.error) return auth.error;
 
@@ -54,3 +55,5 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ ok: true, count: rows.length });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
+import { trackFunnelStep, FUNNEL_BOOKING } from '@/lib/analytics/funnel';
 
 type AvailabilityRow = {
   id: string;
@@ -155,6 +156,15 @@ export default function JobScheduler({ jobId, providerId, isCustomer, isProvider
 
   useEffect(() => {
     loadData();
+    // Fire-and-forget: track booking funnel start when scheduler mounts with a provider
+    if (providerId) {
+      trackFunnelStep({
+        funnelName: FUNNEL_BOOKING,
+        stepName: 'booking_started',
+        stepNumber: 1,
+        metadata: { has_provider: true },
+      });
+    }
   }, [providerId, jobId]);
 
   const createAppointment = async () => {
@@ -184,6 +194,12 @@ export default function JobScheduler({ jobId, providerId, isCustomer, isProvider
 
       setSelectedSlot(null);
       setOk('Appointment booked.');
+      // Fire-and-forget: track successful booking submission
+      trackFunnelStep({
+        funnelName: FUNNEL_BOOKING,
+        stepName: 'booking_submitted',
+        stepNumber: 3,
+      });
       await loadData();
     } finally {
       setPending(false);
@@ -245,6 +261,12 @@ export default function JobScheduler({ jobId, providerId, isCustomer, isProvider
               onChange={(event) => {
                 setSelectedDate(event.target.value);
                 setSelectedSlot(null);
+                // Fire-and-forget: track date selection
+                trackFunnelStep({
+                  funnelName: FUNNEL_BOOKING,
+                  stepName: 'date_selected',
+                  stepNumber: 2,
+                });
               }}
               disabled={pending}
             />
@@ -337,8 +359,8 @@ export default function JobScheduler({ jobId, providerId, isCustomer, isProvider
       </div>
 
       {loading ? <p className="mt-3 text-sm" style={{ color: 'var(--wm-muted)' }}>Loading schedule...</p> : null}
-      {error ? <p className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p> : null}
-      {ok ? <p className="mt-3 text-sm" style={{ color: 'var(--wm-primary)' }}>{ok}</p> : null}
+      {error ? <p className="mt-3 text-sm text-[var(--wm-destructive)]">{error}</p> : null}
+      {ok ? <p className="mt-3 text-sm" style={{ color: 'var(--wm-primary-dark)' }}>{ok}</p> : null}
     </Card>
   );
 }

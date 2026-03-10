@@ -1,11 +1,23 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import styles from './auto-release.module.css';
 
 export default function AutoReleaseCountdown({ autoReleaseAt }: { autoReleaseAt: string | null }) {
-  if (!autoReleaseAt) return null;
-  const remainingMs = new Date(autoReleaseAt).getTime() - Date.now();
-  const remainingDays = Math.max(0, Math.ceil(remainingMs / (1000 * 60 * 60 * 24)));
+  const [remainingDays, setRemainingDays] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!autoReleaseAt) return;
+    const compute = () => {
+      const remainingMs = new Date(autoReleaseAt).getTime() - Date.now();
+      setRemainingDays(Math.max(0, Math.ceil(remainingMs / (1000 * 60 * 60 * 24))));
+    };
+    compute();
+    const id = setInterval(compute, 60_000);
+    return () => clearInterval(id);
+  }, [autoReleaseAt]);
+
+  if (!autoReleaseAt || remainingDays === null) return null;
 
   return (
     <p className={styles.notice}>

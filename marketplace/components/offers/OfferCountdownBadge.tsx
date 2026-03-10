@@ -51,7 +51,7 @@ export default function OfferCountdownBadge({ createdAt, status }: Props) {
 
   useEffect(() => {
     // Recompute immediately in case of hydration offset
-    setState(computeCountdown(createdAt));
+    queueMicrotask(() => setState(computeCountdown(createdAt)));
 
     const id = setInterval(() => {
       const next = computeCountdown(createdAt);

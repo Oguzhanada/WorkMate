@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { createReviewSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiValidationError, apiUnauthorized, apiNotFound, apiConflict } from '@/lib/api/error-response';
 
 // GET /api/reviews?job_id=xxx
 // Returns the review submitted by the authenticated customer for the given job.
@@ -13,12 +15,12 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const jobId = request.nextUrl.searchParams.get('job_id');
   if (!jobId) {
-    return NextResponse.json({ error: 'job_id is required' }, { status: 400 });
+    return apiError('job_id is required', 400);
   }
 
   const { data, error } = await supabase
@@ -29,7 +31,7 @@ export async function GET(request: NextRequest) {
     .maybeSingle();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return apiError(error.message, 400);
   }
 
   return NextResponse.json({ review: data ?? null }, { status: 200 });
@@ -37,7 +39,7 @@ export async function GET(request: NextRequest) {
 
 // POST /api/reviews
 // Creates a review for a completed job. One review per (job, customer).
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -45,22 +47,19 @@ export async function POST(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = createReviewSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiValidationError(parsed.error.issues);
   }
 
   const body = parsed.data;
@@ -74,15 +73,15 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   if (jobError || !job) {
-    return NextResponse.json({ error: 'Job not found.' }, { status: 404 });
+    return apiNotFound('Job not found.');
   }
 
   if (job.status !== 'completed') {
-    return NextResponse.json({ error: 'Reviews can only be submitted for completed jobs.' }, { status: 422 });
+    return apiError('Reviews can only be submitted for completed jobs.', 422);
   }
 
   if (!job.accepted_quote_id) {
-    return NextResponse.json({ error: 'No accepted quote found for this job.' }, { status: 422 });
+    return apiError('No accepted quote found for this job.', 422);
   }
 
   // Get the pro_id from the accepted quote — use service client to bypass RLS on quotes
@@ -94,7 +93,7 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   if (quoteError || !quote) {
-    return NextResponse.json({ error: 'Accepted quote not found.' }, { status: 404 });
+    return apiNotFound('Accepted quote not found.');
   }
 
   // Check for existing review (friendly error before unique constraint fires)
@@ -106,7 +105,7 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   if (existing) {
-    return NextResponse.json({ error: 'You have already reviewed this job.' }, { status: 409 });
+    return apiConflict('You have already reviewed this job.');
   }
 
   // Insert the review
@@ -129,9 +128,9 @@ export async function POST(request: NextRequest) {
 
   if (insertError) {
     if (insertError.code === '23505') {
-      return NextResponse.json({ error: 'You have already reviewed this job.' }, { status: 409 });
+      return apiConflict('You have already reviewed this job.');
     }
-    return NextResponse.json({ error: insertError.message }, { status: 400 });
+    return apiError(insertError.message, 400);
   }
 
   // Notify the provider
@@ -147,3 +146,5 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ review }, { status: 201 });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

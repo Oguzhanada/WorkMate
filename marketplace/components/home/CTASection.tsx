@@ -1,163 +1,149 @@
 'use client';
 
 import Link from 'next/link';
-import {motion} from 'framer-motion';
-import {usePathname} from 'next/navigation';
-import {ArrowRight, Briefcase, Search, Hammer, BadgeCheck, MapPin, ShieldCheck, Zap} from 'lucide-react';
-import WorkMateLogo from '@/components/ui/WorkMateLogo';
-import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
-
-const highlights = [
-  {icon: BadgeCheck, text: '1,000+ active professionals'},
-  {icon: MapPin, text: '26 counties covered'},
-  {icon: ShieldCheck, text: 'Structured payment protection'},
-  {icon: Zap, text: 'Average first offer in 2 hours'}
-];
+import { motion } from 'framer-motion';
+import { usePathname } from 'next/navigation';
+import { ArrowRight, Star, Quote } from 'lucide-react';
+import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
 
 export default function CTASection() {
   const pathname = usePathname() || '/';
   const localeRoot = getLocaleRoot(pathname);
 
   return (
-    <motion.section
-      className="px-4 py-20 sm:px-6 lg:px-8"
-      initial={{opacity: 0, y: 24}}
-      whileInView={{opacity: 1, y: 0}}
-      viewport={{once: true, amount: 0.25}}
-      transition={{duration: 0.5, ease: 'easeOut'}}
-    >
-      <div className="mx-auto max-w-7xl">
+    <section className="px-5 py-8 pb-20 sm:px-8 lg:px-12" style={{ background: 'var(--wm-bg)' }}>
+      <div
+        className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] px-8 py-20 sm:px-16 sm:py-28"
+        style={{
+          background: 'linear-gradient(155deg, var(--wm-navy) 0%, #0c1a2e 50%, #0a2a29 100%)',
+        }}
+      >
+        {/* Grid pattern */}
         <div
-          className="relative overflow-hidden rounded-3xl"
+          className="pointer-events-none absolute inset-0"
           style={{
-            background: 'linear-gradient(145deg, var(--wm-navy) 0%, var(--wm-navy-mid) 50%, #1a3d6e 100%)'
+            backgroundImage:
+              'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
+            backgroundSize: '64px 64px',
           }}
-        >
-          {/* Geometric background decorations */}
-          <div
-            className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full opacity-[0.07]"
-            style={{background: 'radial-gradient(circle, var(--wm-primary), transparent 70%)'}}
-          />
-          <div
-            className="pointer-events-none absolute -bottom-20 -left-16 h-72 w-72 rounded-full opacity-[0.07]"
-            style={{background: 'radial-gradient(circle, var(--wm-amber), transparent 70%)'}}
-          />
-          {/* Teal top accent */}
-          <div
-            className="absolute left-0 right-0 top-0 h-0.5"
-            style={{background: 'linear-gradient(to right, var(--wm-primary), var(--wm-amber), transparent 70%)'}}
-          />
-          {/* Subtle grid pattern */}
-          <div
-            className="pointer-events-none absolute inset-0 opacity-[0.025]"
-            style={{
-              backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
-              backgroundSize: '48px 48px'
-            }}
-          />
+        />
 
-          <div className="relative z-10 p-8 sm:p-12 lg:p-16">
-            {/* Logo + brand */}
-            <div className="mb-8 flex items-center gap-3">
-              <WorkMateLogo size={40} />
+        {/* Glow orb */}
+        <div
+          className="pointer-events-none absolute -right-20 -top-20"
+          style={{
+            width: '500px',
+            height: '500px',
+            background: 'radial-gradient(circle, rgba(var(--wm-primary-rgb), 0.15) 0%, transparent 60%)',
+            filter: 'blur(80px)',
+          }}
+        />
+
+        <div className="relative z-10 max-w-2xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <h2
+              style={{
+                fontFamily: 'var(--wm-font-display)',
+                fontSize: 'clamp(2.4rem, 6vw, 4rem)',
+                fontWeight: 800,
+                lineHeight: 1.05,
+                letterSpacing: '-0.03em',
+              }}
+            >
+              <span style={{ color: 'white' }}>Ready to get</span>
+              <br />
               <span
-                className="text-xl font-bold text-white/90"
-                style={{fontFamily: 'var(--wm-font-display)'}}
+                style={{
+                  background: 'linear-gradient(135deg, var(--wm-primary) 0%, #34d399 50%, var(--wm-amber) 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
               >
-                WorkMate
+                things done?
               </span>
-            </div>
+            </h2>
 
-            <div className="lg:grid lg:grid-cols-[1fr_auto] lg:items-end lg:gap-16">
-              <div>
-                <h2
-                  className="wm-display text-white"
-                  style={{fontSize: 'clamp(1.9rem, 4.5vw, 3.2rem)', letterSpacing: '-0.03em'}}
-                >
-                  Ready to Get Things Done?
-                </h2>
-                <p className="mt-4 max-w-xl text-lg text-white/70">
-                  Join thousands of Irish homeowners who stopped searching and started getting results.
-                </p>
+            <p
+              className="mt-5 max-w-md text-base leading-relaxed"
+              style={{ color: 'rgba(255,255,255,0.6)' }}
+            >
+              Join thousands of Irish homeowners who stopped searching and started getting results.
+            </p>
+          </motion.div>
 
-                {/* Tags */}
-                <div className="mt-5 flex flex-wrap items-center gap-2">
-                  {['Built for Ireland', 'Transparent pricing', 'Verified pros only'].map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-full px-3 py-1 text-xs font-semibold text-white/80"
-                      style={{
-                        backgroundColor: 'rgba(255,255,255,0.10)',
-                        border: '1px solid rgba(255,255,255,0.12)'
-                      }}
-                    >
-                      {tag}
-                    </span>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+            className="mt-10 flex flex-wrap items-center gap-4"
+          >
+            <Link
+              href={withLocalePrefix(localeRoot, '/post-job')}
+              className="inline-flex items-center gap-2 rounded-full px-8 py-4 text-sm font-bold transition-transform hover:scale-[1.03] active:scale-95"
+              style={{
+                background: 'white',
+                color: 'var(--wm-navy)',
+                fontFamily: 'var(--wm-font-display)',
+                boxShadow: '0 8px 32px rgba(255,255,255,0.12)',
+              }}
+            >
+              Post a Job — Free
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href={withLocalePrefix(localeRoot, '/become-provider')}
+              className="inline-flex items-center gap-2 rounded-full px-7 py-4 text-sm font-semibold"
+              style={{
+                color: 'white',
+                background: 'var(--wm-grad-primary)',
+                boxShadow: '0 8px 30px rgba(var(--wm-primary-rgb), 0.3)',
+                fontFamily: 'var(--wm-font-display)',
+              }}
+            >
+              Become a Pro
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </motion.div>
+
+          {/* Mini testimonial — social proof in CTA */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mt-10 flex items-start gap-3 rounded-xl p-4"
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              maxWidth: '420px',
+            }}
+          >
+            <Quote className="h-5 w-5 shrink-0 rotate-180" style={{ color: 'var(--wm-primary)', opacity: 0.6 }} />
+            <div>
+              <p className="text-sm italic leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                Post a job, receive offers from verified pros, and pay securely — all through one platform.
+              </p>
+              <div className="mt-2 flex items-center gap-2">
+                <div className="flex gap-0.5">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star key={s} className="h-3 w-3 fill-current" style={{ color: 'var(--wm-amber)' }} />
                   ))}
                 </div>
-
-                {/* Action buttons */}
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <motion.div whileHover={{scale: 1.04, y: -1}} whileTap={{scale: 0.97}}>
-                    <Link
-                      href={withLocalePrefix(localeRoot, '/post-job')}
-                      className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-bold"
-                      style={{
-                        backgroundColor: 'white',
-                        color: 'var(--wm-navy)',
-                        fontFamily: 'var(--wm-font-display)',
-                        boxShadow: '0 4px 16px rgba(0,0,0,0.20)'
-                      }}
-                    >
-                      <Briefcase className="h-4 w-4" />
-                      Post a Job — it&apos;s free
-                    </Link>
-                  </motion.div>
-                  <motion.div whileHover={{scale: 1.04, y: -1}} whileTap={{scale: 0.97}}>
-                    <Link
-                      href={withLocalePrefix(localeRoot, '/search')}
-                      className="inline-flex items-center gap-2 rounded-xl border border-white/25 px-6 py-3 text-sm font-semibold text-white transition hover:border-white/50 hover:bg-white/10"
-                      style={{fontFamily: 'var(--wm-font-display)'}}
-                    >
-                      <Search className="h-4 w-4" />
-                      Browse Services
-                    </Link>
-                  </motion.div>
-                  <motion.div whileHover={{scale: 1.04, y: -1}} whileTap={{scale: 0.97}}>
-                    <Link
-                      href={withLocalePrefix(localeRoot, '/become-provider')}
-                      className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-bold text-white"
-                      style={{
-                        backgroundColor: 'var(--wm-primary)',
-                        fontFamily: 'var(--wm-font-display)',
-                        boxShadow: '0 4px 16px rgba(0,184,148,0.35)'
-                      }}
-                    >
-                      <Hammer className="h-4 w-4" />
-                      Become a Pro
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </motion.div>
-                </div>
-              </div>
-
-              {/* Highlights grid — desktop right col */}
-              <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:mt-0 lg:grid-cols-1 lg:min-w-[200px]">
-                {highlights.map((item) => (
-                  <div
-                    key={item.text}
-                    className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-white/80"
-                    style={{backgroundColor: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)'}}
-                  >
-                    <item.icon className="h-4 w-4 text-white/85" />
-                    <span>{item.text}</span>
-                  </div>
-                ))}
+                <span className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  — Homeowner, Dublin
+                </span>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
-    </motion.section>
+    </section>
   );
 }

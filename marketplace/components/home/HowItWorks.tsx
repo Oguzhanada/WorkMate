@@ -1,132 +1,203 @@
 'use client';
 
-import {motion} from 'framer-motion';
+import { motion } from 'framer-motion';
+import { FileText, MessageSquare, CreditCard, ShieldCheck, BadgeCheck, Euro } from 'lucide-react';
 
 const steps = [
   {
     num: '01',
-    title: 'Describe Your Job',
-    description: 'Tell us what you need done, set your budget, and choose your county. Takes less than 2 minutes.',
-    highlight: '2 min setup',
-    color: 'var(--wm-primary)',
-    lightBg: 'var(--wm-primary-light)',
-    glow: 'rgba(0,184,148,0.15)'
+    title: 'Post Your Job',
+    description: 'Describe what you need, set a budget, pick your county. Takes under 2 minutes.',
+    icon: FileText,
+    accent: 'var(--wm-primary)',
+    lightBg: 'var(--wm-primary-faint)',
   },
   {
     num: '02',
-    title: 'Receive Verified Offers',
-    description: 'Insured, background-checked professionals send you competitive quotes. Compare and choose with confidence.',
-    highlight: 'Avg. 3 offers in 2h',
-    color: 'var(--wm-blue)',
+    title: 'Get Verified Offers',
+    description: 'Insured pros send competitive quotes. Compare ratings, prices, and reviews side by side.',
+    icon: MessageSquare,
+    accent: 'var(--wm-blue)',
     lightBg: 'var(--wm-blue-soft)',
-    glow: 'rgba(26,86,219,0.12)'
   },
   {
     num: '03',
-    title: 'Pay When Done',
-    description: "Payment is held securely by Stripe and released only when you're satisfied. Zero risk, full control.",
-    highlight: 'Stripe-protected',
-    color: 'var(--wm-amber-dark)',
+    title: 'Pay When Satisfied',
+    description: 'Stripe holds your payment securely. Released only when you confirm the work is done.',
+    icon: CreditCard,
+    accent: 'var(--wm-amber-dark)',
     lightBg: 'var(--wm-amber-light)',
-    glow: 'rgba(245,158,11,0.12)'
-  }
+  },
+];
+
+const trustPills = [
+  { icon: ShieldCheck, label: 'Garda vetted' },
+  { icon: BadgeCheck, label: 'Admin approved' },
+  { icon: Euro, label: 'Transparent pricing' },
 ];
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="px-4 py-20 sm:px-6 lg:px-8" style={{backgroundColor: 'var(--wm-bg)'}}>
+    <section
+      id="how-it-works"
+      className="relative overflow-hidden px-5 py-28 sm:px-8 lg:px-12"
+      style={{
+        background: 'linear-gradient(180deg, var(--wm-bg) 0%, rgba(240,253,244,0.4) 50%, var(--wm-bg) 100%)',
+      }}
+    >
       <div className="mx-auto max-w-7xl">
-        {/* Header */}
-        <div className="mb-14">
-          <span className="wm-section-label mb-3">How it works</span>
-          <h2
-            className="mt-4 wm-display"
-            style={{fontSize: 'clamp(1.7rem, 3.2vw, 2.4rem)', color: 'var(--wm-navy)'}}
+        {/* Header — centered */}
+        <motion.div
+          className="mb-20 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.5 }}
+        >
+          <span
+            className="text-xs font-bold uppercase tracking-[0.2em]"
+            style={{ color: 'var(--wm-primary-dark)', fontFamily: 'var(--wm-font-display)' }}
           >
-            Get It Done in 3 Simple Steps
+            How it works
+          </span>
+          <h2
+            className="mt-3"
+            style={{
+              fontFamily: 'var(--wm-font-display)',
+              fontSize: 'clamp(2rem, 4.5vw, 3.2rem)',
+              fontWeight: 800,
+              lineHeight: 1.1,
+              letterSpacing: '-0.03em',
+              color: 'var(--wm-navy)',
+            }}
+          >
+            Three steps to done.
           </h2>
-          <p className="mt-3 max-w-lg text-base leading-relaxed" style={{color: 'var(--wm-muted)'}}>
-            From posting to payment — we handle the complexity so you can focus on the result.
+          <p
+            className="mx-auto mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold"
+            style={{
+              background: 'rgba(var(--wm-primary-rgb), 0.08)',
+              color: 'var(--wm-primary-dark)',
+              border: '1px solid rgba(var(--wm-primary-rgb), 0.15)',
+            }}
+          >
+            <Euro className="h-4 w-4" />
+            Free for customers · Providers pay only when hired
           </p>
+        </motion.div>
+
+        {/* Steps — horizontal cards with connecting line */}
+        <div className="relative">
+          {/* Connector line — desktop */}
+          <div
+            className="pointer-events-none absolute top-16 hidden h-[2px] md:block"
+            style={{
+              left: 'calc(16.67% + 24px)',
+              right: 'calc(16.67% + 24px)',
+              background: 'linear-gradient(90deg, var(--wm-primary), var(--wm-blue), var(--wm-amber))',
+              opacity: 0.2,
+            }}
+          />
+
+          <div className="grid gap-6 md:grid-cols-3">
+            {steps.map((step, i) => (
+              <motion.article
+                key={step.num}
+                initial={{ opacity: 0, y: 40, scale: 0.96 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.6, delay: i * 0.15, ease: [0.22, 1, 0.36, 1] }}
+                className="group relative"
+              >
+                {/* Step number circle */}
+                <div className="relative z-10 mb-6 inline-flex">
+                  <div
+                    className="flex h-12 w-12 items-center justify-center rounded-full text-sm font-black"
+                    style={{
+                      fontFamily: 'var(--wm-font-display)',
+                      background: 'var(--wm-surface)',
+                      border: `2px solid ${step.accent}`,
+                      color: step.accent,
+                      boxShadow: `0 0 0 6px rgba(255,255,255,1), 0 4px 20px rgba(0,0,0,0.06)`,
+                    }}
+                  >
+                    {step.num}
+                  </div>
+                </div>
+
+                {/* Card body */}
+                <div
+                  className="rounded-2xl p-6 transition-all duration-300"
+                  style={{
+                    background: 'var(--wm-surface)',
+                    border: '1px solid var(--wm-border)',
+                    boxShadow: 'var(--wm-shadow-sm)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = step.accent;
+                    e.currentTarget.style.boxShadow = `0 20px 50px rgba(0,0,0,0.06), 0 0 0 1px ${step.accent}20`;
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--wm-border)';
+                    e.currentTarget.style.boxShadow = 'var(--wm-shadow-sm)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  {/* Icon */}
+                  <div
+                    className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl"
+                    style={{ background: step.lightBg, color: step.accent }}
+                  >
+                    <step.icon className="h-5 w-5" />
+                  </div>
+
+                  <h3
+                    className="text-lg font-bold"
+                    style={{
+                      fontFamily: 'var(--wm-font-display)',
+                      color: 'var(--wm-navy)',
+                      letterSpacing: '-0.01em',
+                    }}
+                  >
+                    {step.title}
+                  </h3>
+
+                  <p
+                    className="mt-2.5 text-sm leading-relaxed"
+                    style={{ color: 'var(--wm-muted)' }}
+                  >
+                    {step.description}
+                  </p>
+                </div>
+              </motion.article>
+            ))}
+          </div>
         </div>
 
-        <div className="relative grid gap-6 md:grid-cols-3">
-          {/* Connector line */}
-          <div
-            className="pointer-events-none absolute left-[16.67%] right-[16.67%] top-[2.2rem] hidden border-t-2 border-dashed md:block"
-            style={{borderColor: 'var(--wm-border)'}}
-          />
-          {/* Animated connector dot */}
-          <motion.div
-            className="absolute top-[30px] hidden h-3.5 w-3.5 rounded-full md:block"
-            style={{backgroundColor: 'var(--wm-primary)', boxShadow: '0 0 0 6px rgba(0,184,148,0.15)'}}
-            animate={{x: ['0%', '52%', '103%']}}
-            transition={{duration: 4, repeat: Infinity, ease: 'easeInOut', repeatDelay: 0.5}}
-          />
-
-          {steps.map((step, index) => (
-            <motion.article
-              key={step.num}
-              initial={{opacity: 0, y: 28}}
-              whileInView={{opacity: 1, y: 0}}
-              viewport={{once: true, amount: 0.3}}
-              transition={{duration: 0.45, delay: index * 0.13, ease: 'easeOut'}}
-              whileHover={{y: -6, transition: {duration: 0.2}}}
-              className="relative z-10 overflow-hidden rounded-2xl border bg-white p-7"
+        {/* Trust pills — below steps */}
+        <motion.div
+          className="mt-14 flex flex-wrap items-center justify-center gap-3"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          {trustPills.map(({ icon: Icon, label }) => (
+            <span
+              key={label}
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold"
               style={{
-                borderColor: 'var(--wm-border)',
-                boxShadow: 'var(--wm-shadow-sm)',
-                transition: 'box-shadow 0.25s ease, border-color 0.25s ease'
-              }}
-              onMouseEnter={(e) => {
-                const el = e.currentTarget as HTMLElement;
-                el.style.boxShadow = '0 16px 40px ' + step.glow + ', var(--wm-shadow-md)';
-                el.style.borderColor = step.color;
-              }}
-              onMouseLeave={(e) => {
-                const el = e.currentTarget as HTMLElement;
-                el.style.boxShadow = 'var(--wm-shadow-sm)';
-                el.style.borderColor = 'var(--wm-border)';
+                background: 'var(--wm-primary-faint)',
+                color: 'var(--wm-primary-dark)',
+                border: '1px solid rgba(var(--wm-primary-rgb), 0.15)',
               }}
             >
-              {/* Large decorative step number */}
-              <div
-                className="pointer-events-none absolute -right-2 -top-3 select-none text-[6rem] font-black leading-none opacity-[0.05]"
-                style={{fontFamily: 'var(--wm-font-display)', color: step.color}}
-              >
-                {step.num}
-              </div>
-
-              {/* Step indicator */}
-              <div
-                className="mb-5 inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-black"
-                style={{
-                  fontFamily: 'var(--wm-font-display)',
-                  backgroundColor: step.lightBg,
-                  color: step.color
-                }}
-              >
-                {step.num}
-              </div>
-
-              <h3
-                className="text-lg font-bold leading-snug"
-                style={{fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)'}}
-              >
-                {step.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed" style={{color: 'var(--wm-muted)'}}>
-                {step.description}
-              </p>
-              <div
-                className="mt-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"
-                style={{backgroundColor: step.lightBg, color: step.color}}
-              >
-                ✓ {step.highlight}
-              </div>
-            </motion.article>
+              <Icon className="h-3.5 w-3.5" />
+              {label}
+            </span>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

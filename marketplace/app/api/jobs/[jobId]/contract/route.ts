@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { resolveJobAccessContext } from '@/lib/jobs/access';
-
-const createContractSchema = z.object({
-  terms: z.string().trim().min(10).max(10000),
-  quote_id: z.string().uuid().optional().nullable(),
-});
-
-const signContractSchema = z.object({
-  action: z.enum(['sign', 'void']),
-});
+import { sendTransactionalEmail } from '@/lib/email/send';
+import { sendNotification } from '@/lib/notifications/send';
+import { createContractSchema, signContractSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 // GET /api/jobs/[jobId]/contract — get the contract for this job
 export async function GET(
@@ -48,7 +42,7 @@ export async function GET(
 }
 
 // POST /api/jobs/[jobId]/contract — create a contract (customer only)
-export async function POST(
+async function postHandler(
   request: NextRequest,
   { params }: { params: Promise<{ jobId: string }> }
 ) {
@@ -121,11 +115,44 @@ export async function POST(
     payload: { contract_id: contract.id, job_id: jobId },
   });
 
+  // In-app notification — fire-and-forget
+  sendNotification({
+    userId: access.providerId!,
+    type: 'contract_created',
+    title: 'New Contract Awaiting Your Signature',
+    data: { job_id: jobId, contract_id: contract.id },
+  });
+
+  // Email provider — fire-and-forget
+  void (async () => {
+    try {
+      const BASE_URL = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'https://workmate.ie';
+      const LOCALE = process.env.NEXT_PUBLIC_DEFAULT_LOCALE ?? 'en';
+      const [{ data: providerProfile }, { data: customerProfile }, { data: jobRow }] = await Promise.all([
+        service.from('profiles').select('email,full_name').eq('id', access.providerId!).maybeSingle(),
+        service.from('profiles').select('full_name').eq('id', access.customerId!).maybeSingle(),
+        service.from('jobs').select('title').eq('id', jobId).maybeSingle(),
+      ]);
+      if (providerProfile?.email) {
+        sendTransactionalEmail({
+          type: 'contract_created',
+          to: providerProfile.email,
+          providerName: providerProfile.full_name ?? 'Provider',
+          customerName: customerProfile?.full_name ?? 'Customer',
+          jobTitle: jobRow?.title ?? 'the job',
+          contractUrl: `${BASE_URL}/${LOCALE}/jobs/${jobId}`,
+        });
+      }
+    } catch {
+      // Non-blocking — email lookup failure is swallowed.
+    }
+  })();
+
   return NextResponse.json({ contract }, { status: 201 });
 }
 
 // PATCH /api/jobs/[jobId]/contract — sign or void
-export async function PATCH(
+async function patchHandler(
   request: NextRequest,
   { params }: { params: Promise<{ jobId: string }> }
 ) {
@@ -190,6 +217,55 @@ export async function PATCH(
       .select('id,status')
       .single();
     if (voidError) return NextResponse.json({ error: voidError.message }, { status: 400 });
+
+    // In-app notifications for both parties — fire-and-forget
+    sendNotification({
+      userId: contract.customer_id,
+      type: 'contract_voided',
+      title: 'Contract Voided',
+      data: { job_id: jobId },
+    });
+    sendNotification({
+      userId: contract.provider_id,
+      type: 'contract_voided',
+      title: 'Contract Voided',
+      data: { job_id: jobId },
+    });
+
+    // Email both parties — fire-and-forget
+    void (async () => {
+      try {
+        const BASE_URL = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'https://workmate.ie';
+        const LOCALE = process.env.NEXT_PUBLIC_DEFAULT_LOCALE ?? 'en';
+        const [{ data: customerProfile }, { data: providerProfile }, { data: jobRow }] = await Promise.all([
+          service.from('profiles').select('email,full_name').eq('id', contract.customer_id).maybeSingle(),
+          service.from('profiles').select('email,full_name').eq('id', contract.provider_id).maybeSingle(),
+          service.from('jobs').select('title').eq('id', jobId).maybeSingle(),
+        ]);
+        const jobTitle = jobRow?.title ?? 'the job';
+        const contractUrl = `${BASE_URL}/${LOCALE}/jobs/${jobId}`;
+        void contractUrl; // contractUrl not needed for voided email but kept for consistency
+        if (customerProfile?.email) {
+          sendTransactionalEmail({
+            type: 'contract_voided',
+            to: customerProfile.email,
+            recipientName: customerProfile.full_name ?? 'Customer',
+            jobTitle,
+          });
+        }
+        if (providerProfile?.email) {
+          sendTransactionalEmail({
+            type: 'contract_voided',
+            to: providerProfile.email,
+            recipientName: providerProfile.full_name ?? 'Provider',
+            jobTitle,
+          });
+        }
+      } catch {
+        // Non-blocking — email lookup failure is swallowed.
+      }
+    })();
+
     return NextResponse.json({ contract: updated });
   }
 
@@ -214,5 +290,51 @@ export async function PATCH(
 
   if (signError) return NextResponse.json({ error: signError.message }, { status: 400 });
 
+  // In-app notification — notify the customer when provider signs (or provider when customer signs)
+  if (updatePayload.provider_signed_at) {
+    sendNotification({
+      userId: contract.customer_id,
+      type: 'contract_signed',
+      title: 'Contract Signed',
+      data: { job_id: jobId, contract_id: contract.id },
+    });
+  } else if (updatePayload.customer_signed_at) {
+    sendNotification({
+      userId: contract.provider_id,
+      type: 'contract_signed',
+      title: 'Contract Signed',
+      data: { job_id: jobId, contract_id: contract.id },
+    });
+  }
+
+  // If provider just signed, email the customer — fire-and-forget
+  if (updatePayload.provider_signed_at) {
+    void (async () => {
+      try {
+        const BASE_URL = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'https://workmate.ie';
+        const LOCALE = process.env.NEXT_PUBLIC_DEFAULT_LOCALE ?? 'en';
+        const [{ data: customerProfile }, { data: jobRow }] = await Promise.all([
+          service.from('profiles').select('email,full_name').eq('id', contract.customer_id).maybeSingle(),
+          service.from('jobs').select('title').eq('id', jobId).maybeSingle(),
+        ]);
+        if (customerProfile?.email) {
+          sendTransactionalEmail({
+            type: 'contract_signed',
+            to: customerProfile.email,
+            customerName: customerProfile.full_name ?? 'Customer',
+            jobTitle: jobRow?.title ?? 'the job',
+            contractUrl: `${BASE_URL}/${LOCALE}/jobs/${jobId}`,
+          });
+        }
+      } catch {
+        // Non-blocking — email lookup failure is swallowed.
+      }
+    })();
+  }
+
   return NextResponse.json({ contract: updated });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);
+
+export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);

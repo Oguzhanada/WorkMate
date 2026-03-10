@@ -11,6 +11,7 @@ import {
   type DashboardMode,
 } from '@/lib/dashboard/widgets';
 import { createDashboardWidgetSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 type Row = {
   id: string;
@@ -95,7 +96,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ widgets, mode: context.mode }, { status: 200 });
 }
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const context = await resolveContext(request);
   if ('error' in context) return context.error;
 
@@ -151,3 +152,5 @@ export async function POST(request: NextRequest) {
   const widgets = ((data ?? []) as Row[]).filter((row) => isWidgetAllowedForMode(context.mode, row.widget_type));
   return NextResponse.json({ widgets }, { status: 200 });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

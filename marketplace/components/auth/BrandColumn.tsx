@@ -8,9 +8,9 @@ import styles from './login.module.css';
 import {leftColumnVariants} from '@/styles/animations';
 
 const stats = [
-  {icon: Users, value: '500+', label: 'Active workers'},
-  {icon: Star, value: '4.9', label: 'Average rating'},
-  {icon: ShieldCheck, value: '100%', label: 'Verified pros'}
+  {icon: Users, value: 'Growing', label: 'Pro network'},
+  {icon: ShieldCheck, value: 'All', label: 'Verified pros'},
+  {icon: Star, value: '26', label: 'Counties'}
 ];
 
 export function BrandColumn() {
@@ -35,9 +35,8 @@ export function BrandColumn() {
 
       {/* Quote card */}
       <article className={styles.quoteCard}>
-        <div className={styles.quoteStars}>★★★★★</div>
-        <p className={styles.quoteText}>&ldquo;I found 3 jobs in one week!&rdquo;</p>
-        <p className={styles.quoteMeta}>Michael &mdash; Cork</p>
+        <p className={styles.quoteText}>&ldquo;Connecting Irish homeowners with trusted local professionals.&rdquo;</p>
+        <p className={styles.quoteMeta}>WorkMate</p>
       </article>
 
       {/* Stats */}

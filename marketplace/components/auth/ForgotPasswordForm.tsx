@@ -146,7 +146,7 @@ export function ForgotPasswordForm() {
                 <button
                   type="button"
                   onClick={sendReset}
-                  style={{border: 0, background: 'transparent', color: '#0066cc', cursor: 'pointer'}}
+                  style={{border: 0, background: 'transparent', color: 'var(--wm-primary-dark)', cursor: 'pointer'}}
                 >
                   Resend
                 </button>

@@ -1,5 +1,24 @@
 import { z } from 'zod';
-import { JOB_BUDGET_OPTIONS } from '@/lib/constants/job';
+import { JOB_BUDGET_OPTIONS } from '@/lib/data/budgets';
+
+// ── Auth schemas ────────────────────────────────────────────────────────────
+
+export const loginSchema = z.object({
+  email: z.string().trim().email('Enter a valid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+});
+
+export const registerSchema = z.object({
+  email: z.string().trim().email('Enter a valid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  full_name: z.string().trim().min(1, 'Full name is required').max(120),
+});
+
+export const resetPasswordSchema = z.object({
+  email: z.string().trim().email('Enter a valid email address'),
+});
+
+// ── Job schemas ─────────────────────────────────────────────────────────────
 
 export const createJobSchema = z.object({
   title: z.string().trim().min(3).max(120),
@@ -178,10 +197,20 @@ export const disputeRespondSchema = z.object({
   response: z.string().trim().min(5).max(4000),
 });
 
+/** Maximum dispute evidence file size: 5 MB */
+export const DISPUTE_EVIDENCE_MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+
 export const disputeEvidenceSchema = z.object({
   file_url: z.string().trim().min(3).max(2000),
   file_type: z.string().trim().min(2).max(120),
   description: z.string().trim().max(600).optional().default(''),
+  /** File size in bytes — must be provided for server-side validation */
+  file_size: z
+    .number()
+    .int()
+    .min(1, 'File size must be at least 1 byte')
+    .max(DISPUTE_EVIDENCE_MAX_FILE_SIZE, 'File must not exceed 5 MB')
+    .optional(),
 });
 
 export const disputeResolveSchema = z.object({
@@ -322,6 +351,10 @@ const widgetTypeSchema = z.enum([
   'admin_api_keys',
   'admin_feature_flags',
   'provider_subscription',
+  'garda_vetting',
+  'profile_completeness',
+  'availability',
+  'portfolio',
 ]);
 
 export const createDashboardWidgetSchema = z.object({
@@ -442,3 +475,274 @@ export const submitOfferSchema = z.object({
 export const suggestAlertsSchema = z.object({
   max_suggestions: z.number().int().min(1).max(10).optional().default(5),
 });
+
+// ─── AI: Job Description ──────────────────────────────────────────────────────
+export const jobDescriptionSchema = z.object({
+  jobTitle: z.string().trim().min(1).max(120),
+  categoryName: z.string().trim().min(1).max(120),
+  scope: z.string().trim().max(500).optional(),
+  urgency: z.string().trim().max(120).optional(),
+  taskType: z.string().trim().max(120).optional(),
+});
+
+// ─── Founding Pro: Claim Slot ─────────────────────────────────────────────────
+export const claimFoundingProSchema = z.object({
+  confirm: z.literal(true),
+});
+
+// ─── Favourites: Toggle ───────────────────────────────────────────────────────
+export const toggleFavouriteSchema = z.object({
+  provider_id: z.string().uuid(),
+});
+
+// ─── Reviews: Provider Response ───────────────────────────────────────────────
+export const reviewResponseSchema = z.object({
+  response: z.string().trim().min(10).max(1000),
+});
+
+// ─── Stripe Subscription Webhooks ─────────────────────────────────────────────
+// Schemas validate the Stripe event data objects before DB writes.
+
+export const stripeSubscriptionObjectSchema = z.object({
+  id: z.string().min(1),                         // Stripe subscription ID
+  customer: z.string().min(1),                   // Stripe customer ID
+  status: z.string().min(1),
+  current_period_start: z.number().int(),        // Unix timestamp
+  current_period_end: z.number().int(),          // Unix timestamp
+  cancel_at_period_end: z.boolean(),
+  metadata: z.record(z.string(), z.string()).optional().default({}),
+});
+
+// Stripe SDK v20: subscription ID is no longer a top-level field on Invoice.
+// It lives at invoice.parent.subscription_details.subscription.
+// The webhook handler reads sub ID directly from the typed Stripe.Invoice object.
+// This schema covers the minimal fields we validate before any DB write.
+export const stripeInvoiceObjectSchema = z.object({
+  id: z.string().min(1),                         // Stripe invoice ID
+  customer: z.string().min(1),                   // Stripe customer ID
+  amount_paid: z.number().int().min(0).optional().default(0),
+  metadata: z.record(z.string(), z.string()).optional().default({}),
+});
+
+// ─── Profile: Garda Vetting Self-Service ──────────────────────────────────────
+export const requestGardaVettingSchema = z.object({
+  reference_number: z.string().trim().max(50).optional(),
+});
+
+// ─── Job: Contracts ───────────────────────────────────────────────────────────
+export const createContractSchema = z.object({
+  terms: z.string().trim().min(10).max(10000),
+  quote_id: z.string().uuid().optional().nullable(),
+});
+
+export const signContractSchema = z.object({
+  action: z.enum(['sign', 'void']),
+});
+
+// ─── Admin: Batch Verification ────────────────────────────────────────────────
+export const batchVerificationSchema = z.object({
+  profile_ids: z.array(z.string().uuid()).min(1).max(50),
+  action: z.enum(['approve', 'reject']),
+  reason: z.string().max(500).optional(),
+});
+
+// ─── Admin: Bulk Risk Review ──────────────────────────────────────────────────
+export const bulkReviewRiskSchema = z.object({
+  profile_ids: z.array(z.string().uuid()).min(1).max(200),
+});
+
+// ─── Admin: GDPR Deletion Processor ──────────────────────────────────────────
+export const processGdprDeletionSchema = z.object({
+  profile_id: z.string().uuid(),
+});
+
+// ─── GDPR: Self-Service Delete ────────────────────────────────────────────────
+// Requires explicit { confirm: true } body to prevent accidental calls.
+export const gdprDeleteRequestSchema = z.object({
+  confirm: z.literal(true),
+});
+
+// ─── Analytics: Funnel Telemetry ─────────────────────────────────────────────
+export const FUNNEL_NAMES = ['job_posting', 'provider_onboarding', 'booking'] as const;
+export type FunnelName = (typeof FUNNEL_NAMES)[number];
+
+export const trackFunnelEventSchema = z.object({
+  funnel_name: z.enum(FUNNEL_NAMES),
+  step_name:   z.string().trim().min(1).max(100),
+  step_number: z.number().int().min(1),
+  session_id:  z.string().trim().min(1).max(100),
+  metadata:    z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
+});
+
+// ─── Appointments: Calendar Query ────────────────────────────────────────────
+export const appointmentCalendarQuerySchema = z.object({
+  month: z.string().regex(/^\d{4}-\d{2}$/, 'month must be in YYYY-MM format'),
+  role:  z.enum(['customer', 'provider']).optional(),
+});
+
+// ─── Analytics: Funnel Summary Query ─────────────────────────────────────────
+export const funnelSummaryQuerySchema = z.object({
+  days: z.enum(['7', '30', 'all']).optional().default('all'),
+});
+
+// ─── Provider: Public Search ──────────────────────────────────────────────────
+export const IRISH_COUNTIES = [
+  'Any',
+  'Antrim', 'Armagh', 'Carlow', 'Cavan', 'Clare', 'Cork',
+  'Donegal', 'Down', 'Dublin', 'Fermanagh', 'Galway', 'Kerry',
+  'Kildare', 'Kilkenny', 'Laois', 'Leitrim', 'Limerick', 'Longford',
+  'Louth', 'Mayo', 'Meath', 'Monaghan', 'Offaly', 'Roscommon',
+  'Sligo', 'Tipperary', 'Tyrone', 'Waterford', 'Westmeath', 'Wexford',
+  'Wicklow',
+] as const;
+
+export type IrishCounty = (typeof IRISH_COUNTIES)[number];
+
+const pageParamSchema  = z.preprocess(
+  (v) => (v === '' || v == null ? '1'  : v),
+  z.string().regex(/^\d+$/).transform(Number).pipe(z.number().int().min(1).max(1000)),
+);
+
+const limitParamSchema = z.preprocess(
+  (v) => (v === '' || v == null ? '12' : v),
+  z.string().regex(/^\d+$/).transform(Number).pipe(z.number().int().min(1).max(48)),
+);
+
+export const providerSearchSchema = z.object({
+  q:             z.string().trim().max(120).optional().default(''),
+  category_id:   z.string().uuid().optional(),
+  county:        z.enum(IRISH_COUNTIES).optional().default('Any'),
+  verified_only: z.enum(['true', 'false']).optional().default('true'),
+  garda_vetted:  z.enum(['true', 'false']).optional().default('false'),
+  sort:          z.enum(['rating', 'rate_asc', 'rate_desc', 'newest', 'relevance']).optional().default('relevance'),
+  page:          pageParamSchema.optional(),
+  limit:         limitParamSchema.optional(),
+});
+
+// ─── Saved Searches ───────────────────────────────────────────────────────────
+export const savedSearchFiltersSchema = z.object({
+  category_id:   z.string().uuid().optional(),
+  county:        z.string().optional(),
+  min_rate:      z.number().optional(),
+  max_rate:      z.number().optional(),
+  verified_only: z.boolean().optional(),
+  garda_vetted:  z.boolean().optional(),
+});
+
+export const createSavedSearchSchema = z.object({
+  name:         z.string().trim().min(1).max(100),
+  filters:      savedSearchFiltersSchema.optional().default({}),
+  notify_email: z.boolean().default(false),
+  notify_bell:  z.boolean().default(true),
+});
+
+export const updateSavedSearchSchema = z
+  .object({
+    notify_email: z.boolean().optional(),
+    notify_bell:  z.boolean().optional(),
+  })
+  .refine((d) => d.notify_email !== undefined || d.notify_bell !== undefined, {
+    message: 'Provide at least one of notify_email or notify_bell',
+  });
+
+// ─── Provider: Weekly Availability Schedule ───────────────────────────────────
+export const availabilityDaySchema = z.object({
+  day_of_week:  z.number().int().min(0).max(6),
+  start_time:   z.string().regex(/^\d{2}:\d{2}$/, 'Use HH:MM format'),
+  end_time:     z.string().regex(/^\d{2}:\d{2}$/, 'Use HH:MM format'),
+  is_available: z.boolean(),
+});
+
+export const updateAvailabilitySchema = z.array(availabilityDaySchema).min(1).max(7);
+
+// ─── Notifications: Bell API ──────────────────────────────────────────────────
+export const notificationsQuerySchema = z.object({
+  unread: z.enum(['true', 'false']).optional(),
+  limit:  z.string().regex(/^\d+$/).transform(Number).pipe(z.number().int().min(1).max(50)).optional(),
+});
+
+// ─── Admin: Audit Log Query ───────────────────────────────────────────────────
+export const auditLogQuerySchema = z.object({
+  limit:    z.string().regex(/^\d+$/).transform(Number).pipe(z.number().int().min(1).max(200)).optional(),
+  offset:   z.string().regex(/^\d+$/).transform(Number).pipe(z.number().int().min(0)).optional(),
+  action:   z.string().trim().max(120).optional(),
+  admin_id: z.string().uuid().optional(),
+  days:     z.enum(['7', '30', 'all']).optional().default('30'),
+});
+
+export const markNotificationsReadSchema = z
+  .object({
+    ids: z.array(z.string().uuid()).min(1).max(100).optional(),
+    all: z.boolean().optional(),
+  })
+  .refine((d) => d.ids !== undefined || d.all === true, {
+    message: 'Provide either ids[] or all: true',
+  });
+
+// ─── Admin: Platform Stats Query ──────────────────────────────────────────────
+export const adminStatsQuerySchema = z.object({
+  monthly: z.enum(['true', 'false']).optional().default('false'),
+});
+
+// ─── Admin: Feature Flag Toggle ───────────────────────────────────────────────
+export const patchFeatureFlagSchema = z.object({
+  flag_key: z.string().trim().min(2).max(100),
+  enabled: z.boolean(),
+});
+
+// ─── Admin: Garda Vetting Status ──────────────────────────────────────────────
+export const patchGardaVettingSchema = z.object({
+  garda_vetting_status: z.enum(['not_required', 'pending', 'approved', 'rejected', 'expired']),
+  garda_vetting_reference: z.string().trim().max(100).optional().nullable(),
+  garda_vetting_expires_at: z.string().date().optional().nullable(),
+});
+
+// ─── Task Alerts: Upsert ──────────────────────────────────────────────────────
+const TASK_ALERT_COUNTIES = [
+  'Carlow', 'Cavan', 'Clare', 'Cork', 'Donegal', 'Dublin', 'Galway',
+  'Kerry', 'Kildare', 'Kilkenny', 'Laois', 'Leitrim', 'Limerick',
+  'Longford', 'Louth', 'Mayo', 'Meath', 'Monaghan', 'Offaly',
+  'Roscommon', 'Sligo', 'Tipperary', 'Waterford', 'Westmeath',
+  'Wexford', 'Wicklow', 'Ireland-wide',
+] as const;
+
+export const upsertTaskAlertSchema = z.object({
+  keywords: z.array(z.string().trim().min(1).max(60)).max(20).default([]),
+  categories: z.array(z.string().uuid()).max(20).default([]),
+  counties: z.array(z.enum(TASK_ALERT_COUNTIES)).max(27).default([]),
+  budget_min: z.number().int().min(0).nullable().default(null),
+  enabled: z.boolean().default(true),
+});
+
+// ─── Public API: Jobs Query ───────────────────────────────────────────────────
+export const publicJobsQuerySchema = z.object({
+  limit:    z.preprocess((v) => (v === '' || v == null ? '20' : v), z.string().regex(/^\d+$/).transform(Number).pipe(z.number().int().min(1).max(100))),
+  offset:   z.preprocess((v) => (v === '' || v == null ? '0' : v), z.string().regex(/^\d+$/).transform(Number).pipe(z.number().int().min(0))),
+  status:   z.string().trim().max(30).optional(),
+  county:   z.string().trim().max(120).optional(),
+  category: z.string().trim().max(120).optional(),
+});
+
+// ─── Admin: Compliance Recalculation ─────────────────────────────────────────
+export const complianceRecalcSchema = z.object({
+  providerId: z.string().uuid().optional().nullable(),
+});
+
+// ─── Portfolio: Work Gallery ───────────────────────────────────────────────────
+export const createPortfolioItemSchema = z.object({
+  title:         z.string().trim().min(1).max(100),
+  description:   z.string().trim().max(500).optional(),
+  image_url:     z.string().url(),
+  display_order: z.number().int().min(0).optional(),
+});
+
+export const updatePortfolioItemSchema = z
+  .object({
+    title:         z.string().trim().min(1).max(100).optional(),
+    description:   z.string().trim().max(500).optional(),
+    image_url:     z.string().url().optional(),
+    display_order: z.number().int().min(0).optional(),
+  })
+  .refine((d) => Object.values(d).some((v) => v !== undefined), {
+    message: 'At least one field is required',
+  });

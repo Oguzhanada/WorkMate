@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { JOB_BUDGET_OPTIONS } from '@/lib/constants/job';
+import { JOB_BUDGET_OPTIONS } from '@/lib/data/budgets';
 import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import styles from './job-result.module.css';

@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ensureAdminRoute } from '@/lib/auth/admin';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { adminJobDecisionSchema } from '@/lib/validation/api';
+import { logAdminAudit } from '@/lib/admin/audit';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function PATCH(
+async function patchHandler(
   request: NextRequest,
   { params }: { params: Promise<{ jobId: string }> }
 ) {
@@ -58,5 +60,21 @@ export async function PATCH(
     },
   });
 
+  await logAdminAudit({
+    adminUserId: auth.user?.id ?? null,
+    adminEmail: auth.user?.email ?? null,
+    action: 'approve_job',
+    targetType: 'job',
+    targetLabel: job.title ?? null,
+    details: {
+      job_id: jobId,
+      note: parsed.data.note ?? null,
+      old_status: 'pending_review',
+      new_status: 'approved',
+    },
+  });
+
   return NextResponse.json({ job }, { status: 200 });
 }
+
+export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);

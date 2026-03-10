@@ -1,0 +1,500 @@
+/* ── Founding Pro Claim Page ──────────────────────────────────────────────── */
+
+.page {
+  min-height: 100vh;
+  padding-bottom: 6rem;
+}
+
+/* ── Hero ──────────────────────────────────────────────────────────────────── */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 5rem 1.5rem 4rem;
+  text-align: center;
+  background: var(--wm-grad-hero);
+}
+
+.heroInner {
+  max-width: 52rem;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.heroLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 1rem;
+  border-radius: var(--wm-radius-3xl);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: var(--wm-font-display);
+  background: var(--wm-amber-light);
+  color: var(--wm-amber-dark);
+  border: 1px solid var(--wm-amber);
+  margin-bottom: 1.5rem;
+}
+
+.heroTitle {
+  font-family: var(--wm-font-display);
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--wm-navy);
+  margin: 0 0 1rem;
+}
+
+.heroTitleAccent {
+  background: var(--wm-grad-warm);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.heroSubtitle {
+  font-size: 1.125rem;
+  line-height: 1.65;
+  color: var(--wm-muted);
+  max-width: 36rem;
+  margin: 0 auto 2.5rem;
+}
+
+.heroGlow {
+  position: absolute;
+  top: -40%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ── Slots Counter ─────────────────────────────────────────────────────────── */
+
+.slotsCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: 1.5rem 2rem;
+  border-radius: var(--wm-radius-2xl);
+  background: var(--wm-surface);
+  border: 1px solid var(--wm-border);
+  box-shadow: var(--wm-shadow-md);
+}
+
+.slotsLabel {
+  font-family: var(--wm-font-display);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--wm-navy);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.slotsNumbers {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.slotsCount {
+  font-family: var(--wm-font-display);
+  font-size: 2.75rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--wm-amber-dark);
+}
+
+.slotsTotal {
+  font-family: var(--wm-font-display);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--wm-text-muted);
+}
+
+.progressBarTrack {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--wm-border);
+  overflow: hidden;
+}
+
+.progressBarFill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--wm-grad-warm);
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slotsRemaining {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--wm-muted);
+}
+
+.slotsUrgent {
+  color: var(--wm-amber-dark);
+  font-weight: 700;
+}
+
+/* ── Benefits Grid ─────────────────────────────────────────────────────────── */
+
+.benefitsSection {
+  padding: 4rem 1.5rem;
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+.sectionTitle {
+  font-family: var(--wm-font-display);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  color: var(--wm-navy);
+  text-align: center;
+  margin: 0 0 0.75rem;
+}
+
+.sectionSubtitle {
+  font-size: 1rem;
+  color: var(--wm-muted);
+  text-align: center;
+  max-width: 32rem;
+  margin: 0 auto 3rem;
+  line-height: 1.6;
+}
+
+.benefitsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.benefitCard {
+  padding: 1.75rem;
+  border-radius: var(--wm-radius-xl);
+  background: var(--wm-surface);
+  border: 1px solid var(--wm-border);
+  box-shadow: var(--wm-shadow-sm);
+  transition: box-shadow var(--wm-transition), transform var(--wm-transition);
+}
+
+.benefitCard:hover {
+  box-shadow: var(--wm-shadow-lg);
+  transform: translateY(-2px);
+}
+
+.benefitIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--wm-radius-md);
+  margin-bottom: 1rem;
+}
+
+.benefitTitle {
+  font-family: var(--wm-font-display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--wm-navy);
+  margin: 0 0 0.5rem;
+}
+
+.benefitDesc {
+  font-size: 0.875rem;
+  color: var(--wm-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── CTA Section ───────────────────────────────────────────────────────────── */
+
+.ctaSection {
+  padding: 3rem 1.5rem;
+  max-width: 36rem;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.ctaButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  width: 100%;
+  max-width: 24rem;
+  padding: 1rem 2rem;
+  border-radius: var(--wm-radius-xl);
+  border: none;
+  background: var(--wm-grad-warm);
+  color: #fff;
+  font-family: var(--wm-font-display);
+  font-size: 1.125rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--wm-glow-amber);
+  transition: transform var(--wm-transition-spring), box-shadow var(--wm-transition);
+}
+
+.ctaButton:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: var(--wm-shadow-xl);
+}
+
+.ctaButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ctaNote {
+  font-size: 0.8125rem;
+  color: var(--wm-text-muted);
+  margin-top: 1rem;
+}
+
+.ctaLogin {
+  margin-top: 1rem;
+  font-size: 0.9375rem;
+  color: var(--wm-muted);
+}
+
+.ctaLoginLink {
+  color: var(--wm-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ctaLoginLink:hover {
+  text-decoration: underline;
+}
+
+/* ── Success / Error States ────────────────────────────────────────────────── */
+
+.successBanner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  max-width: 32rem;
+  margin: 0 auto;
+  padding: 2rem;
+  border-radius: var(--wm-radius-2xl);
+  background: var(--wm-amber-light);
+  border: 1px solid var(--wm-amber);
+  text-align: center;
+}
+
+.successTitle {
+  font-family: var(--wm-font-display);
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--wm-navy);
+  margin: 0;
+}
+
+.successText {
+  font-size: 0.9375rem;
+  color: var(--wm-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.errorBanner {
+  max-width: 32rem;
+  margin: 1rem auto;
+  padding: 1rem 1.25rem;
+  border-radius: var(--wm-radius-md);
+  background: var(--wm-primary-faint);
+  border: 1px solid var(--wm-border);
+  color: var(--wm-text-muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+/* ── Referral Section ──────────────────────────────────────────────────────── */
+
+.referralSection {
+  padding: 3rem 1.5rem 4rem;
+  max-width: 36rem;
+  margin: 0 auto;
+}
+
+.referralCard {
+  padding: 2rem;
+  border-radius: var(--wm-radius-2xl);
+  background: var(--wm-surface);
+  border: 1px solid var(--wm-border);
+  box-shadow: var(--wm-shadow-md);
+}
+
+.referralTitle {
+  font-family: var(--wm-font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--wm-navy);
+  margin: 0 0 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.referralSubtext {
+  font-size: 0.875rem;
+  color: var(--wm-muted);
+  line-height: 1.5;
+  margin: 0 0 1.25rem;
+}
+
+.referralCodeRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.referralCodeValue {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: var(--wm-radius-md);
+  background: var(--wm-amber-light);
+  border: 1px solid var(--wm-amber);
+  font-family: var(--wm-font-display);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--wm-amber-dark);
+  letter-spacing: 0.05em;
+  text-align: center;
+  user-select: all;
+}
+
+.copyButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--wm-radius-md);
+  border: 1px solid var(--wm-border);
+  background: var(--wm-surface);
+  cursor: pointer;
+  color: var(--wm-navy);
+  transition: background var(--wm-transition), box-shadow var(--wm-transition);
+}
+
+.copyButton:hover {
+  background: var(--wm-amber-light);
+  box-shadow: var(--wm-shadow-sm);
+}
+
+.referralStats {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--wm-muted);
+}
+
+.referralStatsCount {
+  font-weight: 700;
+  color: var(--wm-amber-dark);
+}
+
+/* ── Already Claimed State ──────────────────────────────────────────────── */
+
+.claimedHero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 0;
+}
+
+.claimedTitle {
+  font-family: var(--wm-font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--wm-navy);
+  margin: 0;
+}
+
+.claimedDate {
+  font-size: 0.875rem;
+  color: var(--wm-muted);
+}
+
+/* ── Loading Skeleton ──────────────────────────────────────────────────────── */
+
+.skeleton {
+  border-radius: var(--wm-radius-md);
+  background: linear-gradient(90deg, var(--wm-border) 25%, var(--wm-surface-alt) 50%, var(--wm-border) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Program Closed State ──────────────────────────────────────────────── */
+
+.closedBanner {
+  max-width: 32rem;
+  margin: 2rem auto;
+  padding: 2rem;
+  border-radius: var(--wm-radius-2xl);
+  background: var(--wm-surface-alt);
+  border: 1px solid var(--wm-border);
+  text-align: center;
+}
+
+.closedTitle {
+  font-family: var(--wm-font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--wm-navy);
+  margin: 0 0 0.5rem;
+}
+
+.closedText {
+  font-size: 0.9375rem;
+  color: var(--wm-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .hero {
+    padding: 3.5rem 1rem 3rem;
+  }
+
+  .benefitsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .referralCodeRow {
+    flex-direction: column;
+  }
+
+  .referralCodeValue {
+    width: 100%;
+  }
+
+  .copyButton {
+    width: 100%;
+    height: auto;
+    padding: 0.625rem;
+  }
+}

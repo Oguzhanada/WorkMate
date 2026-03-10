@@ -154,7 +154,11 @@ export default function AutomationRulesPanel() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    let active = true;
+    queueMicrotask(() => { if (active) load(); });
+    return () => { active = false; };
+  }, [load]);
 
   async function toggleRule(ruleId: string, enabled: boolean) {
     const res = await fetch(`/api/admin/automation-rules/${ruleId}`, {

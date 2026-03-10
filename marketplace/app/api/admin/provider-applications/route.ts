@@ -3,6 +3,7 @@ import { ensureAdminRoute } from '@/lib/auth/admin';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { logAdminAudit } from '@/lib/admin/audit';
 import { adminProviderDecisionSchema, adminProviderFiltersSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 export async function GET(request: NextRequest) {
   const auth = await ensureAdminRoute();
@@ -241,7 +242,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ applications, filters, audit_logs: auditLogs ?? [] });
 }
 
-export async function PATCH(request: NextRequest) {
+async function patchHandler(request: NextRequest) {
   const auth = await ensureAdminRoute();
   if (auth.error) return auth.error;
 
@@ -469,3 +470,5 @@ export async function PATCH(request: NextRequest) {
 
   return NextResponse.json({ profile: data });
 }
+
+export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);

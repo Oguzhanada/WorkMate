@@ -34,7 +34,9 @@ export default function ProPortfolioPanel() {
   };
 
   useEffect(() => {
-    load();
+    let active = true;
+    queueMicrotask(() => { if (active) load(); });
+    return () => { active = false; };
   }, []);
 
   const save = async () => {

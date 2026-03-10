@@ -1,7 +1,13 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import DisputeDetail from '@/components/disputes/DisputeDetail';
 import styles from '../../../inner.module.css';
+
+export const metadata: Metadata = {
+  title: 'Dispute Details',
+  description: 'View and manage dispute details.',
+};
 
 export default async function DisputeDetailPage({
   params,

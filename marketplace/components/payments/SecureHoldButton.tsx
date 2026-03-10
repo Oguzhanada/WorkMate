@@ -39,7 +39,7 @@ export default function SecureHoldButton({
   };
 
   return (
-    <button onClick={createSecureHold} className="rounded bg-slate-900 px-4 py-2 text-white">
+    <button onClick={createSecureHold} className="rounded bg-[var(--wm-navy)] px-4 py-2 text-white">
       Pay with Secure Hold
     </button>
   );

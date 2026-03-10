@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticatePublicRequest } from '@/lib/api/public-auth';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function DELETE(
+async function deleteHandler(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -25,3 +26,5 @@ export async function DELETE(
 
   return NextResponse.json({ success: true, id: data.id }, { status: 200 });
 }
+
+export const DELETE = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, deleteHandler);

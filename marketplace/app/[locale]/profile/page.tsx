@@ -1,41 +1,38 @@
-import {redirect} from 'next/navigation';
+import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 
-import {getUserRoles} from '@/lib/auth/rbac';
-import {getSupabaseServerClient} from '@/lib/supabase/server';
-import {hasAtLeastTwoNameParts} from '@/lib/validation/name';
-import {isValidIrishPhone} from '@/lib/validation/phone';
-import ProfileAddressForm from '@/components/forms/ProfileAddressForm';
-import ProPortfolioPanel from '@/components/profile/ProPortfolioPanel';
-import ProfileVerificationPanel from '@/components/profile/ProfileVerificationPanel';
-import ProfileAvatarPanel from '@/components/profile/ProfileAvatarPanel';
-import ProfileBasicInfoPanel from '@/components/profile/ProfileBasicInfoPanel';
-import ProfileCompletionCard from '@/components/profile/ProfileCompletionCard';
-import ApiKeyCard from '@/components/profile/ApiKeyCard';
-import ProviderAvailability from '@/components/profile/ProviderAvailability';
-import ProfileExpressionCard from '@/components/profile/ProfileExpressionCard';
+import { getUserRoles } from '@/lib/auth/rbac';
 
-import pageStyles from './profile-page.module.css';
+export const metadata: Metadata = {
+  title: 'My Profile',
+  description: 'View and edit your WorkMate profile.',
+};
+import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { hasAtLeastTwoNameParts } from '@/lib/validation/name';
+import { isValidIrishPhone } from '@/lib/ireland/phone';
+import ProfileLayout from '@/components/profile/ProfileLayout';
+import ProfileTabContent from '@/components/profile/ProfileTabContent';
 
 export default async function ProfilePage({
   params,
   searchParams,
 }: {
-  params: Promise<{locale: string}>;
-  searchParams: Promise<{verification?: string; focus?: string; message?: string}>;
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ verification?: string; focus?: string; message?: string; tab?: string }>;
 }) {
-  const {locale} = await params;
+  const { locale } = await params;
   const query = await searchParams;
 
   const supabase = await getSupabaseServerClient();
   const {
-    data: {user},
+    data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
     redirect(`/${locale}/login`);
   }
 
-  const [{data: profile}, {data: proServices}, {data: proAreas}, {data: address}, {data: docs}] =
+  const [{ data: profile }, { data: proServices }, { data: proAreas }, { data: address }, { data: docs }] =
     await Promise.all([
       supabase.from('profiles').select('*').eq('id', user.id).single(),
       supabase.from('pro_services').select('id').eq('profile_id', user.id),
@@ -44,15 +41,15 @@ export default async function ProfilePage({
         .from('addresses')
         .select('address_line_1,address_line_2,locality,county,eircode')
         .eq('profile_id', user.id)
-        .order('created_at', {ascending: false})
+        .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle(),
       supabase.from('pro_documents').select('document_type,verification_status').eq('profile_id', user.id),
     ]);
 
-  const {count: postedJobsCount} = await supabase
+  const { count: postedJobsCount } = await supabase
     .from('jobs')
-    .select('id', {count: 'exact', head: true})
+    .select('id', { count: 'exact', head: true })
     .eq('customer_id', user.id);
 
   const userRoles = await getUserRoles(supabase, user.id);
@@ -143,6 +140,7 @@ export default async function ProfilePage({
     formHint: string;
     reasonHint?: string;
   }>;
+
   if (hasProviderRole) {
     completionItems.push({
       id: 'proof',
@@ -160,124 +158,126 @@ export default async function ProfilePage({
     });
   }
 
-  const initials =
-    (profile?.full_name ?? 'U')
-      .split(' ')
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase())
-      .join('') || 'U';
-  const statusOk = profile?.verification_status === 'verified';
+  const joinedDate = profile?.created_at
+    ? new Date(profile.created_at).toLocaleDateString('en-IE', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      })
+    : '-';
+
+  /* ── Determine initial tab from query params ─────────────────── */
+  const initialTab = query.tab ?? (query.focus === 'id' || query.focus === 'proof' ? 'security' : 'profile');
 
   return (
-    <main className={pageStyles.page}>
-      <div className={pageStyles.container}>
-        {query.message === 'identity_required' ? (
-          <section className={pageStyles.identityBanner}>
-            <strong>Identity verification required before continuing.</strong>
-            <p>
+    <main
+      style={{
+        background: 'var(--wm-bg)',
+        minHeight: '100vh',
+        paddingTop: 32,
+        paddingBottom: 64,
+        fontFamily: 'var(--wm-font-sans)',
+        color: 'var(--wm-text)',
+      }}
+    >
+      {/* ── Identity-required banner ─────────────────────────────── */}
+      {query.message === 'identity_required' ? (
+        <div className="mx-auto mb-6" style={{ maxWidth: 1200, padding: '0 16px' }}>
+          <div
+            className="rounded-2xl px-5 py-4"
+            style={{
+              border: '1px solid var(--wm-amber)',
+              background: 'var(--wm-amber-light)',
+              color: 'var(--wm-amber-dark)',
+              boxShadow: 'var(--wm-shadow-sm)',
+            }}
+          >
+            <strong className="block mb-1">Identity verification required before continuing.</strong>
+            <p className="m-0 text-sm">
               You were redirected because this action requires an approved identity check.
               Upload your ID below and wait for admin review.
             </p>
-          </section>
-        ) : null}
-
-        <section className={pageStyles.hero}>
-          <div>
-            <h1 className={pageStyles.heroTitle}>My Profile</h1>
-            <p className={pageStyles.heroSub}>Keep your account and verification details up to date.</p>
           </div>
-          <div className={pageStyles.heroIdentity}>
-            <ProfileAvatarPanel
-              compact
-              initialAvatarUrl={profile?.avatar_url ?? ''}
-              initialFullName={profile?.full_name ?? initials}
-              autoOpenPicker={query.focus === 'photo'}
-            />
-            <div>
-              <p>{profile?.full_name ?? '-'}</p>
-              <p className={pageStyles.heroSub}>{user.email ?? '-'}</p>
-              <span className={`${pageStyles.badge} ${statusOk ? pageStyles.verified : pageStyles.notVerified}`}>
-                {statusOk ? 'Verified' : 'Not Verified'}
-              </span>
-            </div>
-          </div>
-        </section>
+        </div>
+      ) : null}
 
-        <section className={pageStyles.grid}>
-          <div className={pageStyles.col}>
-            <div id="account-details" className={pageStyles.card}>
-              <ProfileBasicInfoPanel
-                initialFullName={profile?.full_name ?? ''}
-                initialPhone={profile?.phone ?? ''}
-                email={user.email ?? '-'}
-                statusLabel={profile?.verification_status ?? 'unverified'}
-                initialEditField={query.focus === 'name' || query.focus === 'phone' ? query.focus : null}
-              />
-            </div>
-            <div className={pageStyles.card}>
-              <ProfileCompletionCard items={completionItems} showProviderCta={!hasProviderRole} />
-            </div>
-          </div>
-
-          <div className={pageStyles.col}>
-            <div className={pageStyles.card}>
-              <ProfileVerificationPanel
-                profileId={user.id}
-                hasIdDocument={hasIdDocument}
-                hasInsuranceDocument={hasInsuranceDocument}
-                hasProviderRole={hasProviderRole}
-                verificationStatus={profile?.verification_status ?? ''}
-                idVerificationStatus={profile?.id_verification_status ?? 'none'}
-                rejectedReason={profile?.id_verification_rejected_reason ?? ''}
-                showRedirectHint={query.verification === 'required' || query.message === 'identity_required'}
-                autoFocusTarget={query.focus === 'id' || query.focus === 'proof' ? query.focus : null}
-                stripeIdentityStatus={profile?.stripe_identity_status ?? 'not_started'}
-                idVerificationMethod={profile?.id_verification_method ?? 'document_upload'}
-              />
-            </div>
-            <div id="address-information" className={pageStyles.card}>
-              <ProfileAddressForm
-                initialAddress={address}
-                autoFocusField={
-                  query.focus === 'address_line_1' ||
-                  query.focus === 'locality' ||
-                  query.focus === 'county' ||
-                  query.focus === 'eircode'
-                    ? query.focus
-                    : null
-                }
-              />
-            </div>
-          </div>
-        </section>
-
-        <section className={pageStyles.summary}>
-          <h3>Account Summary</h3>
-          <div className={pageStyles.summaryGrid}>
-            <div className={pageStyles.summaryItem}>
-              <p>Joined</p>
-              <strong>{profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : '-'}</strong>
-            </div>
-            <div className={pageStyles.summaryItem}>
-              <p>Last login</p>
-              <strong>{user?.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString() : '-'}</strong>
-            </div>
-            <div className={pageStyles.summaryItem}>
-              <p>Tasks posted</p>
-              <strong>{postedJobsCount ?? 0}</strong>
-            </div>
-          </div>
-        </section>
-
-        <ProfileExpressionCard />
-
-        <ApiKeyCard initialApiKey={profile?.api_key ?? null} initialRateLimit={profile?.api_rate_limit ?? 1000} />
-
-        {hasProviderRole ? <ProviderAvailability providerId={user.id} /> : null}
-
-        {hasProviderRole ? <ProPortfolioPanel /> : null}
+      {/* ── Page header ──────────────────────────────────────────── */}
+      <div className="mx-auto mb-8" style={{ maxWidth: 1200, padding: '0 16px' }}>
+        <div
+          className="relative overflow-hidden rounded-2xl px-8 py-8"
+          style={{
+            background: `linear-gradient(135deg, var(--wm-navy) 0%, rgba(var(--wm-navy-rgb), 0.85) 55%, var(--wm-primary-dark) 100%)`,
+            boxShadow: 'var(--wm-shadow-xl), 0 0 0 1px rgba(var(--wm-primary-rgb), 0.15)',
+          }}
+        >
+          {/* Radial glow decorations */}
+          <div
+            className="pointer-events-none absolute"
+            style={{
+              right: -80,
+              top: -80,
+              width: 340,
+              height: 340,
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(var(--wm-primary-rgb), 0.28) 0%, transparent 68%)',
+            }}
+          />
+          <div
+            className="pointer-events-none absolute"
+            style={{
+              left: -50,
+              bottom: -70,
+              width: 220,
+              height: 220,
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%)',
+            }}
+          />
+          <h1
+            className="relative m-0 text-3xl font-extrabold"
+            style={{
+              fontFamily: 'var(--wm-font-display)',
+              color: '#fff',
+              letterSpacing: '-0.025em',
+              lineHeight: 1.15,
+            }}
+          >
+            My Profile
+          </h1>
+          <p className="relative mt-2 text-sm" style={{ color: 'rgba(255, 255, 255, 0.62)' }}>
+            Manage your account, verification, and settings in one place.
+          </p>
+        </div>
       </div>
+
+      {/* ── Profile layout with tabs ─────────────────────────────── */}
+      <ProfileLayout
+        avatarUrl={profile?.avatar_url ?? ''}
+        fullName={profile?.full_name ?? 'User'}
+        email={user.email ?? '-'}
+        isVerified={profile?.verification_status === 'verified'}
+        hasProviderRole={hasProviderRole}
+        joinedDate={joinedDate}
+        jobsPosted={postedJobsCount ?? 0}
+        userId={user.id}
+        initialTab={initialTab}
+      >
+        {(activeTab: string) => (
+          <ProfileTabContent
+            activeTab={activeTab}
+            locale={locale}
+            userId={user.id}
+            userEmail={user.email ?? '-'}
+            hasProviderRole={hasProviderRole}
+            hasIdDocument={hasIdDocument}
+            hasInsuranceDocument={hasInsuranceDocument}
+            profile={profile}
+            address={address}
+            completionItems={completionItems}
+            query={query}
+          />
+        )}
+      </ProfileLayout>
     </main>
   );
 }

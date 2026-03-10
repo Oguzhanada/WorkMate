@@ -2,9 +2,10 @@ import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { createGuestJobIntentSchema } from '@/lib/validation/api';
-import { isValidEircode, normalizeEircode } from '@/lib/eircode';
+import { isValidEircode, normalizeEircode } from '@/lib/ireland/eircode';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function POST(request: NextRequest) {
+async function handler(request: NextRequest): Promise<NextResponse> {
   let rawBody: unknown;
   try {
     rawBody = await request.json();
@@ -40,7 +41,18 @@ export async function POST(request: NextRequest) {
   }
 
   const token = randomUUID().replaceAll('-', '');
-  const devAutoVerify = process.env.NODE_ENV !== 'production';
+
+  // Email verification guard:
+  // - REQUIRE_GUEST_EMAIL_VERIFICATION defaults to true in production.
+  // - When enabled, the intent is created with status 'email_pending' and the guest
+  //   must click a verification link (sent via email) before the job can be claimed.
+  // - When disabled (dev/test), the intent is auto-verified and immediately claimable.
+  // - Set REQUIRE_GUEST_EMAIL_VERIFICATION=false in .env.local to skip during development.
+  const requireVerification =
+    process.env.REQUIRE_GUEST_EMAIL_VERIFICATION !== 'false' &&
+    process.env.NODE_ENV === 'production';
+
+  const skipVerification = !requireVerification;
 
   const { data, error } = await supabase
     .from('job_intents')
@@ -54,9 +66,9 @@ export async function POST(request: NextRequest) {
       locality: body.locality,
       budget_range: body.budget_range,
       photo_urls: body.photo_urls,
-      status: devAutoVerify ? 'ready_to_publish' : 'email_pending',
+      status: skipVerification ? 'ready_to_publish' : 'pending_verification',
       verification_token: token,
-      verified_at: devAutoVerify ? new Date().toISOString() : null,
+      verified_at: skipVerification ? new Date().toISOString() : null,
     })
     .select('id,status')
     .single();
@@ -69,10 +81,13 @@ export async function POST(request: NextRequest) {
     {
       intent_id: data.id,
       status: data.status,
-      dev_auto_verified: devAutoVerify,
-      prod_reminder:
-        'PROD TODO: enable real email verification before publishing guest jobs. In test mode this step is bypassed.',
+      // When status is 'pending_verification', the guest must click the email
+      // verification link before the intent transitions to 'ready_to_publish'
+      // and can be claimed via POST /api/guest-jobs/claim.
+      verification_required: !skipVerification,
     },
     { status: 201 }
   );
 }
+
+export const POST = withRateLimit(RATE_LIMITS.AUTH_STRICT, handler);

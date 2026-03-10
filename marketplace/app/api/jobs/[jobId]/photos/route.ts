@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { canPostJob, getUserRoles } from '@/lib/auth/rbac';
 import { updateJobPhotosSchema } from '@/lib/validation/api';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function PATCH(
+async function patchHandler(
   request: NextRequest,
   { params }: { params: Promise<{ jobId: string }> }
 ) {
@@ -75,3 +76,5 @@ export async function PATCH(
     { status: 200 }
   );
 }
+
+export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);

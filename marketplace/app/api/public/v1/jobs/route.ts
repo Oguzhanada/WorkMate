@@ -1,26 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticatePublicRequest } from '@/lib/api/public-auth';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
-
-const DEFAULT_LIMIT = 20;
-const MAX_LIMIT = 100;
+import { publicJobsQuerySchema } from '@/lib/validation/api';
 
 export async function GET(request: NextRequest) {
   const auth = await authenticatePublicRequest(request);
   if (auth.error) return auth.error;
 
   const search = request.nextUrl.searchParams;
-  const limit = Math.min(Math.max(Number(search.get('limit') ?? DEFAULT_LIMIT), 1), MAX_LIMIT);
-  const offset = Math.max(Number(search.get('offset') ?? 0), 0);
-  const status = search.get('status');
-  const county = search.get('county');
-  const category = search.get('category');
+  const parsed = publicJobsQuerySchema.safeParse({
+    limit: search.get('limit'),
+    offset: search.get('offset'),
+    status: search.get('status') || undefined,
+    county: search.get('county') || undefined,
+    category: search.get('category') || undefined,
+  });
+
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid query parameters', details: parsed.error.issues }, { status: 400 });
+  }
+
+  const { limit, offset, status, county, category } = parsed.data;
 
   const svc = getSupabaseServiceClient();
   let query = svc
     .from('jobs')
-    .select('id,title,category,description,county,locality,budget_range,status,created_at')
+    .select('id,title,category,description,county,locality,budget_range,status,created_at,expires_at')
     .eq('review_status', 'approved')
+    .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 

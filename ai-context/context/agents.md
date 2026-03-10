@@ -83,7 +83,15 @@ These rules are mandatory for every change in this project.
 - If a requested change is risky/non-compliant:
   - Explain why (short and concrete),
   - Provide a compliant alternative,
-  - Ask for confirmation only if needed.
+- Ask for confirmation only if needed.
+
+## 7.1) Flow maturity execution order
+- Follow flow modernization order strictly:
+  1) Provider funnel
+  2) Trust/policy/dispute certainty
+  3) Ops reliability and telemetry
+- Do not start telemetry-heavy work before provider funnel and trust policy contracts are in place.
+- Source roadmap: `marketplace/docs/flow-maturity-roadmap-10w.md`
 
 ## 8) UI architecture rule
 - No new raw page-level CSS for visual redesign work unless shared tokens/components are insufficient.
@@ -93,6 +101,10 @@ These rules are mandatory for every change in this project.
   - Shadcn/Radix primitives are allowed inside `components/ui/*` wrappers.
   - Do not scatter primitive-specific utility patterns directly across page files.
   - Keep color/spacing/radius/shadow decisions mapped to `--wm-*` tokens.
+- Readability-first contrast is mandatory:
+  - On light surfaces, body/supporting text must use `--wm-text-muted` or darker.
+  - Never use reduced opacity text (`text-white/..`, `opacity-..`) on light cards/sections.
+  - Any new section must pass a manual readability check at 100% and 125% zoom before merge.
 
 ---
 
@@ -150,7 +162,7 @@ router.push(withLocalePrefix(localeRoot, '/dashboard/customer'));
 - Every new table **must** have RLS enabled and explicit policies.
 - **NEVER** add `FOR ALL USING (true)` — this bypasses security entirely.
 - Every migration must be additive (001, 002… never rewrite or renumber existing files).
-- Next migration number: **059** — check `migrations/` before creating any new migration.
+- Next migration number: **073** — check `migrations/` before creating any new migration.
 - Migrations are applied manually by the user in Supabase SQL Editor — do not attempt to run them via CLI.
 
 ## 13) Zod — API validation rule
@@ -197,6 +209,36 @@ When working on these areas, activate the matching skill first:
 | General project rules + guardrails | `workmate-core` |
 | Frozen decision check / architecture audit | `workmate-schema-guardian` |
 
+## 17.1) MCP pilot matrix (DR-006)
+
+Read-only pilot matrix:
+
+| Agent role | Allowed MCP | Allowed capabilities | Forbidden capabilities |
+|---|---|---|---|
+| ProjectManager | GitHub | read PRs, read issues, read checks/workflows | create/update issues, merge, label write |
+| QAAgent | GitHub | read check runs, read failed jobs, read PR test context | rerun workflows, PR write actions |
+| BackendAgent | Supabase | read schema metadata, read RLS policies, read query diagnostics | any SQL mutation, migration apply, table writes |
+| ComplianceAgent | Supabase | read verification/dispute/payment policy evidence | data mutation, policy writes |
+
+MCP pilot rules:
+- MCP runtime is local only.
+- All MCP calls must pass `scripts/mcp/read_only_enforce.mjs`.
+- Any blocked action must be logged to `logs/mcp-readonly-violations.log`.
+- If fallback rate exceeds thresholds defined in DR-006, narrow scope immediately.
+
+## 17.2) MCP security note (GitMCP + Magic)
+- `gitmcp.io` is public-repo context tooling by default; do not assume private-repo support.
+- Treat all MCP-exposed repo content as externally consumable context:
+  - never include secrets/tokens/credentials in tracked files,
+  - never expose internal-only compliance or ops notes without review.
+- Before enabling GitMCP on any repo:
+  - run security preflight (`npm run check:prepublic-security` where applicable),
+  - verify `.env*`, keys, and operational runbooks are excluded or sanitized,
+  - require explicit security approval for any non-public or mixed-sensitivity repository.
+- `21st.dev/magic` output is untrusted until reviewed:
+  - generated UI must be wrapped/adapted to WorkMate shared UI layer,
+  - generated code should prefer `--wm-*` token contract, but raw Tailwind utilities are allowed when reviewed.
+
 ## 19) FROZEN DECISIONS — do not change without a Decision Record
 
 The following architectural decisions are **locked**. They were established through deliberate analysis and must not be changed without writing a Decision Record directly in this section.
@@ -220,9 +262,107 @@ DR-XXX | Date | Author | Decision changed | Reason | Approved by
 | FD-10 | RLS never `FOR ALL USING (true)` — all policies scoped to `auth.uid()` | Security — open policies expose all rows to all authenticated users |
 | FD-11 | No hardcoded `/en/` in hrefs, redirects, or router.push — use `lib/i18n/locale-path` helpers | Locale routing correctness; future locale expansion readiness |
 | FD-12 | Webhook delivery: HTTPS-only, HMAC-SHA256 via `X-WorkMate-Signature` from `lib/webhook/send.ts` | Security — unsigned webhooks are spoofable |
+| FD-13 | Contrast contract: text on light surfaces must use semantic text tokens (`--wm-text-strong/default/muted/soft`), never low-opacity text color hacks | Prevents recurring unreadable UI regressions across pages |
+| FD-14 | Theme application is explicit-only: light theme locked by default on `<html data-theme="light">`; no automatic `prefers-color-scheme` overrides in token source | Prevents accidental global washed-out/low-contrast regressions after unrelated changes |
+| FD-15 | No page/container-level opacity on readable content wrappers (`main`, `section`, hero/content cards) except loading/skeleton states | Prevents whole-screen faded text incidents and preserves readability baseline |
+| FD-16 | Ireland-specific logic MUST live in `lib/ireland/` — never at `lib/` root | Session 27 restructure — prevents re-scattering of domain logic |
+| FD-17 | Static data/enums MUST live in `lib/data/` — never at `lib/` root or `lib/constants/` | Session 27 restructure — consolidates all enums/data in one place |
+| FD-18 | Stripe SDK MUST live in `lib/stripe/client.ts` — never as `lib/stripe.ts` | Session 27 restructure — consistent with other integrations |
+| FD-19 | Feature components in their domain dir (`jobs/`, `offers/`, `reviews/`) — NOT in `dashboard/` | Session 27 restructure — prevents dashboard/ becoming a catch-all |
+| FD-20 | No orphaned files in `lib/` root (except `live-services.ts`, `i18n.ts`) | Session 27 restructure — all utilities must live in subdirectories |
+| FD-21 | `components/ui/index.ts` barrel export must be updated when adding new UI primitives | Session 27 — barrel export exists, keep it current |
+| FD-22 | Pre-commit hooks (Husky + lint-staged) must NOT be bypassed with `--no-verify` | Session 27 — quality gates must run locally |
+| FD-23 | AI agents MUST work on feature branches — NEVER commit directly to `main` | Session 27 — main protection, user-only merge |
+| FD-24 | AI agents MUST NOT create completion/audit/task report files (`*REPORT*.md`, `*COMPLETION*.md`, `*GUIDE*.md` at repo root or `docs/`) — only architectural/operational docs allowed | Session 28 — anti-doc-bloat, keep repo clean |
+| FD-25 | New `.claude/skills/` MUST be whitelisted in `.gitignore` before commit — unwhitelisted skills are silently ignored by git | Session 28 — skill creation requires gitignore update |
 
 **Decision Records (changes to frozen decisions):**
 _(none yet — first change must be documented here before implementation)_
+
+---
+
+## 20) Repository Structure — STRICT file organization rules (established session 27)
+
+These rules protect the architectural reorganization completed in session 27. Violating these rules creates import chaos and merge conflicts.
+
+### 20.1) Ireland-specific logic MUST live in `lib/ireland/`
+- Eircode validation: `lib/ireland/eircode.ts` — NEVER create a new `lib/eircode.ts`
+- Irish phone normalization: `lib/ireland/phone.ts` — NEVER create a new `lib/validation/phone.ts`
+- County coordinates: `lib/ireland/coordinates.ts` — NEVER create a new `lib/ireland-coordinates.ts`
+- Location/county mappings: `lib/ireland/locations.ts` — NEVER create a new `lib/ireland-locations.ts`
+- New Ireland-specific logic (VAT, Revenue, PSC): add to `lib/ireland/`
+
+### 20.2) Static data and enums MUST live in `lib/data/`
+- Category definitions: `lib/data/categories.ts` — NEVER create a new `lib/marketplace-data.ts`
+- Service taxonomy: `lib/data/services.ts` — NEVER create a new `lib/service-taxonomy.ts`
+- Provider document types: `lib/data/documents.ts` — NEVER create a new `lib/provider-documents.ts`
+- Budget options: `lib/data/budgets.ts` — NEVER create a new `lib/constants/job.ts`
+- New static data/enums: add to `lib/data/`
+
+### 20.3) Stripe SDK MUST live in `lib/stripe/`
+- Stripe client: `lib/stripe/client.ts` — NEVER create a new `lib/stripe.ts` at root
+- Stripe webhook handlers: `lib/stripe/handlers/` (when extracted)
+- New Stripe-related logic: add to `lib/stripe/`
+
+### 20.4) Component domain boundaries — STRICT ownership
+Components MUST live in their feature directory, NOT in `dashboard/`:
+- Job-related: `components/jobs/` (JobMessagePanel, JobPhotoUploader, JobContractPanel, etc.)
+- Quote/offer-related: `components/offers/` (QuoteActions, etc.)
+- Review-related: `components/reviews/` (LeaveReviewForm, etc.)
+- `components/dashboard/` is ONLY for dashboard-specific layout, widgets, and analytics panels
+- `components/ui/` is ONLY for design system primitives — no business logic, no data fetching
+
+### 20.5) No orphaned files in `lib/` root
+- `lib/` root should ONLY contain `live-services.ts` (master switch) and `i18n.ts`
+- All other utilities MUST be in a subdirectory (`lib/ireland/`, `lib/data/`, `lib/stripe/`, etc.)
+- If you need to add a new utility, create or use an appropriate subdirectory
+
+### 20.6) Barrel exports exist — use them
+- `components/ui/index.ts` — exports all UI primitives
+- `lib/ireland/index.ts` — exports all Ireland logic
+- `lib/data/index.ts` — exports all static data
+- New barrel exports can be added, but existing imports via direct paths also remain valid
+
+### 20.7) Pre-commit hooks are active
+- Husky + lint-staged run ESLint + tsc on every commit
+- Do NOT bypass with `--no-verify` unless explicitly approved by the user
+- If a hook fails, fix the issue — do not disable the hook
+
+### 20.8) Git branching — AI agents MUST NOT commit to `main` (FD-23)
+- **NEVER** commit directly to the `main` branch
+- **ALWAYS** create a feature branch before making changes:
+  - `feat/<description>` — new features
+  - `fix/<description>` — bug fixes
+  - `chore/<description>` — maintenance, deps, config
+  - `docs/<description>` — documentation only
+- **Only the repository owner** (user) can merge branches into `main`
+- Before starting work, check which branch you are on: `git branch --show-current`
+- If you are on `main`, create a new branch first: `git checkout -b feat/<description>`
+- **NEVER** run `git push origin main` — push your feature branch instead
+
+### 20.9) Documentation policy — NO agent self-reports (FD-24)
+- **NEVER** create `*REPORT*.md`, `*COMPLETION*.md`, `*GUIDE*.md`, `*AUDIT*.md` files
+- These are agent self-reports and add no value — they bloat the repo
+- The only allowed documentation in `docs/` is **architectural/operational**:
+  - `ARCHITECTURE_REVIEW.md`, `PRODUCTION_LAUNCH.md`, `DB_RUNBOOK.md`, `ROPA.md`, checkpoints
+- If you need to communicate what you did, use **PR description** and **commit messages** — not separate files
+- Existing `PROJECT_CONTEXT.md` is the single onboarding reference — do not create duplicates
+- The user will review and merge via PR or direct merge at their discretion
+
+### 20.10) Skill creation — whitelist in `.gitignore` required (FD-25)
+- Skills live in `.claude/skills/<skill-name>/SKILL.md`
+- `.gitignore` blocks ALL skills by default (``.claude/skills/*``)
+- Only **whitelisted** skills are committed. Current whitelist:
+  - `!.claude/skills/workmate-schema-guardian/`
+  - `!.claude/skills/workmate-visual-qa/`
+  - `!.claude/skills/ui-system-hybrid-migration/`
+- **When creating a new skill**, you MUST also add whitelist entries to `.gitignore`:
+  ```
+  !.claude/skills/<new-skill-name>/
+  !.claude/skills/<new-skill-name>/SKILL.md
+  ```
+- Without this step, your skill file will be silently ignored by git and **never committed**
+- Always create skills on a **feature branch** (FD-23) and include the `.gitignore` change in the same PR
 
 ---
 
@@ -236,5 +376,6 @@ Before making any change, a new AI agent must read these files in order:
 5. `marketplace/lib/auth/rbac.ts` — RBAC helpers
 6. `marketplace/lib/dashboard/widgets.ts` — widget system source of truth
 7. `marketplace/lib/i18n/locale-path.ts` — locale path helpers
+
 
 

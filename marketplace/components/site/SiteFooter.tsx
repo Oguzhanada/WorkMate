@@ -30,14 +30,16 @@ export default function SiteFooter() {
           </div>
           <div>
             <h4>For Customers</h4>
-            <Link href={localized('/search')}>Browse Services</Link>
+            <Link href={localized('/find-services')}>Browse Services</Link>
             <Link href={localized('/post-job')}>Post a Job</Link>
+            <Link href={localized('/pricing')}>Pricing</Link>
             <Link href={localized('/how-it-works')}>{t('how')}</Link>
             <Link href={localized('/faq')}>{t('faq')}</Link>
           </div>
           <div>
             <h4>For Professionals</h4>
             <Link href={localized('/become-provider')}>Become a Pro</Link>
+            <Link href={localized('/founding-pro')}>Founding Pro</Link>
             <Link href={localized('/providers')}>Find Opportunities</Link>
             <Link href={localized('/dashboard/pro')}>Pro Dashboard</Link>
             <Link href={localized('/login')}>Pro Login</Link>

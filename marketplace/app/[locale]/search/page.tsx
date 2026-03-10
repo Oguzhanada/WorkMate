@@ -2,13 +2,15 @@
 
 import Link from 'next/link';
 import {usePathname, useRouter, useSearchParams} from 'next/navigation';
-import {FormEvent, ReactNode, useEffect, useMemo, useRef, useState} from 'react';
+import {FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {AnimatePresence, motion, useReducedMotion} from 'framer-motion';
 
-import {professionals, services} from '@/lib/marketplace-data';
+import {professionals, services} from '@/lib/data/categories';
 import VerifiedNavigationLink from '@/components/site/VerifiedNavigationLink';
-import {COUNTY_CITIES} from '@/lib/ireland-locations';
+import {COUNTY_CITIES} from '@/lib/ireland/locations';
+import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
+import Button from '@/components/ui/Button';
 
 import styles from '../inner.module.css';
 import pageStyles from './search-page.module.css';
@@ -47,6 +49,7 @@ const CITY_COORDINATES: Record<string, {x: number; y: number}> = {
 export default function SearchPage() {
   const router = useRouter();
   const pathname = usePathname();
+  const localeRoot = getLocaleRoot(pathname || '/');
   const prefersReducedMotion = useReducedMotion();
   const t = useTranslations('search');
   const common = useTranslations('common');
@@ -68,10 +71,17 @@ export default function SearchPage() {
   const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    setKeyword((params.get('q') ?? '').trim());
-    setCityFilter((params.get('county') ?? '').trim());
+    const nextKeyword = (params.get('q') ?? '').trim();
+    const nextCity = (params.get('county') ?? '').trim();
     const nextMode = (params.get('mode') ?? 'services').trim().toLowerCase();
-    setMode(nextMode === 'providers' ? 'providers' : 'services');
+    queueMicrotask(() => {
+      setKeyword((prev) => (prev !== nextKeyword ? nextKeyword : prev));
+      setCityFilter((prev) => (prev !== nextCity ? nextCity : prev));
+      setMode((prev) => {
+        const resolved = nextMode === 'providers' ? 'providers' : 'services';
+        return prev !== resolved ? resolved : prev;
+      });
+    });
   }, [params]);
 
   const allCities = useMemo(() => {
@@ -91,12 +101,14 @@ export default function SearchPage() {
       mountedRef.current = true;
       return;
     }
-    setIsRefreshing(true);
+    let cancelled = false;
+    queueMicrotask(() => { if (!cancelled) setIsRefreshing(true); });
     if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
     refreshTimeoutRef.current = setTimeout(() => {
-      setIsRefreshing(false);
+      if (!cancelled) setIsRefreshing(false);
     }, 280);
     return () => {
+      cancelled = true;
       if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
     };
   }, [query, cityFilter, maxPriceFilter, minRatingFilter, mode, prefersReducedMotion]);
@@ -144,7 +156,7 @@ export default function SearchPage() {
     [cityFilter, maxPriceFilter, minRatingFilter, query]
   );
 
-  const localizedServiceName = (slug: string) => {
+  const localizedServiceName = useCallback((slug: string) => {
     if (slug === 'home-cleaning') return home('trend.homeCleaning');
     if (slug === 'painting-decorating') return home('trend.painting');
     if (slug === 'moving-services') return home('trend.moving');
@@ -153,7 +165,7 @@ export default function SearchPage() {
       .split('-')
       .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
       .join(' ');
-  };
+  }, [home]);
 
   const onKeywordSearch = (event: FormEvent) => {
     event.preventDefault();
@@ -197,17 +209,17 @@ export default function SearchPage() {
       city: provider.city,
       meta: `${provider.rating.toFixed(1)} (${provider.reviews} reviews)`
     }));
-  }, [mode, matchedPros, matchedServices]);
+  }, [mode, matchedPros, matchedServices, localizedServiceName]);
 
   useEffect(() => {
-    if (mapPins.length === 0) {
-      setSelectedPinId('');
-      return;
-    }
-    if (!mapPins.some((pin) => pin.id === selectedPinId)) {
-      setSelectedPinId(mapPins[0].id);
-    }
-  }, [mapPins, selectedPinId]);
+    queueMicrotask(() => {
+      setSelectedPinId((prev) => {
+        if (mapPins.length === 0) return prev !== '' ? '' : prev;
+        if (!mapPins.some((pin) => pin.id === prev)) return mapPins[0].id;
+        return prev;
+      });
+    });
+  }, [mapPins]);
 
   const filterControls = (footerAction?: ReactNode) => (
     <>
@@ -234,16 +246,17 @@ export default function SearchPage() {
         </label>
       </div>
       <div className={pageStyles.filterActions}>
-        <button
-          type="button"
-          className={`${styles.secondary} ${pageStyles.clearButton}`}
+        <Button
+          variant="secondary"
+          size="sm"
+          className={pageStyles.clearButton}
           onClick={() => {
             setMaxPriceFilter('');
             setMinRatingFilter('');
           }}
         >
           {t('clear')}
-        </button>
+        </Button>
         {footerAction}
       </div>
     </>
@@ -276,23 +289,25 @@ export default function SearchPage() {
           animate={prefersReducedMotion ? undefined : 'visible'}
           custom={0.08}
         >
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => onModeChange('services')}
             className={`${pageStyles.modeButton} ${mode === 'services' ? pageStyles.modeButtonActive : ''}`}
           >
             Services
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => onModeChange('providers')}
             className={`${pageStyles.modeButton} ${mode === 'providers' ? pageStyles.modeButtonActive : ''}`}
           >
             Providers
-          </button>
-          <button type="button" className={pageStyles.mobileFilterToggle} onClick={() => setShowMobileFilters(true)}>
+          </Button>
+          <Button variant="outline" size="sm" className={pageStyles.mobileFilterToggle} onClick={() => setShowMobileFilters(true)}>
             Filters
-          </button>
+          </Button>
         </motion.section>
         <motion.section
           className={`${styles.card} ${pageStyles.cardShell}`}
@@ -322,9 +337,9 @@ export default function SearchPage() {
               </select>
             </label>
             <div className={pageStyles.searchActions}>
-              <button type="submit" className={`${styles.primary} ${pageStyles.searchButton}`}>
+              <Button type="submit" variant="primary" className={pageStyles.searchButton}>
                 {mode === 'services' ? 'Find Service' : 'Find Provider'}
-              </button>
+              </Button>
             </div>
           </form>
         </motion.section>
@@ -358,22 +373,22 @@ export default function SearchPage() {
               >
                 <div className={pageStyles.mobileFilterHeader}>
                   <h3>{t('filtersTitle')}</h3>
-                  <button
-                    type="button"
-                    className={styles.secondary}
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => setShowMobileFilters(false)}
                   >
                     Close
-                  </button>
+                  </Button>
                 </div>
                 {filterControls(
-                  <button
-                    type="button"
-                    className={styles.primary}
+                  <Button
+                    variant="primary"
+                    size="sm"
                     onClick={() => setShowMobileFilters(false)}
                   >
                     Apply
-                  </button>
+                  </Button>
                 )}
               </motion.div>
             </motion.div>
@@ -427,7 +442,10 @@ export default function SearchPage() {
                           <div className={pageStyles.cardBody}>
                             <h3>{localizedServiceName(service.slug)}</h3>
                             <p className={pageStyles.meta}>{service.city}</p>
-                            <Link className={`${styles.primary} ${pageStyles.cardAction}`} href={`/service/${service.slug}`}>
+                            <Link
+                              className={`${styles.primary} ${pageStyles.cardAction}`}
+                              href={withLocalePrefix(localeRoot, `/service/${service.slug}`)}
+                            >
                               {common('viewDetails')}
                             </Link>
                           </div>
@@ -455,7 +473,7 @@ export default function SearchPage() {
                             </p>
                             <VerifiedNavigationLink
                               className={`${styles.primary} ${pageStyles.cardAction}`}
-                              href={`/post-job?pro=${encodeURIComponent(pro.id)}`}
+                              href={withLocalePrefix(localeRoot, `/post-job?pro=${encodeURIComponent(pro.id)}`)}
                             >
                               {common('requestQuote')}
                             </VerifiedNavigationLink>
@@ -485,7 +503,7 @@ export default function SearchPage() {
                             </p>
                             <VerifiedNavigationLink
                               className={`${styles.secondary} ${pageStyles.cardAction}`}
-                              href={`/post-job?pro=${encodeURIComponent(pro.id)}`}
+                              href={withLocalePrefix(localeRoot, `/post-job?pro=${encodeURIComponent(pro.id)}`)}
                             >
                               {common('requestQuote')}
                             </VerifiedNavigationLink>
@@ -498,7 +516,10 @@ export default function SearchPage() {
                           <div className={pageStyles.cardBody}>
                             <h3>{localizedServiceName(service.slug)}</h3>
                             <p className={pageStyles.meta}>{service.city}</p>
-                            <Link className={`${styles.secondary} ${pageStyles.cardAction}`} href={`/service/${service.slug}`}>
+                            <Link
+                              className={`${styles.secondary} ${pageStyles.cardAction}`}
+                              href={withLocalePrefix(localeRoot, `/service/${service.slug}`)}
+                            >
                               {common('viewDetails')}
                             </Link>
                           </div>
@@ -517,9 +538,10 @@ export default function SearchPage() {
                 {mapPins.map((pin) => {
                   const coord = CITY_COORDINATES[pin.city] ?? {x: 50, y: 50};
                   return (
-                    <button
+                    <Button
                       key={pin.id}
-                      type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => setSelectedPinId(pin.id)}
                       className={`${pageStyles.mapPin} ${selectedPinId === pin.id ? pageStyles.mapPinActive : ''}`}
                       style={{left: `${coord.x}%`, top: `${coord.y}%`}}
@@ -527,15 +549,16 @@ export default function SearchPage() {
                       title={`${pin.label} • ${pin.city}`}
                     >
                       {mode === 'services' ? 'S' : 'P'}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
               <div className={pageStyles.mapList}>
                 {mapPins.slice(0, 8).map((pin) => (
-                  <button
+                  <Button
                     key={pin.id}
-                    type="button"
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setSelectedPinId(pin.id)}
                     className={`${pageStyles.mapListItem} ${selectedPinId === pin.id ? pageStyles.mapListItemActive : ''}`}
                   >
@@ -543,7 +566,7 @@ export default function SearchPage() {
                     <span>
                       {pin.city} • {pin.meta}
                     </span>
-                  </button>
+                  </Button>
                 ))}
               </div>
             </aside>
