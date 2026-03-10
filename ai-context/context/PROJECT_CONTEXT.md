@@ -1,6 +1,6 @@
 # WorkMate (Ada Marketplace) - AI Context File
-> Last updated: 2026-03-06
-> Session: 10
+> Last updated: 2026-03-10
+> Session: 28 (originally written session 10, incrementally updated)
 > Team: 8-Agent Structure (PM, Frontend, Backend, Fintech, Design, Compliance, QA, DevOps)
 
 ---
@@ -88,7 +88,7 @@ marketplace/
 │   ├── ranking/ pricing/ types/     # Airtasker-style feature layer
 │   ├── validation/ constants/ hooks/ i18n/ onboarding/
 │   └── (no lib/supabase.ts — deleted, all use getSupabaseBrowserClient() inline)
-├── migrations/                      # 001..072 ALL APPLIED
+├── migrations/                      # 001..073 ALL APPLIED
 ├── supabase/functions/              # edge functions
 └── messages/en.json
 ```
@@ -193,67 +193,61 @@ marketplace/
 - [x] Deleted `lib/supabase.ts`
 - [x] Archived old checkpoint docs and `docs/memory/` snapshot
 
+### Sessions 11–28 — Summary (see MEMORY.md for full detail)
+
+> **All Phase 1–4 features COMPLETE.** Production readiness sweep DONE. Security audit DONE.
+
+Key milestones since session 10:
+- **Design system** (session 16): Full `--wm-*` token system, zero hardcoded hex, custom fonts (Syne + Plus Jakarta Sans)
+- **Phases 1–4** (sessions 13–22): 60+ Zod schemas, 104 API routes, rate limiting, GDPR export/delete, funnel telemetry, notification bell, admin analytics, provider subscriptions, job contracts, Garda vetting, risk scoring
+- **Production readiness** (session 23): SEO infra (JSON-LD, OG images), 15 loading.tsx files, CSP headers, GDPR automation edge function
+- **Bug/QA sweep** (session 24): Security fixes (admin auth, error leaks, rate limiting), 29 FK indexes, raw button→Button migration, hex→token cleanup
+- **Strategy implementation** (session 26): Plan-based commission, cookie consent, WCAG fixes, DPAs signed, GDPR cron deployed
+- **Architecture restructure** (session 27): `lib/ireland/`, `lib/data/`, `lib/stripe/client.ts` file moves, `components/ui/index.ts` barrel, Husky + lint-staged, FD-16–FD-22 frozen rules
+- **Agent governance** (session 28): CI workflow fixes, FD-23 (feature branches only), FD-24 (no bloat docs), FD-25 (skill gitignore whitelist)
+
+Migrations 051–073: ALL APPLIED. Key tables: funnel_events, saved_searches, portfolio_items, job_contracts, provider_subscriptions, feature_flags, webhook_events, referral_codes, founding_pro_config, provider_availability, job_mode_enhancements.
+
+New libs: `lib/analytics/funnel.ts`, `lib/notifications/send.ts`, `lib/profile/completeness.ts`, `lib/rate-limit/`, `lib/api/error-response.ts`
+
 ---
 
 ## 6. CURRENT STATE
 
-- Migrations 001-072: ALL APPLIED in Supabase
-- Next migration: **073**
+- Migrations 001-073: ALL APPLIED in Supabase
+- Next migration: **074**
 - Vercel deployment: active at `work-mate-neon.vercel.app`
 - Stripe: test mode (`sk_test_*`) — no real charges
 - Email sender: `notifications@workmate.ie` — Resend domain must be verified before go-live
 
 ---
 
-## 7. PENDING TASKS (PRIORITY ORDER)
+## 7. PENDING TASKS (updated session 28)
 
-### Pre-production blockers
-1. [ ] Verify `RESEND_API_KEY` in Vercel env — email flow untested end-to-end
-2. [ ] Stripe: register missing webhook events in Stripe Dashboard (`account.updated`, `charge.dispute.created`, `payment_intent.payment_failed`)
-3. [ ] Identity verification: re-enable Stripe Identity on production (currently bypassed)
-4. [ ] Seed production `categories` table with real Irish service categories
-5. [ ] Switch Stripe keys from `sk_test_*` to `sk_live_*` for production
-6. [ ] Set production env vars on Vercel (`RESEND_API_KEY`, `ADDRESS_PROVIDER`, `LOQATE_API_KEY`, `STRIPE_CONNECT_CLIENT_ID`)
+> All automated code work DONE. Security audit DONE. Only manual launch tasks remain.
+> See `docs/PRODUCTION_LAUNCH.md` for the full go-live checklist.
 
-### Engineering
-7. [ ] Smoke test all flows on Vercel: sign-up → dashboard, post-job, admin approval, provider quote
-8. [ ] E2E Playwright tests: task alerts, offer ranking, time tracking, widget drag-drop
-9. [ ] Webhook delivery observability — retry monitoring
-10. [ ] API key scopes and rotation audit trail
-11. [ ] **UI Priority (Active now)** — complete main theme rollout + cross-page readability/contrast polish as first priority
+### Manual-only launch blockers
+1. [ ] Purchase domain `workmate.ie` + connect to Vercel
+2. [ ] Enable Supabase Pro + PITR backup
+3. [ ] Set `NEXT_PUBLIC_PLATFORM_BASE_URL` to production domain in Vercel
+4. [ ] Set `LIVE_SERVICES_ENABLED=true` in Vercel env vars (go-live day)
+5. [ ] Switch Stripe keys from `sk_test_*` to `sk_live_*`
+6. [ ] Verify Resend domain `workmate.ie` (SPF/DKIM/DMARC)
+7. [ ] UX testing — 3-5 real users
+8. [ ] Responsive/browser testing — Safari, Firefox, mobile
+9. [ ] Lighthouse manual run on production URL
 
-### Phase 1 — Strategic Features (Session 13 Roadmap)
-> Full roadmap: `ai-context/memory/checkpoints/CHECKPOINT_SESSION13_2026-03-06.md`
+### Code quality (post-launch)
+10. [ ] Error response helper migration — ~55 routes still use raw `NextResponse.json`
+11. [ ] `next/image` migration — replace `<img>` with `Image` component
+12. [ ] Large component refactoring (AdminApplicationsPanel 1456 LOC, JobMultiStepForm 956 LOC)
+13. [ ] TypeScript `strict: true` pilot on new files
 
-12. [ ] **Migration 050** — `compliance_score` column on `profiles` + ranking view update
-13. [ ] **Irish Compliance Badge** — "Ireland Fully Verified" badge component + `/providers` filter toggle + admin compliance_score panel
-14. [ ] **Smart Match Score** — server action: `ranking_score × compliance_score × response_time_factor`, shown as "Match %" on quote cards
-15. [ ] **Rebooking 1.9% fee** — detect repeat customer/provider pair via `customer_provider_history`, apply reduced fee, show "Rebook" CTA + savings message
-16. [ ] **"Why WorkMate?" homepage section** — 3-column competitor comparison (WorkMate vs Airtasker IE vs MyBuilder)
-17. [ ] **Provider AI Suggested Alerts** — "Suggest alerts" button reads `pro_services` → auto-creates `task_alerts`
-18. [ ] **Offer Ranking Badge polish** — 48h expiry countdown on quote cards, "X providers viewed this job" counter
-
-### Phase 2 — Medium Term (3–6 Weeks)
-19. [ ] Price estimation tool in `JobMultiStepForm` (percentile query on accepted quotes by category)
-20. [ ] Multi-dimension reviews: quality / punctuality / value — Migration 051
-21. [ ] "Same-Day Available" badge (query `provider_availability_slots` within 24h)
-22. [ ] Provider earnings dashboard widget (monthly net, fee breakdown, payout ETA)
-23. [ ] Customer "Favourite Pros" list — Migration 052
-24. [ ] AI Job Description Writer (Claude Haiku integration in job form)
-25. [ ] Remote / Virtual Consultation job type — Migration 053
-26. [ ] Fraud / anomaly detection (risk_score in admin) — Migration 054
-27. [ ] **Deferred ops task** — Waybar button-driven Dark theme sync (system + app appearance), postponed until after main theme rollout
-
-### Phase 3 — Long Term (6–12 Months)
-28. [ ] Mobile app (React Native + Expo)
-29. [ ] Garda vetting integration — Migration 055
-30. [ ] Revenue.ie Tax Clearance API auto-check
-31. [ ] Provider tax reporting tool (annual earnings PDF for Revenue)
-32. [ ] Contract templates per job category — Migration 056
-33. [ ] GDPR automation (auto-delete, data export endpoint) — Migration 057
-34. [ ] A/B test infrastructure (feature_flags) — Migration 057
-35. [ ] "WorkMate Pro" provider subscription — Migration 058
-36. [ ] UK / Northern Ireland expansion (en-GB locale, UK postcode validator)
+### Future features
+- See `ai-context/decisions/` for DR-003 (refund policy), DR-004 (provider funnel), DR-005 (flow maturity)
+- Mobile app (React Native + Expo) — long term
+- UK / Northern Ireland expansion — long term
 
 ---
 
@@ -354,7 +348,7 @@ Phase fallback:
 - [ ] Set all env vars on Vercel (`SUPABASE_*`, `STRIPE_*`, `RESEND_API_KEY`, `TASK_ALERT_SECRET`)
 
 **Supabase**
-- [ ] Confirm migrations 001-072 applied on production Supabase project
+- [ ] Confirm migrations 001-073 applied on production Supabase project
 - [ ] Enable `pg_cron` on production project
 - [ ] Set Auth Site URL + Redirect URLs to production domain
 - [ ] Update OAuth redirect URIs in Google/Facebook consoles

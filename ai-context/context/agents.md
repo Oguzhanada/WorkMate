@@ -352,10 +352,16 @@ Components MUST live in their feature directory, NOT in `dashboard/`:
 ### 20.10) Skill creation — whitelist in `.gitignore` required (FD-25)
 - Skills live in `.claude/skills/<skill-name>/SKILL.md`
 - `.gitignore` blocks ALL skills by default (``.claude/skills/*``)
-- Only **whitelisted** skills are committed. Current whitelist:
-  - `!.claude/skills/workmate-schema-guardian/`
-  - `!.claude/skills/workmate-visual-qa/`
+- Only **whitelisted** skills are committed. Current whitelist (9 skills):
   - `!.claude/skills/ui-system-hybrid-migration/`
+  - `!.claude/skills/workmate-visual-qa/`
+  - `!.claude/skills/workmate-schema-guardian/`
+  - `!.claude/skills/workmate-core/`
+  - `!.claude/skills/workmate-api-route/`
+  - `!.claude/skills/workmate-dashboard-widget/`
+  - `!.claude/skills/workmate-front-engineer/`
+  - `!.claude/skills/workmate-production-launch/`
+  - `!.claude/skills/workmate-seed-ireland/`
 - **When creating a new skill**, you MUST also add whitelist entries to `.gitignore`:
   ```
   !.claude/skills/<new-skill-name>/
