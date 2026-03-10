@@ -1,10 +1,13 @@
 "use client";
 
+import * as Sentry from '@sentry/nextjs';
+import { useEffect } from 'react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Shell from '@/components/ui/Shell';
 
-export default function LocaleError({ reset }: { reset: () => void }) {
+export default function LocaleError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  useEffect(() => { Sentry.captureException(error); }, [error]);
   return (
     <Shell>
       <Card className="mx-auto max-w-md text-center">

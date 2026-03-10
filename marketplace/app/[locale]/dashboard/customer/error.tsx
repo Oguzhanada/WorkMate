@@ -1,9 +1,12 @@
 'use client';
 
+import * as Sentry from '@sentry/nextjs';
+import { useEffect } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
-export default function CustomerDashboardError({ reset }: { reset: () => void }) {
+export default function CustomerDashboardError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  useEffect(() => { Sentry.captureException(error); }, [error]);
   return (
     <div
       className="mx-auto flex min-h-[50vh] max-w-md flex-col items-center justify-center px-4 text-center"
