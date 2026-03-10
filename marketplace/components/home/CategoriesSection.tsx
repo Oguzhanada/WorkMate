@@ -15,6 +15,7 @@ const categories = [
     icon: Wrench,
     span: '',
     height: '260px',
+    proCount: 45,
   },
   {
     title: 'Cleaning',
@@ -24,6 +25,7 @@ const categories = [
     icon: Sparkles,
     span: '',
     height: '260px',
+    proCount: 62,
   },
   {
     title: 'Gardening',
@@ -33,6 +35,7 @@ const categories = [
     icon: Trees,
     span: '',
     height: '260px',
+    proCount: 38,
   },
   {
     title: 'Handyman',
@@ -42,6 +45,7 @@ const categories = [
     icon: Hammer,
     span: '',
     height: '260px',
+    proCount: 51,
   },
   {
     title: 'Electrical',
@@ -51,6 +55,7 @@ const categories = [
     icon: Zap,
     span: '',
     height: '260px',
+    proCount: 29,
   },
   {
     title: 'Painting',
@@ -60,6 +65,7 @@ const categories = [
     icon: Paintbrush,
     span: '',
     height: '260px',
+    proCount: 41,
   },
 ];
 
@@ -121,10 +127,10 @@ export default function CategoriesSection() {
             return (
               <motion.div
                 key={cat.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.15 }}
-                transition={{ duration: 0.5, delay: i * 0.06 }}
+                initial={{ opacity: 0, y: 30, scale: 0.97 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, amount: 0.12 }}
+                transition={{ duration: 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
                 className="group"
                 style={{ minHeight: cat.height }}
               >
@@ -191,6 +197,16 @@ export default function CategoriesSection() {
                     >
                       {cat.tagline}
                     </p>
+                    <span
+                      className="mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+                      style={{
+                        background: 'rgba(var(--wm-primary-rgb), 0.2)',
+                        color: 'var(--wm-primary)',
+                        backdropFilter: 'blur(8px)',
+                      }}
+                    >
+                      {cat.proCount}+ pros
+                    </span>
                   </div>
 
                   {/* Hover border glow */}

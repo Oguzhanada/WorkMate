@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Search, MapPin, ArrowRight, Shield, Star, Zap, Users } from 'lucide-react';
+import { Search, MapPin, ArrowRight, Shield, Zap, Users, CheckCircle, CreditCard } from 'lucide-react';
 import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
@@ -16,9 +16,9 @@ const counties = [
 ];
 
 const ticker = [
-  { icon: Users, value: '500+', label: 'Verified Pros' },
-  { icon: Star, value: '4.8★', label: 'Avg Rating' },
-  { icon: Zap, value: '<4h', label: 'Response' },
+  { icon: Users, value: 'Growing', label: 'Pro Network' },
+  { icon: Shield, value: 'Verified', label: 'Providers' },
+  { icon: Zap, value: 'Fast', label: 'Response' },
   { icon: Shield, value: '26', label: 'Counties' },
 ];
 
@@ -225,12 +225,35 @@ export default function HeroSection() {
           </div>
         </motion.div>
 
+        {/* Micro trust line — Eleken-inspired credibility strip */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.75 }}
+          className="mt-6 flex flex-wrap items-center gap-5"
+        >
+          {[
+            { icon: CheckCircle, text: 'Verified Irish Pros' },
+            { icon: CreditCard, text: 'Secure Stripe Payments' },
+            { icon: Shield, text: 'Free to Post' },
+          ].map(({ icon: Icon, text }) => (
+            <span
+              key={text}
+              className="inline-flex items-center gap-1.5 text-xs font-medium"
+              style={{ color: 'rgba(255,255,255,0.5)' }}
+            >
+              <Icon className="h-3.5 w-3.5" style={{ color: 'var(--wm-primary)', opacity: 0.8 }} />
+              {text}
+            </span>
+          ))}
+        </motion.div>
+
         {/* CTA row */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.8 }}
-          className="mt-8 flex flex-wrap items-center gap-4"
+          className="mt-6 flex flex-wrap items-center gap-4"
         >
           <Link
             href={withLocalePrefix(localeRoot, '/post-job')}

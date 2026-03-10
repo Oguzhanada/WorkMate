@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ArrowRight } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import WorkMateLogo from '@/components/ui/WorkMateLogo';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -400,16 +400,18 @@ export default function Navbar() {
                 />
               </Link>
               <Link
-                href={withLocalePrefix(localeRoot, '/sign-up')}
-                className="text-sm font-medium text-white transition-all hover:brightness-110"
+                href={withLocalePrefix(localeRoot, '/post-job')}
+                className="inline-flex items-center gap-1.5 text-sm font-bold text-white transition-all hover:brightness-110"
                 style={{
                   background: 'var(--wm-grad-primary)',
                   padding: '0.55rem 1.5rem',
                   borderRadius: '999px',
                   boxShadow: '0 4px 14px rgba(16,185,129,0.3)',
+                  fontFamily: 'var(--wm-font-display)',
                 }}
               >
-                Get Started
+                Post a Job
+                <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </>
           )}
@@ -515,17 +517,18 @@ export default function Navbar() {
                     Sign In
                   </Link>
                   <Link
-                    href={withLocalePrefix(localeRoot, '/sign-up')}
+                    href={withLocalePrefix(localeRoot, '/post-job')}
                     onClick={() => setMobileOpen(false)}
-                    className="mt-2 text-center text-sm font-medium text-white"
+                    className="mt-2 text-center text-sm font-bold text-white"
                     style={{
                       background: 'var(--wm-grad-primary)',
                       padding: '0.6rem 1rem',
                       borderRadius: '999px',
                       boxShadow: '0 4px 14px rgba(16,185,129,0.3)',
+                      fontFamily: 'var(--wm-font-display)',
                     }}
                   >
-                    Get Started
+                    Post a Job
                   </Link>
                 </>
               )}

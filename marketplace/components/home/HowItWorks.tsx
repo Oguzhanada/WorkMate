@@ -73,6 +73,17 @@ export default function HowItWorks() {
           >
             Three steps to done.
           </h2>
+          <p
+            className="mx-auto mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold"
+            style={{
+              background: 'rgba(var(--wm-primary-rgb), 0.08)',
+              color: 'var(--wm-primary-dark)',
+              border: '1px solid rgba(var(--wm-primary-rgb), 0.15)',
+            }}
+          >
+            <Euro className="h-4 w-4" />
+            Free for customers · Providers pay only when hired
+          </p>
         </motion.div>
 
         {/* Steps — horizontal cards with connecting line */}
@@ -92,10 +103,10 @@ export default function HowItWorks() {
             {steps.map((step, i) => (
               <motion.article
                 key={step.num}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 40, scale: 0.96 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
                 viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.5, delay: i * 0.12 }}
+                transition={{ duration: 0.6, delay: i * 0.15, ease: [0.22, 1, 0.36, 1] }}
                 className="group relative"
               >
                 {/* Step number circle */}

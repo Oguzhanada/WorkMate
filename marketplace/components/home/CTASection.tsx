@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Star, Quote } from 'lucide-react';
 import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
 
 export default function CTASection() {
@@ -110,6 +110,37 @@ export default function CTASection() {
               Become a Pro
               <ArrowRight className="h-4 w-4" />
             </Link>
+          </motion.div>
+
+          {/* Mini testimonial — social proof in CTA */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mt-10 flex items-start gap-3 rounded-xl p-4"
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              maxWidth: '420px',
+            }}
+          >
+            <Quote className="h-5 w-5 shrink-0 rotate-180" style={{ color: 'var(--wm-primary)', opacity: 0.6 }} />
+            <div>
+              <p className="text-sm italic leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                Post a job, receive offers from verified pros, and pay securely — all through one platform.
+              </p>
+              <div className="mt-2 flex items-center gap-2">
+                <div className="flex gap-0.5">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star key={s} className="h-3 w-3 fill-current" style={{ color: 'var(--wm-amber)' }} />
+                  ))}
+                </div>
+                <span className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  — Homeowner, Dublin
+                </span>
+              </div>
+            </div>
           </motion.div>
         </div>
       </div>

@@ -6,6 +6,7 @@ import { Lock, ShieldCheck, UserCheck, RefreshCw, Star, MapPin } from 'lucide-re
 const features = [
   {
     icon: Lock,
+    problem: 'Worried about paying upfront?',
     title: 'Secure Payment Hold',
     description: 'Stripe holds funds until you confirm work is complete. Zero risk.',
     accent: 'var(--wm-primary)',
@@ -13,6 +14,7 @@ const features = [
   },
   {
     icon: ShieldCheck,
+    problem: 'How do you know they\'re legit?',
     title: 'Irish Compliance Stack',
     description: 'SafePass, Public Liability Insurance, Tax Clearance — all verified.',
     accent: 'var(--wm-blue)',
@@ -20,6 +22,7 @@ const features = [
   },
   {
     icon: UserCheck,
+    problem: 'Tired of unreliable tradespeople?',
     title: 'Admin-Approved Pros',
     description: 'Every provider manually reviewed before going live. No auto-approvals.',
     accent: 'var(--wm-primary)',
@@ -27,6 +30,7 @@ const features = [
   },
   {
     icon: RefreshCw,
+    problem: 'Fees eating into every booking?',
     title: 'Repeat Booking Discount',
     description: '1.9% fee when you rebook the same provider. Loyalty rewarded.',
     accent: 'var(--wm-amber-dark)',
@@ -34,6 +38,7 @@ const features = [
   },
   {
     icon: Star,
+    problem: 'Overwhelmed choosing the right pro?',
     title: 'Smart Match Ranking',
     description: 'Offers ranked by price, rating, compliance score and response time.',
     accent: 'var(--wm-blue)',
@@ -41,6 +46,7 @@ const features = [
   },
   {
     icon: MapPin,
+    problem: 'Platforms that don\'t understand Ireland?',
     title: 'Built for Ireland',
     description: 'Eircode validation, EUR only, county-first matching across all 26 counties.',
     accent: 'var(--wm-amber-dark)',
@@ -77,13 +83,13 @@ export default function WhyWorkMate() {
               color: 'var(--wm-navy)',
             }}
           >
-            Why people choose<br />WorkMate over the rest.
+            Frustrated finding<br />reliable tradespeople?
           </h2>
           <p
             className="mt-4 text-base leading-relaxed"
             style={{ color: 'var(--wm-muted)' }}
           >
-            Ireland&apos;s only platform with admin-approved providers and Stripe secure hold as standard.
+            WorkMate solves every pain point. Admin-approved providers and Stripe secure hold as standard.
           </p>
         </motion.div>
 
@@ -92,10 +98,10 @@ export default function WhyWorkMate() {
           {features.map((feature, i) => (
             <motion.article
               key={feature.title}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.4, delay: i * 0.06 }}
+              initial={{ opacity: 0, y: 30, scale: 0.97 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
               className="group relative overflow-hidden rounded-2xl p-6 transition-all duration-300"
               style={{
                 background: 'var(--wm-surface)',
@@ -128,6 +134,14 @@ export default function WhyWorkMate() {
               >
                 <feature.icon className="h-5 w-5" />
               </div>
+
+              {/* Problem line */}
+              <p
+                className="mb-2 text-xs font-semibold italic"
+                style={{ color: 'var(--wm-muted)', opacity: 0.7 }}
+              >
+                {feature.problem}
+              </p>
 
               <h3
                 className="text-base font-bold"
