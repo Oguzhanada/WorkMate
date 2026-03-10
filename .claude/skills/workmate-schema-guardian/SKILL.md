@@ -102,6 +102,7 @@ These protect the repository restructuring. **DO NOT** recreate deleted/moved fi
 | FD-22 | Pre-commit hooks (Husky + lint-staged) must not be bypassed | Using `--no-verify` flag |
 | FD-23 | AI agents must NEVER commit to `main` — use feature branches only | Running `git commit` while on `main`, or `git push origin main` |
 | FD-24 | AI agents must NOT create completion/audit/task/guide report files | Creating `TASK_COMPLETION_REPORT.md`, `PROJECT_GUIDE.md`, `SKILL_AUDIT_REPORT.md` etc. |
+| FD-25 | New skills must be whitelisted in `.gitignore` before commit | Creating `.claude/skills/new-skill/SKILL.md` without adding `!.claude/skills/new-skill/` to `.gitignore` |
 
 ### File Organization Checklist (add to pre-change checklist)
 
@@ -114,6 +115,7 @@ These protect the repository restructuring. **DO NOT** recreate deleted/moved fi
 - [ ] FD-22: Never `--no-verify` on commits
 - [ ] FD-23: On a feature branch (not `main`) before committing
 - [ ] FD-24: Not creating any `*REPORT*.md`, `*COMPLETION*.md`, `*GUIDE*.md`, `*AUDIT*.md` files
+- [ ] FD-25: If creating a skill, `.gitignore` whitelist entry added
 
 ---
 
