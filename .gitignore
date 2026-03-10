@@ -33,6 +33,12 @@ marketplace/supabase/.temp/
 # Sentry
 .sentryclirc
 
+# Root build artifacts
+.next/
+
+# QA screenshots (temporary, root only)
+/*.png
+
 # Editor / OS
 .claude/*
 !.claude/skills/
