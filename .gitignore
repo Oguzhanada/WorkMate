@@ -33,6 +33,9 @@ marketplace/supabase/.temp/
 # Sentry
 .sentryclirc
 
+# Legal documents (DPAs, contracts — sensitive, do not commit)
+docs/legal/
+
 # Root build artifacts
 .next/
 

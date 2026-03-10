@@ -47,12 +47,12 @@
 
 | # | Processor | Data Type | DPA Status | Action Required |
 |---|-----------|-----------|-----------|-----------------|
-| 1 | **Supabase** (Supabase Inc.) | All user data | Available | Sign via Dashboard → Settings |
+| 1 | **Supabase** (Supabase Inc.) | All user data | **Signed** (10 Mar 2026, PandaDoc ZE4BZ-FEKGT) | None — DPA active |
 | 2 | **Stripe** (Stripe Ireland Ltd) | Payment data, KYC | Auto-accepted via ToS | Confirm in Dashboard |
 | 3 | **Resend** (Resend Inc.) | Email addresses, names, job details | To be verified | Request DPA or check ToS DPA clause |
-| 4 | **Sentry** (Functional Software Inc.) | User ID, IP, error context | Available | Sign via Dashboard → Settings |
+| 4 | **Sentry** (Functional Software Inc.) | User ID, IP, error context | **Signed** (10 Mar 2026, v5.1.0 via Dashboard) | None — DPA active |
 | 5 | **Anthropic** (Anthropic Inc. — US) | Job category, scope (no PII) | API ToS includes DPA | Review API Terms + SCC/TIA required |
-| 6 | **Vercel** (Vercel Inc. — US) | HTTP request metadata, edge cache | Available | Sign via Dashboard |
+| 6 | **Vercel** (Vercel Inc. — US) | HTTP request metadata, edge cache | Auto-accepted via ToS (Hobby plan, no separate DPA) | None — covered by ToS. Separate DPA available on Pro/Enterprise |
 | 7 | **Ideal Postcodes** (Allies Computing Ltd — UK) | Eircode | UK adequacy decision | Request DPA |
 
 ### DPA Checklist (for each processor)
