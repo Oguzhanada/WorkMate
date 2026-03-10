@@ -175,8 +175,11 @@ WorkMate/                         # Repository root
 - PII filtering configured (GDPR-compliant)
 
 ### Google Analytics 4
-- **Config:** `NEXT_PUBLIC_GA_MEASUREMENT_ID` (optional — omit to disable)
-- Cookie-consent gated — no tracking fires before user consent
+- **Config:** `NEXT_PUBLIC_GA_MEASUREMENT_ID` (optional — omit to disable entirely)
+- **Cookie-consent gated:** GA4 script only loads after user explicitly accepts analytics cookies via the CookieConsent banner. Consent state stored in `localStorage` key `wm_cookie_consent`.
+- **Component:** `components/analytics/GoogleAnalytics.tsx` — reads consent, loads gtag only when `analytics: true`
+- `anonymize_ip: true` enabled for GDPR compliance
+- Cross-tab consent revocation supported via `storage` event listener
 
 ---
 
