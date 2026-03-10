@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ensureAdminRoute } from '@/lib/auth/admin';
 import { patchAutomationRuleSchema } from '@/lib/validation/api';
+import { logAdminAudit } from '@/lib/admin/audit';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function PATCH(
+async function patchHandler(
   request: NextRequest,
   { params }: { params: Promise<{ ruleId: string }> }
 ) {
@@ -35,10 +37,22 @@ export async function PATCH(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
+  await logAdminAudit({
+    adminUserId: auth.user?.id ?? null,
+    adminEmail: auth.user?.email ?? null,
+    action: 'update_automation_rule',
+    targetType: 'automation_rule',
+    targetLabel: data.name ?? null,
+    details: {
+      rule_id: ruleId,
+      updated_fields: Object.keys(parsed.data),
+    },
+  });
+
   return NextResponse.json({ rule: data });
 }
 
-export async function DELETE(
+async function deleteHandler(
   _request: NextRequest,
   { params }: { params: Promise<{ ruleId: string }> }
 ) {
@@ -54,5 +68,19 @@ export async function DELETE(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
+  await logAdminAudit({
+    adminUserId: auth.user?.id ?? null,
+    adminEmail: auth.user?.email ?? null,
+    action: 'delete_automation_rule',
+    targetType: 'automation_rule',
+    details: {
+      rule_id: ruleId,
+    },
+  });
+
   return NextResponse.json({ deleted: true });
 }
+
+export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);
+
+export const DELETE = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, deleteHandler);

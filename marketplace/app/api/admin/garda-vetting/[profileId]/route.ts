@@ -5,12 +5,14 @@ import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { sendTransactionalEmail } from '@/lib/email/send';
 import { sendNotification } from '@/lib/notifications/send';
 import { patchGardaVettingSchema } from '@/lib/validation/api';
+import { logAdminAudit } from '@/lib/admin/audit';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 // PATCH /api/admin/garda-vetting/[profileId] — update vetting status
 // Called by WorkMate admins after receiving the NVB disclosure result.
 // The NVB sends the vetting disclosure to WorkMate (as the registered organisation),
 // and an admin reviews it and updates the provider's status here.
-export async function PATCH(
+async function patchHandler(
   request: NextRequest,
   { params }: { params: Promise<{ profileId: string }> }
 ) {
@@ -116,6 +118,19 @@ export async function PATCH(
     })();
   }
 
+  await logAdminAudit({
+    adminUserId: user.id,
+    adminEmail: user.email ?? null,
+    action: 'update_garda_vetting',
+    targetType: 'garda_vetting',
+    targetProfileId: profileId,
+    details: {
+      new_status: parsed.data.garda_vetting_status,
+      reference: parsed.data.garda_vetting_reference ?? null,
+      expires_at: parsed.data.garda_vetting_expires_at ?? null,
+    },
+  });
+
   return NextResponse.json({ profile: updated });
 }
 
@@ -153,3 +168,5 @@ export async function GET(
 
   return NextResponse.json({ profile });
 }
+
+export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);

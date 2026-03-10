@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function POST() {
+async function postHandler() {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -31,3 +32,5 @@ export async function POST() {
   response.cookies.delete('cookie_consent');
   return response;
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

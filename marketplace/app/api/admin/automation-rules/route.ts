@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ensureAdminRoute } from '@/lib/auth/admin';
 import { createAutomationRuleSchema } from '@/lib/validation/api';
+import { logAdminAudit } from '@/lib/admin/audit';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 export async function GET() {
   const auth = await ensureAdminRoute();
@@ -16,7 +18,7 @@ export async function GET() {
   return NextResponse.json({ rules: data ?? [] });
 }
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const auth = await ensureAdminRoute();
   if (auth.error) return auth.error;
 
@@ -43,5 +45,19 @@ export async function POST(request: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
+  await logAdminAudit({
+    adminUserId: auth.user?.id ?? null,
+    adminEmail: auth.user?.email ?? null,
+    action: 'create_automation_rule',
+    targetType: 'automation_rule',
+    targetLabel: parsed.data.trigger_event ?? null,
+    details: {
+      rule_id: data.id,
+      trigger_event: parsed.data.trigger_event,
+    },
+  });
+
   return NextResponse.json({ rule: data }, { status: 201 });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

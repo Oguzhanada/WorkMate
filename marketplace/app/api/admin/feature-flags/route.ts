@@ -3,6 +3,8 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { patchFeatureFlagSchema } from '@/lib/validation/api';
+import { logAdminAudit } from '@/lib/admin/audit';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 // GET /api/admin/feature-flags — list all flags
 export async function GET() {
@@ -33,7 +35,7 @@ export async function GET() {
 }
 
 // PATCH /api/admin/feature-flags — toggle a flag
-export async function PATCH(request: NextRequest) {
+async function patchHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -74,5 +76,19 @@ export async function PATCH(request: NextRequest) {
 
   if (updateError) return NextResponse.json({ error: updateError.message }, { status: 400 });
 
+  await logAdminAudit({
+    adminUserId: user.id,
+    adminEmail: user.email ?? null,
+    action: 'update_feature_flag',
+    targetType: 'feature_flag',
+    targetLabel: parsed.data.flag_key,
+    details: {
+      flag_key: parsed.data.flag_key,
+      new_enabled: parsed.data.enabled,
+    },
+  });
+
   return NextResponse.json({ flag: updated });
 }
+
+export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);

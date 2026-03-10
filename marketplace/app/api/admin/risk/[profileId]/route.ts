@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
+import { logAdminAudit } from '@/lib/admin/audit';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 // Risk thresholds
 const RISK_WEIGHTS = {
@@ -125,7 +127,7 @@ export async function GET(
 }
 
 // POST /api/admin/risk/[profileId] — compute, persist, and return risk assessment
-export async function POST(
+async function postHandler(
   _request: NextRequest,
   { params }: { params: Promise<{ profileId: string }> }
 ) {
@@ -164,6 +166,18 @@ export async function POST(
     return NextResponse.json({ error: updateError.message }, { status: 400 });
   }
 
+  await logAdminAudit({
+    adminUserId: user.id,
+    adminEmail: user.email ?? null,
+    action: 'persist_risk_score',
+    targetType: 'risk_assessment',
+    targetProfileId: profileId,
+    details: {
+      risk_score: result.score,
+      risk_flags: result.flags,
+    },
+  });
+
   return NextResponse.json({
     profileId,
     risk_score: result.score,
@@ -171,3 +185,5 @@ export async function POST(
     risk_reviewed_at: new Date().toISOString(),
   });
 }
+
+export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);
