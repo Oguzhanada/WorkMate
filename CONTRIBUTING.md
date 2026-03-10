@@ -71,7 +71,7 @@ npm run health-check      # Runtime health check script
 
 ### TypeScript
 
-- Strict mode is enabled — no `any` types.
+- Strict mode is OFF (`strict: false` in `tsconfig.json`). Avoid `any` types — use `unknown` with runtime checks instead.
 - All Zod schemas go in `lib/validation/api.ts`. No inline schemas in route files.
 - Zod 4 syntax: `z.record()` requires two type arguments:
 
@@ -172,10 +172,10 @@ npx vitest run --config vitest.config.ts tests/unit/my-file.test.ts
 
 - Migration files live in `marketplace/migrations/`.
 - Migrations are applied **manually** via the Supabase SQL Editor — there is no CLI push workflow.
-- The next migration file to create is **`073_*.sql`**. Migrations 001–072 are all applied.
+- The next migration file to create is **`074_*.sql`**. Migrations 001–073 are all applied.
 - Rules:
   - **Additive only.** Never rewrite or renumber an existing migration.
-  - **Descriptive names.** Format: `073_short_description.sql`.
+  - **Descriptive names.** Format: `074_short_description.sql`.
   - **RLS required.** Every new table must have Row Level Security enabled with appropriate policies. Never use `FOR ALL USING (true)`.
   - **No destructive DDL** in migrations that are intended for production (no `DROP TABLE`, no column removal without a deprecation plan).
 
@@ -216,6 +216,18 @@ Note: there is a known file naming collision at `021` (`021_pro_documents_rls.sq
    - `.github/workflows/lighthouse.yml`
 
 6. Squash-merge to keep the main branch history clean.
+
+---
+
+## Pre-commit Hooks (Husky + lint-staged)
+
+The repo uses **Husky** and **lint-staged** to enforce code quality on every commit:
+
+- **ESLint** runs automatically on all staged `*.ts` and `*.tsx` files.
+- If lint fails, the commit is blocked — fix the issues before retrying.
+- **Never** bypass hooks with `--no-verify` (frozen decision FD-22).
+
+The config lives in the root `package.json` under `"lint-staged"` and in `.husky/pre-commit`.
 
 ---
 
