@@ -11,11 +11,11 @@ const REFRESH_INTERVAL_MS = 60_000;
 
 const STATUS_CONFIG: Record<
   ServiceStatus,
-  { label: string; tone: 'success' | 'warning' | 'destructive' | 'neutral'; dot: string }
+  { label: string; tone: 'completed' | 'amber' | 'pending' | 'neutral'; dot: string }
 > = {
-  healthy: { label: 'Healthy', tone: 'success', dot: 'var(--wm-primary)' },
-  degraded: { label: 'Degraded', tone: 'warning', dot: 'var(--wm-amber)' },
-  down: { label: 'Down', tone: 'destructive', dot: 'var(--wm-destructive)' },
+  healthy: { label: 'Healthy', tone: 'completed', dot: 'var(--wm-primary)' },
+  degraded: { label: 'Degraded', tone: 'amber', dot: 'var(--wm-amber)' },
+  down: { label: 'Down', tone: 'pending', dot: 'var(--wm-destructive)' },
   disabled: { label: 'Disabled', tone: 'neutral', dot: 'var(--wm-subtle)' },
 };
 
