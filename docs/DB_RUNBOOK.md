@@ -2,7 +2,7 @@
 
 **Project:** WorkMate (Ireland-first services marketplace)
 **Database:** Supabase (Postgres) — `ejpnmcxzycxqfdbetydp.supabase.co`
-**Migrations:** `marketplace/migrations/` — 001–078 all applied (078 on disk, apply to Supabase before next deploy). Next = **079**.
+**Migrations:** `marketplace/migrations/` — 001–079 all applied. Next = **080**.
 
 ---
 
@@ -10,11 +10,11 @@
 
 ### Creating a new migration
 
-1. Determine the next sequence number. As of this writing it is **059**. Check `marketplace/migrations/` for the highest number currently present.
+1. Determine the next sequence number. As of this writing it is **080**. Check `marketplace/migrations/` for the highest number currently present.
 2. Create the file following this naming pattern:
 
    ```
-   marketplace/migrations/059_short_description.sql
+   marketplace/migrations/080_short_description.sql
    ```
 
 3. Write **additive-only** SQL — `CREATE TABLE`, `ALTER TABLE … ADD COLUMN`, `CREATE INDEX`, `CREATE POLICY`, etc.

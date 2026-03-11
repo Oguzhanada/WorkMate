@@ -22,3 +22,4 @@ export { default as Tag } from './Tag';
 export { default as Avatar } from './Avatar';
 export { default as WorkMateLogo } from './WorkMateLogo';
 export { default as CookieConsent } from './CookieConsent';
+export { default as ErrorBoundaryPage } from './ErrorBoundaryPage';

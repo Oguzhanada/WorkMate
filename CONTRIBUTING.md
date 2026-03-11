@@ -172,7 +172,7 @@ npx vitest run --config vitest.config.ts tests/unit/my-file.test.ts
 
 - Migration files live in `marketplace/migrations/`.
 - Migrations are applied **manually** via the Supabase SQL Editor — there is no CLI push workflow.
-- The next migration file to create is **`074_*.sql`**. Migrations 001–073 are all applied.
+- The next migration file to create is **`080_*.sql`**. Migrations 001–079 are all applied.
 - Rules:
   - **Additive only.** Never rewrite or renumber an existing migration.
   - **Descriptive names.** Format: `074_short_description.sql`.
@@ -237,4 +237,4 @@ Note: there is a known file naming collision at `021` (`021_pro_documents_rls.sq
 | Phone | Must normalize to `+353XXXXXXXXX` |
 | Language | English only — no other locales |
 | Legal | Privacy Policy at `/privacy`, Terms at `/terms` |
-| Garda vetting | Required for childcare, eldercare, home-access services |
+| Garda vetting | System fully removed as of v0.1.0 (migration 074) — do not implement |

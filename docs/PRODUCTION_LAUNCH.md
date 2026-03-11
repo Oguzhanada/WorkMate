@@ -42,7 +42,7 @@ Verify the full happy-path before spending any money.
 - [ ] `npm run lint` — 0 TypeScript errors, English-only check passes
 
 ### Supabase (dev project) checks
-- [ ] All migrations 001–078 applied and no errors
+- [ ] All migrations 001–079 applied and no errors
 - [ ] RLS enabled on all tables — no `FOR ALL USING (true)` policies
 - [ ] `pg_cron` jobs registered and running (provider_rankings refresh, automation rules)
 - [ ] Edge functions deployed and responding:
@@ -71,7 +71,7 @@ Set up third-party accounts. Most have free tiers to start.
 ### Supabase (Production project — separate from dev)
 - [ ] Create a new Supabase project for production (do NOT use dev project)
 - [ ] Note: production URL + anon key + service role key
-- [ ] Apply all migrations 001–078 in Supabase SQL Editor (production)
+- [ ] Apply all migrations 001–079 in Supabase SQL Editor (production)
 - [ ] Enable `pg_cron` extension on production project
 - [ ] Set Auth → Site URL: `https://workmate.ie`
 - [ ] Set Auth → Redirect URLs: `https://workmate.ie/auth/callback`

@@ -12,8 +12,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Page transitions** — `components/layout/PageTransition.tsx` wraps all routed pages with Framer Motion `AnimatePresence`; 0.32 s enter / 0.18 s exit
 - **`JobStatusBadge`** — animated Framer Motion badge for all 9 job statuses with pulse dot for active states and shake animation for disputed
 - **Migration 078** — `marketplace/migrations/078_provider_search_indexes.sql`: 10 `CREATE INDEX CONCURRENTLY` indexes for profiles, jobs, quotes, reviews, notifications, funnel events, credit transactions, and webhook events
+- **Migration 079** — `marketplace/migrations/079_username_system.sql`: username system added to profiles
 - **Locale-wrapped checkout** — `app/[locale]/checkout/success` and `cancel` pages created; old non-locale pages redirect to new routes; Stripe checkout URLs updated
-- **`middleware.ts` restored** — missing since Feb 2026; re-added as thin re-export of `middleware/proxy.ts`; locale routing + auth guard restored
+- **Locale routing + auth guard restored** — `proxy.ts` is the sole Next.js 16 middleware entry point (FD-28: `middleware.ts` must never exist); re-wired after Feb 2026 gap
 - **`CHANGELOG.md`** — full project history v0.0.1→current created
 - TypeScript type-check CI workflow — runs `tsc --noEmit` on every PR and `main` push
 - Dependency review CI workflow — blocks high-severity CVEs and non-approved licenses on PRs

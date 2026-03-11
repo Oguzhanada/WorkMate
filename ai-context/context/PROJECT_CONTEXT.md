@@ -1,6 +1,6 @@
 # WorkMate (Ada Marketplace) - AI Context File
 > Last updated: 2026-03-11
-> Session: 29 (architecture audit + doc sync)
+> Session: 36 (alignment audit — doc sync)
 > Governance: Skill-based (10 skills) + Frozen Decisions (FD-01→FD-25) + CI/CD
 
 ---
@@ -37,7 +37,7 @@
 
 - Frontend: Next.js 16.1.6 (App Router, Turbopack), React 19, TypeScript (`strict: false` — permanent)
 - Backend: Next.js API routes + Supabase Edge Functions (6 deployed)
-- Database: Supabase PostgreSQL with RLS (73 migrations applied)
+- Database: Supabase PostgreSQL with RLS (79 migrations applied)
 - Auth: Supabase Auth (Email/Password + Google/Facebook OAuth) — email+phone verified on prod
 - Payments: Stripe Connect (secure hold → capture/refund) — Identity bypass in test, active on prod
 - Styling/UI: Tailwind CSS v4, `--wm-*` design tokens, Framer Motion, @dnd-kit (drag-drop)
@@ -91,7 +91,7 @@ marketplace/
 │   ├── ranking/ pricing/ types/     # Airtasker-style feature layer
 │   ├── validation/ constants/ hooks/ i18n/ onboarding/
 │   └── (no lib/supabase.ts — deleted, all use getSupabaseBrowserClient() inline)
-├── migrations/                      # 001..073 ALL APPLIED
+├── migrations/                      # 001..079 ALL APPLIED
 ├── supabase/functions/              # edge functions
 └── messages/en.json
 ```
@@ -123,6 +123,8 @@ marketplace/
 - `founding_pro_config` (058), `provider_availability` (059)
 - FK indexes batch (068), portfolio consolidation (069)
 - `job_auto_expire` (070), `founding_pro` (071), `referral_system` (072), `job_mode_enhancements` (073)
+- `remove_garda_vetting` (074), `dispute_types` (075), `provider_credits` + `credit_transactions` (076), `loyalty_level` on profiles (077)
+- `provider_search_indexes` — 10 `CREATE INDEX CONCURRENTLY` (078), `username_system` (079)
 - Materialized view: `provider_rankings`
 
 ### Verification states (two-layer model)
@@ -256,8 +258,8 @@ marketplace/
 
 ## 6. CURRENT STATE
 
-- Migrations 001–073: ALL APPLIED in Supabase
-- Next migration: **074**
+- Migrations 001–079: ALL APPLIED in Supabase
+- Next migration: **080**
 - Vercel deployment: active at `work-mate-neon.vercel.app`
 - Stripe: test mode (`sk_test_*`) — Identity bypass in test, active on prod
 - Email: 11 templates, guarded by `EMAIL_SEND_ENABLED` env var
@@ -392,7 +394,7 @@ Phase fallback:
 5. [ ] Supabase Auth — enable email confirmation + phone verification
 
 ### Already completed (for reference)
-- [x] Migrations 001–073 applied
+- [x] Migrations 001–079 applied
 - [x] Edge functions deployed (6 total)
 - [x] DPAs signed (Supabase, Sentry, Vercel)
 - [x] GDPR cron deployed + pg_cron scheduled
