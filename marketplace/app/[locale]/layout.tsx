@@ -8,6 +8,7 @@ import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 import CloudflareAnalytics from '@/components/analytics/CloudflareAnalytics';
 import ConditionalSiteFooter from '@/components/layout/ConditionalSiteFooter';
 import Navbar from '@/components/layout/Navbar';
+import PageTransition from '@/components/layout/PageTransition';
 import styles from '@/components/site/site.module.css';
 import {type Locale} from '@/i18n/config';
 import {loadMessages, isValidLocale} from '@/lib/i18n';
@@ -99,7 +100,7 @@ export default async function LocaleLayout({
       <CloudflareAnalytics />
       <div className={styles.siteRoot}>
         <Navbar />
-        {children}
+        <PageTransition>{children}</PageTransition>
         <CookieConsent />
         <ConditionalSiteFooter />
         <Toaster position="bottom-right" richColors closeButton />
