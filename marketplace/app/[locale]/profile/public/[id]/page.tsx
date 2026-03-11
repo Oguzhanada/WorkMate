@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 import ComplianceBadge from '@/components/ui/ComplianceBadge';
 import FoundingProBadge from '@/components/ui/FoundingProBadge';
 import PortfolioGallery from '@/components/profile/PortfolioGallery';
+import ProviderBadges from '@/components/profile/ProviderBadges';
 
 const baseUrl = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'https://workmate.ie';
 
@@ -283,6 +284,9 @@ export default async function PublicProfilePage({ params }: { params: Params }) 
             </div>
           </div>
         </div>
+
+        {/* ── Document-based trust badges ──────────────────────────── */}
+        <ProviderBadges providerId={id} />
 
         {/* ── Quick stats ──────────────────────────────────────────── */}
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">

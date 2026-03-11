@@ -80,6 +80,15 @@ export function validateProviderDocumentDraft(draft: ProviderDocumentDraft) {
   return null;
 }
 
+/** Document badges displayed on provider public profiles when document is verified */
+export const PROVIDER_DOCUMENT_BADGES: Partial<Record<ProviderDocumentType, { icon: string; label: string }>> = {
+  id_verification:            { icon: '✅', label: 'ID Verified' },
+  public_liability_insurance: { icon: '🛡️', label: 'Insured' },
+  tax_clearance:              { icon: '💼', label: 'Tax Cleared' },
+  safe_pass:                  { icon: '⛑️', label: 'Safe Pass' },
+  trade_license:              { icon: '🔧', label: 'Licensed' },
+};
+
 export function getDocumentStatusBadge(status: ProviderDocumentStatus, expiresAt?: string | null) {
   if (status === 'rejected') return '❌ Rejected';
   if (status === 'pending') return '⏳ Pending';

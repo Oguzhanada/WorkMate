@@ -3,6 +3,14 @@
     {
       "path": "/api/admin/sla-check",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/admin/grant-monthly-credits",
+      "schedule": "5 0 1 * *"
+    },
+    {
+      "path": "/api/admin/update-loyalty-levels",
+      "schedule": "0 2 * * *"
     }
   ]
 }

@@ -7,6 +7,7 @@ import { fireAutomationEvent } from '@/lib/automation/engine';
 import { calculateOfferScore } from '@/lib/ranking/offer-ranking';
 import { sendTransactionalEmail } from '@/lib/email/send';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { debitQuoteCredits } from '@/lib/credits/provider-credits';
 
 async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
@@ -168,6 +169,11 @@ async function postHandler(request: NextRequest) {
   }).select('*').single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+  // Debit provider credits — non-blocking; does not fail the quote if credits are exhausted
+  void debitQuoteCredits(user.id, data.id, job.is_urgent ?? false).catch(() => {
+    // Credit debit failure is swallowed — credits are advisory, not a hard gate in quote submission
+  });
 
   let isFirstQuoteMilestone = false;
   let providerEmail: string | null = null;
