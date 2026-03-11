@@ -277,10 +277,10 @@ DR-XXX | Date | Author | Decision changed | Reason | Approved by
 | FD-25 | New `.claude/skills/` MUST be whitelisted in `.gitignore` before commit — unwhitelisted skills are silently ignored by git | Session 28 — skill creation requires gitignore update |
 | FD-26 | `next/image` for all static images — no raw `<img>` except blob/data URLs | Session 34 — performance + LCP |
 | FD-27 | `lib/api/error-response.ts` helpers in all API routes — no raw `NextResponse.json` for errors | Session 35 — consistent error shape |
-| FD-28 | **Next.js 16 uses `proxy.ts` as the sole middleware entry point. `middleware.ts` MUST NOT exist alongside it** — build fails with "Both middleware.ts and proxy.ts detected." See https://nextjs.org/docs/messages/middleware-to-proxy. The exported function in proxy.ts must be named `proxy`. Never create middleware.ts. | Session 37 — confirmed by Vercel build error after incorrect middleware.ts restore |
+| FD-28 | **`middleware.ts` is the sole Next.js middleware entry point. `proxy.ts` MUST NOT exist.** Prior belief ("proxy.ts is the Next.js 16 entry point") was false — Next.js has never supported proxy.ts. The cited URL did not exist. proxy.ts was silently ignored: auth guard + locale routing not running. Fixed session 38: middleware.ts with `export async function middleware(...)`, proxy.ts deleted. | Session 38 — confirmed by Next.js spec + code analysis |
 
 **Decision Records (changes to frozen decisions):**
-_(none yet — first change must be documented here before implementation)_
+- FD-28 (session 38): Reversed. proxy.ts → middleware.ts. Proof: Next.js only reads middleware.ts/middleware.js; proxy.ts had no default export and wrong function name; auth guard was silently not running.
 
 ---
 
@@ -427,10 +427,11 @@ Git commit messages in this repo may have been written by AI agents. AI-authored
 
 ### 22.1) Treat AI commit messages as claims, not facts
 - Commit messages starting with "fix:", "refactor:", "chore:" written by an AI agent describe what the AI *believed* it was doing — not necessarily what actually happened or what was correct.
-- Example from this repo — a restore commit (598506d) incorrectly called the original deletion a hallucination:
-  > `598506d — "fix(critical): restore middleware.ts — locale routing + auth guard broken"`
-  This was wrong. The deletion (6a4af6b) was correct for Next.js 16. The restore broke the build.
-  Lesson: verify the actual framework behaviour before "fixing" a previous AI decision.
+- Example from this repo — the deletion commit (a643864) incorrectly claimed proxy.ts is the Next.js 16 entry point:
+  > `a643864 — "fix(build): delete middleware.ts — Next.js 16 proxy.ts is the sole entry point"`
+  This was wrong. Next.js only reads middleware.ts. proxy.ts was silently ignored — auth guard never ran.
+  The restore (598506d) was actually correct. Session 38 permanently restored middleware.ts and deleted proxy.ts.
+  Lesson: verify the actual framework behaviour before accepting an AI commit's framework claims as truth.
 
 ### 22.2) Verify framework behaviour claims in commit messages
 If a commit message makes a claim about how a framework works (e.g. "Next.js 16 does X"), do not accept it as true. Verify against:
@@ -463,8 +464,8 @@ Before restoring a deleted file:
 3. Check the Vercel / CI build logs for the real error, not just commit messages
 
 Known cycle in this repo:
-- `marketplace/middleware.ts`: deleted (9f73b6c), restored (ab60954), deleted (6a4af6b correct for Next.js 16), restored (598506d — incorrect, broke build), deleted (final correct state)
-- **Conclusion**: `middleware.ts` must NOT exist in a Next.js 16 project that has `proxy.ts`
+- `marketplace/middleware.ts`: deleted (9f73b6c), restored (ab60954), deleted (6a4af6b), restored (598506d), deleted (a643864), **restored (session 38 — final correct state)**
+- **Corrected conclusion**: `middleware.ts` MUST exist. `proxy.ts` was a false belief — Next.js never read it as middleware. The "broke build" claim in commit a643864 was wrong: the build error was caused by both files coexisting, not by middleware.ts existing. The fix was to delete proxy.ts and keep middleware.ts, not the other way around. proxy.ts has been permanently deleted in session 38.
 
 
 

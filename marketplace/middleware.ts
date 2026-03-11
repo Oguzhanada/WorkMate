@@ -1,15 +1,3 @@
-/**
- * Next.js 16 middleware entry point.
- *
- * In Next.js 16+, proxy.ts IS the middleware entry point — NOT middleware.ts.
- * Having both files causes a build error:
- *   "Both middleware.ts and proxy.ts detected. Please use ./proxy.ts only."
- *   https://nextjs.org/docs/messages/middleware-to-proxy
- *
- * DO NOT create a middleware.ts alongside this file — it will break the build.
- * DO NOT rename `proxy` to `middleware` here — Next.js 16 expects `proxy`.
- * See FD-28 in ai-context/context/agents.md for full history.
- */
 import {createServerClient} from '@supabase/ssr';
 import createMiddleware from 'next-intl/middleware';
 import {NextResponse, type NextRequest} from 'next/server';
@@ -67,7 +55,7 @@ function allowRequest(key: string) {
   return {allowed: true, retryAfterMs: 0};
 }
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   // OAuth callback route must bypass locale rewrites and reach its route handler directly.
   if (request.nextUrl.pathname === '/auth/callback') {
     return NextResponse.next();

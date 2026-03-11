@@ -43,7 +43,7 @@
 - Styling/UI: Tailwind CSS v4, `--wm-*` design tokens, Framer Motion, @dnd-kit (drag-drop)
 - Validation: Zod 4 + custom Ireland validators (Eircode, phone, name)
 - i18n: next-intl infrastructure, English content only
-- Email: Resend (`notifications@workmate.ie`, 11 templates) — guarded by `EMAIL_SEND_ENABLED`
+- Email: Resend (`notifications@workmate.ie`, 11 templates) — always enabled (`liveServices.email = true`; Resend free tier, no card required; `EMAIL_SEND_ENABLED` env var does NOT control email)
 - AI: @anthropic-ai/sdk (job description writer) — guarded by `AI_CALLS_ENABLED`
 - Monitoring: @sentry/nextjs (tunnel at /monitoring)
 - Maps: leaflet + react-leaflet
@@ -112,16 +112,17 @@ marketplace/
 - `task_alerts`, `customer_provider_history`, `quote_daily_limits` (036)
 - `job_todos`, `job_collaboration_messages`, `job_files` (041, 042)
 - `automation_rules` (043, 044)
-- `api_keys`, `webhook_subscriptions` (045, 046)
+- `webhook_subscriptions` (046) — note: 045 NOT applied (superseded by 060)
 - `time_entries` + invoice columns on `jobs` (047)
 - `provider_availability_slots`, `job_appointments` (048)
 - `dashboard_widgets` (049)
-- `funnel_events` (050), `saved_searches` (051), `portfolio_items` (052)
-- `job_contracts` (053), `provider_subscriptions` (054)
-- `feature_flags` (055), `webhook_events` (056)
-- `referral_codes`, `referral_redemptions` (057)
-- `founding_pro_config` (058), `provider_availability` (059)
-- FK indexes batch (068), portfolio consolidation (069)
+- compliance_score columns (050), review_dimensions (051), favourite_providers (052)
+- appointment_remote_fields (053), provider_risk_score (054), garda_vetting (055, removed in 074)
+- `job_contracts` (056), `feature_flags` (057), `provider_subscriptions` (058)
+- `webhook_events` idempotency key (059), `api_key_hash` on profiles (060)
+- `funnel_events` (061), gdpr_deletion_requests (062), notification bell (063)
+- review_responses (064), `provider_availability` (065), `saved_searches` (066)
+- `portfolio_items` (067), FK indexes (068), portfolio consolidation (069)
 - `job_auto_expire` (070), `founding_pro` (071), `referral_system` (072), `job_mode_enhancements` (073)
 - `remove_garda_vetting` (074), `dispute_types` (075), `provider_credits` + `credit_transactions` (076), `loyalty_level` on profiles (077)
 - `provider_search_indexes` — 10 `CREATE INDEX CONCURRENTLY` (078), `username_system` (079)
@@ -310,7 +311,7 @@ marketplace/
 - Quotes sorted: `ranking_score DESC` → `provider_matching_priority DESC` → `created_at DESC`
 - Zod 4: `z.record()` needs 2 args — `z.record(z.string(), z.string())`
 - Webhook delivery: HTTPS-only, HMAC-SHA256 via `X-WorkMate-Signature` header
-- Public API auth: `x-api-key` header → `profiles.api_key` lookup
+- Public API auth: `x-api-key` header → `profiles.api_key_hash` lookup (SHA-256 hash; plaintext column never created — see migration 060)
 - Supabase client pattern: always call `getSupabaseBrowserClient()` inside async callbacks, never at module scope
 
 ---
