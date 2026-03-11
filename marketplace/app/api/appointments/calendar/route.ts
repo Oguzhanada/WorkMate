@@ -3,6 +3,7 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { getUserRoles, canAccessAdmin } from '@/lib/auth/rbac';
 import { appointmentCalendarQuerySchema } from '@/lib/validation/api';
+import { apiError, apiUnauthorized, apiServerError } from '@/lib/api/error-response';
 
 export type CalendarAppointment = {
   id: string;
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   // Parse and validate query params
@@ -40,10 +41,7 @@ export async function GET(request: NextRequest) {
 
   const parsed = appointmentCalendarQuerySchema.safeParse(rawQuery);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const { month, role } = parsed.data;
@@ -100,7 +98,7 @@ export async function GET(request: NextRequest) {
   const { data: rows, error: queryError } = await query;
 
   if (queryError) {
-    return NextResponse.json({ error: queryError.message }, { status: 500 });
+    return apiServerError(queryError.message);
   }
 
   // Group by calendar date in Europe/Dublin timezone

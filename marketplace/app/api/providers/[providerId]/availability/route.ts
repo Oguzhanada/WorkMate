@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { apiError } from '@/lib/api/error-response';
 
 // GET /api/providers/[providerId]/availability
 // Public — no auth required. Returns weekly availability schedule for a provider.
@@ -11,7 +12,7 @@ export async function GET(
   const { providerId } = await params;
 
   if (!providerId || !/^[0-9a-f-]{36}$/i.test(providerId)) {
-    return NextResponse.json({ error: 'Invalid provider ID' }, { status: 400 });
+    return apiError('Invalid provider ID', 400);
   }
 
   const service = getSupabaseServiceClient();
@@ -22,7 +23,7 @@ export async function GET(
     .order('day_of_week', { ascending: true });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return apiError(error.message, 400);
   }
 
   return NextResponse.json({ availability: data ?? [] }, { status: 200 });

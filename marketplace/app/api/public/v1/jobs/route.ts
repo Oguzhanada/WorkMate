@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authenticatePublicRequest } from '@/lib/api/public-auth';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { publicJobsQuerySchema } from '@/lib/validation/api';
+import { apiError, apiServerError } from '@/lib/api/error-response';
 
 export async function GET(request: NextRequest) {
   const auth = await authenticatePublicRequest(request);
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
   });
 
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid query parameters', details: parsed.error.issues }, { status: 400 });
+    return apiError('Invalid query parameters', 400);
   }
 
   const { limit, offset, status, county, category } = parsed.data;
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await query;
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return apiServerError(error.message);
   }
 
   return NextResponse.json(

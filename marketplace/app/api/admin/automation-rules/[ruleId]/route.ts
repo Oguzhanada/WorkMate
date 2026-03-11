@@ -3,6 +3,7 @@ import { ensureAdminRoute } from '@/lib/auth/admin';
 import { patchAutomationRuleSchema } from '@/lib/validation/api';
 import { logAdminAudit } from '@/lib/admin/audit';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError } from '@/lib/api/error-response';
 
 async function patchHandler(
   request: NextRequest,
@@ -17,15 +18,12 @@ async function patchHandler(
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = patchAutomationRuleSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const { data, error } = await auth.supabase
@@ -35,7 +33,7 @@ async function patchHandler(
     .select('*')
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) return apiError(error.message, 400);
 
   await logAdminAudit({
     adminUserId: auth.user?.id ?? null,
@@ -66,7 +64,7 @@ async function deleteHandler(
     .delete()
     .eq('id', ruleId);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) return apiError(error.message, 400);
 
   await logAdminAudit({
     adminUserId: auth.user?.id ?? null,

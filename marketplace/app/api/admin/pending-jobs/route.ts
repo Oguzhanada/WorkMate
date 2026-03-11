@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ensureAdminRoute } from '@/lib/auth/admin';
+import { apiError } from '@/lib/api/error-response';
 
 export async function GET() {
   const auth = await ensureAdminRoute();
@@ -14,7 +15,7 @@ export async function GET() {
     .order('created_at', { ascending: true });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return apiError(error.message, 400);
   }
 
   const customerIds = Array.from(new Set((data ?? []).map((row) => row.customer_id)));

@@ -3,6 +3,7 @@ import { ensureAdminRoute } from '@/lib/auth/admin';
 import { adminRunVerificationSchema } from '@/lib/validation/api';
 import { logAdminAudit } from '@/lib/admin/audit';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiNotFound } from '@/lib/api/error-response';
 
 function computePlaceholderRisk(documentCount: number, hasIdDoc: boolean) {
   if (!hasIdDoc) {
@@ -24,15 +25,12 @@ async function postHandler(request: NextRequest) {
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = adminRunVerificationSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const { profile_id } = parsed.data;
@@ -43,10 +41,10 @@ async function postHandler(request: NextRequest) {
   ]);
 
   if (!profile) {
-    return NextResponse.json({ error: 'Application not found' }, { status: 404 });
+    return apiNotFound('Application not found');
   }
   if (docsError) {
-    return NextResponse.json({ error: docsError.message }, { status: 400 });
+    return apiError(docsError.message, 400);
   }
 
   const documentCount = docs?.length ?? 0;
@@ -76,7 +74,7 @@ async function postHandler(request: NextRequest) {
     .single();
 
   if (insertError) {
-    return NextResponse.json({ error: insertError.message }, { status: 400 });
+    return apiError(insertError.message, 400);
   }
 
   await logAdminAudit({

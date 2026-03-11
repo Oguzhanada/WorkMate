@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { apiError, apiServerError } from '@/lib/api/error-response';
 
 export async function GET(
   _request: NextRequest,
@@ -8,7 +9,7 @@ export async function GET(
   const { categoryId } = await params;
 
   if (!categoryId) {
-    return NextResponse.json({ error: 'categoryId required' }, { status: 400 });
+    return apiError('categoryId required', 400);
   }
 
   const supabase = getSupabaseServiceClient();
@@ -24,7 +25,7 @@ export async function GET(
     .limit(200);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return apiServerError(error.message);
   }
 
   const amounts = (data ?? [])

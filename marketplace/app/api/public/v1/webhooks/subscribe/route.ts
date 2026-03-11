@@ -4,6 +4,7 @@ import { authenticatePublicRequest } from '@/lib/api/public-auth';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { webhookSubscribeSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError } from '@/lib/api/error-response';
 
 async function postHandler(request: NextRequest) {
   const auth = await authenticatePublicRequest(request);
@@ -13,15 +14,12 @@ async function postHandler(request: NextRequest) {
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = webhookSubscribeSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const svc = getSupabaseServiceClient();
@@ -39,7 +37,7 @@ async function postHandler(request: NextRequest) {
     .select('id,url,events,enabled,created_at')
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) return apiError(error.message, 400);
 
   return NextResponse.json(
     {

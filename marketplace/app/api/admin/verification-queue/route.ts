@@ -5,6 +5,7 @@ import { logAdminAudit } from '@/lib/admin/audit';
 import { sendNotification } from '@/lib/notifications/send';
 import { batchVerificationSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError } from '@/lib/api/error-response';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -34,7 +35,7 @@ export async function GET(_request: NextRequest) {
     .order('created_at', { ascending: true });
 
   if (profileError) {
-    return NextResponse.json({ error: profileError.message }, { status: 400 });
+    return apiError(profileError.message, 400);
   }
 
   const profiles = pendingProfiles ?? [];
@@ -104,15 +105,12 @@ async function patchHandler(request: NextRequest) {
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = batchVerificationSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const { profile_ids, action, reason } = parsed.data;
@@ -144,7 +142,7 @@ async function patchHandler(request: NextRequest) {
     .in('id', profile_ids);
 
   if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 400 });
+    return apiError(updateError.message, 400);
   }
 
   // For approvals: upsert verified_pro role in user_roles

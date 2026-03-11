@@ -7,6 +7,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { apiUnauthorized, apiServerError } from '@/lib/api/error-response';
 
 const SLA_HOURS = 24;
 
@@ -18,7 +19,7 @@ async function runSlaCheck(request: NextRequest): Promise<NextResponse> {
   const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
   if (!secret || token !== secret) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const supabase = getSupabaseServiceClient();
@@ -58,7 +59,7 @@ async function runSlaCheck(request: NextRequest): Promise<NextResponse> {
 
   const { error } = await supabase.from('notifications').insert(notifications);
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return apiServerError(error.message);
   }
 
   return NextResponse.json(

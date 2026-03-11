@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { funnelSummaryQuerySchema } from '@/lib/validation/api';
+import { apiError, apiUnauthorized, apiForbidden, apiServerError } from '@/lib/api/error-response';
 
 // GET /api/analytics/funnel-summary?days=7|30|all
 // Admin-only: aggregated funnel step completion counts.
@@ -16,7 +17,7 @@ export async function GET(req: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   // RBAC — admin only
@@ -28,7 +29,7 @@ export async function GET(req: NextRequest) {
     .maybeSingle();
 
   if (!roleRow) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiForbidden();
   }
 
   // Validate query params
@@ -36,7 +37,7 @@ export async function GET(req: NextRequest) {
     Object.fromEntries(req.nextUrl.searchParams.entries()),
   );
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid query params' }, { status: 400 });
+    return apiError('Invalid query params', 400);
   }
   const { days } = parsed.data;
 
@@ -65,7 +66,7 @@ export async function GET(req: NextRequest) {
 
   if (rawError) {
     console.error('[analytics/funnel-summary] query failed:', rawError.message);
-    return NextResponse.json({ error: 'Could not load funnel data' }, { status: 500 });
+    return apiServerError('Could not load funnel data');
   }
 
   // Aggregate in JS: count per (funnel_name, step_name)

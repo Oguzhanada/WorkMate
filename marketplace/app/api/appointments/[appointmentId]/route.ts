@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { patchAppointmentSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiNotFound, apiServerError } from '@/lib/api/error-response';
 
 async function patchHandler(
   request: NextRequest,
@@ -18,7 +19,7 @@ async function patchHandler(
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const roles = await getUserRoles(supabase, user.id);
@@ -31,51 +32,39 @@ async function patchHandler(
     .maybeSingle();
 
   if (existingError) {
-    return NextResponse.json({ error: existingError.message }, { status: 500 });
+    return apiServerError(existingError.message);
   }
   if (!existing) {
-    return NextResponse.json({ error: 'Appointment not found' }, { status: 404 });
+    return apiNotFound('Appointment not found');
   }
 
   const isParticipant = user.id === existing.provider_id || user.id === existing.customer_id;
   if (!isParticipant && !isAdmin) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiForbidden();
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = patchAppointmentSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   if (parsed.data.status === 'scheduled') {
-    return NextResponse.json(
-      { error: 'Only cancellation or completion is supported from this endpoint.' },
-      { status: 400 }
-    );
+    return apiError('Only cancellation or completion is supported from this endpoint.', 400);
   }
 
   if (existing.status === 'cancelled' && parsed.data.status === 'completed') {
-    return NextResponse.json(
-      { error: 'Cancelled appointments cannot be marked as completed.' },
-      { status: 400 }
-    );
+    return apiError('Cancelled appointments cannot be marked as completed.', 400);
   }
 
   if (existing.status === 'completed' && parsed.data.status === 'cancelled') {
-    return NextResponse.json(
-      { error: 'Completed appointments cannot be cancelled.' },
-      { status: 400 }
-    );
+    return apiError('Completed appointments cannot be cancelled.', 400);
   }
 
   const updatePayload: Record<string, unknown> = {};
@@ -91,7 +80,7 @@ async function patchHandler(
     .single();
 
   if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 400 });
+    return apiError(updateError.message, 400);
   }
 
   // Only send status-change notifications when status was actually updated

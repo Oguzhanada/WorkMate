@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { apiError } from '@/lib/api/error-response';
 
 type Params = Promise<{ providerId: string }>;
 
@@ -16,7 +17,7 @@ export async function GET(_request: NextRequest, { params }: { params: Params })
     .order('created_at', { ascending: true });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return apiError(error.message, 400);
   }
 
   return NextResponse.json({ items: data ?? [] }, { status: 200 });

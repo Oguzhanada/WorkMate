@@ -4,6 +4,7 @@ import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { logAdminAudit } from '@/lib/admin/audit';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { complianceRecalcSchema } from '@/lib/validation/api';
+import { apiError, apiUnauthorized, apiForbidden, apiServerError } from '@/lib/api/error-response';
 
 async function postHandler(req: Request) {
     try {
@@ -13,18 +14,18 @@ async function postHandler(req: Request) {
         } = await supabase.auth.getUser();
 
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return apiUnauthorized();
         }
 
         const roles = await getUserRoles(supabase, user.id);
         if (!canAccessAdmin(roles)) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+            return apiForbidden();
         }
 
         const raw = await req.json().catch(() => ({}));
         const parsed = complianceRecalcSchema.safeParse(raw);
         if (!parsed.success) {
-            return NextResponse.json({ error: 'Invalid request body', details: parsed.error.issues }, { status: 400 });
+            return apiError('Invalid request body', 400);
         }
         const { providerId } = parsed.data;
 
@@ -52,7 +53,7 @@ async function postHandler(req: Request) {
             const { error } = await supabase.rpc('refresh_provider_rankings');
 
             if (error) {
-                return NextResponse.json({ error: error.message }, { status: 500 });
+                return apiServerError(error.message);
             }
 
             await logAdminAudit({
@@ -68,7 +69,7 @@ async function postHandler(req: Request) {
 
     } catch (err: unknown) {
         console.error('Compliance recalculation failed:', err);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return apiServerError();
     }
 }
 

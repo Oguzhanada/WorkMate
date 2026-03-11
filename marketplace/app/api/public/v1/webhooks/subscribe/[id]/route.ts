@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authenticatePublicRequest } from '@/lib/api/public-auth';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiNotFound } from '@/lib/api/error-response';
 
 async function deleteHandler(
   request: NextRequest,
@@ -21,8 +22,8 @@ async function deleteHandler(
     .select('id')
     .maybeSingle();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  if (!data) return NextResponse.json({ error: 'Subscription not found' }, { status: 404 });
+  if (error) return apiError(error.message, 400);
+  if (!data) return apiNotFound('Subscription not found');
 
   return NextResponse.json({ success: true, id: data.id }, { status: 200 });
 }

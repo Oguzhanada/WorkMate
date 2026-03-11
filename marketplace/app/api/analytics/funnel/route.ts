@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { trackFunnelEventSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiServerError } from '@/lib/api/error-response';
 
 // POST /api/analytics/funnel
 // Inserts a single funnel step event.
@@ -12,15 +13,12 @@ async function handler(request: NextRequest): Promise<NextResponse> {
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = trackFunnelEventSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? 'Invalid request' },
-      { status: 400 }
-    );
+    return apiError(parsed.error.issues[0]?.message ?? 'Invalid request', 400);
   }
 
   const { funnel_name, step_name, step_number, session_id, metadata } = parsed.data;
@@ -43,7 +41,7 @@ async function handler(request: NextRequest): Promise<NextResponse> {
   if (insertError) {
     // Log server-side only — never expose DB errors to the client
     console.error('[analytics/funnel] insert failed:', insertError.message);
-    return NextResponse.json({ error: 'Event could not be recorded' }, { status: 500 });
+    return apiServerError('Event could not be recorded');
   }
 
   return NextResponse.json({ ok: true }, { status: 201 });

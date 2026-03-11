@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { grantMonthlyCredits, MONTHLY_CREDITS_BY_PLAN } from '@/lib/credits/provider-credits';
+import { apiUnauthorized } from '@/lib/api/error-response';
 
 type Plan = keyof typeof MONTHLY_CREDITS_BY_PLAN;
 const VALID_PLANS = new Set<string>(['basic', 'professional', 'premium']);
@@ -18,7 +19,7 @@ async function runGrant(request: NextRequest): Promise<NextResponse> {
   const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
   if (!secret || token !== secret) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const supabase = getSupabaseServiceClient();

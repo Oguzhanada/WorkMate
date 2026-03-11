@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ensureAdminRoute } from '@/lib/auth/admin';
+import { apiError, apiNotFound } from '@/lib/api/error-response';
 
 export async function GET(
   _request: NextRequest,
@@ -18,10 +19,10 @@ export async function GET(
     .maybeSingle();
 
   if (profileError) {
-    return NextResponse.json({ error: profileError.message }, { status: 400 });
+    return apiError(profileError.message, 400);
   }
   if (!profile) {
-    return NextResponse.json({ error: 'Application not found' }, { status: 404 });
+    return apiNotFound('Application not found');
   }
 
   const [{ data: docs, error: docsError }, { data: checks, error: checksError }] = await Promise.all([
@@ -39,10 +40,10 @@ export async function GET(
   ]);
 
   if (docsError) {
-    return NextResponse.json({ error: docsError.message }, { status: 400 });
+    return apiError(docsError.message, 400);
   }
   if (checksError) {
-    return NextResponse.json({ error: checksError.message }, { status: 400 });
+    return apiError(checksError.message, 400);
   }
 
   return NextResponse.json({

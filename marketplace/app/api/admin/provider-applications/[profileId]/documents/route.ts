@@ -6,6 +6,7 @@ import { adminDocumentDecisionSchema } from '@/lib/validation/api';
 import { PROVIDER_REQUIRED_DOCUMENTS } from '@/lib/data/documents';
 import { fireAutomationEvent } from '@/lib/automation/engine';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiNotFound } from '@/lib/api/error-response';
 
 export async function GET(
   _request: NextRequest,
@@ -24,7 +25,7 @@ export async function GET(
     .order('created_at', { ascending: false });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return apiError(error.message, 400);
   }
 
   const serviceClient = getSupabaseServiceClient();
@@ -67,15 +68,12 @@ async function patchHandler(
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = adminDocumentDecisionSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const { document_id, decision, note } = parsed.data;
@@ -95,11 +93,11 @@ async function patchHandler(
     .maybeSingle();
 
   if (docError) {
-    return NextResponse.json({ error: docError.message }, { status: 400 });
+    return apiError(docError.message, 400);
   }
 
   if (!doc) {
-    return NextResponse.json({ error: 'Document not found for profile' }, { status: 404 });
+    return apiNotFound('Document not found for profile');
   }
 
   const { data: existing } = await serviceClient
@@ -151,7 +149,7 @@ async function patchHandler(
     .eq('id', profileId);
 
   if (profileUpdateError) {
-    return NextResponse.json({ error: profileUpdateError.message }, { status: 400 });
+    return apiError(profileUpdateError.message, 400);
   }
 
   if (decision !== 'approve') {
@@ -175,7 +173,7 @@ async function patchHandler(
       .eq('role', 'verified_pro');
 
     if (removeRoleError) {
-      return NextResponse.json({ error: removeRoleError.message }, { status: 400 });
+      return apiError(removeRoleError.message, 400);
     }
   }
 
@@ -193,7 +191,7 @@ async function patchHandler(
   });
 
   if (notificationError) {
-    return NextResponse.json({ error: notificationError.message }, { status: 400 });
+    return apiError(notificationError.message, 400);
   }
 
   await logAdminAudit({
@@ -253,7 +251,7 @@ async function postHandler(
     .eq('profile_id', profileId);
 
   if (docsError) {
-    return NextResponse.json({ error: docsError.message }, { status: 400 });
+    return apiError(docsError.message, 400);
   }
 
   const required = new Set(PROVIDER_REQUIRED_DOCUMENTS);
@@ -262,7 +260,7 @@ async function postHandler(
     .map((doc) => doc.id);
 
   if (targetDocIds.length === 0) {
-    return NextResponse.json({ error: 'No required documents found for this profile.' }, { status: 400 });
+    return apiError('No required documents found for this profile.', 400);
   }
 
   const { error: updateError } = await serviceClient
@@ -277,7 +275,7 @@ async function postHandler(
     .eq('profile_id', profileId);
 
   if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 400 });
+    return apiError(updateError.message, 400);
   }
 
   await serviceClient.from('notifications').insert({

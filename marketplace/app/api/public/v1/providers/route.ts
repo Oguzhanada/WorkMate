@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticatePublicRequest } from '@/lib/api/public-auth';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { apiServerError } from '@/lib/api/error-response';
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
       .from('pro_services')
       .select('profile_id')
       .eq('category_id', categoryId);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return apiServerError(error.message);
     filteredIds = (serviceRows ?? []).map((row) => row.profile_id);
   }
 
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
       .from('pro_service_areas')
       .select('profile_id')
       .eq('county', county);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return apiServerError(error.message);
     const areaIds = new Set((areaRows ?? []).map((row) => row.profile_id));
     filteredIds =
       filteredIds === null ? Array.from(areaIds) : filteredIds.filter((id) => areaIds.has(id));
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
 
   const { data: providers, error: providersError } = await providersQuery;
   if (providersError) {
-    return NextResponse.json({ error: providersError.message }, { status: 500 });
+    return apiServerError(providersError.message);
   }
 
   const providerIds = (providers ?? []).map((item) => item.id);

@@ -2,15 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { apiUnauthorized, apiForbidden } from '@/lib/api/error-response';
 
 export async function GET(request: NextRequest) {
   // Auth + admin guard
   const supabase = await getSupabaseRouteClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (authError || !user) return apiUnauthorized();
 
   const roles = await getUserRoles(supabase, user.id);
-  if (!canAccessAdmin(roles)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (!canAccessAdmin(roles)) return apiForbidden();
 
   // Use service client for aggregations (bypasses RLS safely — admin-only endpoint)
   const svc = getSupabaseServiceClient();

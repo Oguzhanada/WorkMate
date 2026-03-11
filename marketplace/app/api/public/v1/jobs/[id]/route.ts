@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticatePublicRequest } from '@/lib/api/public-auth';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { apiNotFound, apiServerError } from '@/lib/api/error-response';
 
 export async function GET(
   request: NextRequest,
@@ -19,8 +20,8 @@ export async function GET(
     .eq('review_status', 'approved')
     .maybeSingle();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  if (!data) return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+  if (error) return apiServerError(error.message);
+  if (!data) return apiNotFound('Job not found');
 
   return NextResponse.json({ job: data }, { status: 200 });
 }

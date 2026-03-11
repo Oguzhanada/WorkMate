@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { logAdminAudit } from '@/lib/admin/audit';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiNotFound } from '@/lib/api/error-response';
 
 // Risk thresholds
 const RISK_WEIGHTS = {
@@ -110,17 +111,17 @@ export async function GET(
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const roles = await getUserRoles(supabase, user.id);
   if (!canAccessAdmin(roles)) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiForbidden();
   }
 
   const result = await computeRiskScore(profileId);
   if (!result) {
-    return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    return apiNotFound('Profile not found');
   }
 
   return NextResponse.json({ profileId, risk_score: result.score, risk_flags: result.flags });
@@ -139,17 +140,17 @@ async function postHandler(
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const roles = await getUserRoles(supabase, user.id);
   if (!canAccessAdmin(roles)) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiForbidden();
   }
 
   const result = await computeRiskScore(profileId);
   if (!result) {
-    return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    return apiNotFound('Profile not found');
   }
 
   const service = getSupabaseServiceClient();
@@ -163,7 +164,7 @@ async function postHandler(
     .eq('id', profileId);
 
   if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 400 });
+    return apiError(updateError.message, 400);
   }
 
   await logAdminAudit({

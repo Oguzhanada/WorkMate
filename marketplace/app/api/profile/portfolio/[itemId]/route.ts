@@ -3,6 +3,7 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { updatePortfolioItemSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiNotFound } from '@/lib/api/error-response';
 
 type Params = Promise<{ itemId: string }>;
 
@@ -17,7 +18,7 @@ async function deleteHandler(_request: NextRequest, { params }: { params: Params
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const service = getSupabaseServiceClient();
@@ -30,10 +31,10 @@ async function deleteHandler(_request: NextRequest, { params }: { params: Params
     .maybeSingle();
 
   if (!existing) {
-    return NextResponse.json({ error: 'Item not found' }, { status: 404 });
+    return apiNotFound('Item not found');
   }
   if (existing.provider_id !== user.id) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiForbidden();
   }
 
   const { error } = await service
@@ -42,7 +43,7 @@ async function deleteHandler(_request: NextRequest, { params }: { params: Params
     .eq('id', itemId);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return apiError(error.message, 400);
   }
 
   return NextResponse.json({ ok: true }, { status: 200 });
@@ -59,22 +60,19 @@ async function patchHandler(request: NextRequest, { params }: { params: Params }
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = updatePortfolioItemSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const service = getSupabaseServiceClient();
@@ -87,10 +85,10 @@ async function patchHandler(request: NextRequest, { params }: { params: Params }
     .maybeSingle();
 
   if (!existing) {
-    return NextResponse.json({ error: 'Item not found' }, { status: 404 });
+    return apiNotFound('Item not found');
   }
   if (existing.provider_id !== user.id) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiForbidden();
   }
 
   const { data: item, error: updateError } = await service
@@ -101,7 +99,7 @@ async function patchHandler(request: NextRequest, { params }: { params: Params }
     .single();
 
   if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 400 });
+    return apiError(updateError.message, 400);
   }
 
   return NextResponse.json({ item }, { status: 200 });

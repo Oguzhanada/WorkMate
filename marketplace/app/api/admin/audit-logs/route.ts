@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ensureAdminRoute } from '@/lib/auth/admin';
+import { apiServerError } from '@/lib/api/error-response';
 
 // ─── GET /api/admin/audit-logs ────────────────────────────────────────────────
 // Returns admin_audit_logs newest-first.
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
   const { data, error, count } = await query;
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return apiServerError(error.message);
   }
 
   return NextResponse.json({

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { apiUnauthorized, apiServerError } from '@/lib/api/error-response';
 
 /**
  * GET /api/appointments
@@ -16,7 +17,7 @@ export async function GET() {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const service = getSupabaseServiceClient();
@@ -42,7 +43,7 @@ export async function GET() {
     .order('start_time', { ascending: true });
 
   if (queryError) {
-    return NextResponse.json({ error: queryError.message }, { status: 500 });
+    return apiServerError(queryError.message);
   }
 
   return NextResponse.json({ appointments: rows ?? [] }, { status: 200 });

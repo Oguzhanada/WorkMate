@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ensureAdminRoute } from '@/lib/auth/admin';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { apiServerError } from '@/lib/api/error-response';
 
 type RoleRow = { user_id: string; role: string };
 
@@ -21,7 +22,7 @@ export async function GET() {
     .order('created_at', { ascending: false })
     .limit(500);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return apiServerError(error.message);
 
   const profileIds = (profiles ?? []).map((item) => item.id);
   const { data: roleRows } = profileIds.length

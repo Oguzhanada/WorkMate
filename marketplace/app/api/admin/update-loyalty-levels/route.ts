@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { computeCustomerLevel, computeProviderLevel } from '@/lib/loyalty/levels';
+import { apiUnauthorized } from '@/lib/api/error-response';
 
 async function runUpdate(request: NextRequest): Promise<NextResponse> {
   const secret = process.env.CRON_SECRET ?? process.env.TASK_ALERT_SECRET;
@@ -15,7 +16,7 @@ async function runUpdate(request: NextRequest): Promise<NextResponse> {
   const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
   if (!secret || token !== secret) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const supabase = getSupabaseServiceClient();
