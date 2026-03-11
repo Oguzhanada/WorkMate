@@ -7,6 +7,7 @@ import { fireAutomationEvent } from '@/lib/automation/engine';
 import { createJobSchema } from '@/lib/validation/api';
 import { sendWebhookEvent } from '@/lib/webhook/send';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiServerError } from '@/lib/api/error-response';
 
 async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
@@ -16,12 +17,12 @@ async function postHandler(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const roles = await getUserRoles(supabase, user.id);
   if (!canPostJob(roles)) {
-    return NextResponse.json({ error: 'Only customers can create jobs' }, { status: 403 });
+    return apiForbidden('Only customers can create jobs');
   }
 
   const { data: profile } = await supabase
@@ -35,22 +36,19 @@ async function postHandler(request: NextRequest) {
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = createJobSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const body = parsed.data;
   const eircode = normalizeEircode(body.eircode || '');
 
   if (!isValidEircode(eircode)) {
-    return NextResponse.json({ error: 'Please enter a valid Eircode.' }, { status: 400 });
+    return apiError('Please enter a valid Eircode.', 400);
   }
 
   const { data: categoryRow, error: categoryError } = await supabase
@@ -61,12 +59,12 @@ async function postHandler(request: NextRequest) {
     .maybeSingle();
 
   if (categoryError || !categoryRow) {
-    return NextResponse.json({ error: 'Invalid category selection' }, { status: 400 });
+    return apiError('Invalid category selection', 400);
   }
 
   // direct_request requires a valid target_provider_id
   if (body.job_mode === 'direct_request' && !body.target_provider_id) {
-    return NextResponse.json({ error: 'Direct request requires a target provider.' }, { status: 400 });
+    return apiError('Direct request requires a target provider.', 400);
   }
 
   // ── Mode-specific defaults ──────────────────────────────
@@ -97,7 +95,7 @@ async function postHandler(request: NextRequest) {
     auto_close_on_accept: true,
   }).select('*').single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return apiServerError(error.message);
 
   const serviceSupabase = getSupabaseServiceClient();
   const { data: adminRows } = await serviceSupabase

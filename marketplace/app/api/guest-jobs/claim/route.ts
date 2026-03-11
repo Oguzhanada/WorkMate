@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { claimGuestJobIntentSchema } from '@/lib/validation/api';
 import { canPostJob, getUserRoles, isIdVerified } from '@/lib/auth/rbac';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiNotFound } from '@/lib/api/error-response';
 
 async function postHandler(request: NextRequest) {
   const routeClient = await getSupabaseRouteClient();
@@ -13,7 +14,7 @@ async function postHandler(request: NextRequest) {
   } = await routeClient.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const roles = await getUserRoles(routeClient, user.id);
@@ -24,7 +25,7 @@ async function postHandler(request: NextRequest) {
     .maybeSingle();
 
   if (!canPostJob(roles)) {
-    return NextResponse.json({ error: 'Only customers can claim guest jobs' }, { status: 403 });
+    return apiForbidden('Only customers can claim guest jobs');
   }
   const customerIsVerified = isIdVerified(profile?.id_verification_status);
 
@@ -32,15 +33,12 @@ async function postHandler(request: NextRequest) {
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = claimGuestJobIntentSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const { intent_id } = parsed.data;
@@ -55,7 +53,7 @@ async function postHandler(request: NextRequest) {
     .maybeSingle();
 
   if (intentError || !intent) {
-    return NextResponse.json({ error: 'Intent not found' }, { status: 404 });
+    return apiNotFound('Intent not found');
   }
 
   if (intent.published_job_id) {
@@ -67,10 +65,7 @@ async function postHandler(request: NextRequest) {
   // which transitions the status from 'email_pending' to 'ready_to_publish'.
   // In dev/test, verification is skipped and the intent is created as 'ready_to_publish'.
   if (intent.status !== 'ready_to_publish') {
-    return NextResponse.json(
-      { error: 'Intent is not verified yet. The guest must complete email verification first.' },
-      { status: 400 }
-    );
+    return apiError('Intent is not verified yet. The guest must complete email verification first.', 400);
   }
 
   const { data: categoryRow } = await serviceClient
@@ -80,7 +75,7 @@ async function postHandler(request: NextRequest) {
     .maybeSingle();
 
   if (!categoryRow) {
-    return NextResponse.json({ error: 'Category no longer available' }, { status: 400 });
+    return apiError('Category no longer available', 400);
   }
 
   const { data: jobRow, error: jobError } = await serviceClient
@@ -106,7 +101,7 @@ async function postHandler(request: NextRequest) {
     .single();
 
   if (jobError || !jobRow) {
-    return NextResponse.json({ error: jobError?.message || 'Job could not be published' }, { status: 400 });
+    return apiError(jobError?.message || 'Job could not be published', 400);
   }
 
   const { error: updateError } = await serviceClient
@@ -120,7 +115,7 @@ async function postHandler(request: NextRequest) {
     .eq('id', intent_id);
 
   if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 400 });
+    return apiError(updateError.message, 400);
   }
 
   const { data: adminRows } = await serviceClient

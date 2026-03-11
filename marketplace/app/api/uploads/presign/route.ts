@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { createR2PresignedUpload, isR2Configured } from '@/lib/cloudflare/r2';
+import { apiError, apiUnauthorized, apiServerError } from '@/lib/api/error-response';
 
 /**
  * POST /api/uploads/presign
@@ -43,10 +44,7 @@ const presignSchema = z.object({
 
 async function handler(request: NextRequest): Promise<NextResponse> {
   if (!isR2Configured()) {
-    return NextResponse.json(
-      { error: 'File upload via R2 is not configured on this environment.' },
-      { status: 503 }
-    );
+    return apiError('File upload via R2 is not configured on this environment.', 503);
   }
 
   const supabase = await getSupabaseRouteClient();
@@ -56,31 +54,25 @@ async function handler(request: NextRequest): Promise<NextResponse> {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = presignSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? 'Invalid request' },
-      { status: 400 }
-    );
+    return apiError(parsed.error.issues[0]?.message ?? 'Invalid request', 400);
   }
 
   const { filename, contentType, scope } = parsed.data;
 
   if (!ALLOWED_MIME_TYPES.has(contentType)) {
-    return NextResponse.json(
-      { error: 'File type not allowed. Use PNG, JPEG, WEBP, GIF, or PDF.' },
-      { status: 400 }
-    );
+    return apiError('File type not allowed. Use PNG, JPEG, WEBP, GIF, or PDF.', 400);
   }
 
   // Sanitize filename — keep only safe characters
@@ -103,7 +95,7 @@ async function handler(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ uploadUrl, publicUrl, expiresAt });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Presign failed';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiServerError(message);
   }
 }
 

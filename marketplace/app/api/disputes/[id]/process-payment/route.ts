@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { disputeProcessPaymentSchema } from '@/lib/validation/api';
 import { stripe } from '@/lib/stripe/client';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError } from '@/lib/api/error-response';
 
 async function postHandler(
   request: NextRequest,
@@ -18,12 +19,12 @@ async function postHandler(
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = disputeProcessPaymentSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Validation failed', details: parsed.error.flatten() }, { status: 400 });
+    return apiError('Validation failed', 400);
   }
 
   const serviceSupabase = getSupabaseServiceClient();
@@ -34,7 +35,7 @@ async function postHandler(
     .maybeSingle();
 
   if (!dispute?.payment_intent_id) {
-    return NextResponse.json({ error: 'Dispute payment intent is missing.' }, { status: 400 });
+    return apiError('Dispute payment intent is missing.', 400);
   }
 
   let stripeResult: { id: string; status: string } | null = null;
@@ -48,7 +49,7 @@ async function postHandler(
 
   if (parsed.data.action === 'capture_partial') {
     if (!parsed.data.amount_cents) {
-      return NextResponse.json({ error: 'amount_cents is required for partial capture.' }, { status: 400 });
+      return apiError('amount_cents is required for partial capture.', 400);
     }
     const intent = await stripe.paymentIntents.capture(dispute.payment_intent_id, {
       amount_to_capture: parsed.data.amount_cents,
@@ -65,7 +66,7 @@ async function postHandler(
 
   if (parsed.data.action === 'refund_partial') {
     if (!parsed.data.amount_cents) {
-      return NextResponse.json({ error: 'amount_cents is required for partial refund.' }, { status: 400 });
+      return apiError('amount_cents is required for partial refund.', 400);
     }
     const refund = await stripe.refunds.create({
       payment_intent: dispute.payment_intent_id,

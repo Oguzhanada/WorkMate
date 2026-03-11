@@ -8,6 +8,7 @@ import { calculateOfferScore } from '@/lib/ranking/offer-ranking';
 import { sendTransactionalEmail } from '@/lib/email/send';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { debitQuoteCredits } from '@/lib/credits/provider-credits';
+import { apiError, apiUnauthorized, apiForbidden, apiNotFound } from '@/lib/api/error-response';
 
 async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
@@ -17,7 +18,7 @@ async function postHandler(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const roles = await getUserRoles(supabase, user.id);
@@ -29,22 +30,19 @@ async function postHandler(request: NextRequest) {
   const providerIsVerified = isIdVerified(profile?.id_verification_status);
 
   if (!canQuoteJob(roles, profile?.id_verification_status)) {
-    return NextResponse.json({ error: 'Only professionals can submit quotes' }, { status: 403 });
+    return apiForbidden('Only professionals can submit quotes');
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = createQuoteSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const body = parsed.data;
@@ -55,22 +53,16 @@ async function postHandler(request: NextRequest) {
     .maybeSingle();
 
   if (jobError || !job) {
-    return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+    return apiNotFound('Job not found');
   }
 
   if (job.status !== 'open' || job.review_status !== 'approved') {
-    return NextResponse.json(
-      { error: 'This job is not available for quoting yet.' },
-      { status: 400 }
-    );
+    return apiError('This job is not available for quoting yet.', 400);
   }
 
   // Reject quotes on expired jobs
   if (job.expires_at && new Date(job.expires_at).getTime() < Date.now()) {
-    return NextResponse.json(
-      { error: 'This job has expired and is no longer accepting quotes.' },
-      { status: 400 }
-    );
+    return apiError('This job has expired and is no longer accepting quotes.', 400);
   }
 
   // Enforce max_quotes limit (Quick Hire = 5, Get Quotes = unlimited)
@@ -82,10 +74,7 @@ async function postHandler(request: NextRequest) {
       .neq('status', 'withdrawn');
 
     if ((existingQuoteCount ?? 0) >= job.max_quotes) {
-      return NextResponse.json(
-        { error: 'This job has reached its maximum number of quotes.' },
-        { status: 400 }
-      );
+      return apiError('This job has reached its maximum number of quotes.', 400);
     }
   }
 
@@ -103,20 +92,14 @@ async function postHandler(request: NextRequest) {
 
     // If the provider has an availability record for today and it's set to unavailable, block
     if (availRows && availRows.is_available === false) {
-      return NextResponse.json(
-        { error: 'You are marked as unavailable today. Update your availability to submit quotes.' },
-        { status: 400 }
-      );
+      return apiError('You are marked as unavailable today. Update your availability to submit quotes.', 400);
     }
   }
 
   // direct_request: only the targeted provider may quote
   if (job.job_mode === 'direct_request' && job.target_provider_id) {
     if (job.target_provider_id !== user.id) {
-      return NextResponse.json(
-        { error: 'This job is a direct request to another provider.' },
-        { status: 403 }
-      );
+      return apiForbidden('This job is a direct request to another provider.');
     }
   }
 
@@ -129,10 +112,7 @@ async function postHandler(request: NextRequest) {
     const counties = (areas ?? []).map((row) => row.county);
     const hasCountyAccess = job.county ? counties.includes(job.county) : false;
     if (!hasCountyAccess) {
-      return NextResponse.json(
-        { error: 'This lead is outside your current basic-tier county access.' },
-        { status: 403 }
-      );
+      return apiForbidden('This lead is outside your current basic-tier county access.');
     }
 
     const quoteDate = new Date().toISOString().slice(0, 10);
@@ -145,13 +125,9 @@ async function postHandler(request: NextRequest) {
 
     const usedCount = limitRow?.used_count ?? 0;
     if (usedCount >= 3) {
-      return NextResponse.json(
-        {
-          error: 'Daily quote limit reached for basic tier.',
-          upgrade_message: 'Verify your ID for unlimited quotes and wider lead access.'
-        },
-        { status: 429 }
-      );
+      return apiError('Daily quote limit reached for basic tier.', 429, {
+        upgrade_message: 'Verify your ID for unlimited quotes and wider lead access.',
+      });
     }
   }
 
@@ -168,7 +144,7 @@ async function postHandler(request: NextRequest) {
     expires_at: expiresAt,
   }).select('*').single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) return apiError(error.message, 400);
 
   // Debit provider credits — non-blocking; does not fail the quote if credits are exhausted
   void debitQuoteCredits(user.id, data.id, job.is_urgent ?? false).catch(() => {

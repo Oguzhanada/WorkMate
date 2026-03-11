@@ -3,6 +3,7 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { claimFoundingProSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiConflict, apiServerError } from '@/lib/api/error-response';
 
 // GET /api/founding-pro — check program status, slots, and user's founding pro / referral info
 export async function GET() {
@@ -15,7 +16,7 @@ export async function GET() {
     .single();
 
   if (error) {
-    return NextResponse.json({ error: 'Failed to load program status' }, { status: 500 });
+    return apiServerError('Failed to load program status');
   }
 
   const slots_remaining = config.max_slots - config.current_count;
@@ -91,22 +92,19 @@ async function postHandler(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = claimFoundingProSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? 'Invalid request' },
-      { status: 400 }
-    );
+    return apiError(parsed.error.issues[0]?.message ?? 'Invalid request', 400);
   }
 
   const service = getSupabaseServiceClient();
@@ -119,16 +117,16 @@ async function postHandler(request: NextRequest) {
     .single();
 
   if (profileError) {
-    return NextResponse.json({ error: 'Failed to load profile' }, { status: 500 });
+    return apiServerError('Failed to load profile');
   }
 
   if (profile.is_founding_pro) {
-    return NextResponse.json({ error: 'Already a Founding Pro' }, { status: 409 });
+    return apiConflict('Already a Founding Pro');
   }
 
   // Must be a provider (or admin)
   if (profile.role !== 'provider' && profile.role !== 'admin') {
-    return NextResponse.json({ error: 'Only providers can join the Founding Pro program' }, { status: 403 });
+    return apiForbidden('Only providers can join the Founding Pro program');
   }
 
   // Check program status and available slots
@@ -139,15 +137,15 @@ async function postHandler(request: NextRequest) {
     .single();
 
   if (configError || !config) {
-    return NextResponse.json({ error: 'Failed to load program config' }, { status: 500 });
+    return apiServerError('Failed to load program config');
   }
 
   if (!config.program_active) {
-    return NextResponse.json({ error: 'Founding Pro program is no longer active' }, { status: 410 });
+    return apiError('Founding Pro program is no longer active', 410);
   }
 
   if (config.current_count >= config.max_slots) {
-    return NextResponse.json({ error: 'All Founding Pro slots have been claimed' }, { status: 410 });
+    return apiError('All Founding Pro slots have been claimed', 410);
   }
 
   // Claim the slot — update profile
@@ -160,7 +158,7 @@ async function postHandler(request: NextRequest) {
     .eq('id', user.id);
 
   if (updateError) {
-    return NextResponse.json({ error: 'Failed to claim slot' }, { status: 500 });
+    return apiServerError('Failed to claim slot');
   }
 
   // Increment counter

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
+import { apiError, apiUnauthorized } from '@/lib/api/error-response';
 
 export async function GET() {
   const supabase = await getSupabaseRouteClient();
@@ -10,7 +11,7 @@ export async function GET() {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const roles = await getUserRoles(supabase, user.id);
@@ -50,7 +51,7 @@ export async function GET() {
 
   const { data, error } = await query;
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return apiError(error.message, 400);
   }
 
   return NextResponse.json({ disputes: data ?? [] }, { status: 200 });

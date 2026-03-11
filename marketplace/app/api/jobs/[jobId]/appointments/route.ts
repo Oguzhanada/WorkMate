@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { resolveJobAccessContext } from '@/lib/jobs/access';
 import { createAppointmentSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiNotFound, apiConflict, apiServerError } from '@/lib/api/error-response';
 
 function buildLocalParts(iso: string) {
   const date = new Date(iso);
@@ -97,15 +98,15 @@ export async function GET(
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const access = await resolveJobAccessContext(supabase, jobId, user.id);
   if (!access.exists) {
-    return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+    return apiNotFound('Job not found');
   }
   if (!access.isAdmin && !access.isCustomer && !access.isProvider) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiForbidden();
   }
 
   const { data, error } = await supabase
@@ -115,7 +116,7 @@ export async function GET(
     .order('start_time', { ascending: true });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return apiServerError(error.message);
   }
 
   return NextResponse.json({ appointments: data ?? [] }, { status: 200 });
@@ -134,33 +135,30 @@ async function postHandler(
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const access = await resolveJobAccessContext(supabase, jobId, user.id);
   if (!access.exists) {
-    return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+    return apiNotFound('Job not found');
   }
   if (!access.providerId || !access.customerId) {
-    return NextResponse.json({ error: 'Job does not have an accepted provider yet.' }, { status: 400 });
+    return apiError('Job does not have an accepted provider yet.', 400);
   }
   if (!access.isAdmin && !access.isCustomer && !access.isProvider) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiForbidden();
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = createAppointmentSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const startAt = new Date(parsed.data.start_time);
@@ -168,10 +166,10 @@ async function postHandler(
   const now = new Date();
 
   if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime())) {
-    return NextResponse.json({ error: 'Invalid start_time or end_time.' }, { status: 400 });
+    return apiError('Invalid start_time or end_time.', 400);
   }
   if (startAt.getTime() < now.getTime()) {
-    return NextResponse.json({ error: 'Appointments cannot be created in the past.' }, { status: 400 });
+    return apiError('Appointments cannot be created in the past.', 400);
   }
 
   const localStartDate = new Intl.DateTimeFormat('en-CA', {
@@ -187,10 +185,7 @@ async function postHandler(
     day: '2-digit',
   }).format(endAt);
   if (localStartDate !== localEndDate) {
-    return NextResponse.json(
-      { error: 'Appointment must start and end on the same calendar day.' },
-      { status: 400 }
-    );
+    return apiError('Appointment must start and end on the same calendar day.', 400);
   }
 
   const startParts = buildLocalParts(parsed.data.start_time);
@@ -203,17 +198,11 @@ async function postHandler(
     .or(`is_recurring.eq.true,and(is_recurring.eq.false,specific_date.gte.${dublinNowDate()})`);
 
   if (availabilityError) {
-    return NextResponse.json({ error: availabilityError.message }, { status: 500 });
+    return apiServerError(availabilityError.message);
   }
 
   if (!isSlotInsideAvailability(availability ?? [], parsed.data.start_time, parsed.data.end_time)) {
-    return NextResponse.json(
-      {
-        error:
-          'Selected slot is outside provider availability. Please pick a time within an available window.',
-      },
-      { status: 400 }
-    );
+    return apiError('Selected slot is outside provider availability. Please pick a time within an available window.', 400);
   }
 
   const { data: conflicting } = await service
@@ -227,10 +216,7 @@ async function postHandler(
     .maybeSingle();
 
   if (conflicting) {
-    return NextResponse.json(
-      { error: 'Provider already has an appointment in this time window.' },
-      { status: 409 }
-    );
+    return apiConflict('Provider already has an appointment in this time window.');
   }
 
   const { data: inserted, error: insertError } = await service
@@ -249,7 +235,7 @@ async function postHandler(
     .single();
 
   if (insertError) {
-    return NextResponse.json({ error: insertError.message }, { status: 400 });
+    return apiError(insertError.message, 400);
   }
 
   const notifyTargets = [inserted.provider_id, inserted.customer_id];

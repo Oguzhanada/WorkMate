@@ -4,6 +4,7 @@ import { resolveJobAccessContext } from '@/lib/jobs/access';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiNotFound, apiConflict, apiServerError } from '@/lib/api/error-response';
 
 function computeBillableCents(minutes: number, hourlyRateCents: number) {
   return Math.round((minutes / 60) * hourlyRateCents);
@@ -37,12 +38,12 @@ async function postHandler(
   const service = getSupabaseServiceClient();
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (authError || !user) return apiUnauthorized();
 
   const access = await resolveJobAccessContext(supabase, jobId, user.id);
-  if (!access.exists) return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+  if (!access.exists) return apiNotFound('Job not found');
   if (!access.isProvider && !access.isAdmin) {
-    return NextResponse.json({ error: 'Only the assigned provider can create invoices.' }, { status: 403 });
+    return apiForbidden('Only the assigned provider can create invoices.');
   }
 
   const { data: job, error: jobError } = await service
@@ -51,13 +52,10 @@ async function postHandler(
     .eq('id', jobId)
     .maybeSingle();
 
-  if (jobError || !job) return NextResponse.json({ error: 'Job not found' }, { status: 404 });
-  if (!job.accepted_quote_id) return NextResponse.json({ error: 'No accepted quote found for this job.' }, { status: 400 });
+  if (jobError || !job) return apiNotFound('Job not found');
+  if (!job.accepted_quote_id) return apiError('No accepted quote found for this job.', 400);
   if (job.stripe_invoice_id) {
-    return NextResponse.json(
-      { error: 'Invoice already exists for this job.', stripe_invoice_id: job.stripe_invoice_id },
-      { status: 409 }
-    );
+    return apiConflict('Invoice already exists for this job.');
   }
 
   const [{ data: acceptedQuote }, { data: entries, error: entryError }] = await Promise.all([
@@ -71,16 +69,13 @@ async function postHandler(
       .not('ended_at', 'is', null),
   ]);
 
-  if (!acceptedQuote) return NextResponse.json({ error: 'Accepted quote is missing.' }, { status: 400 });
+  if (!acceptedQuote) return apiError('Accepted quote is missing.', 400);
   if (!access.isAdmin && acceptedQuote.pro_id !== user.id) {
-    return NextResponse.json({ error: 'Only the assigned provider can create invoices.' }, { status: 403 });
+    return apiForbidden('Only the assigned provider can create invoices.');
   }
-  if (entryError) return NextResponse.json({ error: entryError.message }, { status: 500 });
+  if (entryError) return apiServerError(entryError.message);
   if (!entries || entries.length === 0) {
-    return NextResponse.json(
-      { error: 'No approved time entries available for invoicing.' },
-      { status: 400 }
-    );
+    return apiError('No approved time entries available for invoicing.', 400);
   }
 
   const defaultRate = acceptedQuote.quote_amount_cents;
@@ -102,14 +97,14 @@ async function postHandler(
     .filter((line) => line.amount > 0);
 
   if (preparedLines.length === 0) {
-    return NextResponse.json({ error: 'Approved entries contain zero billable amount.' }, { status: 400 });
+    return apiError('Approved entries contain zero billable amount.', 400);
   }
 
   const totalAmount = preparedLines.reduce((sum, line) => sum + line.amount, 0);
 
   try {
     const { data: authUserResult, error: authUserError } = await service.auth.admin.getUserById(job.customer_id);
-    if (authUserError) return NextResponse.json({ error: authUserError.message }, { status: 500 });
+    if (authUserError) return apiServerError(authUserError.message);
     const customerEmail = authUserResult.user?.email ?? null;
     const stripeCustomerId = await getOrCreateStripeCustomer(job.customer_id, customerEmail);
 
@@ -174,10 +169,7 @@ async function postHandler(
       { status: 201 }
     );
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Invoice creation failed.' },
-      { status: 500 }
-    );
+    return apiServerError(error instanceof Error ? error.message : 'Invoice creation failed.');
   }
 }
 

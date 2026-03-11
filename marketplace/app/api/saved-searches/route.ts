@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { createSavedSearchSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiConflict } from '@/lib/api/error-response';
 
 // GET /api/saved-searches — returns current user's saved searches
 export async function GET() {
@@ -12,7 +13,7 @@ export async function GET() {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const { data, error } = await supabase
@@ -21,7 +22,7 @@ export async function GET() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) return apiError(error.message, 400);
 
   return NextResponse.json({ saved_searches: data ?? [] });
 }
@@ -36,22 +37,19 @@ async function postHandler(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = createSavedSearchSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? 'Invalid request' },
-      { status: 400 },
-    );
+    return apiError(parsed.error.issues[0]?.message ?? 'Invalid request', 400);
   }
 
   const { name, filters, notify_email, notify_bell } = parsed.data;
@@ -65,12 +63,9 @@ async function postHandler(request: NextRequest) {
   if (error) {
     // Unique constraint violation → duplicate name
     if (error.code === '23505') {
-      return NextResponse.json(
-        { error: 'You already have a saved search with this name.' },
-        { status: 409 },
-      );
+      return apiConflict('You already have a saved search with this name.');
     }
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return apiError(error.message, 400);
   }
 
   return NextResponse.json({ saved_search: data }, { status: 201 });

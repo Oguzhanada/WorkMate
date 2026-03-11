@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { providerSearchSchema } from '@/lib/validation/api';
+import { apiError, apiServerError } from '@/lib/api/error-response';
 
 // Public search endpoint — never returns email, phone, or private data.
 export async function GET(req: NextRequest) {
@@ -11,10 +12,7 @@ export async function GET(req: NextRequest) {
 
   const parsed = providerSearchSchema.safeParse(rawParams);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Invalid search parameters', details: parsed.error.flatten().fieldErrors },
-      { status: 400 },
-    );
+    return apiError('Invalid search parameters', 400);
   }
 
   const { q, category_id, county, verified_only, sort } = parsed.data;
@@ -32,7 +30,7 @@ export async function GET(req: NextRequest) {
       .select('profile_id')
       .eq('category_id', category_id);
     if (svcErr) {
-      return NextResponse.json({ error: 'Service lookup failed', providers: [], total: 0 }, { status: 500 });
+      return apiServerError('Service lookup failed');
     }
     categoryFilterIds = (svcRows ?? []).map((r) => r.profile_id as string);
     if (categoryFilterIds.length === 0) {
@@ -48,7 +46,7 @@ export async function GET(req: NextRequest) {
       .select('profile_id')
       .eq('county', county);
     if (areaErr) {
-      return NextResponse.json({ error: 'Area lookup failed', providers: [], total: 0 }, { status: 500 });
+      return apiServerError('Area lookup failed');
     }
     countyFilterIds = (areaRows ?? []).map((r) => r.profile_id as string);
     if (countyFilterIds.length === 0) {
@@ -121,7 +119,7 @@ export async function GET(req: NextRequest) {
 
   const { data: profileRows, error: profilesErr, count } = await query;
   if (profilesErr) {
-    return NextResponse.json({ error: 'Provider search failed', providers: [], total: 0 }, { status: 500 });
+    return apiServerError('Provider search failed');
   }
 
   const profiles = profileRows ?? [];

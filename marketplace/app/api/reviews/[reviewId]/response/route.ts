@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { reviewResponseSchema } from '@/lib/validation/api';
 import { sendNotification } from '@/lib/notifications/send';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiNotFound } from '@/lib/api/error-response';
 
 type RouteContext = { params: Promise<{ reviewId: string }> };
 
@@ -19,7 +20,7 @@ async function postHandler(request: NextRequest, { params }: RouteContext) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   // Validate body
@@ -27,15 +28,12 @@ async function postHandler(request: NextRequest, { params }: RouteContext) {
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = reviewResponseSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const { response } = parsed.data;
@@ -49,11 +47,11 @@ async function postHandler(request: NextRequest, { params }: RouteContext) {
     .maybeSingle();
 
   if (reviewError || !review) {
-    return NextResponse.json({ error: 'Review not found.' }, { status: 404 });
+    return apiNotFound('Review not found.');
   }
 
   if (review.pro_id !== user.id) {
-    return NextResponse.json({ error: 'Forbidden — you are not the reviewed provider.' }, { status: 403 });
+    return apiForbidden('Forbidden — you are not the reviewed provider.');
   }
 
   // Write the response — use the route client so RLS (reviews_update_provider_response) applies
@@ -67,7 +65,7 @@ async function postHandler(request: NextRequest, { params }: RouteContext) {
     .eq('pro_id', user.id);
 
   if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 400 });
+    return apiError(updateError.message, 400);
   }
 
   // Notify the reviewer — fire-and-forget, must not fail the request
@@ -97,7 +95,7 @@ async function deleteHandler(_request: NextRequest, { params }: RouteContext) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   // Confirm the review belongs to this provider before clearing
@@ -109,11 +107,11 @@ async function deleteHandler(_request: NextRequest, { params }: RouteContext) {
     .maybeSingle();
 
   if (reviewError || !review) {
-    return NextResponse.json({ error: 'Review not found.' }, { status: 404 });
+    return apiNotFound('Review not found.');
   }
 
   if (review.pro_id !== user.id) {
-    return NextResponse.json({ error: 'Forbidden — you are not the reviewed provider.' }, { status: 403 });
+    return apiForbidden('Forbidden — you are not the reviewed provider.');
   }
 
   const { error: updateError } = await supabase
@@ -123,7 +121,7 @@ async function deleteHandler(_request: NextRequest, { params }: RouteContext) {
     .eq('pro_id', user.id);
 
   if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 400 });
+    return apiError(updateError.message, 400);
   }
 
   return NextResponse.json({ ok: true }, { status: 200 });

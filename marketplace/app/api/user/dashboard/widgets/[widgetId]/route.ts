@@ -5,6 +5,7 @@ import { getUserRoles } from '@/lib/auth/rbac';
 import { isModeAllowedForRoles, isWidgetAllowedForMode, normalizeDashboardMode } from '@/lib/dashboard/widgets';
 import { patchDashboardWidgetSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiNotFound, apiServerError } from '@/lib/api/error-response';
 
 async function resolveContext(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
@@ -14,13 +15,13 @@ async function resolveContext(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
+    return { error: apiUnauthorized() };
   }
 
   const roles = await getUserRoles(supabase, user.id);
   const mode = normalizeDashboardMode(request.nextUrl.searchParams.get('mode'));
   if (!isModeAllowedForRoles(mode, roles)) {
-    return { error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) };
+    return { error: apiForbidden() };
   }
 
   return { user, mode };
@@ -43,28 +44,25 @@ async function patchHandler(
     .maybeSingle();
 
   if (existingError) {
-    return NextResponse.json({ error: existingError.message }, { status: 500 });
+    return apiServerError(existingError.message);
   }
   if (!existing) {
-    return NextResponse.json({ error: 'Widget not found' }, { status: 404 });
+    return apiNotFound('Widget not found');
   }
   if (!isWidgetAllowedForMode(context.mode, existing.widget_type)) {
-    return NextResponse.json({ error: 'Widget does not belong to this dashboard mode.' }, { status: 400 });
+    return apiError('Widget does not belong to this dashboard mode.', 400);
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = patchDashboardWidgetSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const patch: Record<string, unknown> = {};
@@ -80,7 +78,7 @@ async function patchHandler(
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return apiError(error.message, 400);
   }
 
   return NextResponse.json({ widget: data }, { status: 200 });
@@ -103,13 +101,13 @@ async function deleteHandler(
     .maybeSingle();
 
   if (existingError) {
-    return NextResponse.json({ error: existingError.message }, { status: 500 });
+    return apiServerError(existingError.message);
   }
   if (!existing) {
-    return NextResponse.json({ error: 'Widget not found' }, { status: 404 });
+    return apiNotFound('Widget not found');
   }
   if (!isWidgetAllowedForMode(context.mode, existing.widget_type)) {
-    return NextResponse.json({ error: 'Widget does not belong to this dashboard mode.' }, { status: 400 });
+    return apiError('Widget does not belong to this dashboard mode.', 400);
   }
 
   const { error } = await service
@@ -119,7 +117,7 @@ async function deleteHandler(
     .eq('user_id', context.user.id);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return apiError(error.message, 400);
   }
 
   return NextResponse.json({ success: true }, { status: 200 });

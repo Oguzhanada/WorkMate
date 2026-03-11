@@ -4,6 +4,7 @@ import { canQuote, getUserRoles } from '@/lib/auth/rbac';
 import { createAccountLinkSchema } from '@/lib/validation/api';
 import { stripe } from '@/lib/stripe/client';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden } from '@/lib/api/error-response';
 
 async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
@@ -13,27 +14,24 @@ async function postHandler(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const roles = await getUserRoles(supabase, user.id);
   if (!canQuote(roles)) {
-    return NextResponse.json({ error: 'Only professionals can use this endpoint' }, { status: 403 });
+    return apiForbidden('Only professionals can use this endpoint');
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = createAccountLinkSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const { stripe_account_id } = parsed.data;
@@ -45,7 +43,7 @@ async function postHandler(request: NextRequest) {
     .maybeSingle();
 
   if (!profile?.stripe_account_id || profile.stripe_account_id !== stripe_account_id) {
-    return NextResponse.json({ error: 'Stripe account mismatch' }, { status: 403 });
+    return apiForbidden('Stripe account mismatch');
   }
 
   const accountLink = await stripe.accountLinks.create({

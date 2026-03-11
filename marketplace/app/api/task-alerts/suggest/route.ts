@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiServerError } from '@/lib/api/error-response';
 
 export type TaskAlertSuggestion = {
   categories: { id: string; name: string }[];
@@ -93,7 +94,7 @@ async function buildSuggestion(service: ReturnType<typeof getSupabaseServiceClie
 export async function GET() {
   const service = getSupabaseServiceClient();
   const userId = await getCurrentUserId();
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!userId) return apiUnauthorized();
 
   const existing = await getExistingAlert(service, userId);
   if (existing) {
@@ -110,12 +111,12 @@ async function postHandler() {
   const userId = await getCurrentUserId();
 
   if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const isPro = await getVerifiedPro(service, userId);
   if (!isPro) {
-    return NextResponse.json({ error: 'Only verified providers can create suggested alerts.' }, { status: 403 });
+    return apiForbidden('Only verified providers can create suggested alerts.');
   }
 
   const existing = await getExistingAlert(service, userId);
@@ -125,10 +126,7 @@ async function postHandler() {
 
   const suggestion = await buildSuggestion(service, userId);
   if (!suggestion) {
-    return NextResponse.json(
-      { error: 'No suggested alert could be generated. Add services or service areas first.' },
-      { status: 400 }
-    );
+    return apiError('No suggested alert could be generated. Add services or service areas first.', 400);
   }
 
   const categoryIds = suggestion.categories.map((category) => category.id);
@@ -153,7 +151,7 @@ async function postHandler() {
     .single<TaskAlertRecord>();
 
   if (error || !alert) {
-    return NextResponse.json({ error: 'Failed to create suggested alert.' }, { status: 500 });
+    return apiServerError('Failed to create suggested alert.');
   }
 
   return NextResponse.json({ created: true, alert, suggestion }, { status: 200 });

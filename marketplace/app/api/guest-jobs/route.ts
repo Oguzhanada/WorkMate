@@ -5,21 +5,19 @@ import { createGuestJobIntentSchema } from '@/lib/validation/api';
 import { isValidEircode, normalizeEircode } from '@/lib/ireland/eircode';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { verifyTurnstileToken } from '@/lib/cloudflare/turnstile';
+import { apiError, apiForbidden } from '@/lib/api/error-response';
 
 async function handler(request: NextRequest): Promise<NextResponse> {
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = createGuestJobIntentSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const body = parsed.data;
@@ -28,15 +26,12 @@ async function handler(request: NextRequest): Promise<NextResponse> {
   const remoteip = request.headers.get('x-forwarded-for') ?? undefined;
   const turnstile = await verifyTurnstileToken(body.cf_turnstile_token, remoteip);
   if (!turnstile.success) {
-    return NextResponse.json(
-      { error: 'Bot protection check failed. Please try again.' },
-      { status: 403 }
-    );
+    return apiForbidden('Bot protection check failed. Please try again.');
   }
 
   const eircode = normalizeEircode(body.eircode);
   if (!isValidEircode(eircode)) {
-    return NextResponse.json({ error: 'Please enter a valid Eircode.' }, { status: 400 });
+    return apiError('Please enter a valid Eircode.', 400);
   }
 
   const supabase = getSupabaseServiceClient();
@@ -49,7 +44,7 @@ async function handler(request: NextRequest): Promise<NextResponse> {
     .maybeSingle();
 
   if (categoryError || !categoryRow) {
-    return NextResponse.json({ error: 'Invalid category selection' }, { status: 400 });
+    return apiError('Invalid category selection', 400);
   }
 
   const normalizedEmail = body.email.toLowerCase();
@@ -63,15 +58,10 @@ async function handler(request: NextRequest): Promise<NextResponse> {
     .maybeSingle();
 
   if (existingIntent) {
-    return NextResponse.json(
-      {
-        error: 'one_intent_per_email',
-        message:
-          'You already have a pending job listing. Sign up to manage all your jobs, quotes and messages in one place.',
-        redirect_hint: '/register',
-      },
-      { status: 409 }
-    );
+    return apiError('one_intent_per_email', 409, {
+      message: 'You already have a pending job listing. Sign up to manage all your jobs, quotes and messages in one place.',
+      redirect_hint: '/register',
+    });
   }
 
   const token = randomUUID().replaceAll('-', '');
@@ -108,7 +98,7 @@ async function handler(request: NextRequest): Promise<NextResponse> {
     .single();
 
   if (error || !data) {
-    return NextResponse.json({ error: error?.message || 'Intent could not be created' }, { status: 400 });
+    return apiError(error?.message || 'Intent could not be created', 400);
   }
 
   return NextResponse.json(

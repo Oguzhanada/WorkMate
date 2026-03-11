@@ -16,7 +16,7 @@ export async function GET() {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const service = getSupabaseServiceClient();
@@ -28,7 +28,7 @@ export async function GET() {
     .order('created_at', { ascending: true });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return apiError(error.message, 400);
   }
 
   return NextResponse.json({ items: data ?? [] }, { status: 200 });
@@ -43,22 +43,19 @@ async function postHandler(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = createPortfolioItemSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const service = getSupabaseServiceClient();
@@ -70,10 +67,7 @@ async function postHandler(request: NextRequest) {
     .eq('provider_id', user.id);
 
   if ((count ?? 0) >= MAX_PORTFOLIO_ITEMS) {
-    return NextResponse.json(
-      { error: `Portfolio is limited to ${MAX_PORTFOLIO_ITEMS} items. Remove an item before adding a new one.` },
-      { status: 422 }
-    );
+    return apiError(`Portfolio is limited to ${MAX_PORTFOLIO_ITEMS} items. Remove an item before adding a new one.`, 422);
   }
 
   const { data: item, error: insertError } = await service
@@ -89,7 +83,7 @@ async function postHandler(request: NextRequest) {
     .single();
 
   if (insertError) {
-    return NextResponse.json({ error: insertError.message }, { status: 400 });
+    return apiError(insertError.message, 400);
   }
 
   return NextResponse.json({ item }, { status: 201 });

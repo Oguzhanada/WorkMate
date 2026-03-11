@@ -12,6 +12,7 @@ import {
 } from '@/lib/dashboard/widgets';
 import { createDashboardWidgetSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiServerError } from '@/lib/api/error-response';
 
 type Row = {
   id: string;
@@ -30,13 +31,13 @@ async function resolveContext(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
+    return { error: apiUnauthorized() };
   }
 
   const roles = await getUserRoles(supabase, user.id);
   const mode = normalizeDashboardMode(request.nextUrl.searchParams.get('mode'));
   if (!isModeAllowedForRoles(mode, roles)) {
-    return { error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) };
+    return { error: apiForbidden() };
   }
 
   return { user, mode };
@@ -78,7 +79,7 @@ export async function GET(request: NextRequest) {
     await ensureDefaultWidgets(context.user.id, context.mode);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Defaults could not be initialized.';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiServerError(message);
   }
 
   const supabase = await getSupabaseRouteClient();
@@ -89,7 +90,7 @@ export async function GET(request: NextRequest) {
     .order('created_at', { ascending: true });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return apiServerError(error.message);
   }
 
   const widgets = ((data ?? []) as Row[]).filter((row) => isWidgetAllowedForMode(context.mode, row.widget_type));
@@ -104,7 +105,7 @@ async function postHandler(request: NextRequest) {
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const rawList = Array.isArray((rawBody as { widgets?: unknown[] })?.widgets)
@@ -114,20 +115,14 @@ async function postHandler(request: NextRequest) {
   const parsedList = rawList.map((entry) => createDashboardWidgetSchema.safeParse(entry));
   const failed = parsedList.find((entry) => !entry.success);
   if (failed && !failed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: failed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const payloads = parsedList.map((entry) => (entry as { success: true; data: { widget_type: string; position?: unknown; settings?: unknown } }).data);
 
   for (const payload of payloads) {
     if (!isWidgetAllowedForMode(context.mode, payload.widget_type)) {
-      return NextResponse.json(
-        { error: `${payload.widget_type} is not allowed for ${context.mode} dashboard.` },
-        { status: 400 }
-      );
+      return apiError(`${payload.widget_type} is not allowed for ${context.mode} dashboard.`, 400);
     }
   }
 
@@ -146,7 +141,7 @@ async function postHandler(request: NextRequest) {
     .select('id,user_id,widget_type,position,settings,created_at');
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return apiError(error.message, 400);
   }
 
   const widgets = ((data ?? []) as Row[]).filter((row) => isWidgetAllowedForMode(context.mode, row.widget_type));

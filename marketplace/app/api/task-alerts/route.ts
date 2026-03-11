@@ -3,6 +3,7 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { upsertTaskAlertSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiServerError } from '@/lib/api/error-response';
 
 async function getVerifiedPro(supabase: ReturnType<typeof getSupabaseServiceClient>, userId: string) {
   const { data } = await supabase
@@ -19,7 +20,7 @@ async function getVerifiedPro(supabase: ReturnType<typeof getSupabaseServiceClie
 export async function GET() {
   const supabase = await getSupabaseRouteClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user) return apiUnauthorized();
 
   const { data } = await supabase
     .from('task_alerts')
@@ -36,19 +37,19 @@ async function postHandler(request: NextRequest) {
   const service = getSupabaseServiceClient();
 
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user) return apiUnauthorized();
 
   const isPro = await getVerifiedPro(service, user.id);
-  if (!isPro) return NextResponse.json({ error: 'Only verified providers can set task alerts.' }, { status: 403 });
+  if (!isPro) return apiForbidden('Only verified providers can set task alerts.');
 
   let raw: unknown;
   try { raw = await request.json(); } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    return apiError('Invalid JSON', 400);
   }
 
   const parsed = upsertTaskAlertSchema.safeParse(raw);
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Validation failed', details: parsed.error.flatten() }, { status: 400 });
+    return apiError('Validation failed', 400);
   }
 
   const { keywords, categories, counties, budget_min, enabled } = parsed.data;
@@ -62,7 +63,7 @@ async function postHandler(request: NextRequest) {
     .select('*')
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return apiServerError(error.message);
 
   return NextResponse.json({ alert: data }, { status: 200 });
 }
@@ -73,7 +74,7 @@ async function deleteHandler() {
   const service = getSupabaseServiceClient();
 
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user) return apiUnauthorized();
 
   await service.from('task_alerts').delete().eq('provider_id', user.id);
 

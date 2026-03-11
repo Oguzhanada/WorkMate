@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ensureAdminRoute } from '@/lib/auth/admin';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { apiError } from '@/lib/api/error-response';
 
 export async function GET() {
   const auth = await ensureAdminRoute();
@@ -16,7 +17,7 @@ export async function GET() {
     .in('status', ['open', 'quoted', 'accepted', 'in_progress', 'completed']);
 
   if (jobsError) {
-    return NextResponse.json({ error: jobsError.message }, { status: 400 });
+    return apiError(jobsError.message, 400);
   }
 
   const jobIds = (jobs ?? []).map((job) => job.id);
@@ -35,7 +36,7 @@ export async function GET() {
     .in('job_id', jobIds);
 
   if (quotesError) {
-    return NextResponse.json({ error: quotesError.message }, { status: 400 });
+    return apiError(quotesError.message, 400);
   }
 
   const quoteCountByJob = new Map<string, number>();

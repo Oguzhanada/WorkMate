@@ -5,6 +5,7 @@ import { suggestAlertsSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { liveServices } from '@/lib/live-services';
 import { getAnthropicClient } from '@/lib/cloudflare/ai-gateway';
+import { apiError, apiUnauthorized, apiForbidden, apiServerError } from '@/lib/api/error-response';
 
 type AISuggestion = {
   keywords: string[];
@@ -14,7 +15,7 @@ type AISuggestion = {
 async function handler(request: NextRequest): Promise<NextResponse> {
   // Cost guard — blocked until LIVE_SERVICES_ENABLED=true (or AI_CALLS_ENABLED=true)
   if (!liveServices.ai) {
-    return NextResponse.json({ error: 'AI endpoints disabled. Set LIVE_SERVICES_ENABLED=true to enable.' }, { status: 503 });
+    return apiError('AI endpoints disabled. Set LIVE_SERVICES_ENABLED=true to enable.', 503);
   }
 
   // Auth check
@@ -24,7 +25,7 @@ async function handler(request: NextRequest): Promise<NextResponse> {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   // RBAC: must be verified_pro or admin
@@ -38,10 +39,7 @@ async function handler(request: NextRequest): Promise<NextResponse> {
     .maybeSingle();
 
   if (!roleRow) {
-    return NextResponse.json(
-      { error: 'Only verified providers can use AI alert suggestions.' },
-      { status: 403 }
-    );
+    return apiForbidden('Only verified providers can use AI alert suggestions.');
   }
 
   // Parse body
@@ -54,7 +52,7 @@ async function handler(request: NextRequest): Promise<NextResponse> {
 
   const parsed = suggestAlertsSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid request' }, { status: 400 });
+    return apiError(parsed.error.issues[0]?.message ?? 'Invalid request', 400);
   }
   const { max_suggestions } = parsed.data;
 
@@ -65,14 +63,11 @@ async function handler(request: NextRequest): Promise<NextResponse> {
     .eq('profile_id', user.id);
 
   if (servicesError) {
-    return NextResponse.json({ error: 'Could not load your services.' }, { status: 500 });
+    return apiServerError('Could not load your services.');
   }
 
   if (!proServices || proServices.length === 0) {
-    return NextResponse.json(
-      { error: 'No services found on your profile. Add services first.' },
-      { status: 400 }
-    );
+    return apiError('No services found on your profile. Add services first.', 400);
   }
 
   const serviceList = proServices
@@ -110,11 +105,11 @@ Return ONLY valid JSON array: [{"keywords": ["word1", "word2"], "category_hint":
     // Extract JSON array from the response
     const jsonMatch = rawText.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
-      return NextResponse.json({ error: 'AI service temporarily unavailable' }, { status: 500 });
+      return apiServerError('AI service temporarily unavailable');
     }
     suggestions = JSON.parse(jsonMatch[0]) as AISuggestion[];
   } catch {
-    return NextResponse.json({ error: 'AI service temporarily unavailable' }, { status: 500 });
+    return apiServerError('AI service temporarily unavailable');
   }
 
   if (!Array.isArray(suggestions) || suggestions.length === 0) {
@@ -168,7 +163,7 @@ Return ONLY valid JSON array: [{"keywords": ["word1", "word2"], "category_hint":
     );
 
   if (upsertError) {
-    return NextResponse.json({ error: 'Could not save suggested alerts.' }, { status: 500 });
+    return apiServerError('Could not save suggested alerts.');
   }
 
   return NextResponse.json({ created: newSuggestions.length, suggestions });

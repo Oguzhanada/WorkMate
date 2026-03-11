@@ -3,6 +3,7 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { canPostJob, getUserRoles } from '@/lib/auth/rbac';
 import { updateJobPhotosSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiNotFound } from '@/lib/api/error-response';
 
 async function patchHandler(
   request: NextRequest,
@@ -16,27 +17,24 @@ async function patchHandler(
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const roles = await getUserRoles(supabase, user.id);
   if (!canPostJob(roles)) {
-    return NextResponse.json({ error: 'Only customers can update job photos' }, { status: 403 });
+    return apiForbidden('Only customers can update job photos');
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = updateJobPhotosSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const { data: currentJob, error: jobError } = await supabase
@@ -47,16 +45,13 @@ async function patchHandler(
     .maybeSingle();
 
   if (jobError || !currentJob) {
-    return NextResponse.json({ error: 'Job not found or access denied.' }, { status: 404 });
+    return apiNotFound('Job not found or access denied.');
   }
 
   const existingUrls = Array.isArray(currentJob.photo_urls) ? currentJob.photo_urls : [];
   const merged = Array.from(new Set([...existingUrls, ...parsed.data.photo_urls]));
   if (merged.length > 20) {
-    return NextResponse.json(
-      { error: 'Maximum 20 job photos allowed. Please remove some before uploading more.' },
-      { status: 400 }
-    );
+    return apiError('Maximum 20 job photos allowed. Please remove some before uploading more.', 400);
   }
 
   const { data: updated, error: updateError } = await supabase
@@ -68,7 +63,7 @@ async function patchHandler(
     .single();
 
   if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 400 });
+    return apiError(updateError.message, 400);
   }
 
   return NextResponse.json(

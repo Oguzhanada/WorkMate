@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { disputeResolveSchema } from '@/lib/validation/api';
 import { logAdminAudit } from '@/lib/admin/audit';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiNotFound } from '@/lib/api/error-response';
 
 async function postHandler(
   request: NextRequest,
@@ -18,12 +19,12 @@ async function postHandler(
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = disputeResolveSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Validation failed', details: parsed.error.flatten() }, { status: 400 });
+    return apiError('Validation failed', 400);
   }
 
   const serviceSupabase = getSupabaseServiceClient();
@@ -35,7 +36,7 @@ async function postHandler(
     .maybeSingle();
 
   if (!dispute) {
-    return NextResponse.json({ error: 'Dispute not found' }, { status: 404 });
+    return apiNotFound('Dispute not found');
   }
 
   const nowIso = new Date().toISOString();
@@ -61,7 +62,7 @@ async function postHandler(
     .single();
 
   if (error || !updated) {
-    return NextResponse.json({ error: error?.message ?? 'Dispute could not be resolved.' }, { status: 400 });
+    return apiError(error?.message ?? 'Dispute could not be resolved.', 400);
   }
 
   await serviceSupabase.from('dispute_logs').insert({

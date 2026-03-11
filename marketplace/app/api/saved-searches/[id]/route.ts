@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { updateSavedSearchSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiNotFound } from '@/lib/api/error-response';
 
 // DELETE /api/saved-searches/[id] — delete a saved search (user's own only)
 async function deleteHandler(
@@ -16,7 +17,7 @@ async function deleteHandler(
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   // RLS ensures only the owner can delete, but an explicit WHERE prevents silent no-ops
@@ -26,8 +27,8 @@ async function deleteHandler(
     .eq('id', id)
     .eq('user_id', user.id);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  if (!count) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (error) return apiError(error.message, 400);
+  if (!count) return apiNotFound();
 
   return new NextResponse(null, { status: 204 });
 }
@@ -46,22 +47,19 @@ async function patchHandler(
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = updateSavedSearchSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? 'Invalid request' },
-      { status: 400 },
-    );
+    return apiError(parsed.error.issues[0]?.message ?? 'Invalid request', 400);
   }
 
   const { data, error } = await supabase
@@ -72,8 +70,8 @@ async function patchHandler(
     .select('id,name,notify_email,notify_bell')
     .maybeSingle();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  if (!data) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (error) return apiError(error.message, 400);
+  if (!data) return apiNotFound();
 
   return NextResponse.json({ saved_search: data });
 }

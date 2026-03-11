@@ -5,6 +5,7 @@ import { canPostJob, getUserRoles } from '@/lib/auth/rbac';
 import { finalizeHoldSchema } from '@/lib/validation/api';
 import { stripe } from '@/lib/stripe/client';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden } from '@/lib/api/error-response';
 
 async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
@@ -14,27 +15,24 @@ async function postHandler(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const roles = await getUserRoles(supabase, user.id);
   if (!canPostJob(roles)) {
-    return NextResponse.json({ error: 'Only customers can finalize secure hold' }, { status: 403 });
+    return apiForbidden('Only customers can finalize secure hold');
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = finalizeHoldSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const checkoutSession = await stripe.checkout.sessions.retrieve(parsed.data.checkout_session_id, {
@@ -42,7 +40,7 @@ async function postHandler(request: NextRequest) {
   });
 
   if (checkoutSession.payment_status !== 'paid') {
-    return NextResponse.json({ error: 'Payment is not completed in checkout' }, { status: 400 });
+    return apiError('Payment is not completed in checkout', 400);
   }
 
   const metadata = checkoutSession.metadata ?? {};
@@ -52,11 +50,11 @@ async function postHandler(request: NextRequest) {
   const proId = metadata.pro_id;
 
   if (!customerId || !quoteId || !jobId || !proId) {
-    return NextResponse.json({ error: 'Checkout metadata is incomplete' }, { status: 400 });
+    return apiError('Checkout metadata is incomplete', 400);
   }
 
   if (customerId !== user.id) {
-    return NextResponse.json({ error: 'Customer mismatch' }, { status: 403 });
+    return apiForbidden('Customer mismatch');
   }
 
   const paymentIntentId =
@@ -65,15 +63,12 @@ async function postHandler(request: NextRequest) {
       : checkoutSession.payment_intent?.id;
 
   if (!paymentIntentId) {
-    return NextResponse.json({ error: 'Payment intent not found' }, { status: 400 });
+    return apiError('Payment intent not found', 400);
   }
 
   const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
   if (paymentIntent.status !== 'requires_capture') {
-    return NextResponse.json(
-      { error: `Payment intent is not in hold state: ${paymentIntent.status}` },
-      { status: 400 }
-    );
+    return apiError(`Payment intent is not in hold state: ${paymentIntent.status}`, 400);
   }
 
   const amountCents = paymentIntent.amount;
@@ -99,7 +94,7 @@ async function postHandler(request: NextRequest) {
     );
 
   if (upsertError) {
-    return NextResponse.json({ error: upsertError.message }, { status: 400 });
+    return apiError(upsertError.message, 400);
   }
 
   const { error: jobUpdateError } = await serviceSupabase
@@ -110,7 +105,7 @@ async function postHandler(request: NextRequest) {
     .eq('accepted_quote_id', quoteId);
 
   if (jobUpdateError) {
-    return NextResponse.json({ error: jobUpdateError.message }, { status: 400 });
+    return apiError(jobUpdateError.message, 400);
   }
 
   return NextResponse.json({

@@ -6,6 +6,7 @@ import { sendTransactionalEmail } from '@/lib/email/send';
 import { sendNotification } from '@/lib/notifications/send';
 import { createContractSchema, signContractSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiNotFound, apiConflict, apiServerError } from '@/lib/api/error-response';
 
 // GET /api/jobs/[jobId]/contract — get the contract for this job
 export async function GET(
@@ -20,13 +21,13 @@ export async function GET(
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const access = await resolveJobAccessContext(supabase, jobId, user.id);
-  if (!access.exists) return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+  if (!access.exists) return apiNotFound('Job not found');
   if (!access.isAdmin && !access.isCustomer && !access.isProvider) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiForbidden();
   }
 
   const service = getSupabaseServiceClient();
@@ -36,7 +37,7 @@ export async function GET(
     .eq('job_id', jobId)
     .maybeSingle();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return apiServerError(error.message);
 
   return NextResponse.json({ contract: contract ?? null });
 }
@@ -55,16 +56,16 @@ async function postHandler(
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const access = await resolveJobAccessContext(supabase, jobId, user.id);
-  if (!access.exists) return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+  if (!access.exists) return apiNotFound('Job not found');
   if (!access.isCustomer && !access.isAdmin) {
-    return NextResponse.json({ error: 'Only the customer can create a contract' }, { status: 403 });
+    return apiForbidden('Only the customer can create a contract');
   }
   if (!access.providerId) {
-    return NextResponse.json({ error: 'Job must have an accepted provider before creating a contract' }, { status: 400 });
+    return apiError('Job must have an accepted provider before creating a contract', 400);
   }
 
   // Check no contract already exists
@@ -75,22 +76,19 @@ async function postHandler(
     .maybeSingle();
 
   if (existing) {
-    return NextResponse.json({ error: 'A contract already exists for this job' }, { status: 409 });
+    return apiConflict('A contract already exists for this job');
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = createContractSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const { data: contract, error: insertError } = await service
@@ -106,7 +104,7 @@ async function postHandler(
     .select('id,job_id,quote_id,customer_id,provider_id,terms,status,customer_signed_at,provider_signed_at,created_at,updated_at')
     .single();
 
-  if (insertError) return NextResponse.json({ error: insertError.message }, { status: 400 });
+  if (insertError) return apiError(insertError.message, 400);
 
   // Notify provider
   await service.from('notifications').insert({
@@ -165,13 +163,13 @@ async function patchHandler(
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const access = await resolveJobAccessContext(supabase, jobId, user.id);
-  if (!access.exists) return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+  if (!access.exists) return apiNotFound('Job not found');
   if (!access.isAdmin && !access.isCustomer && !access.isProvider) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiForbidden();
   }
 
   const { data: contract, error: fetchError } = await service
@@ -181,34 +179,31 @@ async function patchHandler(
     .maybeSingle();
 
   if (fetchError || !contract) {
-    return NextResponse.json({ error: 'Contract not found' }, { status: 404 });
+    return apiNotFound('Contract not found');
   }
 
   if (contract.status === 'voided') {
-    return NextResponse.json({ error: 'Contract is already voided' }, { status: 400 });
+    return apiError('Contract is already voided', 400);
   }
   if (contract.status === 'signed_both') {
-    return NextResponse.json({ error: 'Contract is already fully signed' }, { status: 400 });
+    return apiError('Contract is already fully signed', 400);
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = signContractSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   if (parsed.data.action === 'void') {
     if (!access.isCustomer && !access.isAdmin) {
-      return NextResponse.json({ error: 'Only the customer or admin can void a contract' }, { status: 403 });
+      return apiForbidden('Only the customer or admin can void a contract');
     }
     const { data: updated, error: voidError } = await service
       .from('job_contracts')
@@ -216,7 +211,7 @@ async function patchHandler(
       .eq('id', contract.id)
       .select('id,status')
       .single();
-    if (voidError) return NextResponse.json({ error: voidError.message }, { status: 400 });
+    if (voidError) return apiError(voidError.message, 400);
 
     // In-app notifications for both parties — fire-and-forget
     sendNotification({
@@ -278,7 +273,7 @@ async function patchHandler(
   } else if (user.id === contract.provider_id && !contract.provider_signed_at) {
     updatePayload.provider_signed_at = now;
   } else {
-    return NextResponse.json({ error: 'You have already signed this contract' }, { status: 400 });
+    return apiError('You have already signed this contract', 400);
   }
 
   const { data: updated, error: signError } = await service
@@ -288,7 +283,7 @@ async function patchHandler(
     .select('id,job_id,status,customer_signed_at,provider_signed_at,updated_at')
     .single();
 
-  if (signError) return NextResponse.json({ error: signError.message }, { status: 400 });
+  if (signError) return apiError(signError.message, 400);
 
   // In-app notification — notify the customer when provider signs (or provider when customer signs)
   if (updatePayload.provider_signed_at) {

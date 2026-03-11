@@ -3,6 +3,7 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { gdprDeleteRequestSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiServerError } from '@/lib/api/error-response';
 
 // ─── GET /api/profile/gdpr/export ────────────────────────────────────────────
 // Returns all personal data for the authenticated user as a downloadable JSON.
@@ -16,7 +17,7 @@ async function getHandler(_req: NextRequest): Promise<NextResponse> {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const service = getSupabaseServiceClient();
@@ -108,7 +109,7 @@ async function deleteHandler(req: NextRequest): Promise<NextResponse> {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   // Parse + validate body
@@ -116,15 +117,12 @@ async function deleteHandler(req: NextRequest): Promise<NextResponse> {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = gdprDeleteRequestSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'You must send { "confirm": true } to request deletion.' },
-      { status: 422 }
-    );
+    return apiError('You must send { "confirm": true } to request deletion.', 422);
   }
 
   const service = getSupabaseServiceClient();
@@ -142,7 +140,7 @@ async function deleteHandler(req: NextRequest): Promise<NextResponse> {
     .eq('id', uid);
 
   if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 500 });
+    return apiServerError(updateError.message);
   }
 
   return NextResponse.json(

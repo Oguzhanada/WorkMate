@@ -3,6 +3,7 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { createStripeIdentitySchema } from '@/lib/validation/api';
 import { stripe } from '@/lib/stripe/client';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized } from '@/lib/api/error-response';
 
 async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
@@ -12,7 +13,7 @@ async function postHandler(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   let rawBody: unknown = {};
@@ -24,7 +25,7 @@ async function postHandler(request: NextRequest) {
 
   const parsed = createStripeIdentitySchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Validation failed', details: parsed.error.flatten() }, { status: 400 });
+    return apiError('Validation failed', 400);
   }
 
   const fallbackReturn = `${process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'http://localhost:3000'}/profile`;
@@ -54,7 +55,7 @@ async function postHandler(request: NextRequest) {
     .eq('id', user.id);
 
   if (profileError) {
-    return NextResponse.json({ error: profileError.message }, { status: 400 });
+    return apiError(profileError.message, 400);
   }
 
   return NextResponse.json(

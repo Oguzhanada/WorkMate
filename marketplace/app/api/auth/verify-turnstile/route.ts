@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyTurnstileToken } from '@/lib/cloudflare/turnstile';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiForbidden } from '@/lib/api/error-response';
 
 /**
  * POST /api/auth/verify-turnstile
@@ -17,7 +18,7 @@ async function handler(request: NextRequest): Promise<NextResponse> {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    return apiError('Invalid JSON', 400);
   }
 
   const token =
@@ -32,10 +33,7 @@ async function handler(request: NextRequest): Promise<NextResponse> {
   const result = await verifyTurnstileToken(token, remoteip);
 
   if (!result.success) {
-    return NextResponse.json(
-      { error: 'Bot protection check failed. Please try again.' },
-      { status: 403 }
-    );
+    return apiForbidden('Bot protection check failed. Please try again.');
   }
 
   return NextResponse.json({ ok: true });
