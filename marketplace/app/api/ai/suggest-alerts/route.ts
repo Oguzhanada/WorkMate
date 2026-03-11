@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { suggestAlertsSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { liveServices } from '@/lib/live-services';
+import { getAnthropicClient } from '@/lib/cloudflare/ai-gateway';
 
 type AISuggestion = {
   keywords: string[];
@@ -83,10 +83,10 @@ async function handler(request: NextRequest): Promise<NextResponse> {
     .filter(Boolean)
     .join(', ');
 
-  // Call Anthropic
+  // Call Anthropic via AI Gateway
   let suggestions: AISuggestion[] = [];
   try {
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const anthropic = getAnthropicClient();
     const message = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 1024,

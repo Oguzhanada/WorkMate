@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { createGuestJobIntentSchema } from '@/lib/validation/api';
 import { isValidEircode, normalizeEircode } from '@/lib/ireland/eircode';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { verifyTurnstileToken } from '@/lib/cloudflare/turnstile';
 
 async function handler(request: NextRequest): Promise<NextResponse> {
   let rawBody: unknown;
@@ -22,6 +23,17 @@ async function handler(request: NextRequest): Promise<NextResponse> {
   }
 
   const body = parsed.data;
+
+  // Cloudflare Turnstile bot protection
+  const remoteip = request.headers.get('x-forwarded-for') ?? undefined;
+  const turnstile = await verifyTurnstileToken(body.cf_turnstile_token, remoteip);
+  if (!turnstile.success) {
+    return NextResponse.json(
+      { error: 'Bot protection check failed. Please try again.' },
+      { status: 403 }
+    );
+  }
+
   const eircode = normalizeEircode(body.eircode);
   if (!isValidEircode(eircode)) {
     return NextResponse.json({ error: 'Please enter a valid Eircode.' }, { status: 400 });

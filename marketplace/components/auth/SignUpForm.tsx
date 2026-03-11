@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import {FormEvent, useEffect, useMemo, useState} from 'react';
+import {FormEvent, useCallback, useEffect, useMemo, useState} from 'react';
 import {usePathname, useRouter} from 'next/navigation';
 import {motion} from 'framer-motion';
 import {
@@ -27,6 +27,7 @@ import {PasswordChecks, PasswordStrength} from './PasswordStrength';
 import {RoleSelector, AccountRole} from './RoleSelector';
 import {SecurityDropdown} from './SecurityDropdown';
 import {SocialButtons} from './SocialButtons';
+import {TurnstileWidget} from '@/components/cloudflare/TurnstileWidget';
 import Button from '@/components/ui/Button';
 import styles from './login.module.css';
 
@@ -74,8 +75,8 @@ const orderedCounties = [
   return a.localeCompare(b);
 });
 
-/** @deprecated Eircode regex validation removed — pass-through pending real API integration */
-const eircodeRegex = /^[A-Z0-9]{3}[ ]?[A-Z0-9]{1,4}$/;
+// Eircode regex validation deferred — pass-through mode pending real API integration
+// const _eircodeRegex = /^[A-Z0-9]{3}[ ]?[A-Z0-9]{1,4}$/;
 
 const commonSchema = z.object({
   fullName: z.string().min(2, 'Full name must be at least 2 characters.'),
@@ -264,12 +265,16 @@ export function SignUpForm() {
 
   const [countyQuery, setCountyQuery] = useState('');
 
+  const [cfToken, setCfToken] = useState('');
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState('');
   const [success, setSuccess] = useState('');
   const [isPending, setIsPending] = useState(false);
   const [oauthPending, setOauthPending] = useState<'' | 'google' | 'facebook'>('');
   const [eircodeStatus, setEircodeStatus] = useState<EircodeStatus>('idle');
+
+  const handleTurnstileVerify = useCallback((token: string) => setCfToken(token), []);
+  const handleTurnstileExpire = useCallback(() => setCfToken(''), []);
 
   useEffect(() => {
     try {
@@ -409,6 +414,19 @@ export function SignUpForm() {
     setIsPending(true);
 
     try {
+      // Cloudflare Turnstile bot protection check (skipped if site key not configured)
+      if (process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && cfToken) {
+        const turnstileRes = await fetch('/api/auth/verify-turnstile', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({token: cfToken}),
+        });
+        if (!turnstileRes.ok) {
+          setFormError('Bot protection check failed. Please complete the security challenge and try again.');
+          return;
+        }
+      }
+
       const reachable = await canReachAuthServer();
       if (!reachable) {
         setFormError('Cannot reach authentication server. Check VPN/ad blocker and try again.');
@@ -754,6 +772,13 @@ export function SignUpForm() {
                 </div>
               </div>
             </details>
+          </div>
+
+          <div className={styles.fullWidth}>
+            <TurnstileWidget
+              onVerify={handleTurnstileVerify}
+              onExpire={handleTurnstileExpire}
+            />
           </div>
 
           <div className={styles.fullWidth}>

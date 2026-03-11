@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { jobDescriptionSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { liveServices } from '@/lib/live-services';
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+import { getAnthropicClient } from '@/lib/cloudflare/ai-gateway';
 
 async function handler(request: NextRequest): Promise<NextResponse> {
   // Cost guard — blocked until LIVE_SERVICES_ENABLED=true (or AI_CALLS_ENABLED=true)
@@ -50,6 +48,7 @@ async function handler(request: NextRequest): Promise<NextResponse> {
   ].filter(Boolean);
 
   try {
+    const client = getAnthropicClient();
     const message = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 300,

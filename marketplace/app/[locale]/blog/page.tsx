@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 
@@ -82,9 +83,13 @@ export default async function BlogPage({
                 {new Date(post.publishedAt).toLocaleDateString('en-IE')}
               </p>
               <div className="mt-3">
-                <span className="text-sm font-semibold" style={{ color: 'var(--wm-muted)', opacity: 0.6 }}>
-                  Full article coming soon
-                </span>
+                <Link
+                  href={`/${locale}/blog/${post.slug}`}
+                  className="text-sm font-semibold transition-colors hover:opacity-80"
+                  style={{ color: 'var(--wm-primary)' }}
+                >
+                  Read article →
+                </Link>
               </div>
             </Card>
           ))}

@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { JOB_BUDGET_OPTIONS, JOB_SCOPE_OPTIONS, JOB_URGENCY_OPTIONS } from '@/lib/data/budgets';
 import { useCategoriesWithFallback, type Category } from '@/lib/hooks/useCategoriesWithFallback';
 import EircodeAddressForm, { type Address } from './EircodeAddressForm';
 import InfoTooltip from '@/components/ui/InfoTooltip';
 import Button from '@/components/ui/Button';
+import { TurnstileWidget } from '@/components/cloudflare/TurnstileWidget';
 import styles from './forms.module.css';
 
 const STEP_LABELS = ['Title and details', 'Location and budget', 'Email confirmation'] as const;
@@ -68,10 +69,14 @@ export default function GuestJobIntentForm() {
     eircode_valid: false,
   });
   const [email, setEmail] = useState('');
+  const [cfToken, setCfToken] = useState('');
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [intentId, setIntentId] = useState('');
+
+  const handleTurnstileVerify = useCallback((token: string) => setCfToken(token), []);
+  const handleTurnstileExpire = useCallback(() => setCfToken(''), []);
 
   /* ── Filter out test categories and group by parent ─────── */
   const filteredLeafCategories = useMemo(
@@ -151,6 +156,7 @@ export default function GuestJobIntentForm() {
         locality: address.locality,
         budget_range: budgetRange,
         photo_urls: [],
+        cf_turnstile_token: cfToken || undefined,
       }),
     });
 
@@ -315,6 +321,10 @@ export default function GuestJobIntentForm() {
                   placeholder="example@email.com"
                 />
               </label>
+              <TurnstileWidget
+                onVerify={handleTurnstileVerify}
+                onExpire={handleTurnstileExpire}
+              />
               <div className={styles.buttonRow}>
                 <Button variant="secondary" onClick={() => setStep(2)}>
                   Back

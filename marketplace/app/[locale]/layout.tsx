@@ -5,6 +5,7 @@ import {Toaster} from 'sonner';
 
 import CookieConsent from '@/components/ui/CookieConsent';
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
+import CloudflareAnalytics from '@/components/analytics/CloudflareAnalytics';
 import ConditionalSiteFooter from '@/components/site/ConditionalSiteFooter';
 import Navbar from '@/components/home/Navbar';
 import styles from '@/components/site/site.module.css';
@@ -95,6 +96,7 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <GoogleAnalytics />
+      <CloudflareAnalytics />
       <div className={styles.siteRoot}>
         <Navbar />
         {children}
