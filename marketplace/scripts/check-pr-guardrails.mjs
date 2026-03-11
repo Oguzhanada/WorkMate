@@ -7,17 +7,6 @@ const errors = [];
 const warnings = [];
 
 // --- Required files check ---
-function testRequiredFiles(title, paths) {
-  for (const rel of paths) {
-    const full = path.join(ROOT, rel);
-    try {
-      fs.access(full);
-    } catch {
-      // Use sync check for simplicity
-    }
-  }
-}
-
 async function testRequiredFilesAsync(title, paths) {
   for (const rel of paths) {
     const full = path.join(ROOT, rel);
@@ -127,6 +116,24 @@ async function main() {
 
   await testMigrationPatterns(path.join(ROOT, 'marketplace/migrations'));
   await testLocaleHardcodedPatterns();
+
+  // Status drift guardrail — catches DB constraint / code literal mismatches
+  try {
+    const { execSync } = await import('node:child_process');
+    execSync('node scripts/check-status-drift.mjs', {
+      cwd: path.join(ROOT, 'marketplace'),
+      stdio: 'pipe',
+    });
+  } catch (driftErr) {
+    const stderr = driftErr.stderr?.toString() || '';
+    const driftLines = stderr.split('\n').filter((l) => l.includes('STATUS DRIFT'));
+    for (const line of driftLines) {
+      errors.push(line.trim().replace(/^\s*✗\s*/, ''));
+    }
+    if (driftLines.length === 0) {
+      errors.push('Status drift check failed (run npm run check:status-drift for details)');
+    }
+  }
 
   if (warnings.length > 0) {
     console.warn('\x1b[33mGuardrail warnings:\x1b[0m');

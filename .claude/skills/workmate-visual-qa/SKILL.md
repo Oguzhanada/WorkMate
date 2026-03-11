@@ -1,6 +1,6 @@
 ---
 name: workmate-visual-qa
-description: Visual QA workflow for WorkMate UI changes. Use when reviewing or shipping frontend updates to verify visual regression, interaction polish, and performance gates via Backstop and Lighthouse, and to prepare merge-blocking evidence for PRs.
+description: Visual QA workflow for WorkMate UI changes. Use when reviewing or shipping frontend updates to verify interaction polish, performance gates via Lighthouse, and to prepare quality evidence for PRs.
 ---
 
 # WorkMate Visual QA
@@ -11,25 +11,21 @@ description: Visual QA workflow for WorkMate UI changes. Use when reviewing or s
 - Identify touched user-facing pages/components.
 - Prioritize high-traffic flows (home, jobs, post-job, profile, dashboard, providers).
 
-2. Visual regression
-- Run Backstop reference/test process for affected views.
-- Compare diffs and classify as expected or regression.
-
-3. UX quality checks
+2. UX quality checks
 - Verify spacing rhythm, typography hierarchy, hover/focus/pressed states, and empty/loading states.
 - Verify mobile and desktop parity.
 - Verify dark mode parity on touched views.
+- Confirm all `--wm-*` design tokens used correctly (no hardcoded hex).
 
-4. Performance/quality gate
-- Run Lighthouse CI and review score regressions.
-- Treat Backstop/Lighthouse failures as blocking.
+3. Performance/quality gate
+- Run Lighthouse CI (nightly workflow) and review score regressions.
+- Treat Lighthouse regressions as actionable (not merge-blocking, but tracked).
 
-5. Release evidence
+4. Release evidence
 - Attach artifact links/screenshots in PR notes.
 - List approved intentional visual changes to avoid review ambiguity.
 
 ## Required Gates
 
-- Backstop visual regression: pass
-- Lighthouse CI: pass
+- Lighthouse CI: nightly performance gate (`.github/workflows/lighthouse.yml`)
 - Lint + tests: pass

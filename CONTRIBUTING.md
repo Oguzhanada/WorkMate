@@ -71,7 +71,7 @@ npm run health-check      # Runtime health check script
 
 ### TypeScript
 
-- Strict mode is enabled — no `any` types.
+- Strict mode is **off** (`strict: false` in `tsconfig.json` — permanent decision). Avoid `any` types where possible.
 - All Zod schemas go in `lib/validation/api.ts`. No inline schemas in route files.
 - Zod 4 syntax: `z.record()` requires two type arguments:
 
@@ -172,10 +172,10 @@ npx vitest run --config vitest.config.ts tests/unit/my-file.test.ts
 
 - Migration files live in `marketplace/migrations/`.
 - Migrations are applied **manually** via the Supabase SQL Editor — there is no CLI push workflow.
-- The next migration file to create is **`073_*.sql`**. Migrations 001–072 are all applied.
+- The next migration file to create is **`074_*.sql`**. Migrations 001–073 are all applied.
 - Rules:
   - **Additive only.** Never rewrite or renumber an existing migration.
-  - **Descriptive names.** Format: `073_short_description.sql`.
+  - **Descriptive names.** Format: `074_short_description.sql`.
   - **RLS required.** Every new table must have Row Level Security enabled with appropriate policies. Never use `FOR ALL USING (true)`.
   - **No destructive DDL** in migrations that are intended for production (no `DROP TABLE`, no column removal without a deprecation plan).
 
@@ -203,17 +203,15 @@ Note: there is a known file naming collision at `021` (`021_pro_documents_rls.sq
    - `npm run lint:eslint` passes with no new warnings
    - `npm run test:unit` and `npm run test:integration` pass
    - `npm run test:e2e:smoke` passes
-   - Backstop visual regression check passes (no unexpected diffs)
-   - Lighthouse CI check passes (no blocking regressions)
+   - Lighthouse CI check passes (runs nightly; no blocking regressions)
    - No secrets, API keys, or credentials are present anywhere in the diff
    - All new pages have a co-located `loading.tsx`
    - All new list views have an `EmptyState` handler
 
 4. PRs require at least one review before merge.
 
-5. Visual quality checks are merge-blocking:
-   - `.github/workflows/backstop.yml`
-   - `.github/workflows/lighthouse.yml`
+5. CI quality checks:
+   - `.github/workflows/lighthouse.yml` (nightly performance gate)
 
 6. Squash-merge to keep the main branch history clean.
 

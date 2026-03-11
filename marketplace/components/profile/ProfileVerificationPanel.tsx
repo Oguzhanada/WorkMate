@@ -32,14 +32,14 @@ type Props = {
 function getErrorMessage(error: unknown, fallback: string) {
   if (!error) return fallback;
   if (error instanceof Error && error.message) return error.message;
-  if (typeof error === 'object' && error !== null && 'message' in error) {
+  if (typeof error === 'object' && 'message' in error) {
     const candidate = (error as {message?: unknown}).message;
     if (typeof candidate === 'string' && candidate.trim()) return candidate;
   }
   return fallback;
 }
 
-async function withTimeout(promise: Promise<any>, message: string, timeoutMs = REQUEST_TIMEOUT_MS): Promise<any> {
+async function withTimeout(promise: Promise<unknown>, message: string, timeoutMs = REQUEST_TIMEOUT_MS): Promise<unknown> {
   return Promise.race([
     promise,
     new Promise<never>((_, reject) => {
@@ -53,7 +53,7 @@ export default function ProfileVerificationPanel({
   hasIdDocument: initialHasIdDocument,
   hasInsuranceDocument: initialHasInsuranceDocument,
   hasProviderRole,
-  verificationStatus,
+  verificationStatus: _verificationStatus,
   idVerificationStatus,
   rejectedReason = '',
   showRedirectHint,
@@ -83,7 +83,7 @@ export default function ProfileVerificationPanel({
       idDocument: idDocumentRequired && (!hasIdDocument || idVerificationStatus === 'rejected'),
       insuranceDocument: false
     }),
-    [hasIdDocument, hasInsuranceDocument, hasProviderRole, idVerificationStatus, idDocumentRequired]
+    [hasIdDocument, idVerificationStatus, idDocumentRequired]
   );
 
   const uploadDoc = async (file: File, type: 'id_verification' | 'public_liability_insurance') => {

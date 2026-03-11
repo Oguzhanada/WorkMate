@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
-import Button from '@/components/ui/Button';
 
 /* ─── Types ──────────────────────────────────────────────────── */
 

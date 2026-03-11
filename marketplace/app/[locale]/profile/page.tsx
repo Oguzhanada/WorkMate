@@ -32,7 +32,7 @@ export default async function ProfilePage({
     redirect(`/${locale}/login`);
   }
 
-  const [{ data: profile }, { data: proServices }, { data: proAreas }, { data: address }, { data: docs }] =
+  const [{ data: profile }, , , { data: address }, { data: docs }] =
     await Promise.all([
       supabase.from('profiles').select('*').eq('id', user.id).single(),
       supabase.from('pro_services').select('id').eq('profile_id', user.id),

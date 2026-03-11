@@ -17,7 +17,9 @@ import {
   Inbox,
 } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
 import Badge from '@/components/ui/Badge';
 import Skeleton from '@/components/ui/Skeleton';
 
@@ -129,7 +131,7 @@ function SummaryCard({
 /*  Stripe Connect Status                                              */
 /* ------------------------------------------------------------------ */
 
-function StripeConnectBanner({ stripeAccountId }: { stripeAccountId: string | null }) {
+function StripeConnectBanner({ stripeAccountId, localeRoot }: { stripeAccountId: string | null; localeRoot: string }) {
   if (stripeAccountId) {
     return (
       <div
@@ -171,7 +173,7 @@ function StripeConnectBanner({ stripeAccountId }: { stripeAccountId: string | nu
         </span>
       </div>
       <Link
-        href="/en/become-provider/apply"
+        href={withLocalePrefix(localeRoot, '/become-provider/apply')}
         className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold"
         style={{ background: 'var(--wm-amber)', color: '#fff' }}
       >
@@ -281,6 +283,8 @@ function FilterBar({
 /* ------------------------------------------------------------------ */
 
 export default function ProviderEarningsPage() {
+  const pathname = usePathname();
+  const localeRoot = getLocaleRoot(pathname);
   const [payments, setPayments] = useState<PaymentRow[]>([]);
   const [summary, setSummary] = useState<EarningsSummary | null>(null);
   const [stripeAccountId, setStripeAccountId] = useState<string | null>(null);
@@ -370,7 +374,7 @@ export default function ProviderEarningsPage() {
   }, [dateFilter, statusFilter]);
 
   useEffect(() => {
-    void loadData();
+    queueMicrotask(() => { void loadData(); });
   }, [loadData]);
 
   return (
@@ -393,7 +397,7 @@ export default function ProviderEarningsPage() {
         {loading ? (
           <Skeleton className="h-12 rounded-xl" />
         ) : (
-          <StripeConnectBanner stripeAccountId={stripeAccountId} />
+          <StripeConnectBanner stripeAccountId={stripeAccountId} localeRoot={localeRoot} />
         )}
       </div>
 
@@ -480,7 +484,7 @@ export default function ProviderEarningsPage() {
                 {/* Job title */}
                 <div>
                   <Link
-                    href={`/en/dashboard/jobs/${payment.job_id}`}
+                    href={withLocalePrefix(localeRoot, `/dashboard/jobs/${payment.job_id}`)}
                     className="text-sm font-medium hover:underline"
                     style={{ color: 'var(--wm-navy)' }}
                   >

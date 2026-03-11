@@ -19,8 +19,10 @@ function getOrCreateSessionId(): string {
   try {
     const existing = sessionStorage.getItem(SESSION_STORAGE_KEY);
     if (existing) return existing;
-    // Generate a random session ID (no external dep required)
-    const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    const bytes = new Uint8Array(8);
+    crypto.getRandomValues(bytes);
+    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+    const id = `${Date.now().toString(36)}-${hex}`;
     sessionStorage.setItem(SESSION_STORAGE_KEY, id);
     return id;
   } catch {

@@ -22,6 +22,9 @@ function checkRateLimit(keyHash: string, limit: number): boolean {
   return true;
 }
 
+// SHA-256 is appropriate here: API keys are high-entropy random strings (not
+// user-chosen passwords), so a fast hash suffices for lookup. bcrypt/scrypt
+// would add latency without meaningful security benefit.
 export function hashApiKey(plaintext: string): string {
   return createHash('sha256').update(plaintext).digest('hex');
 }

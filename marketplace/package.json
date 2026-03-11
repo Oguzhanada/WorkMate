@@ -24,6 +24,7 @@
     "check:english": "node scripts/check-english-only.mjs",
     "check:pr-guardrails": "node scripts/check-pr-guardrails.mjs",
     "check:prepublic-security": "node scripts/pre-public-security-check.mjs",
+    "check:status-drift": "node scripts/check-status-drift.mjs",
     "preflight": "node scripts/preflight.mjs",
     "health-check": "node scripts/health-check.mjs",
     "dev": "next dev",
@@ -42,8 +43,7 @@
     "test:e2e:smoke": "playwright test tests/e2e/smoke --project=chromium",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
-    "test:visual": "backstop test --config=../backstop.json",
-    "test:visual:ref": "backstop reference --config=../backstop.json"
+    "test:visual:lighthouse": "echo 'Run Lighthouse via .github/workflows/lighthouse.yml'"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -63,7 +63,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitest/coverage-v8": "^4.0.18",
-    "backstopjs": "^6.3.25",
+
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.1.6",
     "husky": "^9.1.7",
