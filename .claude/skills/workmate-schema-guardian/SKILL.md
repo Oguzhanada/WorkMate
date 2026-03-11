@@ -111,6 +111,8 @@ These protect the repository restructuring. **DO NOT** recreate deleted/moved fi
 | FD-23 | AI agents must NEVER commit to `main` — use feature branches only | Running `git commit` while on `main`, or `git push origin main` |
 | FD-24 | AI agents must NOT create completion/audit/task/guide report files | Creating `TASK_COMPLETION_REPORT.md`, `PROJECT_GUIDE.md`, `SKILL_AUDIT_REPORT.md` etc. |
 | FD-25 | New skills must be whitelisted in `.gitignore` before commit | Creating `.claude/skills/new-skill/SKILL.md` without adding `!.claude/skills/new-skill/` to `.gitignore` |
+| FD-26 | `next/image` for all static images — no raw `<img>` except blob/data: URLs | Adding `<img src="...">` for any image served from a path or URL |
+| FD-27 | All API error responses use `lib/api/error-response.ts` helpers | Using `NextResponse.json({ error: '...' }, { status: 4xx/5xx })` directly in route files |
 
 ### File Organization Checklist (add to pre-change checklist)
 
@@ -124,6 +126,8 @@ These protect the repository restructuring. **DO NOT** recreate deleted/moved fi
 - [ ] FD-23: On a feature branch (not `main`) before committing
 - [ ] FD-24: Not creating any `*REPORT*.md`, `*COMPLETION*.md`, `*GUIDE*.md`, `*AUDIT*.md` files
 - [ ] FD-25: If creating a skill, `.gitignore` whitelist entry added
+- [ ] FD-26: No raw `<img>` tags (use `next/image` unless blob/data: URL)
+- [ ] FD-27: API errors use helper functions from `lib/api/error-response.ts`
 
 ---
 
