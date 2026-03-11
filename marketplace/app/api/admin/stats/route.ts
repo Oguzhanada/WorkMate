@@ -194,7 +194,7 @@ export async function GET(req: NextRequest) {
     // Reviews
     svc.from('reviews').select('id', { count: 'exact', head: true }).eq('is_public', true),
     // Avg rating — select column, compute in JS to avoid RPC
-    svc.from('reviews').select('overall_rating').eq('is_public', true).limit(10000),
+    svc.from('reviews').select('rating').eq('is_public', true).limit(10000),
     // Revenue — provider_subscriptions with active paid plans
     svc
       .from('provider_subscriptions')
@@ -205,7 +205,7 @@ export async function GET(req: NextRequest) {
 
   // Compute avg rating in JS
   const ratings = (avgRatingRes.data ?? [])
-    .map((r) => Number(r.overall_rating))
+    .map((r) => Number(r.rating))
     .filter((n) => !isNaN(n) && n > 0);
   const avgRating =
     ratings.length > 0

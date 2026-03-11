@@ -1,16 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-
-type Stats = {
-  totalUsers: number;
-  pendingApps: number;
-  approvalRate: number;
-  revenue: number;
-};
+import type { PlatformStats } from '@/app/api/admin/stats/route';
 
 export default function AdminStatsWidget() {
-  const [stats, setStats] = useState<Stats | null>(null);
+  const [stats, setStats] = useState<PlatformStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -24,7 +18,7 @@ export default function AdminStatsWidget() {
         setError(payload.error || 'Stats could not be loaded.');
         return;
       }
-      setStats(payload);
+      setStats(payload as PlatformStats);
     };
 
     void load();
@@ -37,10 +31,10 @@ export default function AdminStatsWidget() {
       {error ? <p className="mt-2 text-sm" style={{ color: 'var(--wm-destructive)' }}>{error}</p> : null}
       {stats ? (
         <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-          <div className="rounded-xl px-3 py-2.5" style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)', color: 'var(--wm-navy)' }}>Users: {stats.totalUsers}</div>
-          <div className="rounded-xl px-3 py-2.5" style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)', color: 'var(--wm-navy)' }}>Pending: {stats.pendingApps}</div>
-          <div className="rounded-xl px-3 py-2.5" style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)', color: 'var(--wm-navy)' }}>Approval: {stats.approvalRate}%</div>
-          <div className="rounded-xl px-3 py-2.5" style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)', color: 'var(--wm-navy)' }}>Revenue: EUR {stats.revenue}</div>
+          <div className="rounded-xl px-3 py-2.5" style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)', color: 'var(--wm-navy)' }}>Users: {stats.users.total}</div>
+          <div className="rounded-xl px-3 py-2.5" style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)', color: 'var(--wm-navy)' }}>Pending: {stats.providers.pending}</div>
+          <div className="rounded-xl px-3 py-2.5" style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)', color: 'var(--wm-navy)' }}>Open jobs: {stats.jobs.open}</div>
+          <div className="rounded-xl px-3 py-2.5" style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)', color: 'var(--wm-navy)' }}>Reviews: {stats.reviews.total}</div>
         </div>
       ) : null}
     </div>
