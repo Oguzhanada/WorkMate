@@ -1,16 +1,26 @@
 "use client";
 
-import {motion} from 'framer-motion';
-import {ShieldCheck, Star, Users, Zap} from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ShieldCheck, Wrench, Zap, Sparkles, TreePine, PaintBucket, Truck, Check } from 'lucide-react';
 import WorkMateLogo from '@/components/ui/WorkMateLogo';
 
 import styles from './login.module.css';
-import {leftColumnVariants} from '@/styles/animations';
+import { leftColumnVariants } from '@/styles/animations';
 
-const stats = [
-  {icon: Users, value: 'Growing', label: 'Pro network'},
-  {icon: ShieldCheck, value: 'All', label: 'Verified pros'},
-  {icon: Star, value: '26', label: 'Counties'}
+const SERVICE_CATEGORIES = [
+  { icon: Wrench,      label: 'Plumbing & Boilers' },
+  { icon: Zap,         label: 'Electrical' },
+  { icon: Sparkles,    label: 'Cleaning' },
+  { icon: TreePine,    label: 'Gardening' },
+  { icon: PaintBucket, label: 'Painting & Decorating' },
+  { icon: Truck,       label: 'Moving & Removals' },
+];
+
+const TRUST_POINTS = [
+  'Admin-verified professional profiles',
+  'Secure Stripe payments — released only on completion',
+  'Genuine reviews from real customers',
+  'GDPR compliant · Ireland-based platform',
 ];
 
 export function BrandColumn() {
@@ -33,28 +43,98 @@ export function BrandColumn() {
         </div>
       </div>
 
-      {/* Quote card */}
+      {/* Testimonial card */}
       <article className={styles.quoteCard}>
-        <p className={styles.quoteText}>&ldquo;Connecting Irish homeowners with trusted local professionals.&rdquo;</p>
-        <p className={styles.quoteMeta}>WorkMate</p>
+        <p className={styles.quoteStars}>★★★★★</p>
+        <p className={styles.quoteText}>
+          &ldquo;Found an excellent electrician within the hour. Job done the next morning.
+          Unbelievable service.&rdquo;
+        </p>
+        <p className={styles.quoteMeta}>Sinéad · Dublin 14</p>
       </article>
 
-      {/* Stats */}
-      <div className={styles.statGrid}>
-        {stats.map((item) => (
-          <div key={item.label} className={styles.statItem}>
-            <item.icon size={16} aria-hidden="true" className={styles.statIcon} />
-            <p className={styles.statValue}>{item.value}</p>
-            <p className={styles.statLabel}>{item.label}</p>
+      {/* Service categories */}
+      <div style={{ marginTop: 22 }}>
+        <p
+          style={{
+            margin: '0 0 10px',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            color: 'var(--wm-muted)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.07em',
+          }}
+        >
+          Available services
+        </p>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+            gap: 8,
+          }}
+        >
+          {SERVICE_CATEGORIES.map(({ icon: Icon, label }) => (
+            <div
+              key={label}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '8px 10px',
+                borderRadius: 'var(--wm-radius-md)',
+                border: '1px solid var(--wm-border)',
+                background: 'white',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                color: 'var(--wm-navy)',
+              }}
+            >
+              <Icon size={14} aria-hidden="true" style={{ color: 'var(--wm-primary)', flexShrink: 0 }} />
+              {label}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Trust points */}
+      <div style={{ marginTop: 18 }}>
+        {TRUST_POINTS.map((point) => (
+          <div
+            key={point}
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 8,
+              marginBottom: 8,
+              fontSize: '0.82rem',
+              color: 'var(--wm-muted)',
+            }}
+          >
+            <ShieldCheck
+              size={14}
+              aria-hidden="true"
+              style={{ color: 'var(--wm-primary)', flexShrink: 0, marginTop: 1 }}
+            />
+            {point}
           </div>
         ))}
       </div>
 
       {/* Badge pills */}
       <div className={styles.badges}>
-        <span className={styles.badgePill}>🇮🇪 26 counties</span>
-        <span className={styles.badgePill}>🔒 GDPR Compliant</span>
-        <span className={styles.badgePill}><Zap size={12} aria-hidden="true" /> Trust verified</span>
+        <span className={styles.badgePill}>
+          <Check size={11} aria-hidden="true" />
+          26 counties
+        </span>
+        <span className={styles.badgePill}>
+          <Check size={11} aria-hidden="true" />
+          GDPR Compliant
+        </span>
+        <span className={styles.badgePill}>
+          <Check size={11} aria-hidden="true" />
+          Free to post
+        </span>
       </div>
     </motion.section>
   );

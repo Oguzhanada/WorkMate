@@ -94,6 +94,13 @@ export default async function ProvidersPage({
   const offset = (page - 1) * limit;
   const supabase = getSupabaseServiceClient();
 
+  // Exclude admin-role users from the public provider directory.
+  const { data: adminRoleRows } = await supabase
+    .from('user_roles')
+    .select('user_id')
+    .eq('role', 'admin');
+  const adminIds = (adminRoleRows ?? []).map((r) => (r as { user_id: string }).user_id);
+
   // Auth client for personalised favourite state.
   const authClient = await getSupabaseServerClient();
   const { data: { user: currentUser } } = await authClient.auth.getUser();
@@ -163,6 +170,9 @@ export default async function ProvidersPage({
   }
   if (q) {
     profileQuery = profileQuery.ilike('full_name', `%${q}%`);
+  }
+  if (adminIds.length) {
+    profileQuery = profileQuery.not('id', 'in', `(${adminIds.join(',')})`);
   }
 
   if (!needsPostSort) {
@@ -372,6 +382,7 @@ export default async function ProvidersPage({
             const stats = reviewStats.get(provider.id as string);
             const avgRating = stats ? (stats.total / stats.count).toFixed(1) : null;
             const isIdVerified  = (provider.id_verification_status as string | null) === 'approved';
+            const primaryService = (servicesByProvider.get(provider.id as string) ?? [])[0];
 
             return (
               <Card
@@ -401,6 +412,12 @@ export default async function ProvidersPage({
                     </div>
                   </div>
 
+                  {primaryService ? (
+                    <p className="mt-1 text-sm font-semibold" style={{ color: 'var(--wm-primary-dark)' }}>
+                      {primaryService}
+                    </p>
+                  ) : null}
+
                   {avgRating ? (
                     <p className="mt-1 flex items-center gap-1 text-sm font-semibold" style={{ color: 'var(--wm-amber-dark)' }}>
                       ★ {avgRating}
@@ -424,13 +441,24 @@ export default async function ProvidersPage({
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-center gap-2">
-                  <Button
-                    href={`/${locale}/post-job?mode=direct_request&provider_id=${provider.id as string}`}
-                    variant="navy"
-                    size="sm"
-                  >
-                    Direct Request
-                  </Button>
+                  {currentUser ? (
+                    <Button
+                      href={`/${locale}/post-job?mode=direct_request&provider_id=${provider.id as string}`}
+                      variant="navy"
+                      size="sm"
+                    >
+                      Direct Request
+                    </Button>
+                  ) : (
+                    <Button
+                      href={`/${locale}/sign-up`}
+                      variant="navy"
+                      size="sm"
+                      title="This feature is for WorkMate members"
+                    >
+                      Sign up to request
+                    </Button>
+                  )}
                   <Button href={`/${locale}/profile/public/${provider.id as string}`} variant="secondary" size="sm">
                     View profile
                   </Button>
