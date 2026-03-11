@@ -45,7 +45,6 @@ const DEFAULT_FILTERS: SearchFiltersState = {
   county: 'Any',
   sort: 'relevance',
   verified_only: false,
-  garda_vetted: false,
   budget: '',
 };
 
@@ -56,7 +55,6 @@ function filtersToSearchParams(f: SearchFiltersState): URLSearchParams {
   if (f.county && f.county !== 'Any') params.set('county', f.county);
   if (f.sort && f.sort !== 'relevance') params.set('sort', f.sort);
   if (f.verified_only) params.set('verified_only', 'true');
-  if (f.garda_vetted) params.set('garda_vetted', 'true');
   if (f.budget) params.set('budget', f.budget);
   return params;
 }
@@ -103,7 +101,6 @@ export default function MapSearchView({ locale, initialFilters }: MapSearchViewP
     if (f.county && f.county !== 'Any') params.set('county', f.county);
     params.set('sort', f.sort);
     params.set('verified_only', f.verified_only ? 'true' : 'false');
-    params.set('garda_vetted', f.garda_vetted ? 'true' : 'false');
     if (f.budget) params.set('budget', f.budget);
     params.set('page', String(pageNum));
     params.set('limit', '24');
@@ -510,7 +507,7 @@ function EmptyState({
             onClick={() => onClearFilters()}
           />
         )}
-        {(filters.verified_only || filters.garda_vetted || filters.budget) && (
+        {(filters.verified_only || filters.budget) && (
           <SuggestionPill
             label="Remove filters"
             onClick={() => onClearFilters()}

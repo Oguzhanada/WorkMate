@@ -70,7 +70,7 @@ const BENEFITS = [
   {
     icon: Shield,
     title: 'Irish compliance built in',
-    desc: 'SafePass, Public Liability, Tax Clearance, Garda Vetting — all managed in one place.',
+    desc: 'SafePass, Public Liability, Tax Clearance — all managed in one place.',
     accent: 'var(--wm-primary)',
     bg: 'var(--wm-primary-faint)',
   },
@@ -861,7 +861,7 @@ export default function BecomeProviderPage() {
                   Join as a Founding Pro — Limited to first 100 providers.
                 </h3>
                 <p className="mt-3 text-sm leading-relaxed" style={{color: 'rgba(255,255,255,0.6)'}}>
-                  Get 6 months free Pro features + a permanent Founding Pro badge on your profile.
+                  Get 3 months free Pro features + a permanent Founding Pro badge on your profile.
                   Direct input into product development. Only 100 spots available nationwide.
                 </p>
               </div>

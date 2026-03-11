@@ -181,9 +181,8 @@ export default function TermsPage() {
                 verification process.
               </li>
               <li>
-                Providers working with vulnerable adults or children must hold a valid{' '}
-                <strong style={{ color: 'var(--wm-text)' }}>Garda vetting</strong> disclosure
-                where required by law or WorkMate policy.
+                Providers working with vulnerable adults or children must comply with all applicable
+                legal requirements regarding background checks and disclosures.
               </li>
               <li>
                 Providers are solely responsible for holding appropriate public liability insurance,

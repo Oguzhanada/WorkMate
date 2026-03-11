@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Search, MapPin, ArrowRight, Shield, CheckCircle, CreditCard, ShieldCheck, UserCheck } from 'lucide-react';
+import { Search, MapPin, ArrowRight, Shield, CheckCircle, CreditCard, UserCheck } from 'lucide-react';
 import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
@@ -18,7 +18,6 @@ const counties = [
 const trustBadges = [
   { icon: MapPin, label: '26 Counties' },
   { icon: CreditCard, label: 'Stripe Secure Payments' },
-  { icon: ShieldCheck, label: 'Garda Vetting Available' },
   { icon: UserCheck, label: 'Admin Verified' },
 ];
 

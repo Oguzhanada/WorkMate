@@ -107,7 +107,7 @@ export default async function PrivacyPage({
               </li>
               <li>
                 <strong style={{ color: 'var(--wm-text)' }}>Identity verification:</strong>{' '}
-                documents uploaded for Garda vetting, business registration, and Safe Pass
+                documents uploaded for business registration and Safe Pass
                 compliance checks.
               </li>
               <li>

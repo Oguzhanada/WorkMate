@@ -54,7 +54,7 @@ type ClaimResponse = {
 const BENEFITS = [
   {
     icon: Zap,
-    title: '6 Months Free Pro Features',
+    title: '3 Months Free Pro Features',
     desc: 'Get full access to Pro-tier features at no cost. Priority job matching, advanced analytics, and unlimited quotes.',
     accent: 'var(--wm-primary)',
     bg: 'var(--wm-primary-faint)',
@@ -83,7 +83,7 @@ const BENEFITS = [
   {
     icon: Shield,
     title: 'Priority Verification',
-    desc: 'Skip the queue for Garda Vetting and profile verification. Get verified and start earning faster than standard providers.',
+    desc: 'Skip the queue for profile verification. Get verified and start earning faster than standard providers.',
     accent: 'var(--wm-navy)',
     bg: 'var(--wm-surface-alt)',
   },

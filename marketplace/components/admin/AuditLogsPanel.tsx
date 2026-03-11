@@ -37,7 +37,6 @@ const ACTION_OPTIONS = [
   { value: 'batch_verification_rejected',   label: 'Verification rejected' },
   { value: 'gdpr_deletion_processed',       label: 'GDPR deletion' },
   { value: 'risk_reviewed',                 label: 'Risk reviewed' },
-  { value: 'garda_vetting_updated',         label: 'Garda vetting' },
   { value: 'feature_flag_toggled',          label: 'Feature flag' },
 ];
 
@@ -55,7 +54,6 @@ function actionTone(action: string): BadgeTone {
   if (action.includes('approved') || action.includes('deleted') || action.includes('processed')) return 'primary';
   if (action.includes('rejected') || action.includes('risk')) return 'amber';
   if (action.includes('gdpr')) return 'navy';
-  if (action.includes('garda') || action.includes('vetting')) return 'completed';
   if (action.includes('flag')) return 'assigned';
   return 'neutral';
 }

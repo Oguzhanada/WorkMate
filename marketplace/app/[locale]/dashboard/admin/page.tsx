@@ -39,11 +39,6 @@ const ADMIN_QUICK_LINKS = [
     path: '/dashboard/admin/gdpr',
   },
   {
-    label: 'Garda Vetting',
-    description: 'Review and approve provider Garda vetting applications.',
-    path: '/dashboard/admin/garda-vetting',
-  },
-  {
     label: 'Verification Queue',
     description: 'Batch-process pending provider verification applications.',
     path: '/dashboard/admin/verification',

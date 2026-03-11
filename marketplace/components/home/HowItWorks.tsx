@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { FileText, MessageSquare, CreditCard, ShieldCheck, BadgeCheck, Euro } from 'lucide-react';
+import { FileText, MessageSquare, CreditCard, Shield, BadgeCheck, Euro } from 'lucide-react';
 
 const steps = [
   {
@@ -31,7 +31,7 @@ const steps = [
 ];
 
 const trustPills = [
-  { icon: ShieldCheck, label: 'Garda vetted' },
+  { icon: Shield, label: 'Identity verified' },
   { icon: BadgeCheck, label: 'Admin approved' },
   { icon: Euro, label: 'Transparent pricing' },
 ];

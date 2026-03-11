@@ -9,7 +9,6 @@ import Shell from '@/components/ui/Shell';
 import StatCard from '@/components/ui/StatCard';
 import PageHeader from '@/components/ui/PageHeader';
 import ComplianceBadge from '@/components/ui/ComplianceBadge';
-import GardaVettingBadge from '@/components/ui/GardaVettingBadge';
 import FavouriteButton from '@/components/providers/FavouriteButton';
 import SearchFilters from '@/components/providers/SearchFilters';
 import ActiveFilterChips from './ActiveFilterChips';
@@ -77,7 +76,6 @@ export default async function ProvidersPage({
     county:        sp(resolvedSearch?.county),
     category_id:   sp(resolvedSearch?.category_id),
     verified_only: sp(resolvedSearch?.verified_only),
-    garda_vetted:  sp(resolvedSearch?.garda_vetted),
     sort:          sp(resolvedSearch?.sort),
     page:          sp(resolvedSearch?.page) || '1',
     limit:         '12',
@@ -86,11 +84,11 @@ export default async function ProvidersPage({
   const parsed = providerSearchSchema.safeParse(rawParams);
   const filters = parsed.success ? parsed.data : {
     q: '', county: 'Any' as typeof IRISH_COUNTIES[number], category_id: undefined,
-    verified_only: 'true' as const, garda_vetted: 'false' as const,
+    verified_only: 'true' as const,
     sort: 'relevance' as const, page: 1, limit: 12,
   };
 
-  const { q, county, category_id, verified_only, garda_vetted, sort } = filters;
+  const { q, county, category_id, verified_only, sort } = filters;
   const page  = filters.page  ?? 1;
   const limit = filters.limit ?? 12;
   const offset = (page - 1) * limit;
@@ -152,16 +150,13 @@ export default async function ProvidersPage({
   let profileQuery = supabase
     .from('profiles')
     .select(
-      'id,full_name,avatar_url,verification_status,id_verification_status,garda_vetting_status,compliance_score,is_verified,created_at',
+      'id,full_name,avatar_url,verification_status,id_verification_status,compliance_score,is_verified,created_at',
       { count: 'exact' },
     )
     .eq('is_verified', true);
 
   if (verified_only === 'true') {
     profileQuery = profileQuery.eq('id_verification_status', 'approved');
-  }
-  if (garda_vetted === 'true') {
-    profileQuery = profileQuery.eq('garda_vetting_status', 'approved');
   }
   if (filteredIds !== null) {
     profileQuery = profileQuery.in('id', filteredIds.length ? filteredIds : ['__no_match__']);
@@ -246,7 +241,7 @@ export default async function ProvidersPage({
   type ProfileRow = {
     id: unknown; full_name: unknown; avatar_url: unknown;
     verification_status: unknown; id_verification_status: unknown;
-    garda_vetting_status: unknown; compliance_score: unknown;
+    compliance_score: unknown;
     is_verified: unknown; created_at: unknown;
   };
 
@@ -275,7 +270,6 @@ export default async function ProvidersPage({
     if (county && county !== 'Any') sp.set('county', county);
     if (category_id) sp.set('category_id', category_id);
     if (verified_only === 'false') sp.set('verified_only', 'false');
-    if (garda_vetted === 'true') sp.set('garda_vetted', 'true');
     if (sort !== 'relevance') sp.set('sort', sort);
     if (targetPage > 1) sp.set('page', String(targetPage));
     const qs = sp.toString();
@@ -292,7 +286,6 @@ export default async function ProvidersPage({
     activeChips.push({ label: catName, removeParam: 'category_id' });
   }
   if (verified_only === 'false') activeChips.push({ label: 'All verification levels', removeParam: 'verified_only' });
-  if (garda_vetted === 'true') activeChips.push({ label: 'Garda vetted', removeParam: 'garda_vetted' });
   if (sort !== 'relevance') {
     const sortLabels: Record<string, string> = { rating: 'Highest rated', newest: 'Newest', rate_asc: 'Rate ↑', rate_desc: 'Rate ↓' };
     activeChips.push({ label: sortLabels[sort] ?? sort, removeParam: 'sort' });
@@ -368,7 +361,6 @@ export default async function ProvidersPage({
                 ...(county && county !== 'Any' ? { county }                 : {}),
                 ...(category_id   ? { category_id }                         : {}),
                 ...(verified_only ? { verified_only }                        : {}),
-                ...(garda_vetted  ? { garda_vetted }                         : {}),
               }}
             />
           ) : null}
@@ -379,7 +371,6 @@ export default async function ProvidersPage({
           {displayProfiles.map((provider) => {
             const stats = reviewStats.get(provider.id as string);
             const avgRating = stats ? (stats.total / stats.count).toFixed(1) : null;
-            const isGardaVetted = (provider.garda_vetting_status as string | null) === 'approved';
             const isIdVerified  = (provider.id_verification_status as string | null) === 'approved';
 
             return (
@@ -398,7 +389,6 @@ export default async function ProvidersPage({
                     <div className="flex flex-wrap items-center gap-2">
                       <ComplianceBadge score={provider.compliance_score as number} />
                       {isIdVerified  ? <Badge tone="completed">ID Verified</Badge> : null}
-                      {isGardaVetted ? <GardaVettingBadge status="approved" /> : null}
                       {sameDayProviderIds.has(provider.id as string) ? (
                         <Badge tone="open">Same-Day</Badge>
                       ) : null}

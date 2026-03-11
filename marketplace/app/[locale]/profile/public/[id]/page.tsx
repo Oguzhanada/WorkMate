@@ -5,7 +5,6 @@ import { MessageSquareQuote } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import ComplianceBadge from '@/components/ui/ComplianceBadge';
 import FoundingProBadge from '@/components/ui/FoundingProBadge';
-import GardaVettingBadge from '@/components/ui/GardaVettingBadge';
 import PortfolioGallery from '@/components/profile/PortfolioGallery';
 
 const baseUrl = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'https://workmate.ie';
@@ -71,7 +70,7 @@ export default async function PublicProfilePage({ params }: { params: Params }) 
     await Promise.all([
       supabase
         .from('profiles')
-        .select('id,full_name,avatar_url,created_at,is_verified,verification_status,compliance_score,garda_vetting_status,garda_vetting_expires_at,is_founding_pro')
+        .select('id,full_name,avatar_url,created_at,is_verified,verification_status,compliance_score,is_founding_pro')
         .eq('id', id)
         .maybeSingle(),
       supabase
@@ -245,10 +244,6 @@ export default async function PublicProfilePage({ params }: { params: Params }) 
                   {providerName}
                 </h1>
                 <ComplianceBadge score={(profile as { compliance_score?: number }).compliance_score ?? 0} />
-                <GardaVettingBadge
-                  status={(profile as { garda_vetting_status?: string | null }).garda_vetting_status as Parameters<typeof GardaVettingBadge>[0]['status']}
-                  expiresAt={(profile as { garda_vetting_expires_at?: string | null }).garda_vetting_expires_at}
-                />
                 {(profile as { is_founding_pro?: boolean }).is_founding_pro ? (
                   <FoundingProBadge size="md" />
                 ) : null}

@@ -35,7 +35,7 @@ async function getHandler(_req: NextRequest): Promise<NextResponse> {
       .from('profiles')
       .select(
         'id, full_name, phone, verification_status, id_verification_status, ' +
-          'garda_vetting_status, created_at, updated_at'
+          'created_at, updated_at'
       )
       .eq('id', uid)
       .maybeSingle(),

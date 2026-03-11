@@ -351,7 +351,6 @@ const widgetTypeSchema = z.enum([
   'admin_api_keys',
   'admin_feature_flags',
   'provider_subscription',
-  'garda_vetting',
   'profile_completeness',
   'availability',
   'portfolio',
@@ -524,11 +523,6 @@ export const stripeInvoiceObjectSchema = z.object({
   metadata: z.record(z.string(), z.string()).optional().default({}),
 });
 
-// ─── Profile: Garda Vetting Self-Service ──────────────────────────────────────
-export const requestGardaVettingSchema = z.object({
-  reference_number: z.string().trim().max(50).optional(),
-});
-
 // ─── Job: Contracts ───────────────────────────────────────────────────────────
 export const createContractSchema = z.object({
   terms: z.string().trim().min(10).max(10000),
@@ -613,7 +607,6 @@ export const providerSearchSchema = z.object({
   category_id:   z.string().uuid().optional(),
   county:        z.enum(IRISH_COUNTIES).optional().default('Any'),
   verified_only: z.enum(['true', 'false']).optional().default('true'),
-  garda_vetted:  z.enum(['true', 'false']).optional().default('false'),
   sort:          z.enum(['rating', 'rate_asc', 'rate_desc', 'newest', 'relevance']).optional().default('relevance'),
   page:          pageParamSchema.optional(),
   limit:         limitParamSchema.optional(),
@@ -626,7 +619,6 @@ export const savedSearchFiltersSchema = z.object({
   min_rate:      z.number().optional(),
   max_rate:      z.number().optional(),
   verified_only: z.boolean().optional(),
-  garda_vetted:  z.boolean().optional(),
 });
 
 export const createSavedSearchSchema = z.object({
@@ -688,13 +680,6 @@ export const adminStatsQuerySchema = z.object({
 export const patchFeatureFlagSchema = z.object({
   flag_key: z.string().trim().min(2).max(100),
   enabled: z.boolean(),
-});
-
-// ─── Admin: Garda Vetting Status ──────────────────────────────────────────────
-export const patchGardaVettingSchema = z.object({
-  garda_vetting_status: z.enum(['not_required', 'pending', 'approved', 'rejected', 'expired']),
-  garda_vetting_reference: z.string().trim().max(100).optional().nullable(),
-  garda_vetting_expires_at: z.string().date().optional().nullable(),
 });
 
 // ─── Task Alerts: Upsert ──────────────────────────────────────────────────────

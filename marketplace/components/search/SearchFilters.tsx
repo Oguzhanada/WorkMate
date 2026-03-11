@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { Search, SlidersHorizontal, X, Shield, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, SlidersHorizontal, X, Shield, ChevronDown, ChevronUp } from 'lucide-react';
 import { IRISH_COUNTIES } from '@/lib/ireland/locations';
 import Button from '@/components/ui/Button';
 
@@ -10,7 +10,6 @@ export type SearchFiltersState = {
   county: string;
   sort: string;
   verified_only: boolean;
-  garda_vetted: boolean;
   budget: string;
 };
 
@@ -67,7 +66,6 @@ export default function SearchFilters({ filters, onChange, totalResults, loading
   const activeFilterCount = [
     filters.county && filters.county !== 'Any',
     filters.verified_only,
-    filters.garda_vetted,
     filters.budget !== '',
   ].filter(Boolean).length;
 
@@ -77,7 +75,6 @@ export default function SearchFilters({ filters, onChange, totalResults, loading
       county: 'Any',
       sort: 'relevance',
       verified_only: false,
-      garda_vetted: false,
       budget: '',
     });
   }, [onChange]);
@@ -273,15 +270,6 @@ export default function SearchFilters({ filters, onChange, totalResults, loading
         >
           <Shield size={14} />
           Verified
-        </button>
-
-        {/* Toggle: Garda vetted */}
-        <button
-          onClick={() => update({ garda_vetted: !filters.garda_vetted })}
-          style={toggleButtonStyle(filters.garda_vetted)}
-        >
-          <ShieldCheck size={14} />
-          Garda Vetted
         </button>
 
         {/* Active filter count + clear */}

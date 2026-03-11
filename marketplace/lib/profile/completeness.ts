@@ -39,7 +39,6 @@ export type ProfileRowForCompleteness = {
   county?: string | null;
   locality?: string | null;
   id_verification_status?: string | null;
-  garda_vetting_status?: string | null;
   stripe_requirements_due?: Record<string, unknown> | null;
 };
 
@@ -106,13 +105,6 @@ const COMPLETENESS_CHECKS: CheckDefinition[] = [
     points: 20,
     href: '/profile',
     passes: (p) => p.id_verification_status === 'approved',
-  },
-  {
-    key: 'garda_vetting',
-    label: 'Garda vetting approved',
-    points: 15,
-    href: '/profile',
-    passes: (p) => p.garda_vetting_status === 'approved',
   },
   {
     key: 'has_services',

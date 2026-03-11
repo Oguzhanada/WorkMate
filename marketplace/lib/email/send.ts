@@ -8,8 +8,6 @@ import {
   contractCreatedEmail,
   contractSignedEmail,
   contractVoidedEmail,
-  gardaVettingStatusEmail,
-  gardaVettingRequestedEmail,
   subscriptionStatusEmail,
   gdprDeletionConfirmEmail,
   type QuoteReceivedData,
@@ -19,8 +17,6 @@ import {
   type ContractCreatedData,
   type ContractSignedData,
   type ContractVoidedData,
-  type GardaVettingStatusData,
-  type GardaVettingRequestedData,
   type SubscriptionStatusData,
   type GdprDeletionConfirmData,
 } from './templates';
@@ -35,8 +31,6 @@ type EmailEvent =
   | ({ type: 'contract_created' } & ContractCreatedData)
   | ({ type: 'contract_signed' } & ContractSignedData)
   | ({ type: 'contract_voided' } & ContractVoidedData)
-  | ({ type: 'garda_vetting_status' } & GardaVettingStatusData)
-  | ({ type: 'garda_vetting_requested' } & GardaVettingRequestedData)
   | ({ type: 'subscription_status' } & SubscriptionStatusData)
   | ({ type: 'gdpr_deletion_confirm' } & GdprDeletionConfirmData);
 
@@ -73,10 +67,6 @@ export function sendTransactionalEmail(event: EmailEvent): void {
         ({ subject, html } = contractSignedEmail(event));
       } else if (event.type === 'contract_voided') {
         ({ subject, html } = contractVoidedEmail(event));
-      } else if (event.type === 'garda_vetting_status') {
-        ({ subject, html } = gardaVettingStatusEmail(event));
-      } else if (event.type === 'garda_vetting_requested') {
-        ({ subject, html } = gardaVettingRequestedEmail(event));
       } else if (event.type === 'subscription_status') {
         ({ subject, html } = subscriptionStatusEmail(event));
       } else if (event.type === 'gdpr_deletion_confirm') {

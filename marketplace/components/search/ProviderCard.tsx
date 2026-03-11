@@ -1,6 +1,6 @@
 'use client';
 
-import { Star, MapPin, Shield, ShieldCheck, Award } from 'lucide-react';
+import { Star, MapPin, Shield, Award } from 'lucide-react';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 
@@ -12,7 +12,6 @@ export type ProviderData = {
   service_categories: string[];
   verified: boolean;
   id_verified: boolean;
-  garda_vetted: boolean;
   compliance_score: number;
   average_rating: number | null;
   review_count: number;
@@ -35,7 +34,6 @@ export default function ProviderCard({ provider, locale, isHighlighted, onHover 
     service_categories,
     verified,
     id_verified,
-    garda_vetted,
     average_rating,
     review_count,
   } = provider;
@@ -119,13 +117,6 @@ export default function ProviderCard({ provider, locale, isHighlighted, onHover 
                 size={14}
                 style={{ color: 'var(--wm-primary)' }}
                 aria-label="ID Verified"
-              />
-            )}
-            {garda_vetted && (
-              <ShieldCheck
-                size={14}
-                style={{ color: 'var(--wm-blue)' }}
-                aria-label="Garda Vetted"
               />
             )}
           </div>

@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const { q, category_id, county, verified_only, garda_vetted, sort } = parsed.data;
+  const { q, category_id, county, verified_only, sort } = parsed.data;
   const page  = parsed.data.page  ?? 1;
   const limit = parsed.data.limit ?? 12;
   const offset = (page - 1) * limit;
@@ -61,17 +61,13 @@ export async function GET(req: NextRequest) {
   let query = supabase
     .from('profiles')
     .select(
-      'id,full_name,avatar_url,verification_status,id_verification_status,garda_vetting_status,compliance_score,is_verified,created_at',
+      'id,full_name,avatar_url,verification_status,id_verification_status,compliance_score,is_verified,created_at',
       { count: 'exact' },
     )
     .eq('is_verified', true);
 
   if (verified_only === 'true') {
     query = query.eq('id_verification_status', 'approved');
-  }
-
-  if (garda_vetted === 'true') {
-    query = query.eq('garda_vetting_status', 'approved');
   }
 
   // Intersect all ID sets derived from sub-queries.
@@ -184,7 +180,6 @@ export async function GET(req: NextRequest) {
     service_categories: string[];
     verified: boolean;
     id_verified: boolean;
-    garda_vetted: boolean;
     compliance_score: number;
     average_rating: number | null;
     review_count: number;
@@ -202,7 +197,6 @@ export async function GET(req: NextRequest) {
       service_categories: categoriesByProvider.get(p.id as string) ?? [],
       verified: (p.is_verified as boolean) === true,
       id_verified: (p.id_verification_status as string | null) === 'approved',
-      garda_vetted: (p.garda_vetting_status as string | null) === 'approved',
       compliance_score: (p.compliance_score as number) ?? 0,
       average_rating,
       review_count: stats?.count ?? 0,

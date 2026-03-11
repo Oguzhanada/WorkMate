@@ -40,6 +40,28 @@ async function handler(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Invalid category selection' }, { status: 400 });
   }
 
+  const normalizedEmail = body.email.toLowerCase();
+
+  // Check if guest already has an active intent with this email
+  const { data: existingIntent } = await supabase
+    .from('job_intents')
+    .select('id, status')
+    .eq('email', normalizedEmail)
+    .neq('status', 'expired')
+    .maybeSingle();
+
+  if (existingIntent) {
+    return NextResponse.json(
+      {
+        error: 'one_intent_per_email',
+        message:
+          'You already have a pending job listing. Sign up to manage all your jobs, quotes and messages in one place.',
+        redirect_hint: '/register',
+      },
+      { status: 409 }
+    );
+  }
+
   const token = randomUUID().replaceAll('-', '');
 
   // Email verification guard:
@@ -57,7 +79,7 @@ async function handler(request: NextRequest): Promise<NextResponse> {
   const { data, error } = await supabase
     .from('job_intents')
     .insert({
-      email: body.email.toLowerCase(),
+      email: normalizedEmail,
       title: body.title,
       category_id: categoryRow.id,
       description: body.description,

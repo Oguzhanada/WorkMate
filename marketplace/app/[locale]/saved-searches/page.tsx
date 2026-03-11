@@ -19,7 +19,6 @@ type SavedSearchFilters = {
   min_rate?:      number;
   max_rate?:      number;
   verified_only?: boolean;
-  garda_vetted?:  boolean;
 };
 
 type SavedSearch = {

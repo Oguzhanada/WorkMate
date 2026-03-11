@@ -10,7 +10,6 @@ type SavedSearchFilters = {
   min_rate?:      number;
   max_rate?:      number;
   verified_only?: boolean;
-  garda_vetted?:  boolean;
 };
 
 type SavedSearch = {
@@ -46,7 +45,6 @@ export default function SavedSearchCard({ search, locale, categoryNameById, onDe
     filterChips.push(search.filters.county);
   }
   if (search.filters.verified_only) filterChips.push('Verified only');
-  if (search.filters.garda_vetted)  filterChips.push('Garda vetted');
 
   // Build the provider search URL from saved filters
   function buildSearchUrl(): string {
@@ -54,7 +52,6 @@ export default function SavedSearchCard({ search, locale, categoryNameById, onDe
     if (search.filters.category_id)  sp.set('category_id',   search.filters.category_id);
     if (search.filters.county && search.filters.county !== 'Any') sp.set('county', search.filters.county);
     if (search.filters.verified_only !== undefined) sp.set('verified_only', String(search.filters.verified_only));
-    if (search.filters.garda_vetted  !== undefined) sp.set('garda_vetted',  String(search.filters.garda_vetted));
     const qs = sp.toString();
     return qs ? `/${locale}/providers?${qs}` : `/${locale}/providers`;
   }

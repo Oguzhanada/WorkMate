@@ -14,7 +14,6 @@ type FilterState = {
   county: string;
   category_id: string;
   verified_only: string;
-  garda_vetted: string;
   sort: string;
 };
 
@@ -29,7 +28,6 @@ const EMPTY: FilterState = {
   county:       'Any',
   category_id:  '',
   verified_only:'true',
-  garda_vetted: 'false',
   sort:         'relevance',
 };
 
@@ -39,7 +37,6 @@ function countActiveFilters(f: FilterState): number {
   if (f.county !== 'Any')        n++;
   if (f.category_id)             n++;
   if (f.verified_only !== 'true') n++;
-  if (f.garda_vetted === 'true') n++;
   if (f.sort !== 'relevance')    n++;
   return n;
 }
@@ -58,7 +55,6 @@ export default function SearchFilters() {
     county:        searchParams.get('county')        ?? EMPTY.county,
     category_id:   searchParams.get('category_id')  ?? EMPTY.category_id,
     verified_only: searchParams.get('verified_only') ?? EMPTY.verified_only,
-    garda_vetted:  searchParams.get('garda_vetted')  ?? EMPTY.garda_vetted,
     sort:          searchParams.get('sort')          ?? EMPTY.sort,
   });
 
@@ -102,12 +98,6 @@ export default function SearchFilters() {
       params.delete('verified_only');
     }
 
-    if (form.garda_vetted === 'true') {
-      params.set('garda_vetted', 'true');
-    } else {
-      params.delete('garda_vetted');
-    }
-
     if (form.sort && form.sort !== 'relevance') {
       params.set('sort', form.sort);
     } else {
@@ -130,7 +120,6 @@ export default function SearchFilters() {
     county:        searchParams.get('county')        ?? EMPTY.county,
     category_id:   searchParams.get('category_id')  ?? EMPTY.category_id,
     verified_only: searchParams.get('verified_only') ?? EMPTY.verified_only,
-    garda_vetted:  searchParams.get('garda_vetted')  ?? EMPTY.garda_vetted,
     sort:          searchParams.get('sort')          ?? EMPTY.sort,
   });
 
@@ -263,12 +252,6 @@ export default function SearchFilters() {
                 label="ID-verified providers only"
                 checked={form.verified_only === 'true'}
                 onChange={(v) => set('verified_only', v ? 'true' : 'false')}
-              />
-              <ToggleRow
-                id="garda_vetted"
-                label="Garda vetted providers only"
-                checked={form.garda_vetted === 'true'}
-                onChange={(v) => set('garda_vetted', v ? 'true' : 'false')}
               />
             </div>
           </div>

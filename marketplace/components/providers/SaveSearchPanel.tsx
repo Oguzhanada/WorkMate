@@ -30,7 +30,6 @@ export default function SaveSearchPanel({ currentFilters }: SaveSearchPanelProps
     if (currentFilters.category_id) filters.category_id = currentFilters.category_id;
     if (currentFilters.county && currentFilters.county !== 'Any') filters.county = currentFilters.county;
     if (currentFilters.verified_only) filters.verified_only = currentFilters.verified_only === 'true';
-    if (currentFilters.garda_vetted) filters.garda_vetted = currentFilters.garda_vetted === 'true';
 
     try {
       const res = await fetch('/api/saved-searches', {

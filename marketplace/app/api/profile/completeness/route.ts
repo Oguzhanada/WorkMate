@@ -31,7 +31,7 @@ export async function GET() {
       service
         .from('profiles')
         .select(
-          'full_name,phone,avatar_url,county,locality,id_verification_status,garda_vetting_status,stripe_requirements_due',
+          'full_name,phone,avatar_url,county,locality,id_verification_status,stripe_requirements_due',
         )
         .eq('id', user.id)
         .maybeSingle(),

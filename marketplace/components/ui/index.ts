@@ -9,7 +9,6 @@ export { default as Skeleton } from './Skeleton';
 export { default as ProgressBar } from './ProgressBar';
 export { default as InfoTooltip } from './InfoTooltip';
 export { default as ComplianceBadge } from './ComplianceBadge';
-export { default as GardaVettingBadge } from './GardaVettingBadge';
 export { default as FoundingProBadge } from './FoundingProBadge';
 export { default as Input } from './Input';
 export { default as Label } from './Label';

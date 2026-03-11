@@ -50,7 +50,6 @@ export default async function FindServicesPage({
     county: typeof sp.county === 'string' ? sp.county : 'Any',
     sort: typeof sp.sort === 'string' ? sp.sort : 'relevance',
     verified_only: sp.verified_only === 'true',
-    garda_vetted: sp.garda_vetted === 'true',
     budget: typeof sp.budget === 'string' ? sp.budget : '',
   };
 
