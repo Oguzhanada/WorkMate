@@ -10,6 +10,7 @@ import {
   contractVoidedEmail,
   subscriptionStatusEmail,
   gdprDeletionConfirmEmail,
+  jobApprovedEmail,
   type QuoteReceivedData,
   type QuoteAcceptedData,
   type PaymentReleasedData,
@@ -19,6 +20,7 @@ import {
   type ContractVoidedData,
   type SubscriptionStatusData,
   type GdprDeletionConfirmData,
+  type JobApprovedData,
 } from './templates';
 
 const FROM = 'WorkMate <notifications@workmate.ie>';
@@ -32,7 +34,8 @@ type EmailEvent =
   | ({ type: 'contract_signed' } & ContractSignedData)
   | ({ type: 'contract_voided' } & ContractVoidedData)
   | ({ type: 'subscription_status' } & SubscriptionStatusData)
-  | ({ type: 'gdpr_deletion_confirm' } & GdprDeletionConfirmData);
+  | ({ type: 'gdpr_deletion_confirm' } & GdprDeletionConfirmData)
+  | ({ type: 'job_approved' } & JobApprovedData);
 
 /**
  * Fire-and-forget transactional email. Never throws — email failure is logged
@@ -71,6 +74,8 @@ export function sendTransactionalEmail(event: EmailEvent): void {
         ({ subject, html } = subscriptionStatusEmail(event));
       } else if (event.type === 'gdpr_deletion_confirm') {
         ({ subject, html } = gdprDeletionConfirmEmail(event));
+      } else if (event.type === 'job_approved') {
+        ({ subject, html } = jobApprovedEmail(event));
       } else {
         ({ subject, html } = paymentReleasedEmail(event));
       }
@@ -80,4 +85,16 @@ export function sendTransactionalEmail(event: EmailEvent): void {
       // Non-blocking — email delivery failure never propagates to the API caller.
     }
   })();
+}
+
+/**
+ * Convenience wrapper: fire-and-forget email sent when an admin approves a job listing.
+ */
+export function sendJobApprovedEmail(params: {
+  to: string;
+  customerName: string;
+  jobTitle: string;
+  jobId: string;
+}): void {
+  sendTransactionalEmail({ type: 'job_approved', ...params });
 }

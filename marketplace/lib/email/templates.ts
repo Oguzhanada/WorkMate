@@ -329,6 +329,40 @@ export function gdprDeletionConfirmEmail(data: GdprDeletionConfirmData): { subje
   return { subject, html };
 }
 
+// ── Job approved (customer notification) ──────────────────────────────────────
+
+export type JobApprovedData = {
+  to: string;
+  customerName: string;
+  jobTitle: string;
+  jobId: string;
+};
+
+export function jobApprovedEmail(data: JobApprovedData): { subject: string; html: string } {
+  const jobUrl = `${BASE_URL}/${PLATFORM_LOCALE}/jobs/${data.jobId}`;
+  const subject = `Your job listing is live — "${data.jobTitle}"`;
+  const html = layout(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;">Your listing is live</h2>
+    <p style="margin:0 0 20px;color:${MUTED};">Hi ${data.customerName}, great news — your job listing has been approved and is now visible to service providers in your area.</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG};border-radius:8px;padding:16px;margin-bottom:20px;">
+      <tr><td style="padding:4px 0;">
+        <span style="color:${MUTED};font-size:13px;">Job</span><br />
+        <strong>${data.jobTitle}</strong>
+      </td></tr>
+      <tr><td style="padding:12px 0 4px;">
+        <span style="color:${MUTED};font-size:13px;">Status</span><br />
+        <strong style="color:${BRAND_COLOR};">Live — accepting quotes</strong>
+      </td></tr>
+    </table>
+
+    ${ctaButton('View your listing', jobUrl)}
+
+    <p style="margin-top:24px;font-size:13px;color:${MUTED};">We'll notify you as soon as a provider sends you a quote.</p>
+  `);
+  return { subject, html };
+}
+
 // ── Provider first quote milestone (provider notification) ───────────────────
 
 export function providerFirstQuoteEmail(data: ProviderFirstQuoteData): { subject: string; html: string } {

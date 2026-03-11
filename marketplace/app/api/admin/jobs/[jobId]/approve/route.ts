@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { adminJobDecisionSchema } from '@/lib/validation/api';
 import { logAdminAudit } from '@/lib/admin/audit';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { sendJobApprovedEmail } from '@/lib/email/send';
 
 async function patchHandler(
   request: NextRequest,
@@ -59,6 +60,31 @@ async function patchHandler(
       note: parsed.data.note,
     },
   });
+
+  // Fire-and-forget approval email — never blocks the response.
+  void (async () => {
+    try {
+      const [{ data: profile }, { data: authUser }] = await Promise.all([
+        serviceSupabase
+          .from('profiles')
+          .select('display_name')
+          .eq('id', job.customer_id)
+          .single(),
+        serviceSupabase.auth.admin.getUserById(job.customer_id),
+      ]);
+      const email = authUser?.user?.email;
+      if (email) {
+        sendJobApprovedEmail({
+          to: email,
+          customerName: profile?.display_name ?? 'there',
+          jobTitle: job.title ?? 'your job',
+          jobId: job.id,
+        });
+      }
+    } catch {
+      // Non-blocking — email lookup failure must not affect the approval response.
+    }
+  })();
 
   await logAdminAudit({
     adminUserId: auth.user?.id ?? null,

@@ -16,6 +16,7 @@ import {
 import type { OfferRanking } from '@/lib/types/airtasker';
 import ComplianceBadge from '@/components/ui/ComplianceBadge';
 import OfferCountdownBadge from './OfferCountdownBadge';
+import AcceptOfferModal from './AcceptOfferModal';
 import styles from './offer-card.module.css';
 
 type OfferCardProps = {
@@ -100,6 +101,7 @@ export default function OfferCard({
   onViewProfile,
 }: OfferCardProps) {
   const [showDetails, setShowDetails] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const { text: expiryText, urgency: expiryUrgency } = useMemo(
     () => getExpiryInfo(offer.expiresAt),
@@ -226,7 +228,7 @@ export default function OfferCard({
       ) : null}
 
       <div className={styles.actions}>
-        <button type="button" className={styles.accept} onClick={() => onAccept(offer.id)}>
+        <button type="button" className={styles.accept} onClick={() => setShowConfirmModal(true)}>
           Accept offer
         </button>
         <button type="button" className={styles.message} onClick={() => onMessage(offer.provider.id)}>
@@ -234,6 +236,18 @@ export default function OfferCard({
           Message
         </button>
       </div>
+
+      {showConfirmModal ? (
+        <AcceptOfferModal
+          priceCents={offer.priceCents}
+          providerName={offer.provider.businessName}
+          onCancel={() => setShowConfirmModal(false)}
+          onConfirm={() => {
+            setShowConfirmModal(false);
+            onAccept(offer.id);
+          }}
+        />
+      ) : null}
     </motion.article>
   );
 }

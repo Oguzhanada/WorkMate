@@ -189,7 +189,17 @@ export const adminJobDecisionSchema = z.object({
 
 export const createDisputeSchema = z.object({
   job_id: z.string().uuid(),
-  dispute_type: z.enum(['quality_issue', 'non_completion', 'damage', 'no_show', 'other']),
+  dispute_type: z.enum([
+    'quality_issue',
+    'non_completion',
+    'damage',
+    'no_show',
+    'no_show_provider',
+    'no_show_customer',
+    'pricing_dispute',
+    'offline_payment',
+    'other',
+  ]),
   customer_claim: z.string().trim().min(10).max(4000),
 });
 
@@ -711,6 +721,11 @@ export const publicJobsQuerySchema = z.object({
 // ─── Admin: Compliance Recalculation ─────────────────────────────────────────
 export const complianceRecalcSchema = z.object({
   providerId: z.string().uuid().optional().nullable(),
+});
+
+// ─── Job: Cancellation ────────────────────────────────────────────────────────
+export const cancelJobSchema = z.object({
+  reason: z.enum(['changed_mind', 'found_another_provider', 'pricing_dispute', 'other']),
 });
 
 // ─── Portfolio: Work Gallery ───────────────────────────────────────────────────

@@ -3,24 +3,45 @@ import type {FeeCalculation, RebookingInfo} from '@/lib/types/airtasker';
 
 /* ─── Fee constants ─── */
 
-/** Minimum job value for platform fees to apply (in euros) */
-export const PLATFORM_FEE_THRESHOLD = 100;
+/**
+ * Customer service fee tiers (applied to job subtotal in euros):
+ *   €0–€49   → 0%
+ *   €50–€99  → 5%
+ *   €100–€299 → 7%
+ *   €300+    → 5%
+ * Rebooking (same customer+provider worked before): rate halved per tier.
+ */
+export const CUSTOMER_FEE_TIERS = [
+  {min: 0,   max: 49,   rate: 0,    rebookingRate: 0},
+  {min: 50,  max: 99,   rate: 0.05, rebookingRate: 0.03},
+  {min: 100, max: 299,  rate: 0.07, rebookingRate: 0.04},
+  {min: 300, max: Infinity, rate: 0.05, rebookingRate: 0.03},
+] as const;
 
-/** Customer-side service fee (% of subtotal) */
+/** Provider-side commission by plan */
+const PROVIDER_COMMISSION_BASIC = 0.05;     // was 0.03
+const PROVIDER_COMMISSION_PRO = 0.03;       // was 0.015
+const PROVIDER_COMMISSION_PREMIUM = 0.015;  // unchanged
+
+/** Discounted provider commission for repeat bookings */
+const REBOOKING_COMMISSION_BASIC = 0.03;    // was 0.015
+const REBOOKING_COMMISSION_PRO = 0.015;     // was 0.0075
+const REBOOKING_COMMISSION_PREMIUM = 0.0075;
+
+/** @deprecated Use CUSTOMER_FEE_TIERS. Kept for type compatibility. */
+export const PLATFORM_FEE_THRESHOLD = 50;
+/** @deprecated Use CUSTOMER_FEE_TIERS. */
 const CUSTOMER_SERVICE_FEE = 0.05;
-
-/** Provider-side commission by plan: basic/none = 3%, professional/premium = 1.5% */
-const PROVIDER_COMMISSION_BASIC = 0.03;
-const PROVIDER_COMMISSION_PRO = 0.015;
-
-/** Discounted customer fee for repeat bookings */
+/** @deprecated Use CUSTOMER_FEE_TIERS. */
 const REBOOKING_CUSTOMER_FEE = 0.03;
 
-/** Discounted provider commission for repeat bookings (applied on top of plan rate) */
-const REBOOKING_COMMISSION_BASIC = 0.015;
-const REBOOKING_COMMISSION_PRO = 0.0075;
+function getCustomerFeeRate(subtotalEur: number, isRebooking: boolean): number {
+  const tier = CUSTOMER_FEE_TIERS.find(t => subtotalEur >= t.min && subtotalEur <= t.max);
+  if (!tier) return 0;
+  return isRebooking ? tier.rebookingRate : tier.rate;
+}
 
-type ProviderPlan = 'basic' | 'professional' | 'premium';
+export type ProviderPlan = 'basic' | 'professional' | 'premium';
 
 /** Look up a provider's active subscription plan. Returns 'basic' if no active subscription. */
 export async function getProviderPlan(providerId: string): Promise<ProviderPlan> {
@@ -41,12 +62,13 @@ export async function getProviderPlan(providerId: string): Promise<ProviderPlan>
 }
 
 function getCommissionRates(plan: ProviderPlan, isRebooking: boolean) {
-  const isPro = plan === 'professional' || plan === 'premium';
-  return {
-    providerRate: isRebooking
-      ? (isPro ? REBOOKING_COMMISSION_PRO : REBOOKING_COMMISSION_BASIC)
-      : (isPro ? PROVIDER_COMMISSION_PRO : PROVIDER_COMMISSION_BASIC),
+  const rates: Record<ProviderPlan, {normal: number; rebooking: number}> = {
+    basic:        {normal: PROVIDER_COMMISSION_BASIC,   rebooking: REBOOKING_COMMISSION_BASIC},
+    professional: {normal: PROVIDER_COMMISSION_PRO,     rebooking: REBOOKING_COMMISSION_PRO},
+    premium:      {normal: PROVIDER_COMMISSION_PREMIUM, rebooking: REBOOKING_COMMISSION_PREMIUM},
   };
+  const r = rates[plan];
+  return {providerRate: isRebooking ? r.rebooking : r.normal};
 }
 
 /** Stripe processing cost estimate (for internal calculations only) */
@@ -100,30 +122,19 @@ export async function calculateFees(
     getProviderPlan(providerId),
   ]);
   const subtotal = Math.max(priceCents, 0) / 100;
+  const isRebooking = rebookingInfo.hasWorkedBefore;
 
-  // Under threshold: no platform fees — customer pays exact amount, provider receives full amount
-  if (subtotal < PLATFORM_FEE_THRESHOLD) {
-    return {
-      subtotal,
-      serviceFee: 0,
-      transactionFee: 0,
-      total: subtotal,
-      savings: undefined,
-      isRebooking: rebookingInfo.hasWorkedBefore
-    };
-  }
-
-  const customerFeeRate = rebookingInfo.hasWorkedBefore
-    ? REBOOKING_CUSTOMER_FEE
-    : CUSTOMER_SERVICE_FEE;
-
-  const {providerRate} = getCommissionRates(providerPlan, rebookingInfo.hasWorkedBefore);
+  const customerFeeRate = getCustomerFeeRate(subtotal, isRebooking);
+  const {providerRate} = getCommissionRates(providerPlan, isRebooking);
 
   const serviceFee = subtotal * customerFeeRate;
   const transactionFee = subtotal * providerRate;
   const total = subtotal + serviceFee;
-  const savings = rebookingInfo.hasWorkedBefore
-    ? subtotal * (CUSTOMER_SERVICE_FEE - REBOOKING_CUSTOMER_FEE)
+
+  // Savings = difference between standard rate and rebooking rate for this tier
+  const standardRate = getCustomerFeeRate(subtotal, false);
+  const savings = isRebooking && standardRate > customerFeeRate
+    ? subtotal * (standardRate - customerFeeRate)
     : undefined;
 
   return {
@@ -132,7 +143,7 @@ export async function calculateFees(
     transactionFee,     // provider-side commission (deducted from payout)
     total,              // customer pays: subtotal + serviceFee
     savings,
-    isRebooking: rebookingInfo.hasWorkedBefore
+    isRebooking,
   };
 }
 
