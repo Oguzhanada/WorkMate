@@ -5,6 +5,7 @@ import {FormEvent, useCallback, useEffect, useMemo, useState} from 'react';
 import {usePathname, useRouter} from 'next/navigation';
 import {motion} from 'framer-motion';
 import {
+  AtSign,
   CheckCircle2,
   CircleX,
   Eye,
@@ -78,8 +79,15 @@ const orderedCounties = [
 // Eircode regex validation deferred — pass-through mode pending real API integration
 // const _eircodeRegex = /^[A-Z0-9]{3}[ ]?[A-Z0-9]{1,4}$/;
 
+const usernameRegex = /^[a-z0-9_]{3,20}$/;
+
 const commonSchema = z.object({
   fullName: z.string().min(2, 'Full name must be at least 2 characters.'),
+  username: z
+    .string()
+    .min(3, 'Username must be at least 3 characters.')
+    .max(20, 'Username must be 20 characters or fewer.')
+    .regex(usernameRegex, 'Only lowercase letters, numbers, and underscores allowed.'),
   email: z.string().email('Enter a valid email address.'),
   phone: z.string().min(1, 'Phone is required.'),
   password: z
@@ -103,6 +111,7 @@ const providerOnlySchema = z.object({
 
 type SignUpFormData = {
   fullName: string;
+  username: string;
   phone: string;
   email: string;
   county: string;
@@ -250,6 +259,7 @@ export function SignUpForm() {
 
   const [form, setForm] = useState<SignUpFormData>({
     fullName: '',
+    username: '',
     phone: '+353',
     city: '',
     county: '',
@@ -444,6 +454,7 @@ export function SignUpForm() {
             emailRedirectTo: redirectTo,
             data: {
               full_name: form.fullName,
+              username: form.username.trim().toLowerCase(),
               phone: normalizeIrishPhone(form.phone),
               city: role === 'provider' ? form.city : '',
               county: role === 'provider' ? form.county : '',
@@ -545,6 +556,26 @@ export function SignUpForm() {
               />
             </div>
             {errors.fullName ? <p className={styles.fieldError}>{errors.fullName}</p> : null}
+          </label>
+
+          <label className={styles.field}>
+            <span>Username</span>
+            <div className={styles.inputWrap}>
+              <AtSign size={16} aria-hidden="true" />
+              <input
+                value={form.username}
+                onChange={(event) =>
+                  updateField('username', event.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))
+                }
+                placeholder="john_murphy"
+                maxLength={20}
+                autoComplete="username"
+              />
+            </div>
+            <p style={{ fontSize: '0.75rem', color: 'var(--wm-muted)', marginTop: '3px' }}>
+              3–20 characters. Letters, numbers, underscores only. Used to log in.
+            </p>
+            {errors.username ? <p className={styles.fieldError}>{errors.username}</p> : null}
           </label>
 
           <label className={styles.field}>

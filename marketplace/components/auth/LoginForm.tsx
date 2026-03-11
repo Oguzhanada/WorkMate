@@ -4,7 +4,7 @@ import Link from 'next/link';
 import {FormEvent, useMemo, useState} from 'react';
 import {usePathname, useRouter} from 'next/navigation';
 import {motion} from 'framer-motion';
-import {Eye, EyeOff, Loader2, Lock, Mail} from 'lucide-react';
+import {AtSign, Eye, EyeOff, Lock} from 'lucide-react';
 import {useTranslations} from 'next-intl';
 
 import {getSupabaseBrowserClient} from '@/lib/supabase/client';
@@ -16,17 +16,12 @@ import Button from '@/components/ui/Button';
 import styles from './login.module.css';
 
 type FieldErrors = {
-  email?: string;
+  identifier?: string;
   password?: string;
 };
 
-function validateEmail(email: string): string | undefined {
-  if (!email.trim()) {
-    return 'Email is required.';
-  }
-  if (!/^\S+@\S+\.\S+$/.test(email)) {
-    return 'Enter a valid email address.';
-  }
+function validateIdentifier(value: string): string | undefined {
+  if (!value.trim()) return 'Email or username is required.';
   return undefined;
 }
 
@@ -45,7 +40,7 @@ export function LoginForm() {
   const pathname = usePathname() || '/';
   const t = useTranslations('login');
 
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState(''); // email or username
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -58,16 +53,26 @@ export function LoginForm() {
   const hasAnyLoading = isPending || Boolean(oauthPending);
 
   const localeRoot = useMemo(() => getLocaleRoot(pathname), [pathname]);
-  const sanitizedEmail = useMemo(() => email.trim(), [email]);
 
   const validateAll = (): boolean => {
     const nextErrors: FieldErrors = {
-      email: validateEmail(sanitizedEmail),
+      identifier: validateIdentifier(identifier),
       password: validatePassword(password)
     };
-
     setFieldErrors(nextErrors);
-    return !nextErrors.email && !nextErrors.password;
+    return !nextErrors.identifier && !nextErrors.password;
+  };
+
+  const resolveEmail = async (value: string): Promise<string | null> => {
+    if (value.includes('@')) return value;
+    try {
+      const res = await fetch(`/api/auth/resolve-username?identifier=${encodeURIComponent(value)}`);
+      if (!res.ok) return null;
+      const data = await res.json() as { email?: string };
+      return data.email ?? null;
+    } catch {
+      return null;
+    }
   };
 
   const onSubmit = async (event: FormEvent) => {
@@ -75,17 +80,20 @@ export function LoginForm() {
     setFormError('');
     setSuccessMessage('');
 
-    if (!validateAll()) {
-      return;
-    }
+    if (!validateAll()) return;
 
     setIsPending(true);
     try {
+      const trimmed = identifier.trim();
+      const email = await resolveEmail(trimmed);
+
+      if (!email) {
+        setFormError('Username not found. Please check and try again.');
+        return;
+      }
+
       const supabase = getSupabaseBrowserClient();
-      const {error} = await supabase.auth.signInWithPassword({
-        email: sanitizedEmail,
-        password
-      });
+      const {error} = await supabase.auth.signInWithPassword({email, password});
 
       if (error) {
         setFormError(error.message);
@@ -146,26 +154,26 @@ export function LoginForm() {
 
         <form onSubmit={onSubmit} noValidate>
           <motion.div variants={formItemVariants} className={styles.field}>
-            <label htmlFor="login-email">Email</label>
+            <label htmlFor="login-identifier">Email or username</label>
             <div className={styles.inputWrap}>
-              <Mail size={17} aria-hidden="true" />
+              <AtSign size={17} aria-hidden="true" />
               <input
-                id="login-email"
-                name="email"
-                type="email"
-                value={email}
-                placeholder="your@email.com"
-                autoComplete="email"
+                id="login-identifier"
+                name="identifier"
+                type="text"
+                value={identifier}
+                placeholder="your@email.com or username"
+                autoComplete="username"
                 onChange={(event) => {
-                  setEmail(event.target.value);
-                  if (fieldErrors.email) {
-                    setFieldErrors((prev) => ({...prev, email: validateEmail(event.target.value.trim())}));
+                  setIdentifier(event.target.value);
+                  if (fieldErrors.identifier) {
+                    setFieldErrors((prev) => ({...prev, identifier: validateIdentifier(event.target.value)}));
                   }
                 }}
-                onBlur={() => setFieldErrors((prev) => ({...prev, email: validateEmail(sanitizedEmail)}))}
+                onBlur={() => setFieldErrors((prev) => ({...prev, identifier: validateIdentifier(identifier)}))}
               />
             </div>
-            {fieldErrors.email ? <p className={styles.fieldError}>{fieldErrors.email}</p> : null}
+            {fieldErrors.identifier ? <p className={styles.fieldError}>{fieldErrors.identifier}</p> : null}
           </motion.div>
 
           <motion.div variants={formItemVariants} className={styles.field}>
