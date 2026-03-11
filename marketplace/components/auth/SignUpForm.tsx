@@ -111,6 +111,7 @@ type SignUpFormData = {
   password: string;
   confirmPassword: string;
   identityConsent: boolean;
+  referralCode: string;
 };
 
 type FieldErrors = Partial<Record<keyof SignUpFormData, string>>;
@@ -256,7 +257,8 @@ export function SignUpForm() {
     address2: '',
     password: '',
     confirmPassword: '',
-    identityConsent: false
+    identityConsent: false,
+    referralCode: ''
   });
 
   const [countyQuery, setCountyQuery] = useState('');
@@ -430,7 +432,8 @@ export function SignUpForm() {
               address_line_1: role === 'provider' ? form.address1 : '',
               address_line_2: role === 'provider' ? form.address2 : '',
               locality: role === 'provider' ? form.city : '',
-              role
+              role,
+              referral_code: form.referralCode.trim().toUpperCase() || undefined
             }
           }
         }),
@@ -725,6 +728,31 @@ export function SignUpForm() {
             {errors.identityConsent ? (
               <p className={styles.fieldError} style={{marginTop: '6px'}}>{errors.identityConsent}</p>
             ) : null}
+          </div>
+
+          {/* Optional referral code */}
+          <div className={styles.fullWidth}>
+            <details style={{ marginBottom: 4 }}>
+              <summary style={{ fontSize: '0.82rem', color: 'var(--wm-muted)', cursor: 'pointer', userSelect: 'none' }}>
+                Have a referral code?
+              </summary>
+              <div className={styles.field} style={{ marginTop: 8 }}>
+                <label htmlFor="signup-referral">Referral code (optional)</label>
+                <div className={styles.inputWrap}>
+                  <input
+                    id="signup-referral"
+                    name="referral_code"
+                    type="text"
+                    value={form.referralCode}
+                    placeholder="WM-XXXXXXXX"
+                    autoComplete="off"
+                    maxLength={32}
+                    onChange={(e) => updateField('referralCode', e.target.value.toUpperCase())}
+                    style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                  />
+                </div>
+              </div>
+            </details>
           </div>
 
           <div className={styles.fullWidth}>

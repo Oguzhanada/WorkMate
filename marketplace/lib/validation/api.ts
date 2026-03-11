@@ -78,6 +78,10 @@ export const addressLookupQuerySchema = z.object({
   eircode: z.string().trim().min(3).max(12),
 });
 
+export const redeemReferralSchema = z.object({
+  code: z.string().trim().min(3).max(32).toUpperCase(),
+});
+
 export const profileAddressSchema = z.object({
   address_line_1: z.string().trim().min(3).max(160),
   address_line_2: z.string().trim().max(160).optional().default(''),
