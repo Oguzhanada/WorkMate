@@ -1,5 +1,5 @@
 # WorkMate — Production Launch Guide
-> Last updated: 2026-03-11 (session 36)
+> Last updated: 2026-03-11 (session 38)
 > This file is the single source of truth for everything that must be done before
 > and during production launch. Update it as steps are completed.
 
@@ -60,9 +60,9 @@ Verify the full happy-path before spending any money.
 Set up third-party accounts. Most have free tiers to start.
 
 ### Resend (Email)
-- [ ] Create Resend account at resend.com
-- [ ] Generate production API key → save as `RESEND_API_KEY`
-- [ ] Add domain `workmate.ie` in Resend → verify DNS records (SPF, DKIM, DMARC)
+- [x] Create Resend account at resend.com ✅ S38
+- [x] Generate production API key → `RESEND_API_KEY` added to Vercel ✅ S38
+- [ ] Add domain `workmate.ie` in Resend → verify DNS records (SPF, DKIM, DMARC) — **blocked on domain purchase**
   - Add records to DNS provider (Cloudflare recommended)
   - Wait for verification (usually < 1 hour)
 - [ ] Test a real send from production domain before go-live
@@ -119,18 +119,17 @@ Set up third-party accounts. Most have free tiers to start.
 - **Cost:** Stripe is pay-per-transaction (1.5% + 25c for EU cards). No monthly fee.
 
 ### Vercel (Hosting)
-- [ ] Create Vercel account (or use existing)
-- [ ] Connect GitHub repo → import `WorkMate` project
-- [ ] Set root directory to `marketplace/`
-- [ ] Set all environment variables (see Phase 4 env var list)
-- [ ] Configure custom domain `workmate.ie` in Vercel settings
+- [x] Create Vercel account + connect GitHub repo ✅
+- [x] Set root directory to `marketplace/` ✅
+- [x] Core env vars set (Supabase, Stripe, Resend, Anthropic, Sentry, Ideal Postcodes) ✅ S38
+- [x] `LIVE_SERVICES_ENABLED=true` set for production ✅ S38
+- [ ] Configure custom domain `workmate.ie` in Vercel settings — **blocked on domain purchase**
 - **Cost:** Hobby = free (personal use). Pro = $20/month (commercial use, team features, higher limits). Use Pro for production.
 
 ### Sentry (Error Monitoring)
-- [ ] Create Sentry project (Next.js)
-- [ ] Install: `npm install @sentry/nextjs`
-- [ ] Run: `npx @sentry/wizard@latest -i nextjs`
-- [ ] Add `SENTRY_DSN` to env vars
+- [x] Sentry project created: org=`workmate-wz`, project=`workmate` ✅ S38
+- [x] `SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` all in Vercel ✅ S38
+- [x] Sentry MCP configured in `.mcp.json` ✅ S38
 - **Cost:** Free tier = 5k errors/month.
 
 ### UptimeRobot / BetterUptime (Uptime monitoring)
