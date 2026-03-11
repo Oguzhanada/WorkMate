@@ -69,9 +69,9 @@ const cache: CacheAdapter = inMemoryCacheAdapter;
 
 const CHECK_TIMEOUT_MS = 5_000;
 
-async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+async function withTimeout<T>(promise: PromiseLike<T>, timeoutMs: number): Promise<T> {
   return Promise.race([
-    promise,
+    Promise.resolve(promise),
     new Promise<never>((_, reject) =>
       setTimeout(() => reject(new Error('Health check timed out')), timeoutMs)
     ),
