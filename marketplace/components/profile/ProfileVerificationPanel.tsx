@@ -39,7 +39,8 @@ function getErrorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
-async function withTimeout<T>(promise: PromiseLike<T>, message: string, timeoutMs = REQUEST_TIMEOUT_MS): Promise<T> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function withTimeout(promise: PromiseLike<any>, message: string, timeoutMs = REQUEST_TIMEOUT_MS) {
   return Promise.race([
     promise,
     new Promise<never>((_, reject) => {
