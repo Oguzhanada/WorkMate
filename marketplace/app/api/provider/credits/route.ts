@@ -6,6 +6,7 @@ import { NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canQuoteJob, getUserRoles } from '@/lib/auth/rbac';
+import { apiUnauthorized, apiForbidden } from '@/lib/api/error-response';
 
 export async function GET() {
   const supabase = await getSupabaseRouteClient();
@@ -15,7 +16,7 @@ export async function GET() {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const roles = await getUserRoles(supabase, user.id);
@@ -26,7 +27,7 @@ export async function GET() {
     .maybeSingle();
 
   if (!canQuoteJob(roles, profile?.id_verification_status)) {
-    return NextResponse.json({ error: 'Provider account required' }, { status: 403 });
+    return apiForbidden('Provider account required');
   }
 
   const serviceSupabase = getSupabaseServiceClient();

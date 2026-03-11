@@ -6,6 +6,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { apiUnauthorized, apiServerError } from '@/lib/api/error-response';
 
 function generateCode(userId: string): string {
   // Deterministic prefix + 8 hex chars derived from userId
@@ -20,7 +21,7 @@ export async function GET() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   // Fetch existing referral code
@@ -31,7 +32,7 @@ export async function GET() {
     .maybeSingle();
 
   if (fetchError) {
-    return NextResponse.json({ error: 'Failed to fetch referral code' }, { status: 500 });
+    return apiServerError('Failed to fetch referral code');
   }
 
   let referralCode = existing;
@@ -47,7 +48,7 @@ export async function GET() {
       .single();
 
     if (createError) {
-      return NextResponse.json({ error: 'Failed to create referral code' }, { status: 500 });
+      return apiServerError('Failed to create referral code');
     }
     referralCode = created;
   }

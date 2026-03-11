@@ -3,6 +3,7 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { resolveJobAccessContext } from '@/lib/jobs/access';
 import { patchTimeEntrySchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiNotFound } from '@/lib/api/error-response';
 
 async function patchHandler(
   request: NextRequest,
@@ -11,12 +12,12 @@ async function patchHandler(
   const { jobId, entryId } = await params;
   const supabase = await getSupabaseRouteClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (authError || !user) return apiUnauthorized();
 
   const access = await resolveJobAccessContext(supabase, jobId, user.id);
-  if (!access.exists) return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+  if (!access.exists) return apiNotFound('Job not found');
   if (!access.isAdmin && !access.isCustomer && !access.isProvider) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiForbidden();
   }
 
   const { data: existing, error: existingError } = await supabase
@@ -26,22 +27,19 @@ async function patchHandler(
     .eq('job_id', jobId)
     .maybeSingle();
 
-  if (existingError) return NextResponse.json({ error: existingError.message }, { status: 400 });
-  if (!existing) return NextResponse.json({ error: 'Time entry not found' }, { status: 404 });
+  if (existingError) return apiError(existingError.message, 400);
+  if (!existing) return apiNotFound('Time entry not found');
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = patchTimeEntrySchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const hasApprovalChange = typeof parsed.data.approved === 'boolean';
@@ -50,25 +48,19 @@ async function patchHandler(
   );
 
   if (hasApprovalChange && !access.isCustomer && !access.isAdmin) {
-    return NextResponse.json({ error: 'Only the customer can approve time entries.' }, { status: 403 });
+    return apiForbidden('Only the customer can approve time entries.');
   }
 
   if (hasProviderEdit && !access.isAdmin && !(access.isProvider && existing.provider_id === user.id)) {
-    return NextResponse.json(
-      { error: 'Only the assigned provider can edit this time entry.' },
-      { status: 403 }
-    );
+    return apiForbidden('Only the assigned provider can edit this time entry.');
   }
 
   if (hasProviderEdit && existing.approved && !access.isAdmin) {
-    return NextResponse.json(
-      { error: 'Approved entries cannot be edited by provider.' },
-      { status: 400 }
-    );
+    return apiError('Approved entries cannot be edited by provider.', 400);
   }
 
   if (parsed.data.approved === true && !existing.ended_at) {
-    return NextResponse.json({ error: 'Cannot approve an active timer.' }, { status: 400 });
+    return apiError('Cannot approve an active timer.', 400);
   }
 
   const nextStartedAt = parsed.data.started_at ?? existing.started_at;
@@ -80,7 +72,7 @@ async function patchHandler(
       : parsed.data.ended_at;
 
   if (nextEndedAt && new Date(nextEndedAt).getTime() < new Date(nextStartedAt).getTime()) {
-    return NextResponse.json({ error: 'ended_at must be after started_at.' }, { status: 400 });
+    return apiError('ended_at must be after started_at.', 400);
   }
 
   const patch: Record<string, unknown> = {};
@@ -103,7 +95,7 @@ async function patchHandler(
     .select('id,job_id,provider_id,started_at,ended_at,duration_minutes,hourly_rate,description,approved,approved_at,approved_by,created_at')
     .single();
 
-  if (updateError) return NextResponse.json({ error: updateError.message }, { status: 400 });
+  if (updateError) return apiError(updateError.message, 400);
 
   return NextResponse.json({ entry: updated }, { status: 200 });
 }
@@ -115,10 +107,10 @@ async function deleteHandler(
   const { jobId, entryId } = await params;
   const supabase = await getSupabaseRouteClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (authError || !user) return apiUnauthorized();
 
   const access = await resolveJobAccessContext(supabase, jobId, user.id);
-  if (!access.exists) return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+  if (!access.exists) return apiNotFound('Job not found');
 
   const { data: existing, error: existingError } = await supabase
     .from('time_entries')
@@ -127,19 +119,16 @@ async function deleteHandler(
     .eq('job_id', jobId)
     .maybeSingle();
 
-  if (existingError) return NextResponse.json({ error: existingError.message }, { status: 400 });
-  if (!existing) return NextResponse.json({ error: 'Time entry not found' }, { status: 404 });
+  if (existingError) return apiError(existingError.message, 400);
+  if (!existing) return apiNotFound('Time entry not found');
 
   const isOwnerProvider = access.isProvider && existing.provider_id === user.id;
   if (!access.isAdmin && !isOwnerProvider) {
-    return NextResponse.json(
-      { error: 'Only the assigned provider can delete this time entry.' },
-      { status: 403 }
-    );
+    return apiForbidden('Only the assigned provider can delete this time entry.');
   }
 
   if (existing.approved && !access.isAdmin) {
-    return NextResponse.json({ error: 'Approved entries cannot be deleted.' }, { status: 400 });
+    return apiError('Approved entries cannot be deleted.', 400);
   }
 
   const { error: deleteError } = await supabase
@@ -148,7 +137,7 @@ async function deleteHandler(
     .eq('id', entryId)
     .eq('job_id', jobId);
 
-  if (deleteError) return NextResponse.json({ error: deleteError.message }, { status: 400 });
+  if (deleteError) return apiError(deleteError.message, 400);
   return NextResponse.json({ success: true }, { status: 200 });
 }
 

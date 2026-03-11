@@ -5,6 +5,7 @@ import { adminJobDecisionSchema } from '@/lib/validation/api';
 import { logAdminAudit } from '@/lib/admin/audit';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { sendJobApprovedEmail } from '@/lib/email/send';
+import { apiError } from '@/lib/api/error-response';
 
 async function patchHandler(
   request: NextRequest,
@@ -24,10 +25,7 @@ async function patchHandler(
 
   const parsed = adminJobDecisionSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const serviceSupabase = getSupabaseServiceClient();
@@ -47,7 +45,7 @@ async function patchHandler(
     .single();
 
   if (jobError || !job) {
-    return NextResponse.json({ error: jobError?.message ?? 'Job is not pending review.' }, { status: 400 });
+    return apiError(jobError?.message ?? 'Job is not pending review.', 400);
   }
 
   await serviceSupabase.from('notifications').insert({

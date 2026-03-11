@@ -12,6 +12,7 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { redeemReferralSchema } from '@/lib/validation/api';
 import { adjustCredits } from '@/lib/credits/provider-credits';
+import { apiError, apiUnauthorized, apiNotFound, apiConflict, apiServerError } from '@/lib/api/error-response';
 
 const REFERRER_BONUS_CREDITS = 10;
 
@@ -23,22 +24,19 @@ export async function POST(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = redeemReferralSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const { code } = parsed.data;
@@ -52,17 +50,17 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   if (!referralCode) {
-    return NextResponse.json({ error: 'Invalid referral code.' }, { status: 404 });
+    return apiNotFound('Invalid referral code.');
   }
 
   // Cannot redeem your own referral code
   if (referralCode.profile_id === user.id) {
-    return NextResponse.json({ error: 'You cannot redeem your own referral code.' }, { status: 400 });
+    return apiError('You cannot redeem your own referral code.', 400);
   }
 
   // Check if uses remaining
   if (referralCode.uses_count >= referralCode.max_uses) {
-    return NextResponse.json({ error: 'This referral code has reached its usage limit.' }, { status: 400 });
+    return apiError('This referral code has reached its usage limit.', 400);
   }
 
   // Check if user has already redeemed this code
@@ -74,7 +72,7 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   if (existingRedemption) {
-    return NextResponse.json({ error: 'You have already redeemed this referral code.' }, { status: 409 });
+    return apiConflict('You have already redeemed this referral code.');
   }
 
   // Create redemption record
@@ -83,7 +81,7 @@ export async function POST(request: NextRequest) {
     .insert({ referral_code_id: referralCode.id, redeemed_by: user.id });
 
   if (insertError) {
-    return NextResponse.json({ error: 'Failed to redeem code. Please try again.' }, { status: 500 });
+    return apiServerError('Failed to redeem code. Please try again.');
   }
 
   // Increment uses_count

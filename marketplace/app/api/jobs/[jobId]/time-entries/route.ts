@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { resolveJobAccessContext } from '@/lib/jobs/access';
 import { createTimeEntrySchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiNotFound, apiServerError } from '@/lib/api/error-response';
 
 function computeBillableCents(minutes: number, hourlyRateCents: number) {
   return Math.round((minutes / 60) * hourlyRateCents);
@@ -16,12 +17,12 @@ export async function GET(
   const { jobId } = await params;
   const supabase = await getSupabaseRouteClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (authError || !user) return apiUnauthorized();
 
   const access = await resolveJobAccessContext(supabase, jobId, user.id);
-  if (!access.exists) return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+  if (!access.exists) return apiNotFound('Job not found');
   if (!access.isAdmin && !access.isCustomer && !access.isProvider) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiForbidden();
   }
 
   const [{ data: job }, { data: entries, error: entriesError }] = await Promise.all([
@@ -37,7 +38,7 @@ export async function GET(
       .order('created_at', { ascending: false }),
   ]);
 
-  if (entriesError) return NextResponse.json({ error: entriesError.message }, { status: 500 });
+  if (entriesError) return apiServerError(entriesError.message);
 
   let defaultHourlyRate: number | null = null;
   if (job?.accepted_quote_id) {
@@ -96,27 +97,24 @@ async function postHandler(
   const { jobId } = await params;
   const supabase = await getSupabaseRouteClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (authError || !user) return apiUnauthorized();
 
   const access = await resolveJobAccessContext(supabase, jobId, user.id);
-  if (!access.exists) return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+  if (!access.exists) return apiNotFound('Job not found');
   if (!access.isProvider) {
-    return NextResponse.json({ error: 'Only the assigned provider can add time entries.' }, { status: 403 });
+    return apiForbidden('Only the assigned provider can add time entries.');
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = createTimeEntrySchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   if (parsed.data.action === 'start') {
@@ -129,10 +127,7 @@ async function postHandler(
       .maybeSingle();
 
     if (existingActive) {
-      return NextResponse.json(
-        { error: 'An active timer already exists. Stop it before starting a new one.' },
-        { status: 400 }
-      );
+      return apiError('An active timer already exists. Stop it before starting a new one.', 400);
     }
 
     const startedAt = parsed.data.started_at ?? new Date().toISOString();
@@ -148,7 +143,7 @@ async function postHandler(
       .select('id,job_id,provider_id,started_at,ended_at,duration_minutes,hourly_rate,description,approved,created_at')
       .single();
 
-    if (insertError) return NextResponse.json({ error: insertError.message }, { status: 400 });
+    if (insertError) return apiError(insertError.message, 400);
 
     if (access.customerId) {
       const service = getSupabaseServiceClient();
@@ -183,11 +178,11 @@ async function postHandler(
   }
 
   const { data: activeEntry, error: activeError } = await stopQuery.maybeSingle();
-  if (activeError) return NextResponse.json({ error: activeError.message }, { status: 400 });
-  if (!activeEntry) return NextResponse.json({ error: 'No active timer found.' }, { status: 404 });
+  if (activeError) return apiError(activeError.message, 400);
+  if (!activeEntry) return apiNotFound('No active timer found.');
 
   if (new Date(endedAt).getTime() < new Date(activeEntry.started_at).getTime()) {
-    return NextResponse.json({ error: 'ended_at must be after started_at.' }, { status: 400 });
+    return apiError('ended_at must be after started_at.', 400);
   }
 
   const { data: updated, error: updateError } = await supabase
@@ -201,7 +196,7 @@ async function postHandler(
     .select('id,job_id,provider_id,started_at,ended_at,duration_minutes,hourly_rate,description,approved,created_at')
     .single();
 
-  if (updateError) return NextResponse.json({ error: updateError.message }, { status: 400 });
+  if (updateError) return apiError(updateError.message, 400);
 
   return NextResponse.json({ entry: updated }, { status: 200 });
 }

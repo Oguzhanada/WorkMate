@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { adminJobDecisionSchema } from '@/lib/validation/api';
 import { logAdminAudit } from '@/lib/admin/audit';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError } from '@/lib/api/error-response';
 
 async function patchHandler(
   request: NextRequest,
@@ -18,19 +19,16 @@ async function patchHandler(
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = adminJobDecisionSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   if (!parsed.data.note) {
-    return NextResponse.json({ error: 'Rejection reason is required.' }, { status: 400 });
+    return apiError('Rejection reason is required.', 400);
   }
 
   const serviceSupabase = getSupabaseServiceClient();
@@ -50,7 +48,7 @@ async function patchHandler(
     .single();
 
   if (jobError || !job) {
-    return NextResponse.json({ error: jobError?.message ?? 'Job is not pending review.' }, { status: 400 });
+    return apiError(jobError?.message ?? 'Job is not pending review.', 400);
   }
 
   await serviceSupabase.from('notifications').insert({

@@ -3,6 +3,7 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canQuote, getUserRoles } from '@/lib/auth/rbac';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiNotFound } from '@/lib/api/error-response';
 
 async function postHandler(
   _request: Request,
@@ -16,12 +17,12 @@ async function postHandler(
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const roles = await getUserRoles(supabase, user.id);
   if (!canQuote(roles)) {
-    return NextResponse.json({ error: 'Only providers can send release reminders.' }, { status: 403 });
+    return apiForbidden('Only providers can send release reminders.');
   }
 
   const { data: job } = await supabase
@@ -31,22 +32,22 @@ async function postHandler(
     .maybeSingle();
 
   if (!job) {
-    return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+    return apiNotFound('Job not found');
   }
 
   if (job.status !== 'completed' || !job.auto_release_at) {
-    return NextResponse.json({ error: 'Release reminder is only available for completed jobs.' }, { status: 400 });
+    return apiError('Release reminder is only available for completed jobs.', 400);
   }
 
   if (job.release_reminder_sent_at) {
     const last = new Date(job.release_reminder_sent_at).getTime();
     if (Date.now() - last < 12 * 60 * 60 * 1000) {
-      return NextResponse.json({ error: 'Reminder already sent recently. Please wait before sending another.' }, { status: 400 });
+      return apiError('Reminder already sent recently. Please wait before sending another.', 400);
     }
   }
 
   if (!job.accepted_quote_id) {
-    return NextResponse.json({ error: 'No accepted provider found for this job.' }, { status: 400 });
+    return apiError('No accepted provider found for this job.', 400);
   }
 
   const { data: quote } = await supabase
@@ -56,7 +57,7 @@ async function postHandler(
     .maybeSingle();
 
   if (!quote || quote.pro_id !== user.id) {
-    return NextResponse.json({ error: 'You are not assigned to this job.' }, { status: 403 });
+    return apiForbidden('You are not assigned to this job.');
   }
 
   const serviceSupabase = getSupabaseServiceClient();
