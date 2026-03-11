@@ -6,15 +6,15 @@ description: WorkMate frozen architectural decisions enforcer. Activate before m
 # WorkMate Schema Guardian
 
 You are the guardian of WorkMate's frozen architectural decisions. Your job is to:
-1. Detect when a proposed change would violate a frozen decision (FD-01 through FD-12)
+1. Detect when a proposed change would violate a frozen decision (FD-01 through FD-25)
 2. Block the change and explain the rule
 3. If the change is genuinely needed, guide writing a Decision Record before proceeding
 
 ---
 
-## Frozen Decisions Reference (FD-01 — FD-12)
+## Frozen Decisions Reference (FD-01 — FD-25)
 
-These live permanently in `marketplace/AGENTS.md` Rule 19. Quick reference:
+These live permanently in `ai-context/context/agents.md` Rule 19. Quick reference:
 
 | ID | Rule | Violation examples |
 |----|------|--------------------|
@@ -30,6 +30,9 @@ These live permanently in `marketplace/AGENTS.md` Rule 19. Quick reference:
 | FD-10 | RLS never `FOR ALL USING (true)` | Any policy without `auth.uid()` scoping |
 | FD-11 | No hardcoded `/en/` in routing | `href="/en/dashboard"` or `redirect('/en/login')` |
 | FD-12 | Webhooks: HTTPS + HMAC-SHA256 via `lib/webhook/send.ts` | Direct `fetch()` to webhook URL without signing |
+| FD-13 | Contrast: text on light surfaces must use `--wm-text-strong/default/muted/soft` | `text-white/60` or `opacity-50` on light cards |
+| FD-14 | Light theme locked: `<html data-theme="light">`, no auto `prefers-color-scheme` | Adding `@media (prefers-color-scheme: dark)` overrides to token source |
+| FD-15 | No page/container-level opacity on readable content | `<main style={{ opacity: 0.7 }}>` or `<section className="opacity-60">` |
 
 ---
 
@@ -40,9 +43,11 @@ Activate this skill when you are about to:
 - Create a new page under `app/[locale]/` → check FD-02, FD-03, FD-04, FD-05, FD-06, FD-07, FD-11
 - Write any Supabase query → check FD-08, FD-10
 - Write any migration → check FD-10
-- Write any UI component with colors or buttons → check FD-03, FD-04
+- Write any UI component with colors or buttons → check FD-03, FD-04, FD-13, FD-14, FD-15
 - Handle money or pricing → check FD-09
 - Add navigation/redirect logic → check FD-11
+- Create a new skill → check FD-25
+- About to commit → check FD-22, FD-23
 
 ---
 
@@ -61,7 +66,7 @@ Compliant alternative:
 [show the correct code]
 
 If this change is genuinely needed, write a Decision Record in
-marketplace/AGENTS.md Rule 19 before implementing:
+ai-context/context/agents.md Rule 19 before implementing:
 
 DR-XXX | [date] | [author] | FD-XX changed | [reason] | [approved by]
 ```
@@ -84,8 +89,11 @@ Before making any change, run this checklist mentally:
 - [ ] FD-10: Any new migration → has `ENABLE ROW LEVEL SECURITY` + scoped policies
 - [ ] FD-11: Any link/redirect → uses `withLocalePrefix()` or relative path, no `/en/`
 - [ ] FD-12: Any webhook dispatch → via `lib/webhook/send.ts`, never raw fetch
+- [ ] FD-13: Text on light surfaces → uses `--wm-text-*` tokens, no low-opacity hacks
+- [ ] FD-14: No `prefers-color-scheme` overrides in token source — light theme locked
+- [ ] FD-15: No page/container-level opacity on readable content wrappers
 
-All 12 checked? Proceed. Any failed? Fix first or write a Decision Record.
+All 15 checked? Proceed. Any failed? Fix first or write a Decision Record.
 
 ## File Organization Frozen Rules (FD-16 — FD-24, session 27–28)
 
@@ -125,7 +133,7 @@ When a frozen decision genuinely needs changing:
 
 1. **State the case**: Why is the existing rule wrong or blocking valid work?
 2. **Assess blast radius**: How many files would change? Any security implications?
-3. **Write the DR first** in `marketplace/AGENTS.md` Rule 19 before touching code
+3. **Write the DR first** in `ai-context/context/agents.md` Rule 19 before touching code
 4. **Update this skill** and `MEMORY.md` to reflect the new rule
 5. **Migrate existing violations** — a decision change must be applied consistently
 

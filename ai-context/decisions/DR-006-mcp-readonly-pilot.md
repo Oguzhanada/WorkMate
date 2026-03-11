@@ -1,7 +1,7 @@
 # DR-006: MCP Read-Only Pilot (GitHub + Supabase)
 
 - Date: 2026-03-09
-- Status: Accepted
+- Status: Completed (pilot concluded — MCP now in active use with read-write for Supabase)
 - Owners: WorkMate maintainers
 
 ## Decision

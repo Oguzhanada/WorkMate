@@ -27,9 +27,9 @@ WorkMate is a well-structured, production-approaching Next.js 16 application wit
 | # | Risk | Impact | Severity |
 |---|------|--------|----------|
 | 1 | **No `next/image` usage anywhere** | No AVIF/WebP optimization, no lazy loading, no CLS protection — raw `<img>` tags throughout | P1 |
-| 2 | **~55 API routes use raw `NextResponse.json` instead of centralized error helpers** | Inconsistent error schema for clients, harder monitoring/alerting | P1 |
-| 3 | **No pre-commit hooks (Husky/lint-staged)** | All quality gates only run in CI — broken code can be committed locally | P1 |
-| 4 | **`lib/` root has 11 orphaned files** + types/hooks/constants severely underpopulated | Growing cognitive load, unclear ownership boundaries | P2 |
+| 2 | **~55 API routes use raw `NextResponse.json` instead of centralized error helpers** — `lib/api/error-response.ts` added (session 24), migration ongoing | Inconsistent error schema for clients, harder monitoring/alerting | P1 |
+| 3 | ~~**No pre-commit hooks (Husky/lint-staged)**~~ — **RESOLVED** (session 27): Husky + lint-staged active, ESLint on `*.{ts,tsx}` | ~~All quality gates only run in CI~~ | ~~P1~~ |
+| 4 | ~~**`lib/` root has 11 orphaned files**~~ — **RESOLVED** (session 27): Files moved to `lib/ireland/`, `lib/data/`, `lib/stripe/` | ~~Growing cognitive load~~ | ~~P2~~ |
 | 5 | **TypeScript `strict: false`** | Implicit `any` allowed — type safety gap that grows with codebase size | P2 |
 
 ---
@@ -797,7 +797,7 @@ export const env = {
 | 1.6 | Add barrel exports to `components/ui/index.ts` | 1 new file, 0 breaking changes (existing paths still work) | S |
 | 1.7 | Delete duplicate `app/[locale]/privacy-policy/` (redirect to `/privacy`) | 2 files removed, 1 redirect added | S |
 | 1.8 | Move `checkout/` routes under `[locale]` | 2 dirs moved, update Stripe success/cancel URLs | S |
-| 1.9 | Install Husky + lint-staged for pre-commit hooks | New dev deps, `.husky/` dir | S |
+| 1.9 | ~~Install Husky + lint-staged for pre-commit hooks~~ — **DONE** (session 27) | New dev deps, `.husky/` dir | S |
 
 **Import update strategy:** Use VS Code's "Find and Replace" or `sed` for path updates. Each move is a single commit with `git mv` + import fixup. Run `npm run lint` after each to verify.
 
