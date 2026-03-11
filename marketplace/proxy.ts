@@ -1,12 +1,13 @@
 /**
- * Middleware logic — entry point is middleware.ts, NOT this file.
+ * Next.js 16 middleware entry point.
  *
- * Next.js only recognises middleware.ts as the middleware entry point.
- * This file (proxy.ts) holds the logic so it can be tested in isolation.
- * middleware.ts re-exports `proxy` as `middleware` for Next.js to pick up.
+ * In Next.js 16+, proxy.ts IS the middleware entry point — NOT middleware.ts.
+ * Having both files causes a build error:
+ *   "Both middleware.ts and proxy.ts detected. Please use ./proxy.ts only."
+ *   https://nextjs.org/docs/messages/middleware-to-proxy
  *
- * DO NOT rename `proxy` to `middleware` here — that breaks the re-export.
- * DO NOT delete middleware.ts thinking this file replaces it — it does not.
+ * DO NOT create a middleware.ts alongside this file — it will break the build.
+ * DO NOT rename `proxy` to `middleware` here — Next.js 16 expects `proxy`.
  * See FD-28 in ai-context/context/agents.md for full history.
  */
 import {createServerClient} from '@supabase/ssr';

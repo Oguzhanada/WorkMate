@@ -277,7 +277,7 @@ DR-XXX | Date | Author | Decision changed | Reason | Approved by
 | FD-25 | New `.claude/skills/` MUST be whitelisted in `.gitignore` before commit — unwhitelisted skills are silently ignored by git | Session 28 — skill creation requires gitignore update |
 | FD-26 | `next/image` for all static images — no raw `<img>` except blob/data URLs | Session 34 — performance + LCP |
 | FD-27 | `lib/api/error-response.ts` helpers in all API routes — no raw `NextResponse.json` for errors | Session 35 — consistent error shape |
-| FD-28 | **`marketplace/middleware.ts` MUST NEVER be deleted.** It re-exports from `proxy.ts` (`export { proxy as middleware, config } from './proxy'`). Without it Next.js runs zero middleware — locale routing breaks, auth guard stops, ALL dashboard pages error out. This has been deleted twice (9f73b6c, 6a4af6b). Do not delete under any circumstances. | Session 37 — third restoration after two accidental deletions |
+| FD-28 | **Next.js 16 uses `proxy.ts` as the sole middleware entry point. `middleware.ts` MUST NOT exist alongside it** — build fails with "Both middleware.ts and proxy.ts detected." See https://nextjs.org/docs/messages/middleware-to-proxy. The exported function in proxy.ts must be named `proxy`. Never create middleware.ts. | Session 37 — confirmed by Vercel build error after incorrect middleware.ts restore |
 
 **Decision Records (changes to frozen decisions):**
 _(none yet — first change must be documented here before implementation)_
@@ -427,9 +427,10 @@ Git commit messages in this repo may have been written by AI agents. AI-authored
 
 ### 22.1) Treat AI commit messages as claims, not facts
 - Commit messages starting with "fix:", "refactor:", "chore:" written by an AI agent describe what the AI *believed* it was doing — not necessarily what actually happened or what was correct.
-- Example of a false AI commit message in this repo:
-  > `6a4af6b — "Next.js 16 treats proxy.ts as the middleware entry point and errors when both middleware.ts and proxy.ts coexist"`
-  This was factually wrong. Next.js has no `proxy.ts` concept. The AI hallucinated the framework behaviour.
+- Example from this repo — a restore commit (598506d) incorrectly called the original deletion a hallucination:
+  > `598506d — "fix(critical): restore middleware.ts — locale routing + auth guard broken"`
+  This was wrong. The deletion (6a4af6b) was correct for Next.js 16. The restore broke the build.
+  Lesson: verify the actual framework behaviour before "fixing" a previous AI decision.
 
 ### 22.2) Verify framework behaviour claims in commit messages
 If a commit message makes a claim about how a framework works (e.g. "Next.js 16 does X"), do not accept it as true. Verify against:
@@ -453,11 +454,17 @@ If you see a commit that fixed a perceived problem by deleting or removing somet
 **Co-Authored-By: Claude** in the commit trailer = AI wrote or heavily influenced this commit.
 This does NOT mean the commit is wrong — but it means framework behaviour claims need independent verification.
 
-### 22.5) Restoration pattern = "do not delete again"
+### 22.5) Restoration pattern — investigate before acting
 If `git log --all -- <file>` shows: `delete → restore → delete → restore`
-This file has a known deletion-restoration cycle. **Never delete it again without explicit user instruction.**
-Files with this pattern in this repo:
-- `marketplace/middleware.ts` (deleted in 9f73b6c, restored in ab60954, deleted in 6a4af6b, restored in 598506d)
+**Do not assume the deletion was wrong.** The cycle may mean both sides were wrong at different times.
+Before restoring a deleted file:
+1. Read the delete commit message AND the restore commit message
+2. Reproduce the actual error that each commit claimed to fix
+3. Check the Vercel / CI build logs for the real error, not just commit messages
+
+Known cycle in this repo:
+- `marketplace/middleware.ts`: deleted (9f73b6c), restored (ab60954), deleted (6a4af6b correct for Next.js 16), restored (598506d — incorrect, broke build), deleted (final correct state)
+- **Conclusion**: `middleware.ts` must NOT exist in a Next.js 16 project that has `proxy.ts`
 
 
 
