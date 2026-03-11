@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiNotFound } from '@/lib/api/error-response';
 
 // DELETE /api/notifications/[id]
 // Deletes a single notification belonging to the current user.
@@ -15,7 +16,7 @@ async function deleteHandler(
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const { id } = await params;
@@ -28,8 +29,8 @@ async function deleteHandler(
     .eq('id', id)
     .eq('user_id', user.id);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  if (count === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (error) return apiError(error.message, 400);
+  if (count === 0) return apiNotFound();
 
   return NextResponse.json({ deleted: id });
 }

@@ -3,6 +3,7 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { canQuote, getUserRoles } from '@/lib/auth/rbac';
 import { upsertPortfolioSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden } from '@/lib/api/error-response';
 
 export async function GET(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const profileId = request.nextUrl.searchParams.get('profile_id') ?? user.id;
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
     .limit(50);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return apiError(error.message, 400);
   }
 
   return NextResponse.json({ items: data ?? [] }, { status: 200 });
