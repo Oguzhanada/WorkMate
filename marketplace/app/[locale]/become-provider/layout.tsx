@@ -1,13 +1,17 @@
 import FoundingProBanner from '@/components/home/FoundingProBanner';
 
-export default function BecomeProviderLayout({
+export default async function BecomeProviderLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: Promise<{locale: string}>;
 }) {
+  const {locale} = await params;
+
   return (
     <>
-      <FoundingProBanner />
+      <FoundingProBanner locale={locale} />
       {children}
     </>
   );

@@ -301,7 +301,7 @@ export default function FoundingProPage() {
                 {slotsRemaining === 0
                   ? 'All slots claimed'
                   : `${slotsRemaining} slot${slotsRemaining === 1 ? '' : 's'} remaining`}
-                {slotsRemaining > 0 && slotsRemaining <= 20 && ' — claim yours now'}
+                {slotsRemaining > 0 && slotsRemaining <= 20 && ' — limited availability'}
               </span>
             </motion.div>
           )}

@@ -35,10 +35,10 @@ export default function FeaturedProviders() {
       <div className="mx-auto max-w-7xl">
         <div className="mb-9 text-center">
           <h2 className="text-[clamp(2rem,4.3vw,3.4rem)] font-extrabold" style={{ color: 'var(--color-text-primary)', letterSpacing: '-0.03em' }}>
-            Top-Rated Professionals
+            Featured Providers
           </h2>
           <p className="mx-auto mt-3 max-w-3xl text-[clamp(1rem,2vw,1.35rem)]" style={{ color: 'var(--color-text-secondary)' }}>
-            Meet some of our most trusted and highly-rated service providers.
+            Browse verified service providers on WorkMate.
           </p>
         </div>
 

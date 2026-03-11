@@ -18,7 +18,7 @@ const counties = [
 const trustBadges = [
   { icon: MapPin, label: '26 Counties' },
   { icon: CreditCard, label: 'Stripe Secure Payments' },
-  { icon: ShieldCheck, label: 'Garda Vetted Pros' },
+  { icon: ShieldCheck, label: 'Garda Vetting Available' },
   { icon: UserCheck, label: 'Admin Verified' },
 ];
 
@@ -164,7 +164,7 @@ export default function HeroSection() {
           }}
         >
           Verified tradespeople across all 26 counties. Post a job, get offers within hours,
-          pay securely through Stripe — only when you&apos;re satisfied.
+          and pay securely through Stripe — only when the job is done.
         </motion.p>
 
         {/* Search bar */}

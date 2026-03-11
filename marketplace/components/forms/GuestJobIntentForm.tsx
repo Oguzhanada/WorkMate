@@ -1,15 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { JOB_BUDGET_OPTIONS, JOB_SCOPE_OPTIONS, JOB_TITLE_OPTIONS, JOB_URGENCY_OPTIONS } from '@/lib/data/budgets';
+import { JOB_BUDGET_OPTIONS, JOB_SCOPE_OPTIONS, JOB_URGENCY_OPTIONS } from '@/lib/data/budgets';
 import { useCategoriesWithFallback, type Category } from '@/lib/hooks/useCategoriesWithFallback';
 import EircodeAddressForm, { type Address } from './EircodeAddressForm';
 import InfoTooltip from '@/components/ui/InfoTooltip';
 import Button from '@/components/ui/Button';
 import styles from './forms.module.css';
-
-// Keep JOB_TITLE_OPTIONS import for backward compat — not used in this form
-void JOB_TITLE_OPTIONS;
 
 const STEP_LABELS = ['Title and details', 'Location and budget', 'Email confirmation'] as const;
 
@@ -166,7 +163,7 @@ export default function GuestJobIntentForm() {
     }
 
     setIntentId(payload.intent_id);
-    setSuccess('Your request was saved. In test mode, email verification is bypassed; continue with your account to publish the listing.');
+    setSuccess('Your request was saved. Create an account or sign in to publish your listing.');
   };
 
   return (
@@ -174,9 +171,11 @@ export default function GuestJobIntentForm() {
       <p className={styles.step}>Guest Request Flow - Step {step}/3</p>
       {error ? <p className={`${styles.feedback} ${styles.error}`}>{error}</p> : null}
       {success ? <p className={`${styles.feedback} ${styles.ok}`}>{success}</p> : null}
-      <p className={styles.muted}>
-        PROD note: Email verification will be required before publishing listings in production.
-      </p>
+      {process.env.NODE_ENV === 'development' && (
+        <p className={styles.muted}>
+          DEV: Email verification will be required before publishing listings in production.
+        </p>
+      )}
       <div className={styles.wizardLayout}>
         <aside className={styles.wizardSidebar}>
           <h3 className={styles.wizardSidebarTitle}>Post a task</h3>

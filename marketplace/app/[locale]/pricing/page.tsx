@@ -386,9 +386,9 @@ export default async function PricingPage({
                 <div className="mt-2 space-y-1.5">
                   {[
                     { name: 'WorkMate', fee: '5%', highlight: true },
-                    { name: 'TaskRabbit', fee: '15%', highlight: false },
-                    { name: 'Bark', fee: '€2-€15 per lead (no job guarantee)', highlight: false },
-                    { name: 'MyBuilder', fee: '8-12% + subscription', highlight: false },
+                    { name: 'Commission-based platforms', fee: '15% typical', highlight: false },
+                    { name: 'Lead-based platforms', fee: '€2-€15 per lead', highlight: false },
+                    { name: 'Subscription platforms', fee: '8-12% + monthly fee', highlight: false },
                   ].map((c) => (
                     <div key={c.name} className="flex items-center justify-between text-sm">
                       <span style={{ color: c.highlight ? 'var(--wm-primary-dark)' : 'var(--wm-muted)', fontWeight: c.highlight ? 700 : 400 }}>
@@ -462,7 +462,7 @@ export default async function PricingPage({
                 <span className="text-2xl font-extrabold" style={{ color: 'var(--wm-primary-dark)', fontFamily: 'var(--wm-font-display)' }}>1.5%</span>
                 <span className="ml-1 text-sm" style={{ color: 'var(--wm-muted)' }}>Pro & Pro+</span>
                 <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--wm-muted)' }}>
-                  On a €250 job, we deduct €3.75 — you receive €246.25. Save €45/year on average.
+                  On a €250 job, we deduct €3.75 — you receive €246.25. Potential savings grow with every job.
                 </p>
               </div>
               <div>
