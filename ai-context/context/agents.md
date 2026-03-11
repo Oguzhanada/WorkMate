@@ -275,6 +275,9 @@ DR-XXX | Date | Author | Decision changed | Reason | Approved by
 | FD-23 | AI agents MUST work on feature branches — NEVER commit directly to `main` | Session 27 — main protection, user-only merge |
 | FD-24 | AI agents MUST NOT create completion/audit/task report files (`*REPORT*.md`, `*COMPLETION*.md`, `*GUIDE*.md` at repo root or `docs/`) — only architectural/operational docs allowed | Session 28 — anti-doc-bloat, keep repo clean |
 | FD-25 | New `.claude/skills/` MUST be whitelisted in `.gitignore` before commit — unwhitelisted skills are silently ignored by git | Session 28 — skill creation requires gitignore update |
+| FD-26 | `next/image` for all static images — no raw `<img>` except blob/data URLs | Session 34 — performance + LCP |
+| FD-27 | `lib/api/error-response.ts` helpers in all API routes — no raw `NextResponse.json` for errors | Session 35 — consistent error shape |
+| FD-28 | **`marketplace/middleware.ts` MUST NEVER be deleted.** It re-exports from `proxy.ts` (`export { proxy as middleware, config } from './proxy'`). Without it Next.js runs zero middleware — locale routing breaks, auth guard stops, ALL dashboard pages error out. This has been deleted twice (9f73b6c, 6a4af6b). Do not delete under any circumstances. | Session 37 — third restoration after two accidental deletions |
 
 **Decision Records (changes to frozen decisions):**
 _(none yet — first change must be documented here before implementation)_
