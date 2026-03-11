@@ -13,6 +13,7 @@ import {
   Shield,
   Star,
 } from 'lucide-react';
+import Image from 'next/image';
 import type { OfferRanking } from '@/lib/types/airtasker';
 import ComplianceBadge from '@/components/ui/ComplianceBadge';
 import OfferCountdownBadge from './OfferCountdownBadge';
@@ -164,8 +165,7 @@ export default function OfferCard({
       <div className={styles.main}>
         <button type="button" className={styles.avatar} onClick={() => onViewProfile(offer.provider.id)}>
           {offer.provider.avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={offer.provider.avatarUrl} alt={offer.provider.businessName} className={styles.avatarImage} />
+            <Image src={offer.provider.avatarUrl} alt={offer.provider.businessName} width={48} height={48} className={styles.avatarImage} />
           ) : (
             <span>{getInitials(offer.provider.businessName)}</span>
           )}

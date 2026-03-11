@@ -1,5 +1,6 @@
 "use client";
 
+import Image from 'next/image';
 import {useEffect, useRef, useState} from 'react';
 import {useRouter} from 'next/navigation';
 
@@ -105,7 +106,7 @@ export default function ProfileAvatarPanel({
       {compact || embedded ? null : <h2>Profile photo</h2>}
       <div className={styles.row}>
         {avatarUrl ? (
-          <img src={avatarUrl} alt="Profile avatar" className={styles.avatar} />
+          <Image src={avatarUrl} alt="Profile avatar" width={96} height={96} className={styles.avatar} />
         ) : (
           <div className={styles.fallback}>{initials}</div>
         )}

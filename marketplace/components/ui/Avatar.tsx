@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 type AvatarProps = {
   name?: string;
   src?: string;
@@ -11,6 +13,8 @@ const sizeMap = {
   lg: 'h-14 w-14 text-base',
 };
 
+const sizePx = { sm: 32, md: 40, lg: 56 };
+
 function initials(name?: string) {
   if (!name) return 'WM';
   const parts = name.trim().split(/\s+/);
@@ -19,7 +23,15 @@ function initials(name?: string) {
 
 export default function Avatar({ name, src, size = 'md', className = '' }: AvatarProps) {
   if (src) {
-    return <img src={src} alt={name || 'Avatar'} className={`rounded-full object-cover ${sizeMap[size]} ${className}`} />;
+    return (
+      <Image
+        src={src}
+        alt={name || 'Avatar'}
+        width={sizePx[size]}
+        height={sizePx[size]}
+        className={`rounded-full object-cover ${sizeMap[size]} ${className}`}
+      />
+    );
   }
 
   return (

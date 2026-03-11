@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { BadgeCheck, MapPin, Star } from 'lucide-react';
 import { useMemo } from 'react';
@@ -50,7 +51,9 @@ export default function FeaturedProviders() {
                 : fallbackImages[index % fallbackImages.length];
             return (
               <article key={provider.id} className="overflow-hidden rounded-[22px] border border-black/5 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.1)]">
-                <img src={image} alt={provider.full_name} className="h-[300px] w-full object-cover" />
+                <div className="relative h-[300px] w-full">
+                  <Image src={image} alt={provider.full_name} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 33vw" />
+                </div>
                 <div className="space-y-3 p-6">
                   <div>
                     <h3 className="flex items-center gap-2 text-3xl font-extrabold text-[var(--wm-navy)]">

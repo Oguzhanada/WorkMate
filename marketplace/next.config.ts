@@ -42,6 +42,14 @@ const nextConfig = {
         protocol: 'https' as const,
         hostname: 'images.unsplash.com',
       },
+      {
+        protocol: 'https' as const,
+        hostname: '*.r2.dev',
+      },
+      {
+        protocol: 'https' as const,
+        hostname: '*.cloudflarestorage.com',
+      },
     ],
   },
   async headers() {

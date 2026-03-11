@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import styles from '@/components/dashboard/dashboard.module.css';
 
@@ -118,8 +119,12 @@ export default function ProPortfolioPanel() {
                 : 'Only customers I applied to'}
             </p>
             <div className={styles.grid2}>
-              <img src={item.before_image_url} alt="Before" style={{ width: '100%', borderRadius: 10 }} />
-              <img src={item.after_image_url} alt="After" style={{ width: '100%', borderRadius: 10 }} />
+              <div className="relative aspect-square w-full overflow-hidden" style={{ borderRadius: 10 }}>
+                <Image src={item.before_image_url} alt="Before" fill className="object-cover" sizes="(max-width: 768px) 50vw, 300px" />
+              </div>
+              <div className="relative aspect-square w-full overflow-hidden" style={{ borderRadius: 10 }}>
+                <Image src={item.after_image_url} alt="After" fill className="object-cover" sizes="(max-width: 768px) 50vw, 300px" />
+              </div>
             </div>
             {item.experience_note ? <p className={styles.meta}>Experience note: {item.experience_note}</p> : null}
             <div className={styles.buttons}>

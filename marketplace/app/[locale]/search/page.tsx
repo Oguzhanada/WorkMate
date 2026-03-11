@@ -1,5 +1,6 @@
 "use client";
 
+import Image from 'next/image';
 import Link from 'next/link';
 import {usePathname, useRouter, useSearchParams} from 'next/navigation';
 import {FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -438,7 +439,7 @@ export default function SearchPage() {
                           whileHover={prefersReducedMotion ? undefined : {y: -4}}
                           viewport={{once: true, amount: 0.2}}
                         >
-                          <img src={service.heroImage} alt={localizedServiceName(service.slug)} />
+                          <div className="relative h-40 w-full overflow-hidden"><Image src={service.heroImage} alt={localizedServiceName(service.slug)} fill className="object-cover" sizes="(max-width: 768px) 100vw, 25vw" /></div>
                           <div className={pageStyles.cardBody}>
                             <h3>{localizedServiceName(service.slug)}</h3>
                             <p className={pageStyles.meta}>{service.city}</p>
@@ -462,7 +463,7 @@ export default function SearchPage() {
                           whileHover={prefersReducedMotion ? undefined : {y: -4}}
                           viewport={{once: true, amount: 0.2}}
                         >
-                          <img src={pro.image} alt={pro.name} />
+                          <div className="relative h-40 w-full overflow-hidden"><Image src={pro.image} alt={pro.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 25vw" /></div>
                           <div className={pageStyles.cardBody}>
                             <h3>{pro.name}</h3>
                             <p className={pageStyles.meta}>
@@ -492,7 +493,7 @@ export default function SearchPage() {
                   {mode === 'services'
                     ? matchedPros.slice(0, 6).map((pro) => (
                         <article className={`${pageStyles.resultCard} ${pageStyles.secondaryCard}`} key={pro.id}>
-                          <img src={pro.image} alt={pro.name} />
+                          <div className="relative h-40 w-full overflow-hidden"><Image src={pro.image} alt={pro.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 25vw" /></div>
                           <div className={pageStyles.cardBody}>
                             <h3>{pro.name}</h3>
                             <p className={pageStyles.meta}>
@@ -512,7 +513,7 @@ export default function SearchPage() {
                       ))
                     : matchedServices.slice(0, 6).map((service) => (
                         <article className={`${pageStyles.resultCard} ${pageStyles.secondaryCard}`} key={service.slug}>
-                          <img src={service.heroImage} alt={localizedServiceName(service.slug)} />
+                          <div className="relative h-40 w-full overflow-hidden"><Image src={service.heroImage} alt={localizedServiceName(service.slug)} fill className="object-cover" sizes="(max-width: 768px) 100vw, 25vw" /></div>
                           <div className={pageStyles.cardBody}>
                             <h3>{localizedServiceName(service.slug)}</h3>
                             <p className={pageStyles.meta}>{service.city}</p>

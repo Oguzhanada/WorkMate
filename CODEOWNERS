@@ -1,0 +1,27 @@
+# CODEOWNERS — defines who reviews changes in sensitive areas
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default: all changes require maintainer review
+* @Oguzhanada
+
+# Payment-critical paths
+marketplace/app/api/webhooks/ @Oguzhanada
+marketplace/app/api/offers/ @Oguzhanada
+marketplace/lib/stripe/ @Oguzhanada
+
+# Auth and security
+marketplace/lib/auth/ @Oguzhanada
+marketplace/lib/rate-limit/ @Oguzhanada
+marketplace/middleware.ts @Oguzhanada
+
+# Database migrations — always require review
+marketplace/migrations/ @Oguzhanada
+
+# Compliance and GDPR
+marketplace/app/api/admin/gdpr/ @Oguzhanada
+docs/ROPA.md @Oguzhanada
+
+# CI/CD changes
+.github/ @Oguzhanada
+marketplace/next.config.ts @Oguzhanada
+marketplace/vercel.json @Oguzhanada

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { isValidLocale } from '@/lib/i18n';
 import { getTranslations } from 'next-intl/server';
@@ -77,7 +78,9 @@ export default async function HowItWorksPage({
             {index % 2 === 1 ? (
               <>
                 <div className={styles.visual}>
-                  <img src={stepVisuals[index].image} alt={step.title} />
+                  <div className="relative h-64 w-full overflow-hidden rounded-2xl">
+                    <Image src={stepVisuals[index].image} alt={step.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
+                  </div>
                   <span className={styles.badge}>{stepVisuals[index].badge}</span>
                 </div>
                 <div className={styles.stepText}>
@@ -96,7 +99,9 @@ export default async function HowItWorksPage({
                   <div className={styles.tip}>{stepVisuals[index].tip}</div>
                 </div>
                 <div className={styles.visual}>
-                  <img src={stepVisuals[index].image} alt={step.title} />
+                  <div className="relative h-64 w-full overflow-hidden rounded-2xl">
+                    <Image src={stepVisuals[index].image} alt={step.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
+                  </div>
                   <span className={styles.badge}>{stepVisuals[index].badge}</span>
                 </div>
               </>

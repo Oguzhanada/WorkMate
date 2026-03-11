@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { MessageSquareQuote } from 'lucide-react';
@@ -206,9 +207,11 @@ export default async function PublicProfilePage({ params }: { params: Params }) 
           <div className="flex flex-col items-center gap-6 px-8 py-10 md:flex-row md:items-start">
             {/* Avatar */}
             {profile.avatar_url ? (
-              <img
+              <Image
                 src={profile.avatar_url}
                 alt={`${providerName} profile photo`}
+                width={112}
+                height={112}
                 className="h-28 w-28 rounded-full object-cover"
                 style={{
                   border: '4px solid rgba(var(--wm-primary-rgb), 0.7)',
@@ -439,8 +442,8 @@ export default async function PublicProfilePage({ params }: { params: Params }) 
                   }}
                 >
                   <div className="grid grid-cols-2 gap-0.5">
-                    <div className="relative">
-                      <img src={item.before_image_url} alt="Before" className="aspect-square w-full object-cover" />
+                    <div className="relative aspect-square">
+                      <Image src={item.before_image_url} alt="Before" fill className="object-cover" sizes="(max-width: 768px) 50vw, 300px" />
                       <span
                         className="absolute bottom-1 left-1 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase"
                         style={{ background: 'rgba(15,23,42,0.7)', color: '#fff' }}
@@ -448,8 +451,8 @@ export default async function PublicProfilePage({ params }: { params: Params }) 
                         Before
                       </span>
                     </div>
-                    <div className="relative">
-                      <img src={item.after_image_url} alt="After" className="aspect-square w-full object-cover" />
+                    <div className="relative aspect-square">
+                      <Image src={item.after_image_url} alt="After" fill className="object-cover" sizes="(max-width: 768px) 50vw, 300px" />
                       <span
                         className="absolute bottom-1 left-1 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase"
                         style={{ background: 'rgba(var(--wm-primary-rgb), 0.8)', color: '#fff' }}

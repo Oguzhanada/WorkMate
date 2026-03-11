@@ -1,5 +1,6 @@
 "use client";
 
+import Image from 'next/image';
 import Link from 'next/link';
 import {useMemo, useState} from 'react';
 import {useLocale, useTranslations} from 'next-intl';
@@ -86,7 +87,7 @@ export default function ServiceDetailClient({slug}: {slug: string}) {
             <div className={styles.proList}>
               {filteredPros.slice(0, 8).map((pro) => (
                 <article className={styles.proCard} key={pro.id}>
-                  <img src={pro.image} alt={pro.name} />
+                  <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-full"><Image src={pro.image} alt={pro.name} fill className="object-cover" sizes="96px" /></div>
                   <div>
                     <h3>{pro.name}</h3>
                     <p className={styles.muted}>
