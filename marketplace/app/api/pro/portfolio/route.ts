@@ -41,27 +41,24 @@ async function postHandler(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const roles = await getUserRoles(supabase, user.id);
   if (!canQuote(roles)) {
-    return NextResponse.json({ error: 'Only providers can manage portfolio' }, { status: 403 });
+    return apiForbidden('Only providers can manage portfolio');
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = upsertPortfolioSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const body = parsed.data;
@@ -86,7 +83,7 @@ async function postHandler(request: NextRequest) {
       .select('*')
       .single();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    if (error) return apiError(error.message, 400);
     return NextResponse.json({ item: data }, { status: 200 });
   }
 
@@ -105,7 +102,7 @@ async function postHandler(request: NextRequest) {
     .select('*')
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) return apiError(error.message, 400);
   return NextResponse.json({ item: data }, { status: 201 });
 }
 
@@ -117,12 +114,12 @@ async function deleteHandler(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const id = request.nextUrl.searchParams.get('id');
   if (!id) {
-    return NextResponse.json({ error: 'id is required' }, { status: 400 });
+    return apiError('id is required', 400);
   }
 
   const { error } = await supabase
@@ -131,7 +128,7 @@ async function deleteHandler(request: NextRequest) {
     .eq('id', id)
     .eq('provider_id', user.id);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) return apiError(error.message, 400);
   return NextResponse.json({ ok: true }, { status: 200 });
 }
 
