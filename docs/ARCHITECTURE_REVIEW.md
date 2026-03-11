@@ -1,14 +1,14 @@
 # WorkMate — Repository Architecture & DevOps Review
 
-**Date:** 2026-03-10
+**Date:** 2026-03-11 (updated session 36)
 **Scope:** Full codebase analysis — structure, patterns, CI/CD, scalability
-**Evidence base:** 252 TSX/TS files, 105 API routes, 153 components, 74 migrations, 6 CI workflows
+**Evidence base:** 252 TSX/TS files, 105 API routes, 153 components, 78 migrations, 6 CI workflows
 
 ---
 
 ## 1) Executive Summary
 
-### Overall Repository Health Score: **7.4 / 10**
+### Overall Repository Health Score: **7.8 / 10**
 
 WorkMate is a well-structured, production-approaching Next.js 16 application with strong foundations in validation, authentication, and operational documentation. The codebase demonstrates mature patterns (centralized Zod schemas, per-context Supabase clients, HMAC webhooks, live-service guards) that many production apps lack. The primary risks are organizational — scattered constants, thin type/hook layers, inconsistent error handling — rather than architectural. These are low-risk, high-reward fixes.
 
@@ -26,8 +26,8 @@ WorkMate is a well-structured, production-approaching Next.js 16 application wit
 
 | # | Risk | Impact | Severity |
 |---|------|--------|----------|
-| 1 | **No `next/image` usage anywhere** | No AVIF/WebP optimization, no lazy loading, no CLS protection — raw `<img>` tags throughout | P1 |
-| 2 | **~55 API routes use raw `NextResponse.json` instead of centralized error helpers** — `lib/api/error-response.ts` added (session 24), migration ongoing | Inconsistent error schema for clients, harder monitoring/alerting | P1 |
+| 1 | ~~**No `next/image` usage anywhere**~~ — **RESOLVED** (session 34): All static `<img>` tags migrated; `<img>` allowed only for blob/data URLs | ~~No AVIF/WebP optimization, no lazy loading, no CLS protection~~ | ~~P1~~ |
+| 2 | **~15 API routes still use raw `NextResponse.json`** — `lib/api/error-response.ts` helpers in place (session 24), 96/111 routes migrated (session 35) | Inconsistent error schema for remaining routes | P2 |
 | 3 | ~~**No pre-commit hooks (Husky/lint-staged)**~~ — **RESOLVED** (session 27): Husky + lint-staged active, ESLint on `*.{ts,tsx}` | ~~All quality gates only run in CI~~ | ~~P1~~ |
 | 4 | ~~**`lib/` root has 11 orphaned files**~~ — **RESOLVED** (session 27): Files moved to `lib/ireland/`, `lib/data/`, `lib/stripe/` | ~~Growing cognitive load~~ | ~~P2~~ |
 | 5 | **TypeScript `strict: false`** | Implicit `any` allowed — type safety gap that grows with codebase size | P2 |
@@ -45,7 +45,7 @@ WorkMate is a well-structured, production-approaching Next.js 16 application wit
 | `page.tsx` | 54 | Comprehensive |
 | `layout.tsx` | 18 | Strategic (auth, dashboard, admin, multi-step flows) |
 | `loading.tsx` | 54 | **Perfect** — 1:1 with pages |
-| `error.tsx` | 8 | Good — covers dashboard, jobs, profile, admin |
+| `error.tsx` | 56 | **Complete** — 100% coverage across all `[locale]/` pages (session 36) |
 | `not-found.tsx` | 2 | Root + locale level |
 | `route.ts` (API) | 105 | Well-organized by domain |
 
@@ -59,7 +59,7 @@ WorkMate is a well-structured, production-approaching Next.js 16 application wit
 - **No route groups** — Auth pages (`login`, `sign-up`, `forgot-password`, `reset-password`) are flat siblings rather than grouped under `(auth)`. Static/legal pages (`about`, `terms`, `privacy`, `faq`, etc.) similarly ungrouped.
 - **Inconsistent URL parameter naming** — `[jobId]` vs `[id]` vs `[profileId]` across routes. API uses `[id]` for disputes/notifications but `[jobId]` for jobs.
 - **Duplicate privacy pages** — Both `/privacy` and `/privacy-policy` exist under `[locale]/`.
-- **`checkout/` lives outside `[locale]/`** — `app/checkout/success/` and `app/checkout/cancel/` bypass locale wrapping.
+- ~~**`checkout/` lives outside `[locale]/`**~~ — **RESOLVED** (session 35): `app/[locale]/checkout/success` and `cancel` created; old pages redirect to new locale-wrapped routes.
 
 ### 2.2 Reusability Boundaries
 
@@ -101,10 +101,7 @@ WorkMate is a well-structured, production-approaching Next.js 16 application wit
 | Types (`lib/types/`) | **Weak** — only 1 file (`airtasker.ts`) |
 | Constants (`lib/constants/`) | **Weak** — only `job.ts`, while 6+ constant files sit at `lib/` root |
 
-**11 orphaned root-level files in `lib/`:**
-`animations.ts`, `disputes.ts`, `eircode.ts`, `i18n.ts`, `ireland-coordinates.ts`, `ireland-locations.ts`, `live-services.ts`, `marketplace-data.ts`, `provider-documents.ts`, `service-taxonomy.ts`, `stripe.ts`
-
-These lack a home directory and increase cognitive load. Most should move to `lib/constants/`, `lib/data/`, or domain-specific subdirectories.
+**`lib/` root files** — reduced from 11 orphans (session 27: moved to `lib/ireland/`, `lib/data/`, `lib/stripe/`). Remaining root files: `live-services.ts`, `i18n.ts`, `animations.ts` — intentionally at root as cross-cutting concerns.
 
 ### 2.3 API Layer Quality
 
@@ -141,8 +138,8 @@ These lack a home directory and increase cognitive load. Most should move to `li
 **Scripts (`marketplace/scripts/`) — 9 files:**
 `preflight.mjs`, `health-check.mjs`, `check-english-only.mjs`, `check-pr-guardrails.ps1`, `pre-public-security-check.mjs`, `cleanup-non-admin.mjs`, `run-provider-customer-e2e-flow.mjs`, `test-provider-scheduling-api-flow.mjs`, `test-time-tracking-api-flow.mjs`
 
-**Docs (`docs/`) — 16 files:**
-Production launch, ROPA, DB runbook, 4 checkpoint files, strategy reports, user guide, branch recovery. Well-maintained operational documentation.
+**Docs (`docs/`) — 8 active files:**
+Production launch, ROPA, DB runbook, architecture review, project guide, user guide. Session checkpoints moved to `docs/archive/`; strategy reports moved to `docs/strategy/`.
 
 **Gaps:**
 - No `LICENSE` file at repo root
@@ -156,7 +153,7 @@ Production launch, ROPA, DB runbook, 4 checkpoint files, strategy reports, user 
 | Issue | Location | Type |
 |-------|----------|------|
 | Duplicate privacy pages | `app/[locale]/privacy/` + `app/[locale]/privacy-policy/` | Redundancy |
-| `checkout/` outside locale | `app/checkout/{success,cancel}/` | Misplacement |
+| ~~`checkout/` outside locale~~ | **RESOLVED** (session 35): `app/[locale]/checkout/{success,cancel}/` — old pages redirect | ~~Misplacement~~ |
 | Dashboard components doing cross-domain work | `dashboard/QuoteActions`, `dashboard/LeaveReviewForm`, `dashboard/JobMessagePanel` | Misplacement |
 | Ireland data files at lib root | `lib/ireland-coordinates.ts`, `lib/ireland-locations.ts`, `lib/eircode.ts` | Disorganization |
 | Constants scattered | `lib/marketplace-data.ts`, `lib/service-taxonomy.ts`, `lib/provider-documents.ts` in root | Disorganization |

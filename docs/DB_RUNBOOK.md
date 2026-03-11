@@ -2,7 +2,7 @@
 
 **Project:** WorkMate (Ireland-first services marketplace)
 **Database:** Supabase (Postgres) — `ejpnmcxzycxqfdbetydp.supabase.co`
-**Migrations:** `marketplace/migrations/` — 001–058 all applied. Next = **059**.
+**Migrations:** `marketplace/migrations/` — 001–078 all applied (078 on disk, apply to Supabase before next deploy). Next = **079**.
 
 ---
 

@@ -75,7 +75,7 @@ WorkMate/                         # Repository root
 │   │   ├── live-services.ts      # Master switch for paid external services
 │   │   └── ...                   # dashboard, jobs, ranking, pricing, etc.
 │   ├── supabase/
-│   │   ├── migrations/           # 001–072 (all applied)
+│   │   ├── migrations/           # 001–078 (all applied; 078 apply before next deploy)
 │   │   └── functions/            # 6 edge functions (cron jobs)
 │   ├── tests/
 │   │   ├── unit/                 # Vitest unit tests
@@ -143,9 +143,9 @@ WorkMate/                         # Repository root
 `profiles`, `user_roles`, `jobs`, `quotes`, `reviews`, `payments`, `pro_documents`, `pro_services`, `pro_service_areas`, `notifications`, `job_messages`, `disputes`, `categories`, `addresses`, `task_alerts`, `dashboard_widgets`, `funnel_events`, `job_contracts`, `provider_subscriptions`, `feature_flags`
 
 ### Migration Chain
-- Files: `marketplace/supabase/migrations/001_*.sql` through `072_*.sql`
-- All 72 migrations applied to production Supabase
-- Next migration number: **073**
+- Files: `marketplace/migrations/001_*.sql` through `078_*.sql`
+- All 78 migrations applied (078 is on disk — apply to Supabase before next deploy)
+- Next migration number: **079**
 - Rule: never rewrite old migrations — additive only
 
 ---
@@ -325,18 +325,6 @@ Button, Card, Badge, StatCard, PageHeader, Shell, EmptyState, Skeleton, Progress
 
 ---
 
-## Known Technical Debt
-
-1. **Rate limiter is in-memory** — resets on serverless cold start. Needs Redis/Vercel KV for distributed rate limiting across containers. See `lib/rate-limit/index.ts`.
-2. **No middleware.ts** — auth and locale routing handled in page components. Consider adding Next.js middleware for centralized auth checks.
-3. **Migration 045 overlap** — `045_api_keys.sql` was written but superseded by migration 060. Both exist but 060 is the active one.
-4. **Migration 021 collision** — Two files share prefix 021 (pro_documents_rls + user_roles_multi_role). Both applied successfully.
-5. **Dark mode** — CSS tokens lock to light theme even with `prefers-color-scheme: dark`. Intentional for now (light-first design).
-6. **Manual testing needed** — Safari, Firefox, and mobile responsive testing not yet complete.
-7. **Stripe MCP** — OAuth token may expire; only test mode operations are allowed via MCP.
-
----
-
 ## Key Documentation
 
 | Document                            | Path                                          |
@@ -344,7 +332,8 @@ Button, Card, Badge, StatCard, PageHeader, Shell, EmptyState, Skeleton, Progress
 | Production launch checklist         | `docs/PRODUCTION_LAUNCH.md`                   |
 | Database runbook                    | `docs/DB_RUNBOOK.md`                          |
 | GDPR Record of Processing          | `docs/ROPA.md`                                |
-| Architecture review                 | `docs/ARCHITECTURE_REVIEW.md`                 |
-| Latest checkpoint                   | `docs/CHECKPOINT_SESSION26_2026-03-10.md`     |
+| Architecture review + risks         | `docs/ARCHITECTURE_REVIEW.md`                 |
 | AI agent context                    | `ai-context/context/PROJECT_CONTEXT.md`       |
 | Compliance rules                    | `ai-context/context/compliance-rules.md`      |
+| Strategy reports                    | `docs/strategy/` (marketing, sales, GDPR, design, sustainability) |
+| Historical session checkpoints      | `docs/archive/` (sessions 4–26)               |

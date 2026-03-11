@@ -8,11 +8,22 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Error boundary coverage** — `ErrorBoundaryPage` reusable component (`components/ui/ErrorBoundaryPage.tsx`); 49 new `error.tsx` wrappers across all `app/[locale]/` pages — 100% coverage (56 total)
+- **Page transitions** — `components/layout/PageTransition.tsx` wraps all routed pages with Framer Motion `AnimatePresence`; 0.32 s enter / 0.18 s exit
+- **`JobStatusBadge`** — animated Framer Motion badge for all 9 job statuses with pulse dot for active states and shake animation for disputed
+- **Migration 078** — `marketplace/migrations/078_provider_search_indexes.sql`: 10 `CREATE INDEX CONCURRENTLY` indexes for profiles, jobs, quotes, reviews, notifications, funnel events, credit transactions, and webhook events
+- **Locale-wrapped checkout** — `app/[locale]/checkout/success` and `cancel` pages created; old non-locale pages redirect to new routes; Stripe checkout URLs updated
+- **`middleware.ts` restored** — missing since Feb 2026; re-added as thin re-export of `middleware/proxy.ts`; locale routing + auth guard restored
+- **`CHANGELOG.md`** — full project history v0.0.1→current created
 - TypeScript type-check CI workflow — runs `tsc --noEmit` on every PR and `main` push
 - Dependency review CI workflow — blocks high-severity CVEs and non-approved licenses on PRs
 - `CODEOWNERS` — required reviews for payment paths, auth, migrations, and CI/CD config
 - `next/image` migration — all `<img>` tags replaced with `next/image` across 9 components/pages
 - Cloudflare R2 remote patterns in `next.config.ts` for portfolio/avatar image delivery
+
+### Fixed
+- Navbar "Find Services" and "How It Works" wrapping to two lines — `whitespace-nowrap` on all nav links, `gap-5` spacing, `text-[14px]`; authenticated state collapsed Saved Searches and Messages to icon-only buttons
+- Error response migration — 96/111 API routes now use `lib/api/error-response.ts` helpers (was 16 in session 24)
 
 ---
 
