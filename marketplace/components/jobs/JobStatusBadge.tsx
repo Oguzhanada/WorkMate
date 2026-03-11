@@ -28,32 +28,6 @@ const STATUS_CONFIG: Record<
   expired:     { label: 'Expired',     color: 'var(--wm-muted)',        bg: 'var(--wm-surface)',       pulse: false },
 };
 
-const pulseVariants = {
-  animate: {
-    scale: [1, 1.06, 1],
-    opacity: [1, 0.75, 1],
-    transition: { duration: 2.2, repeat: Infinity, ease: 'easeInOut' },
-  },
-};
-
-const entranceVariants = {
-  hidden:  { scale: 0.85, opacity: 0 },
-  visible: {
-    scale: 1,
-    opacity: 1,
-    transition: { type: 'spring', stiffness: 400, damping: 25 },
-  },
-};
-
-const disputeShake = {
-  hidden:  { x: 0, opacity: 0 },
-  visible: {
-    x: [0, -5, 5, -4, 4, 0],
-    opacity: 1,
-    transition: { duration: 0.45, ease: 'easeInOut' },
-  },
-};
-
 type Props = {
   status: JobStatus;
   size?: 'sm' | 'md';
@@ -63,17 +37,24 @@ type Props = {
 export default function JobStatusBadge({ status, size = 'md', className = '' }: Props) {
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.draft;
   const isDisputed = status === 'disputed';
-  const entrance = isDisputed ? disputeShake : entranceVariants;
 
   const padding = size === 'sm' ? '2px 8px' : '3px 10px';
   const fontSize = size === 'sm' ? '0.7rem' : '0.75rem';
 
+  // Use simpler inline animation props to avoid Variants type conflicts
+  const initialScale = isDisputed ? { x: 0, opacity: 0 } : { scale: 0.85, opacity: 0 };
+  const animateProps = isDisputed
+    ? { x: [0, -5, 5, -4, 4, 0], opacity: 1 }
+    : { scale: 1, opacity: 1 };
+  const transitionProps = isDisputed
+    ? { duration: 0.45 }
+    : { type: 'spring' as const, stiffness: 400, damping: 25 };
+
   return (
     <motion.span
-      variants={entrance}
-      initial="hidden"
-      animate={cfg.pulse ? ['visible', 'animate'] : 'visible'}
-      {...(cfg.pulse ? { variants: { ...entrance, ...pulseVariants } } : {})}
+      initial={initialScale}
+      animate={animateProps}
+      transition={transitionProps}
       className={className}
       style={{
         display: 'inline-flex',
@@ -93,7 +74,7 @@ export default function JobStatusBadge({ status, size = 'md', className = '' }: 
       {cfg.pulse && (
         <motion.span
           animate={{ scale: [1, 1.5, 1], opacity: [1, 0.4, 1] }}
-          transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' as const }}
           style={{
             display: 'inline-block',
             width: 6,

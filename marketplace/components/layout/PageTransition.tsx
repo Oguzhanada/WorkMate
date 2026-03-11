@@ -1,20 +1,20 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, type Variants, motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
 
-const variants = {
+const variants: Variants = {
   hidden: { opacity: 0, y: 10 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.32, ease: 'easeOut' },
+    transition: { duration: 0.32, ease: 'easeOut' as const },
   },
   exit: {
     opacity: 0,
     y: -6,
-    transition: { duration: 0.18, ease: 'easeIn' },
+    transition: { duration: 0.18, ease: 'easeIn' as const },
   },
 };
 
