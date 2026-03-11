@@ -92,7 +92,8 @@ async function postHandler(request: NextRequest) {
     review_status: 'pending_review',
     // Job mode differentiation
     is_urgent: isQuickHire,
-    max_quotes: isQuickHire ? 5 : null,
+    // Quick Hire always caps at 5; unverified customers capped at 5 to encourage verification
+    max_quotes: isQuickHire ? 5 : (customerIsVerified ? null : 5),
     auto_close_on_accept: true,
   }).select('*').single();
 

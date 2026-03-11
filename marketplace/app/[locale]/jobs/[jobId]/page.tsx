@@ -109,6 +109,17 @@ export default async function JobDetailPage({ params }: Props) {
     redirect(`/${locale}/jobs`);
   }
 
+  // Check if the customer viewing their own job is verified (for Limited Visibility banner)
+  let customerIsVerified = true;
+  if (isCustomer) {
+    const { data: customerProfile } = await supabase
+      .from('profiles')
+      .select('id_verification_status')
+      .eq('id', user.id)
+      .maybeSingle();
+    customerIsVerified = customerProfile?.id_verification_status === 'approved';
+  }
+
   const otherUserName = isCustomer
     ? (proName ?? 'Provider')
     : ((job.customer as unknown as { full_name: string | null } | null)?.full_name ?? 'Customer');
@@ -241,6 +252,35 @@ export default async function JobDetailPage({ params }: Props) {
               appointmentAt={firstAppointment?.start_time ?? null}
             />
           </Card>
+        ) : null}
+
+        {isCustomer && !customerIsVerified && (job.status === 'open' || job.status === 'quoted') ? (
+          <div
+            role="alert"
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 12,
+              padding: '14px 18px',
+              borderRadius: 12,
+              background: 'color-mix(in srgb, var(--wm-amber-dark) 10%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--wm-amber-dark) 30%, transparent)',
+            }}
+          >
+            <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>⚡</span>
+            <div>
+              <p style={{ margin: 0, fontWeight: 600, fontSize: '0.9rem' }}>
+                Limited Visibility — fewer providers can see this listing
+              </p>
+              <p style={{ margin: '4px 0 10px', fontSize: '0.85rem', color: 'var(--wm-muted)' }}>
+                Verified customers receive up to 3× more offers.{' '}
+                <strong>Verify your identity</strong> to unlock full visibility and unlimited quotes.
+              </p>
+              <Button href={`/${locale}/dashboard/customer?tab=verification`} variant="primary" size="sm">
+                Verify my identity
+              </Button>
+            </div>
+          </div>
         ) : null}
 
         {isCustomer && (job.status === 'open' || job.status === 'quoted') ? (

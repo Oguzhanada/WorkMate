@@ -119,13 +119,6 @@ async function postHandler(request: NextRequest) {
     }
   }
 
-  if (!providerIsVerified && job.job_visibility_tier !== 'basic') {
-    return NextResponse.json(
-      { error: 'This lead is available after ID verification only.', upgrade_message: 'Verify your ID to unlock all lead tiers.' },
-      { status: 403 }
-    );
-  }
-
   if (!providerIsVerified) {
     const { data: areas } = await supabase
       .from('pro_service_areas')
