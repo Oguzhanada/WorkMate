@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { createMessageSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized } from '@/lib/api/error-response';
 
 export async function GET(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const visibility = request.nextUrl.searchParams.get('visibility') ?? 'public';
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
   const jobId = request.nextUrl.searchParams.get('job_id');
 
   if (!jobId) {
-    return NextResponse.json({ error: 'job_id is required' }, { status: 400 });
+    return apiError('job_id is required', 400);
   }
 
   let query = supabase
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await query;
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return apiError(error.message, 400);
   }
 
   const senderIds = Array.from(new Set((data ?? []).map((item) => item.sender_id)));
@@ -62,27 +63,24 @@ async function postHandler(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = createMessageSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const body = parsed.data;
   if (body.visibility === 'private' && !body.receiver_id) {
-    return NextResponse.json({ error: 'receiver_id is required for private messages' }, { status: 400 });
+    return apiError('receiver_id is required for private messages', 400);
   }
 
   const { data, error } = await supabase
@@ -99,7 +97,7 @@ async function postHandler(request: NextRequest) {
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return apiError(error.message, 400);
   }
 
   return NextResponse.json({ message: data }, { status: 201 });

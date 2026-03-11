@@ -3,6 +3,7 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getUserRoles } from '@/lib/auth/rbac';
 import { createJobTodoSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiServerError } from '@/lib/api/error-response';
 
 async function resolveJobAccess(
   supabase: Awaited<ReturnType<typeof getSupabaseRouteClient>>,
@@ -39,10 +40,10 @@ export async function GET(
   const supabase = await getSupabaseRouteClient();
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (authError || !user) return apiUnauthorized();
 
   const allowed = await resolveJobAccess(supabase, jobId, user.id);
-  if (!allowed) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (!allowed) return apiForbidden();
 
   const { data, error } = await supabase
     .from('job_todos')
@@ -55,7 +56,7 @@ export async function GET(
     .eq('job_id', jobId)
     .order('created_at', { ascending: true });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return apiServerError(error.message);
 
   return NextResponse.json({ todos: data ?? [] });
 }
@@ -68,19 +69,19 @@ async function postHandler(
   const supabase = await getSupabaseRouteClient();
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (authError || !user) return apiUnauthorized();
 
   const allowed = await resolveJobAccess(supabase, jobId, user.id);
-  if (!allowed) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (!allowed) return apiForbidden();
 
   let body: unknown;
   try { body = await request.json(); } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    return apiError('Invalid JSON', 400);
   }
 
   const parsed = createJobTodoSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Validation failed', details: parsed.error.flatten() }, { status: 400 });
+    return apiError('Validation failed', 400);
   }
 
   const { data: inserted, error: insertError } = await supabase
@@ -95,7 +96,7 @@ async function postHandler(
     .select('id, job_id, description, completed, due_date, created_at, created_by, assigned_to')
     .single();
 
-  if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
+  if (insertError) return apiServerError(insertError.message);
 
   return NextResponse.json({ todo: inserted }, { status: 201 });
 }
