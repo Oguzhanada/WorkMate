@@ -39,7 +39,7 @@ function getErrorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
-async function withTimeout(promise: Promise<unknown>, message: string, timeoutMs = REQUEST_TIMEOUT_MS): Promise<unknown> {
+async function withTimeout<T>(promise: PromiseLike<T>, message: string, timeoutMs = REQUEST_TIMEOUT_MS): Promise<T> {
   return Promise.race([
     promise,
     new Promise<never>((_, reject) => {
