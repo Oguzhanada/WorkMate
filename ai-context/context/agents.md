@@ -386,5 +386,78 @@ Before making any change, a new AI agent must read these files in order:
 6. `marketplace/lib/dashboard/widgets.ts` — widget system source of truth
 7. `marketplace/lib/i18n/locale-path.ts` — locale path helpers
 
+---
+
+## 21) File deletion protocol — MANDATORY before deleting any file
+
+Before deleting any file from this repository, the agent MUST complete all steps below.
+Skipping even one step is a protocol violation.
+
+### Step 1 — Read the file first
+- Open and read the file before forming any opinion about it.
+- A file is not a duplicate just because another file looks similar.
+
+### Step 2 — Verify the claim with evidence
+If you believe a file is unnecessary, duplicate, or conflicting, you MUST find concrete evidence:
+- For framework behaviour claims (e.g. "Next.js uses X instead of Y"): cite the official docs URL or the relevant source code. If you cannot cite it, the claim is unverified — do not act on it.
+- For "duplicate file" claims: read BOTH files. List what each one does. Confirm they are 100% identical in purpose before deleting either.
+- For "this causes a conflict" claims: reproduce the actual error. A build warning or assumed conflict is not sufficient.
+
+### Step 3 — Check the frozen decisions table (section 19)
+If the file appears in the FD table, stop immediately. Frozen files cannot be deleted without a Decision Record approved by the user.
+
+### Step 4 — Check git history for prior deletions
+Run: `git log --all --oneline -- <filepath>`
+If the file was previously deleted AND restored, this is a strong signal that the deletion was wrong the first time. Read the restore commit message. Do not repeat the same deletion without user approval.
+
+### Step 5 — Ask the user before deleting
+State:
+- What the file does
+- Why you believe it should be deleted
+- What concrete evidence you have (cite it)
+- What will break if the deletion is wrong
+
+**NEVER delete silently as part of a larger commit without the steps above.**
+
+---
+
+## 22) Git log reading standard — how to interpret commit history
+
+Git commit messages in this repo may have been written by AI agents. AI-authored commit messages CAN be factually wrong. Apply the following rules when reading git history.
+
+### 22.1) Treat AI commit messages as claims, not facts
+- Commit messages starting with "fix:", "refactor:", "chore:" written by an AI agent describe what the AI *believed* it was doing — not necessarily what actually happened or what was correct.
+- Example of a false AI commit message in this repo:
+  > `6a4af6b — "Next.js 16 treats proxy.ts as the middleware entry point and errors when both middleware.ts and proxy.ts coexist"`
+  This was factually wrong. Next.js has no `proxy.ts` concept. The AI hallucinated the framework behaviour.
+
+### 22.2) Verify framework behaviour claims in commit messages
+If a commit message makes a claim about how a framework works (e.g. "Next.js 16 does X"), do not accept it as true. Verify against:
+- Official Next.js / next-intl / Supabase docs
+- The actual source code
+If you cannot verify, treat the claim as unverified and do not base new actions on it.
+
+### 22.3) A commit that "fixes" something may have introduced a regression
+If you see a commit that fixed a perceived problem by deleting or removing something, check:
+1. Was the "problem" ever confirmed with a real error?
+2. Is there a subsequent commit that restored what was deleted?
+3. Does the MEMORY.md or agents.md mention this as a known bad pattern?
+
+### 22.4) Reading a git log — what each field means
+```
+<hash>  <type>(<scope>): <description>
+         └── AI-authored? Check Co-Authored-By trailer.
+             If yes, apply scepticism to framework claims.
+```
+
+**Co-Authored-By: Claude** in the commit trailer = AI wrote or heavily influenced this commit.
+This does NOT mean the commit is wrong — but it means framework behaviour claims need independent verification.
+
+### 22.5) Restoration pattern = "do not delete again"
+If `git log --all -- <file>` shows: `delete → restore → delete → restore`
+This file has a known deletion-restoration cycle. **Never delete it again without explicit user instruction.**
+Files with this pattern in this repo:
+- `marketplace/middleware.ts` (deleted in 9f73b6c, restored in ab60954, deleted in 6a4af6b, restored in 598506d)
+
 
 
