@@ -223,16 +223,13 @@ export default function ProviderCard({ provider, locale, isHighlighted, onHover 
           borderTop: '1px solid var(--wm-border)',
         }}
       >
-        <span
-          style={{
-            fontSize: '13px',
-            color: 'var(--wm-primary-dark)',
-            fontWeight: 600,
-            fontFamily: 'var(--wm-font-sans)',
-          }}
+        <Button
+          href={`/${locale}/post-job?provider_id=${id}`}
+          variant="primary"
+          size="sm"
         >
           Get a quote
-        </span>
+        </Button>
         <Button
           href={`/${locale}/profile/public/${id}`}
           variant="outline"

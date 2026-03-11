@@ -164,6 +164,23 @@
   border-color: var(--wm-destructive);
 }
 
+.toggle {
+  border: 1px solid var(--wm-border);
+  background: var(--wm-surface);
+  color: var(--wm-navy);
+  border-radius: var(--wm-radius-sm);
+  padding: 9px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--wm-transition), background var(--wm-transition);
+}
+
+.toggle[aria-pressed='true'] {
+  background: var(--wm-primary-light);
+  border-color: rgba(var(--wm-primary-rgb), 0.4);
+  color: var(--wm-primary-dark);
+}
+
 .primary:disabled,
 .danger:disabled,
 .secondaryLink:disabled {

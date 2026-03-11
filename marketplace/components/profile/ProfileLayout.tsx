@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -27,8 +27,9 @@ type SidebarProps = {
 };
 
 type Props = SidebarProps & {
-  initialTab?: string;
-  children: (activeTab: string) => ReactNode;
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+  children: ReactNode;
 };
 
 /* ─── Tabs config ────────────────────────────────────────────── */
@@ -104,10 +105,10 @@ export default function ProfileLayout({
   joinedDate,
   jobsPosted,
   userId = '',
-  initialTab = 'profile',
+  activeTab,
+  onTabChange,
   children,
 }: Props) {
-  const [activeTab, setActiveTab] = useState(initialTab);
   const pathname = usePathname() || '/';
   const localeRoot = getLocaleRoot(pathname);
 
@@ -329,7 +330,7 @@ export default function ProfileLayout({
                   role="tab"
                   aria-selected={isActive}
                   aria-controls={`tabpanel-${tab.id}`}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => onTabChange(tab.id)}
                   className="relative flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all"
                   style={{
                     background: isActive
@@ -363,7 +364,7 @@ export default function ProfileLayout({
               exit="exit"
               transition={{ duration: 0.2, ease: 'easeOut' }}
             >
-              {children(activeTab)}
+              {children}
             </motion.div>
           </AnimatePresence>
         </div>

@@ -10,8 +10,7 @@ export const metadata: Metadata = {
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { hasAtLeastTwoNameParts } from '@/lib/validation/name';
 import { isValidIrishPhone } from '@/lib/ireland/phone';
-import ProfileLayout from '@/components/profile/ProfileLayout';
-import ProfileTabContent from '@/components/profile/ProfileTabContent';
+import ProfilePageShell from '@/components/profile/ProfilePageShell';
 
 export default async function ProfilePage({
   params,
@@ -251,7 +250,7 @@ export default async function ProfilePage({
       </div>
 
       {/* ── Profile layout with tabs ─────────────────────────────── */}
-      <ProfileLayout
+      <ProfilePageShell
         avatarUrl={profile?.avatar_url ?? ''}
         fullName={profile?.full_name ?? 'User'}
         email={user.email ?? '-'}
@@ -261,23 +260,15 @@ export default async function ProfilePage({
         jobsPosted={postedJobsCount ?? 0}
         userId={user.id}
         initialTab={initialTab}
-      >
-        {(activeTab: string) => (
-          <ProfileTabContent
-            activeTab={activeTab}
-            locale={locale}
-            userId={user.id}
-            userEmail={user.email ?? '-'}
-            hasProviderRole={hasProviderRole}
-            hasIdDocument={hasIdDocument}
-            hasInsuranceDocument={hasInsuranceDocument}
-            profile={profile}
-            address={address}
-            completionItems={completionItems}
-            query={query}
-          />
-        )}
-      </ProfileLayout>
+        locale={locale}
+        userEmail={user.email ?? '-'}
+        hasIdDocument={hasIdDocument}
+        hasInsuranceDocument={hasInsuranceDocument}
+        profile={profile}
+        address={address}
+        completionItems={completionItems}
+        query={query}
+      />
     </main>
   );
 }

@@ -241,26 +241,25 @@ export default function TaskAlertsPanel({ hideHeader = false }: { hideHeader?: b
           ))}
         </div>
 
-        <label className={styles.toggleRow}>
-          <input
-            type="checkbox"
-            checked={enabled}
-            onChange={(e) => setEnabled(e.target.checked)}
-          />
-          {' '}Alerts enabled
-        </label>
-
         {feedback ? <p className={styles.feedback}>{feedback}</p> : null}
 
         <div className={styles.buttons}>
-          <button className={styles.primary} onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving...' : 'Save preferences'}
-          </button>
           {alert ? (
             <button className={styles.danger} onClick={handleDelete} disabled={saving}>
               Remove alert
             </button>
           ) : null}
+          <button
+            type="button"
+            onClick={() => setEnabled((v) => !v)}
+            className={styles.toggle}
+            aria-pressed={enabled}
+          >
+            {enabled ? 'Alerts on' : 'Alerts off'}
+          </button>
+          <button className={styles.primary} onClick={handleSave} disabled={saving}>
+            {saving ? 'Saving...' : 'Save preferences'}
+          </button>
         </div>
       </div>
     </div>
