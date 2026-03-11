@@ -55,7 +55,7 @@ function allowRequest(key: string) {
   return {allowed: true, retryAfterMs: 0};
 }
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   // OAuth callback route must bypass locale rewrites and reach its route handler directly.
   if (request.nextUrl.pathname === '/auth/callback') {
     return NextResponse.next();
