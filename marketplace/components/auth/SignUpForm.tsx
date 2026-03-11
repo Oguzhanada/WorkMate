@@ -74,7 +74,8 @@ const orderedCounties = [
   return a.localeCompare(b);
 });
 
-const eircodeRegex = /^[A-Z0-9]{3} [A-Z0-9]{4}$/;
+/** @deprecated Eircode regex validation removed — pass-through pending real API integration */
+const eircodeRegex = /^[A-Z0-9]{3}[ ]?[A-Z0-9]{1,4}$/;
 
 const commonSchema = z.object({
   fullName: z.string().min(2, 'Full name must be at least 2 characters.'),
@@ -96,7 +97,7 @@ const providerOnlySchema = z.object({
   address2: z.string().optional(),
   county: z.string().min(1, 'Please choose a county.'),
   city: z.string().min(1, 'Please choose a city.'),
-  eircode: z.string().regex(eircodeRegex, 'Use a valid Eircode format (e.g. D02 23B5).')
+  eircode: z.string().min(3, 'Please enter your Eircode.')
 });
 
 type SignUpFormData = {
@@ -188,7 +189,7 @@ function formatIrishPhone(value: string) {
 
 function validatePhone(masked: string) {
   if (!isValidIrishPhone(masked)) {
-    return 'Use a valid Irish mobile number (for example: 0830446082 or +353830446082).';
+    return 'Use a valid Irish (+353) or UK (+44 7xxx) mobile number.';
   }
   return undefined;
 }
@@ -339,9 +340,9 @@ export function SignUpForm() {
     const parsedEircode = normalizeEircode(form.eircode);
     setFormError('');
 
-    if (!eircodeRegex.test(parsedEircode)) {
+    if (!parsedEircode.trim()) {
       setEircodeStatus('invalid');
-      setErrors((prev) => ({...prev, eircode: 'Use a valid Eircode format (e.g. D02 23B5).'}));
+      setErrors((prev) => ({...prev, eircode: 'Please enter your Eircode.'}));
       return;
     }
 
