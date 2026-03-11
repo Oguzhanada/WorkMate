@@ -6,7 +6,7 @@ import {useTranslations} from 'next-intl';
 import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
 import WorkMateLogo from '@/components/ui/WorkMateLogo';
 
-import styles from './site.module.css';
+import styles from '@/components/site/site.module.css';
 
 export default function SiteFooter() {
   const t = useTranslations('footer');
