@@ -9,7 +9,7 @@ import ProviderCard, { type ProviderData } from './ProviderCard';
 import type { MapBounds } from './MapView';
 import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
-import { COUNTY_COORDS } from '@/lib/ireland/coordinates';
+import { COUNTY_COORDS, findNearestCounty } from '@/lib/ireland/coordinates';
 
 // Dynamic import — Leaflet has no SSR support
 const MapView = dynamic(() => import('./MapView'), {
@@ -71,6 +71,7 @@ export default function MapSearchView({ locale, initialFilters }: MapSearchViewP
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
   const [mobileView, setMobileView] = useState<'list' | 'map'>('list');
   const [page, setPage] = useState(1);
+  const [geoCenter, setGeoCenter] = useState<[number, number] | undefined>(undefined);
   const abortRef = useRef<AbortController | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const isFirstRender = useRef(true);
@@ -86,6 +87,24 @@ export default function MapSearchView({ locale, initialFilters }: MapSearchViewP
     const newUrl = qs ? `${pathname}?${qs}` : pathname;
     router.replace(newUrl, { scroll: false });
   }, [filters, pathname, router]);
+
+  // Auto-detect browser location and set county filter + map center on first load
+  useEffect(() => {
+    if (!navigator.geolocation || (initialFilters?.county && initialFilters.county !== 'Any')) return;
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const county = findNearestCounty(latitude, longitude);
+        if (county) {
+          setFilters((prev) => ({ ...prev, county }));
+          setGeoCenter([latitude, longitude]);
+        }
+      },
+      () => { /* permission denied or unavailable — silently ignore */ },
+      { timeout: 5000 }
+    );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Fetch providers from API
   const fetchProviders = useCallback(async (f: SearchFiltersState, pageNum: number) => {
@@ -341,6 +360,7 @@ export default function MapSearchView({ locale, initialFilters }: MapSearchViewP
             onProviderHover={setHighlightedProviderId}
             onBoundsChange={handleBoundsChange}
             locale={locale}
+            flyToCenter={geoCenter}
           />
         </div>
       </div>

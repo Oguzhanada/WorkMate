@@ -89,11 +89,21 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
 
-  /* ── Filter out test categories ─────────────────────────── */
-  const filteredLeafCategories = useMemo(
-    () => leafCategories.filter((c) => !TEST_CATEGORY_PATTERN.test(c.name)),
-    [leafCategories]
-  );
+  /* ── Provider pre-selection state (must be before filteredLeafCategories useMemo) ── */
+  const [providerCategoryIds, setProviderCategoryIds] = useState<string[]>([]);
+  const [providerName, setProviderName] = useState<string | null>(null);
+  const [customerIdStatus, setCustomerIdStatus] = useState<string | null>(null);
+
+  /* ── Filter out test categories; when a provider is pre-selected, ── */
+  /* ── also restrict to that provider's registered service categories ── */
+  const filteredLeafCategories = useMemo(() => {
+    const noTest = leafCategories.filter((c) => !TEST_CATEGORY_PATTERN.test(c.name));
+    if (urlProviderId && providerCategoryIds.length > 0) {
+      const providerSet = new Set(providerCategoryIds);
+      return noTest.filter((c) => providerSet.has(c.id));
+    }
+    return noTest;
+  }, [leafCategories, urlProviderId, providerCategoryIds]);
 
   const groupedCategories = useMemo(
     () => groupCategories(allCategories, leafCategories),
@@ -173,10 +183,35 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
     return payload.error || 'We could not create your request. Please review the highlighted fields and try again.';
   };
 
+  // Fetch provider's registered service categories when arriving from a provider profile
+  useEffect(() => {
+    if (!urlProviderId) return;
+    fetch(`/api/providers/${urlProviderId}/services`)
+      .then((res) => res.json())
+      .then((payload: { category_ids?: string[]; provider_name?: string | null }) => {
+        if (payload.category_ids) setProviderCategoryIds(payload.category_ids);
+        if (payload.provider_name) setProviderName(payload.provider_name);
+      })
+      .catch(() => { /* non-critical — fall back to all categories */ });
+  }, [urlProviderId]);
+
+  // Fetch customer's ID verification status to determine quote mode
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    supabase
+      .from('profiles')
+      .select('id_verification_status')
+      .eq('id', customerId)
+      .maybeSingle()
+      .then(({ data }) => {
+        setCustomerIdStatus(data?.id_verification_status ?? 'none');
+      });
+  }, [customerId]);
+
   // Track funnel start once on mount
   useEffect(() => {
     trackFunnelStep({ funnelName: FUNNEL_JOB_POSTING, stepName: 'job_posting_started', stepNumber: 1 });
-     
+
   }, []);
 
   useEffect(() => {
@@ -269,9 +304,12 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
           county: address.county,
           locality: address.locality,
           budget_range: budgetRange,
-          job_mode: jobMode,
+          // If a specific provider is requested but customer ID is not approved,
+          // downgrade to get_quotes so the job enters the pool rather than failing.
+          job_mode: urlProviderId && customerIdStatus !== 'approved' ? 'get_quotes' : jobMode,
           task_type: taskType,
-          target_provider_id: targetProviderId ?? null,
+          target_provider_id:
+            urlProviderId && customerIdStatus === 'approved' ? targetProviderId : null,
           photo_urls: photoUrls,
         }),
       });
@@ -416,6 +454,43 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
       <p className={styles.stepDetail}>Progress: {progressPercent}% complete</p>
       {feedback ? <p className={`${styles.feedback} ${styles.ok}`}>{feedback}</p> : null}
       {error ? <p className={`${styles.feedback} ${styles.error}`}>{error}</p> : null}
+
+      {/* Provider pre-selection + ID verification status banner */}
+      {urlProviderId ? (
+        <div
+          className="mb-4 rounded-xl border p-3 text-sm"
+          style={{
+            background: customerIdStatus === 'approved'
+              ? 'rgba(var(--wm-primary-rgb), 0.07)'
+              : 'rgba(var(--wm-amber-rgb, 245 158 11), 0.09)',
+            borderColor: customerIdStatus === 'approved'
+              ? 'rgba(var(--wm-primary-rgb), 0.3)'
+              : 'var(--wm-amber)',
+            color: 'var(--wm-text)',
+            fontFamily: 'var(--wm-font-sans)',
+          }}
+        >
+          {providerName ? (
+            <p style={{ fontWeight: 600, marginBottom: 4 }}>
+              Requesting a quote from {providerName}
+            </p>
+          ) : null}
+          {customerIdStatus === 'approved' ? (
+            <p style={{ color: 'var(--wm-primary-dark)' }}>
+              Your identity is verified — this will be sent as a direct request.
+            </p>
+          ) : (
+            <p style={{ color: 'var(--wm-amber-dark, #92400e)' }}>
+              Your identity has not been verified yet. This request will enter the open pool
+              so multiple providers can respond. To contact this provider directly,{' '}
+              <a href={withLocalePrefix(localeRoot, '/profile?focus=id#identity-verification')} style={{ color: 'var(--wm-primary-dark)', textDecoration: 'underline' }}>
+                verify your identity first
+              </a>. Verified identity protects both you and the provider.
+            </p>
+          )}
+        </div>
+      ) : null}
+
       <div className={styles.wizardLayout}>
         <aside className={styles.wizardSidebar}>
           <h3 className={styles.wizardSidebarTitle}>Post a task</h3>

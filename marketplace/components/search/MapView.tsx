@@ -83,6 +83,18 @@ function FlyToHighlighted({
   return null;
 }
 
+// ── Fly-to center when user location is detected ────────────────────────────
+
+function MapCenterer({ center }: { center: [number, number] | undefined }) {
+  const map = useMap();
+  useEffect(() => {
+    if (center) {
+      map.flyTo(center, Math.max(map.getZoom(), 10), { duration: 1 });
+    }
+  }, [center, map]);
+  return null;
+}
+
 // ── MapView component ───────────────────────────────────────────────────────
 
 export type MapBounds = {
@@ -98,6 +110,7 @@ type MapViewProps = {
   onProviderHover: (id: string | null) => void;
   onBoundsChange: (bounds: MapBounds) => void;
   locale: string;
+  flyToCenter?: [number, number];
 };
 
 export default function MapView({
@@ -106,6 +119,7 @@ export default function MapView({
   onProviderHover,
   onBoundsChange,
   locale,
+  flyToCenter,
 }: MapViewProps) {
   // Stable ref to persist positions across provider list changes (avoids jitter recalc)
   const stablePositionsRef = useRef(new Map<string, [number, number]>());
@@ -159,6 +173,7 @@ export default function MapView({
           highlightedId={highlightedProviderId}
           markerPositions={positionMap}
         />
+        <MapCenterer center={flyToCenter} />
 
         {providers.map((provider) => {
           const pos = positionMap.get(provider.id);

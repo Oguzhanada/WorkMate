@@ -2,12 +2,12 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
-import { MessageSquareQuote } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import ComplianceBadge from '@/components/ui/ComplianceBadge';
 import FoundingProBadge from '@/components/ui/FoundingProBadge';
 import PortfolioGallery from '@/components/profile/PortfolioGallery';
 import ProviderBadges from '@/components/profile/ProviderBadges';
+import QuoteRequestButton from '@/components/profile/QuoteRequestButton';
 
 const baseUrl = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'https://workmate.ie';
 
@@ -271,18 +271,7 @@ export default async function PublicProfilePage({ params }: { params: Params }) 
                 >
                   {profile.is_verified ? 'Verified Provider' : 'Pending Verification'}
                 </span>
-                <a
-                  href={`/${locale}/post-job?provider=${id}`}
-                  className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-bold no-underline transition-opacity hover:opacity-90"
-                  style={{
-                    background: 'var(--wm-grad-primary)',
-                    color: '#fff',
-                    boxShadow: 'var(--wm-shadow-md)',
-                  }}
-                >
-                  <MessageSquareQuote className="h-4 w-4" />
-                  Request a Quote
-                </a>
+                <QuoteRequestButton providerId={id} locale={locale} />
               </div>
             </div>
           </div>

@@ -31,7 +31,7 @@ export default async function ProfilePage({
     redirect(`/${locale}/login`);
   }
 
-  const [{ data: profile }, , , { data: address }, { data: docs }] =
+  const [{ data: profile }, { data: proServicesData }, , { data: address }, { data: docs }] =
     await Promise.all([
       supabase.from('profiles').select('*').eq('id', user.id).single(),
       supabase.from('pro_services').select('id').eq('profile_id', user.id),
@@ -141,6 +141,16 @@ export default async function ProfilePage({
   }>;
 
   if (hasProviderRole) {
+    const proServicesCount = (proServicesData ?? []).length;
+    completionItems.push({
+      id: 'services',
+      title: 'Service categories',
+      description: 'Add the services you offer to appear in searches and get matched to relevant jobs.',
+      status: proServicesCount > 0 ? 'complete' : 'missing',
+      href: profileHref('?tab=business#business-details'),
+      formHint: 'Go to the Business tab and select the service categories you offer.',
+      reasonHint: 'Providers with service categories get matched to relevant jobs and appear in category searches.',
+    });
     completionItems.push({
       id: 'proof',
       title: 'Professional proof',

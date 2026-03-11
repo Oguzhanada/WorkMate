@@ -19,7 +19,6 @@ export default function InfoTooltip({text, label = 'Info'}: Props) {
         aria-label={label}
         title={text}
         onClick={() => setOpen((value) => !value)}
-        onBlur={() => setOpen(false)}
       >
         ?
       </button>

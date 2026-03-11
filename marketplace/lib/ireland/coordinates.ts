@@ -74,3 +74,24 @@ export const CATEGORY_COLORS: Record<string, string> = {
 export function getCategoryColor(category: string): string {
   return CATEGORY_COLORS[category] ?? CATEGORY_COLORS.default;
 }
+
+/**
+ * Returns the name of the county whose center is closest to the given coordinates.
+ * Uses squared Euclidean distance — sufficient for small-scale proximity on the island of Ireland.
+ */
+export function findNearestCounty(lat: number, lng: number): string | null {
+  let nearestCounty: string | null = null;
+  let minDistanceSq = Infinity;
+
+  for (const [county, [cLat, cLng]] of Object.entries(COUNTY_COORDS)) {
+    const dLat = lat - cLat;
+    const dLng = lng - cLng;
+    const distSq = dLat * dLat + dLng * dLng;
+    if (distSq < minDistanceSq) {
+      minDistanceSq = distSq;
+      nearestCounty = county;
+    }
+  }
+
+  return nearestCounty;
+}

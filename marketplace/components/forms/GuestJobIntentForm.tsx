@@ -74,6 +74,7 @@ export default function GuestJobIntentForm() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [intentId, setIntentId] = useState('');
+  const [isDuplicateEmail, setIsDuplicateEmail] = useState(false);
 
   const handleTurnstileVerify = useCallback((token: string) => setCfToken(token), []);
   const handleTurnstileExpire = useCallback(() => setCfToken(''), []);
@@ -164,18 +165,43 @@ export default function GuestJobIntentForm() {
     setIsPending(false);
 
     if (!response.ok) {
+      if (response.status === 409 || payload.error === 'one_intent_per_email') {
+        setIsDuplicateEmail(true);
+        return;
+      }
       setError(payload.error || 'Draft could not be created.');
       return;
     }
 
     setIntentId(payload.intent_id);
-    setSuccess('Your request was saved. Create an account or sign in to publish your listing.');
+    setSuccess(
+      'Your request was saved. Note: without a verified account, providers may not be able to match your request as accurately — creating an account unlocks better visibility and faster responses.'
+    );
   };
 
   return (
     <div className={styles.card}>
       <p className={styles.step}>Guest Request Flow - Step {step}/3</p>
-      {error ? <p className={`${styles.feedback} ${styles.error}`}>{error}</p> : null}
+      {isDuplicateEmail ? (
+        <div
+          className={`${styles.feedback} ${styles.error}`}
+          style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+        >
+          <strong>You already have a pending request with this email.</strong>
+          <p style={{ margin: 0 }}>
+            Sign in to publish your existing request, or create an account to manage multiple jobs.
+          </p>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+            <Button variant="primary" href={`/en/login?email=${encodeURIComponent(email.trim().toLowerCase())}`}>
+              Sign in
+            </Button>
+            <Button variant="secondary" href={`/en/sign-up?email=${encodeURIComponent(email.trim().toLowerCase())}`}>
+              Create account
+            </Button>
+          </div>
+        </div>
+      ) : null}
+      {!isDuplicateEmail && error ? <p className={`${styles.feedback} ${styles.error}`}>{error}</p> : null}
       {success ? <p className={`${styles.feedback} ${styles.ok}`}>{success}</p> : null}
       {process.env.NODE_ENV === 'development' && (
         <p className={styles.muted}>
