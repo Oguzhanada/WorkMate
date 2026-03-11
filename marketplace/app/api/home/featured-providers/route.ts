@@ -1,6 +1,7 @@
 import {NextResponse} from 'next/server';
 
 import {getSupabaseRouteClient} from '@/lib/supabase/route';
+import { apiError } from '@/lib/api/error-response';
 
 type ProfileRow = {
   id: string;
@@ -95,7 +96,7 @@ export async function GET() {
     : await profilesQuery;
 
   if (profilesError) {
-    return NextResponse.json({error: profilesError.message, providers: []}, {status: 400});
+    return apiError(profilesError.message, 400);
   }
 
   const providers = (profileRows ?? []) as ProfileRow[];

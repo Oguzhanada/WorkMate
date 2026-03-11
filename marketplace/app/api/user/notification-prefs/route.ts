@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { apiError, apiUnauthorized, apiServerError } from '@/lib/api/error-response';
 
 const prefsSchema = z.object({
   email_new_quote: z.boolean(),
@@ -38,7 +39,7 @@ export async function GET() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user) return apiUnauthorized();
 
   const stored = (user.user_metadata?.notification_prefs ?? {}) as Partial<NotificationPrefs>;
   const prefs: NotificationPrefs = { ...DEFAULT_PREFS, ...stored };
@@ -52,12 +53,12 @@ export async function POST(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user) return apiUnauthorized();
 
   const body: unknown = await request.json().catch(() => null);
   const parsed = prefsSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid preferences data' }, { status: 400 });
+    return apiError('Invalid preferences data', 400);
   }
 
   const service = await getSupabaseServiceClient();
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
   });
 
   if (error) {
-    return NextResponse.json({ error: 'Failed to save preferences' }, { status: 500 });
+    return apiServerError('Failed to save preferences');
   }
 
   return NextResponse.json({ ok: true });

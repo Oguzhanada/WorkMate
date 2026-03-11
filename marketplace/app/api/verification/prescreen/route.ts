@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { getUserRoles } from '@/lib/auth/rbac';
 import { prescreenVerificationSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiNotFound } from '@/lib/api/error-response';
 
 type RiskLevel = 'low' | 'medium' | 'high';
 
@@ -57,29 +58,26 @@ async function postHandler(request: NextRequest) {
   } = await routeClient.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = prescreenVerificationSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const { profile_id, document_id } = parsed.data;
   const roles = await getUserRoles(routeClient, user.id);
   const isAdmin = roles.includes('admin');
   if (user.id !== profile_id && !isAdmin) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiForbidden();
   }
 
   const serviceClient = getSupabaseServiceClient();
@@ -91,7 +89,7 @@ async function postHandler(request: NextRequest) {
     .maybeSingle();
 
   if (docError || !doc) {
-    return NextResponse.json({ error: 'Document not found' }, { status: 404 });
+    return apiNotFound('Document not found');
   }
 
   const prescreen = computeIdPrescreen({
@@ -115,7 +113,7 @@ async function postHandler(request: NextRequest) {
     .single();
 
   if (insertError) {
-    return NextResponse.json({ error: insertError.message }, { status: 400 });
+    return apiError(insertError.message, 400);
   }
 
   return NextResponse.json({ check });
