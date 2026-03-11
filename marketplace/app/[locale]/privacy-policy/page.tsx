@@ -1,9 +1,10 @@
 import { redirect } from 'next/navigation';
 
-export default function PrivacyPolicyRedirect({
+export default async function PrivacyPolicyRedirect({
   params,
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
-  redirect(`/${params.locale}/privacy`);
+  const { locale } = await params;
+  redirect(`/${locale}/privacy`);
 }

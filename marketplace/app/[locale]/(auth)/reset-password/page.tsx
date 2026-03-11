@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import Button from '@/components/ui/Button';
-import styles from '../inner.module.css';
+import styles from '../../inner.module.css';
 
 export default function ResetPasswordPage() {
   const locale = useLocale();
