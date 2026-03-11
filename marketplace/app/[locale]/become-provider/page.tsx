@@ -49,7 +49,7 @@ const BENEFITS = [
   {
     icon: CreditCard,
     title: 'Secure payment, every time',
-    desc: 'Stripe holds funds before work begins. No chasing invoices. No bad debts.',
+    desc: 'Stripe holds funds before work begins. No chasing invoices. Reliable payments.',
     accent: 'var(--wm-primary)',
     bg: 'var(--wm-primary-faint)',
   },
@@ -99,30 +99,26 @@ const HOW_STEPS = [
 
 const COMPARISON = [
   {platform: 'WorkMate', model: '3% per job (1.5% Pro)', leads: 'Free matching', upfront: '€0', highlight: true},
-  {platform: 'Bark', model: '€2-€15 per lead', leads: 'Pay to contact', upfront: '€0', highlight: false},
-  {platform: 'TaskRabbit', model: '15% per job', leads: 'Free matching', upfront: '€0', highlight: false},
-  {platform: 'MyBuilder', model: '8-12% + sub', leads: 'Pay to quote', upfront: '€20+/mo', highlight: false},
-  {platform: 'Rated People', model: '£5-£30 per lead', leads: 'Pay per lead', upfront: '£0', highlight: false},
+  {platform: 'Lead-based platforms', model: '€2-€15 per lead', leads: 'Pay to contact', upfront: '€0', highlight: false},
+  {platform: 'Commission platforms', model: '15% per job', leads: 'Free matching', upfront: '€0', highlight: false},
+  {platform: 'Subscription platforms', model: '8-12% + sub', leads: 'Pay to quote', upfront: '€20+/mo', highlight: false},
 ];
 
-const TESTIMONIALS = [
+const VALUE_HIGHLIGHTS = [
   {
-    name: 'Darren K.',
-    role: 'Electrician, Dublin',
-    text: 'I was paying €15 per lead on Bark with no guarantee. WorkMate sends me matched jobs and I only pay 3% when I actually earn. Massive difference.',
-    rating: 5,
+    title: 'No more paying for dead leads',
+    text: 'Unlike lead-based platforms, you only pay a small commission when you actually complete a job and get paid. No upfront costs, no wasted spend.',
+    icon: '💰',
   },
   {
-    name: 'Sinéad M.',
-    role: 'Cleaner, Cork',
-    text: 'The secure payment hold changed everything. I used to lose 2-3 jobs a month to non-payers. Now I start every job knowing the money is already there.',
-    rating: 5,
+    title: 'Secure payment on every job',
+    text: 'Stripe holds funds before work begins, so you start every job knowing payment is already secured. No chasing invoices.',
+    icon: '🔒',
   },
   {
-    name: 'Pádraig O.',
-    role: 'Plumber, Galway',
-    text: 'Upgraded to Pro after the first month. The lower commission plus priority listing pays for itself within 2 jobs. Best investment in my business.',
-    rating: 5,
+    title: 'Lower commission, more in your pocket',
+    text: 'At 3% (or 1.5% on Pro), WorkMate is designed to leave more of your earnings where they belong — with you.',
+    icon: '📈',
   },
 ];
 
@@ -701,7 +697,7 @@ export default function BecomeProviderPage() {
           </motion.div>
 
           <p className="mt-4 text-center text-xs" style={{color: 'var(--wm-muted)'}}>
-            Competitor data sourced from public pricing pages as of March 2026.
+            Typical pricing models seen across Irish and UK trade platforms.
           </p>
         </div>
       </section>
@@ -783,7 +779,7 @@ export default function BecomeProviderPage() {
               className="text-xs font-bold uppercase tracking-[0.2em]"
               style={{color: 'var(--wm-primary-dark)', fontFamily: 'var(--wm-font-display)'}}
             >
-              Provider stories
+              The WorkMate advantage
             </span>
             <h2
               className="mt-3"
@@ -796,14 +792,14 @@ export default function BecomeProviderPage() {
                 color: 'var(--wm-navy)',
               }}
             >
-              Hear from providers across Ireland.
+              Why providers switch to WorkMate.
             </h2>
           </motion.div>
 
           <div className="grid gap-6 sm:grid-cols-3">
-            {TESTIMONIALS.map((t, i) => (
-              <motion.blockquote
-                key={t.name}
+            {VALUE_HIGHLIGHTS.map((v, i) => (
+              <motion.article
+                key={v.title}
                 initial={{opacity: 0, y: 24}}
                 whileInView={{opacity: 1, y: 0}}
                 viewport={{once: true}}
@@ -811,31 +807,17 @@ export default function BecomeProviderPage() {
                 className="rounded-2xl p-6"
                 style={{background: 'var(--wm-surface)', border: '1px solid var(--wm-border)'}}
               >
-                <div className="mb-3 flex gap-0.5">
-                  {Array.from({length: t.rating}).map((_, si) => (
-                    <Star
-                      key={si}
-                      className="h-4 w-4"
-                      style={{color: 'var(--wm-amber-dark)', fill: 'var(--wm-amber-dark)'}}
-                    />
-                  ))}
-                </div>
-                <p className="text-sm leading-relaxed" style={{color: 'var(--wm-text)'}}>
-                  &ldquo;{t.text}&rdquo;
+                <span className="mb-3 block text-2xl">{v.icon}</span>
+                <h3
+                  className="text-base font-bold"
+                  style={{color: 'var(--wm-navy)', fontFamily: 'var(--wm-font-display)'}}
+                >
+                  {v.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed" style={{color: 'var(--wm-muted)'}}>
+                  {v.text}
                 </p>
-                <div className="mt-4 flex items-center gap-3">
-                  <div
-                    className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white"
-                    style={{background: 'var(--wm-grad-primary)'}}
-                  >
-                    {t.name.charAt(0)}
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold" style={{color: 'var(--wm-navy)'}}>{t.name}</p>
-                    <p className="text-xs" style={{color: 'var(--wm-muted)'}}>{t.role}</p>
-                  </div>
-                </div>
-              </motion.blockquote>
+              </motion.article>
             ))}
           </div>
         </div>
@@ -963,7 +945,7 @@ export default function BecomeProviderPage() {
                 className="mx-auto mt-5 max-w-md text-base leading-relaxed"
                 style={{color: 'rgba(255,255,255,0.6)'}}
               >
-                Join hundreds of Irish tradespeople who stopped paying for leads and
+                Join Irish tradespeople who stopped paying for leads and
                 started building their business on WorkMate.
               </p>
             </motion.div>

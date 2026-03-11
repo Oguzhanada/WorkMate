@@ -2,7 +2,7 @@
   "common": {
     "trusted": "Verified professionals",
     "secure": "Secure payments",
-    "guarantee": "Money-back guarantee on first job",
+    "guarantee": "First-job refund protection (terms apply)",
     "searchPlaceholder": "What service are you looking for?",
     "requestQuote": "Request quote",
     "viewDetails": "View details",
@@ -80,7 +80,7 @@
     "story": "Founded in 2025 in Ireland, we connect trusted local professionals with people needing home services, repairs, lessons, moving, and more. Customers get fast quotes, verified reviews, and secure payments in one streamlined marketplace.",
     "missionTitle": "Mission",
     "mission": "Quality, speed and trust in every service request.",
-    "stats": "Over 15,000 professionals • 120,000+ completed jobs • 4.7/5 average rating",
+    "stats": "A growing network of verified Irish professionals across all 26 counties.",
     "teamTitle": "Leadership Team",
     "valuesTitle": "Our Values",
     "values": {
@@ -186,7 +186,7 @@
     }
   },
   "becomeProvider": {
-    "title": "Earn money on your schedule - join 15,000+ professionals",
+    "title": "Earn money on your schedule — join WorkMate as a provider",
     "subtitle": "Start receiving service requests from nearby customers with zero registration cost.",
     "benefits": {
       "title": "Why providers join",
@@ -273,7 +273,7 @@
     "faq2q": "Are professionals verified?",
     "faq2a": "Profiles are checked with ID and business verification before they can receive leads.",
     "faq3q": "What if I am not satisfied?",
-    "faq3a": "Our support team reviews each case and applies first-job money-back protection where eligible."
+    "faq3a": "Our support team reviews each case. Refund options may apply under our Happiness Pledge terms."
   },
   "search": {
     "title": "Search results",

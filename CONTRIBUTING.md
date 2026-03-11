@@ -71,7 +71,7 @@ npm run health-check      # Runtime health check script
 
 ### TypeScript
 
-- Strict mode is OFF (`strict: false` in `tsconfig.json`). Avoid `any` types — use `unknown` with runtime checks instead.
+- Strict mode is **off** (`strict: false` in `tsconfig.json` — permanent decision). Avoid `any` types where possible.
 - All Zod schemas go in `lib/validation/api.ts`. No inline schemas in route files.
 - Zod 4 syntax: `z.record()` requires two type arguments:
 
@@ -203,31 +203,17 @@ Note: there is a known file naming collision at `021` (`021_pro_documents_rls.sq
    - `npm run lint:eslint` passes with no new warnings
    - `npm run test:unit` and `npm run test:integration` pass
    - `npm run test:e2e:smoke` passes
-   - Backstop visual regression check passes (no unexpected diffs)
-   - Lighthouse CI check passes (no blocking regressions)
+   - Lighthouse CI check passes (runs nightly; no blocking regressions)
    - No secrets, API keys, or credentials are present anywhere in the diff
    - All new pages have a co-located `loading.tsx`
    - All new list views have an `EmptyState` handler
 
 4. PRs require at least one review before merge.
 
-5. Visual quality checks are merge-blocking:
-   - `.github/workflows/backstop.yml`
-   - `.github/workflows/lighthouse.yml`
+5. CI quality checks:
+   - `.github/workflows/lighthouse.yml` (nightly performance gate)
 
 6. Squash-merge to keep the main branch history clean.
-
----
-
-## Pre-commit Hooks (Husky + lint-staged)
-
-The repo uses **Husky** and **lint-staged** to enforce code quality on every commit:
-
-- **ESLint** runs automatically on all staged `*.ts` and `*.tsx` files.
-- If lint fails, the commit is blocked — fix the issues before retrying.
-- **Never** bypass hooks with `--no-verify` (frozen decision FD-22).
-
-The config lives in the root `package.json` under `"lint-staged"` and in `.husky/pre-commit`.
 
 ---
 

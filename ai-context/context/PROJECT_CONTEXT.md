@@ -1,7 +1,7 @@
 # WorkMate (Ada Marketplace) - AI Context File
-> Last updated: 2026-03-10
-> Session: 28 (originally written session 10, incrementally updated)
-> Team: 8-Agent Structure (PM, Frontend, Backend, Fintech, Design, Compliance, QA, DevOps)
+> Last updated: 2026-03-11
+> Session: 29 (architecture audit + doc sync)
+> Governance: Skill-based (10 skills) + Frozen Decisions (FD-01→FD-25) + CI/CD
 
 ---
 
@@ -35,15 +35,18 @@
 
 ## 2. TECH STACK
 
-- Frontend: Next.js 16.1.6 (App Router, Turbopack), React 19, TypeScript
-- Backend: Next.js API routes + Supabase Edge Functions
-- Database: Supabase PostgreSQL with RLS
-- Auth: Supabase Auth (Email/Password + Google/Facebook OAuth)
-- Payments: Stripe Connect (secure hold → capture/refund)
-- Styling/UI: Tailwind CSS v4, CSS modules, Framer Motion, @dnd-kit (drag-drop)
-- Validation: Zod + custom Ireland validators (Eircode, phone, name)
+- Frontend: Next.js 16.1.6 (App Router, Turbopack), React 19, TypeScript (`strict: false` — permanent)
+- Backend: Next.js API routes + Supabase Edge Functions (6 deployed)
+- Database: Supabase PostgreSQL with RLS (73 migrations applied)
+- Auth: Supabase Auth (Email/Password + Google/Facebook OAuth) — email+phone verified on prod
+- Payments: Stripe Connect (secure hold → capture/refund) — Identity bypass in test, active on prod
+- Styling/UI: Tailwind CSS v4, `--wm-*` design tokens, Framer Motion, @dnd-kit (drag-drop)
+- Validation: Zod 4 + custom Ireland validators (Eircode, phone, name)
 - i18n: next-intl infrastructure, English content only
-- Email: Resend (`notifications@workmate.ie`) — needs RESEND_API_KEY
+- Email: Resend (`notifications@workmate.ie`, 11 templates) — guarded by `EMAIL_SEND_ENABLED`
+- AI: @anthropic-ai/sdk (job description writer) — guarded by `AI_CALLS_ENABLED`
+- Monitoring: @sentry/nextjs (tunnel at /monitoring)
+- Maps: leaflet + react-leaflet
 
 ---
 
@@ -106,14 +109,20 @@ marketplace/
 - `disputes`, `dispute_logs`, `dispute_evidence`
 
 ### Feature tables (applied migrations)
-- `task_alerts` (036)
-- `customer_provider_history`, `quote_daily_limits` (036)
+- `task_alerts`, `customer_provider_history`, `quote_daily_limits` (036)
 - `job_todos`, `job_collaboration_messages`, `job_files` (041, 042)
 - `automation_rules` (043, 044)
 - `api_keys`, `webhook_subscriptions` (045, 046)
 - `time_entries` + invoice columns on `jobs` (047)
 - `provider_availability_slots`, `job_appointments` (048)
 - `dashboard_widgets` (049)
+- `funnel_events` (050), `saved_searches` (051), `portfolio_items` (052)
+- `job_contracts` (053), `provider_subscriptions` (054)
+- `feature_flags` (055), `webhook_events` (056)
+- `referral_codes`, `referral_redemptions` (057)
+- `founding_pro_config` (058), `provider_availability` (059)
+- FK indexes batch (068), portfolio consolidation (069)
+- `job_auto_expire` (070), `founding_pro` (071), `referral_system` (072), `job_mode_enhancements` (073)
 - Materialized view: `provider_rankings`
 
 ### Verification states (two-layer model)
@@ -123,7 +132,7 @@ marketplace/
 
 ---
 
-## 5. COMPLETED FEATURES (Sessions 1-10)
+## 5. COMPLETED FEATURES (Sessions 1-28)
 
 ### Core (Sessions 1-3)
 - [x] Auth system (login/signup/OAuth/reset)
@@ -193,61 +202,92 @@ marketplace/
 - [x] Deleted `lib/supabase.ts`
 - [x] Archived old checkpoint docs and `docs/memory/` snapshot
 
-### Sessions 11–28 — Summary (see MEMORY.md for full detail)
+### Sessions 11-22 — Phase 1-4 Feature Build
+> Detailed log: `memory/session-history.md`
 
-> **All Phase 1–4 features COMPLETE.** Production readiness sweep DONE. Security audit DONE.
+- [x] Design system complete — `--wm-*` tokens, Syne/Plus Jakarta Sans fonts, zero hardcoded hex
+- [x] JobContractPanel, Subscription Stripe Webhook (5 events), Garda Vetting self-service
+- [x] Admin Risk Score bulk, GDPR Export/Delete, Funnel Telemetry (`lib/analytics/funnel.ts`)
+- [x] 6 new email templates (contract/vetting/subscription), In-App Notification Bell (30s polling)
+- [x] Admin Funnel Analytics (CSS bars, date filter, StatCards)
+- [x] sendNotification wiring (11 triggers across 6 files)
+- [x] Profile Completeness Widget (8 checks), Provider Onboarding Funnel (6 steps)
+- [x] Marketplace Advanced Search (31 counties, price range, verified/garda filters)
+- [x] Job Status Timeline (5 steps), Rate Limiting Middleware (sliding window)
+- [x] Admin Verification Queue (batch approve/reject)
 
-Key milestones since session 10:
-- **Design system** (session 16): Full `--wm-*` token system, zero hardcoded hex, custom fonts (Syne + Plus Jakarta Sans)
-- **Phases 1–4** (sessions 13–22): 60+ Zod schemas, 104 API routes, rate limiting, GDPR export/delete, funnel telemetry, notification bell, admin analytics, provider subscriptions, job contracts, Garda vetting, risk scoring
-- **Production readiness** (session 23): SEO infra (JSON-LD, OG images), 15 loading.tsx files, CSP headers, GDPR automation edge function
-- **Bug/QA sweep** (session 24): Security fixes (admin auth, error leaks, rate limiting), 29 FK indexes, raw button→Button migration, hex→token cleanup
-- **Strategy implementation** (session 26): Plan-based commission, cookie consent, WCAG fixes, DPAs signed, GDPR cron deployed
-- **Architecture restructure** (session 27): `lib/ireland/`, `lib/data/`, `lib/stripe/client.ts` file moves, `components/ui/index.ts` barrel, Husky + lint-staged, FD-16–FD-22 frozen rules
-- **Agent governance** (session 28): CI workflow fixes, FD-23 (feature branches only), FD-24 (no bloat docs), FD-25 (skill gitignore whitelist)
+### Session 23 — Production Readiness Sweep
+- [x] SEO: JSON-LD, /api/health, manifest, sitemap, robots, CSP headers
+- [x] OG image route, GDPR automation edge function, design token sweep (70+ fixes)
+- [x] 15 missing `loading.tsx` files created
 
-Migrations 051–073: ALL APPLIED. Key tables: funnel_events, saved_searches, portfolio_items, job_contracts, provider_subscriptions, feature_flags, webhook_events, referral_codes, founding_pro_config, provider_availability, job_mode_enhancements.
+### Session 24 — Security & QA Sweep
+- [x] `/api/metrics/quotes` admin-only auth (was public)
+- [x] Rate limiting on auth routes (login 10/min, register 5/min)
+- [x] 29 FK indexes (migration 068)
+- [x] ~30 raw `<button>` → `Button` component, 4 inline Zod schemas centralized
+- [x] 16 React Compiler setState-in-effect fixes
 
-New libs: `lib/analytics/funnel.ts`, `lib/notifications/send.ts`, `lib/profile/completeness.ts`, `lib/rate-limit/`, `lib/api/error-response.ts`
+### Session 26 — Strategy & Compliance
+- [x] Plan-based commission (basic 3%, pro/premium 1.5%)
+- [x] Cookie "Reject All" + Sentry PII filtering + ROPA doc
+- [x] DPAs signed (Supabase, Sentry, Vercel), GDPR cron deployed
+
+### Session 27 — Architecture Restructure
+- [x] `docs/ARCHITECTURE_REVIEW.md` (health 7.4/10)
+- [x] `lib/ireland/`, `lib/data/`, `lib/stripe/client.ts` file moves
+- [x] Barrel exports `components/ui/index.ts` (25 exports)
+- [x] Husky + lint-staged pre-commit hooks
+- [x] Frozen decisions FD-16→FD-22
+
+### Session 28 — Agent Governance
+- [x] CI workflow fixes, FD-23/FD-24/FD-25
+- [x] Architecture audit (verified 10 claims, fixed 7)
+- [x] Dependabot merge: supabase-js 2.97→2.98, stripe 20.3→20.4
+
+### Session 29 — Doc Sync & Audit
+- [x] CONTRIBUTING.md: fixed strict mode claim, migration number, Backstop references
+- [x] PROJECT_CONTEXT.md: synced to session 29
+- [x] Hardcoded `/en/` fix in earnings page (FD-11 compliance)
+- [x] Backstop removed from CI, package.json, and visual-qa skill
+- [x] Security best practices audit report generated
 
 ---
 
 ## 6. CURRENT STATE
 
-- Migrations 001-073: ALL APPLIED in Supabase
+- Migrations 001–073: ALL APPLIED in Supabase
 - Next migration: **074**
 - Vercel deployment: active at `work-mate-neon.vercel.app`
-- Stripe: test mode (`sk_test_*`) — no real charges
-- Email sender: `notifications@workmate.ie` — Resend domain must be verified before go-live
+- Stripe: test mode (`sk_test_*`) — Identity bypass in test, active on prod
+- Email: 11 templates, guarded by `EMAIL_SEND_ENABLED` env var
+- AI: guarded by `AI_CALLS_ENABLED` env var
+- Master switch: `LIVE_SERVICES_ENABLED` controls all paid services (defined in `lib/live-services.ts`)
+- All automated code work DONE. Security audit DONE. DPAs signed (Supabase, Sentry, Vercel).
+- Design system COMPLETE (session 16, commit `51f69ce`). Zero hardcoded hex.
+- Phase 1–4 features ALL COMPLETE (sessions 13–28).
 
 ---
 
-## 7. PENDING TASKS (updated session 28)
+## 7. REMAINING ACTIONS (Manual Only)
 
-> All automated code work DONE. Security audit DONE. Only manual launch tasks remain.
-> See `docs/PRODUCTION_LAUNCH.md` for the full go-live checklist.
-
-### Manual-only launch blockers
-1. [ ] Purchase domain `workmate.ie` + connect to Vercel
-2. [ ] Enable Supabase Pro + PITR backup
-3. [ ] Set `NEXT_PUBLIC_PLATFORM_BASE_URL` to production domain in Vercel
+### Production go-live (5 items)
+1. [ ] Supabase Pro — enable PITR backup in dashboard
+2. [ ] Domain — purchase `workmate.ie` + connect to Vercel
+3. [ ] Set `NEXT_PUBLIC_PLATFORM_BASE_URL` to production domain in Vercel env vars
 4. [ ] Set `LIVE_SERVICES_ENABLED=true` in Vercel env vars (go-live day)
-5. [ ] Switch Stripe keys from `sk_test_*` to `sk_live_*`
-6. [ ] Verify Resend domain `workmate.ie` (SPF/DKIM/DMARC)
-7. [ ] UX testing — 3-5 real users
-8. [ ] Responsive/browser testing — Safari, Firefox, mobile
-9. [ ] Lighthouse manual run on production URL
+5. [ ] Supabase Auth — enable email confirmation + phone verification in dashboard
 
-### Code quality (post-launch)
-10. [ ] Error response helper migration — ~55 routes still use raw `NextResponse.json`
-11. [ ] `next/image` migration — replace `<img>` with `Image` component
-12. [ ] Large component refactoring (AdminApplicationsPanel 1456 LOC, JobMultiStepForm 956 LOC)
-13. [ ] TypeScript `strict: true` pilot on new files
+### Post-launch validation
+6. [ ] UX testing — 3–5 real users
+7. [ ] Responsive/browser testing — Safari, Firefox, mobile
+8. [ ] Lighthouse manual run on production URL
 
-### Future features
-- See `ai-context/decisions/` for DR-003 (refund policy), DR-004 (provider funnel), DR-005 (flow maturity)
-- Mobile app (React Native + Expo) — long term
-- UK / Northern Ireland expansion — long term
+### Future considerations (not blockers)
+9. [ ] Notification push (SSE/websocket) — evaluate at 1K+ users
+10. [ ] Cache layer (Redis or ISR) — evaluate for high-traffic pages
+11. [ ] Mobile app — post-launch strategy decision
+12. [ ] UK/Northern Ireland expansion — post-launch strategy decision
 
 ---
 
@@ -341,40 +381,27 @@ Phase fallback:
 
 ## 13. PRODUCTION LAUNCH CHECKLIST
 
-### Blocker — must be done before go-live
+> Full details: `docs/PRODUCTION_LAUNCH.md` (5 phases)
+> Most code-level items are DONE. Below are manual-only remaining actions.
 
-**Infrastructure**
-- [ ] Point custom domain + configure SSL
-- [ ] Set all env vars on Vercel (`SUPABASE_*`, `STRIPE_*`, `RESEND_API_KEY`, `TASK_ALERT_SECRET`)
+### Go-live blockers (5 items)
+1. [ ] Supabase Pro — enable PITR backup
+2. [ ] Purchase `workmate.ie` domain + connect to Vercel
+3. [ ] Set `NEXT_PUBLIC_PLATFORM_BASE_URL` to production domain
+4. [ ] Set `LIVE_SERVICES_ENABLED=true` in Vercel env vars
+5. [ ] Supabase Auth — enable email confirmation + phone verification
 
-**Supabase**
-- [ ] Confirm migrations 001-073 applied on production Supabase project
-- [ ] Enable `pg_cron` on production project
-- [ ] Set Auth Site URL + Redirect URLs to production domain
-- [ ] Update OAuth redirect URIs in Google/Facebook consoles
-- [ ] Deploy edge functions: `match-task-alerts`, `auto-release-payments`, `escalate-stale-disputes`, `id-verification-retention`, `message-retention`
-
-**Stripe**
-- [ ] Switch to live keys (`sk_live_*`, `pk_live_*`)
-- [ ] Create production webhook → `https://yourdomain.ie/api/webhooks/stripe`
-- [ ] Register all events: `payment_intent.*`, `charge.dispute.created`, `account.updated`, `identity.verification_session.*`
-- [ ] Enable Stripe Identity on live account
-- [ ] Complete Stripe business verification
-
-**Email**
-- [ ] Verify `workmate.ie` domain in Resend dashboard
-- [ ] Test transactional emails end-to-end
-
-**Security**
-- [ ] Review all RLS policies with production data volume
-- [ ] Enable Supabase email confirmation
-- [ ] Set rate limiting on `/api/jobs`, `/api/quotes`
-
-### Important — before first real users
-
-- [ ] Seed production `categories` table
-- [ ] Set up error tracking (Sentry)
-- [ ] Set up uptime monitoring
+### Already completed (for reference)
+- [x] Migrations 001–073 applied
+- [x] Edge functions deployed (6 total)
+- [x] DPAs signed (Supabase, Sentry, Vercel)
+- [x] GDPR cron deployed + pg_cron scheduled
+- [x] Security audit done (session 24: auth routes rate-limited, admin-only endpoints secured)
+- [x] Sentry configured with PII filtering + tunnel route
+- [x] CSP headers configured in `next.config.ts`
+- [x] Rate limiting on auth routes (login, register, reset-password, guest-jobs)
+- [x] RLS on all tables, 29 FK indexes added (migration 068)
+- [x] Stripe Identity: bypassed in test, will be activated on production dashboard
 
 ---
 

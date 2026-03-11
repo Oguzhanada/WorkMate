@@ -84,7 +84,7 @@ async function setupUsersAndData() {
   const providerAId = await ensureFreshAuthUser(users.providerA);
   const providerBId = await ensureFreshAuthUser(users.providerB);
 
-  const { data: categoryRows, error: categoryError } = await supabase
+  let { data: categoryRows, error: categoryError } = await supabase
     .from('categories')
     .select('id,name')
     .eq('is_active', true)

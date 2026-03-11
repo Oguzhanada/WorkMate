@@ -2,7 +2,7 @@ import Link from 'next/link';
 import {Crown} from 'lucide-react';
 import {getSupabaseServiceClient} from '@/lib/supabase/service';
 
-export default async function FoundingProBanner() {
+export default async function FoundingProBanner({locale = 'en'}: {locale?: string}) {
   const supabase = getSupabaseServiceClient();
 
   const {data: config} = await supabase
@@ -26,7 +26,7 @@ export default async function FoundingProBanner() {
       }}
     >
       <Link
-        href="/founding-pro"
+        href={`/${locale}/founding-pro`}
         style={{
           display: 'inline-flex',
           alignItems: 'center',

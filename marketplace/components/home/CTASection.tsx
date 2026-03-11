@@ -73,7 +73,7 @@ export default function CTASection() {
               className="mt-5 max-w-md text-base leading-relaxed"
               style={{ color: 'rgba(255,255,255,0.6)' }}
             >
-              Join thousands of Irish homeowners who stopped searching and started getting results.
+              Irish homeowners who stopped searching and started getting results on WorkMate.
             </p>
           </motion.div>
 
@@ -137,7 +137,7 @@ export default function CTASection() {
                   ))}
                 </div>
                 <span className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                  — Homeowner, Dublin
+                  How WorkMate works
                 </span>
               </div>
             </div>

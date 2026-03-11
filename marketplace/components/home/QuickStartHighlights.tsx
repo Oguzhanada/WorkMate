@@ -14,9 +14,9 @@ const popularTasks = [
 ];
 
 const topServices = [
-  { label: 'Most booked', value: 'Home repairs' },
-  { label: 'Fastest response', value: 'Cleaning services' },
-  { label: 'Top rated', value: 'Painting and decorating' },
+  { label: 'Popular category', value: 'Home repairs' },
+  { label: 'In-demand service', value: 'Cleaning services' },
+  { label: 'Common request', value: 'Painting and decorating' },
 ];
 
 const howToUse = [

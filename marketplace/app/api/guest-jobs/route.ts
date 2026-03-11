@@ -66,7 +66,7 @@ async function handler(request: NextRequest): Promise<NextResponse> {
       locality: body.locality,
       budget_range: body.budget_range,
       photo_urls: body.photo_urls,
-      status: skipVerification ? 'ready_to_publish' : 'pending_verification',
+      status: skipVerification ? 'ready_to_publish' : 'email_pending',
       verification_token: token,
       verified_at: skipVerification ? new Date().toISOString() : null,
     })
@@ -81,7 +81,7 @@ async function handler(request: NextRequest): Promise<NextResponse> {
     {
       intent_id: data.id,
       status: data.status,
-      // When status is 'pending_verification', the guest must click the email
+      // When status is 'email_pending', the guest must click the email
       // verification link before the intent transitions to 'ready_to_publish'
       // and can be claimed via POST /api/guest-jobs/claim.
       verification_required: !skipVerification,
