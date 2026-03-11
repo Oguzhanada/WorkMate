@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Menu, X, ArrowRight, MessageSquare } from 'lucide-react';
+import { Menu, X, ArrowRight, MessageSquare, Bookmark } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import WorkMateLogo from '@/components/ui/WorkMateLogo';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -299,14 +299,14 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop nav links */}
-        <nav className="hidden items-center gap-8 lg:flex">
+        <nav className="hidden items-center gap-5 lg:flex">
           {navItems.map((item) => {
             const active = isActiveLink(pathname, item.href, localeRoot);
             return (
               <Link
                 key={item.href}
                 href={withLocalePrefix(localeRoot, item.href)}
-                className="group relative py-1 text-[15px] font-medium transition-colors"
+                className="group relative whitespace-nowrap py-1 text-[14px] font-medium transition-colors"
                 style={{ color: active ? 'var(--wm-navy)' : 'var(--wm-text-muted)' }}
               >
                 {item.label}
@@ -324,65 +324,51 @@ export default function Navbar() {
         </nav>
 
         {/* Desktop right-side actions */}
-        <div className="hidden items-center gap-3 lg:flex">
+        <div className="hidden items-center gap-2 lg:flex">
           {isAuthenticated ? (
             <>
               <Link
                 href={dashboardHref}
-                className="group relative px-3 py-2 text-sm font-medium transition-colors"
+                className="group relative whitespace-nowrap px-3 py-2 text-[14px] font-medium transition-colors"
                 style={{ color: 'var(--wm-navy)' }}
               >
                 Dashboard
                 <span
-                  className="absolute bottom-0.5 left-3 right-3 h-[2px] rounded-full transition-all duration-300 ease-out"
-                  style={{
-                    width: '0%',
-                    background: 'var(--wm-primary)',
-                  }}
+                  className="absolute bottom-0.5 left-3 right-3 h-[2px] rounded-full transition-all duration-300 ease-out group-hover:w-full"
+                  style={{ width: '0%', background: 'var(--wm-primary)' }}
                 />
               </Link>
+              {/* Saved Searches — icon only with tooltip to save space */}
               <Link
                 href={withLocalePrefix(localeRoot, '/saved-searches')}
-                className="group relative px-3 py-2 text-sm font-medium transition-colors"
+                title="Saved Searches"
+                aria-label="Saved Searches"
+                className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-[var(--wm-primary-light)]"
                 style={{ color: 'var(--wm-navy)' }}
               >
-                Saved Searches
-                <span
-                  className="absolute bottom-0.5 left-3 right-3 h-[2px] rounded-full transition-all duration-300 ease-out"
-                  style={{
-                    width: '0%',
-                    background: 'var(--wm-primary)',
-                  }}
-                />
+                <Bookmark className="h-4 w-4" />
               </Link>
+              {/* Messages — icon only with tooltip */}
               <Link
                 href={withLocalePrefix(localeRoot, '/messages')}
-                className="group relative inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors"
+                title="Messages"
+                aria-label="Messages"
+                className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-[var(--wm-primary-light)]"
                 style={{ color: 'var(--wm-navy)' }}
               >
                 <MessageSquare className="h-4 w-4" />
-                Messages
-                <span
-                  className="absolute bottom-0.5 left-3 right-3 h-[2px] rounded-full transition-all duration-300 ease-out"
-                  style={{
-                    width: '0%',
-                    background: 'var(--wm-primary)',
-                  }}
-                />
               </Link>
               <NotificationBell />
               <Link
                 href={withLocalePrefix(localeRoot, '/profile')}
-                className="group relative px-3 py-2 text-sm font-medium transition-colors"
+                className="group relative max-w-[120px] truncate whitespace-nowrap px-3 py-2 text-[14px] font-medium transition-colors"
                 style={{ color: 'var(--wm-navy)' }}
+                title={displayName}
               >
                 {displayName}
                 <span
-                  className="absolute bottom-0.5 left-3 right-3 h-[2px] rounded-full transition-all duration-300 ease-out"
-                  style={{
-                    width: '0%',
-                    background: 'var(--wm-primary)',
-                  }}
+                  className="absolute bottom-0.5 left-3 right-3 h-[2px] rounded-full transition-all duration-300 ease-out group-hover:w-full"
+                  style={{ width: '0%', background: 'var(--wm-primary)' }}
                 />
               </Link>
               <button
