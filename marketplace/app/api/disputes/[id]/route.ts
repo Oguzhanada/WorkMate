@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getDisputeParticipantContext, isDisputeParticipant } from '@/lib/disputes';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
+import { apiUnauthorized, apiNotFound, apiForbidden } from '@/lib/api/error-response';
 
 export async function GET(
   _request: NextRequest,
@@ -15,7 +16,7 @@ export async function GET(
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const { data: dispute, error } = await supabase
@@ -25,7 +26,7 @@ export async function GET(
     .maybeSingle();
 
   if (error || !dispute) {
-    return NextResponse.json({ error: 'Dispute not found' }, { status: 404 });
+    return apiNotFound('Dispute not found');
   }
 
   const roles = await getUserRoles(supabase, user.id);
@@ -33,7 +34,7 @@ export async function GET(
   const context = await getDisputeParticipantContext(supabase, dispute.job_id);
 
   if (!isAdmin && (!context || !isDisputeParticipant(user.id, context))) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiForbidden();
   }
 
   const [{ data: logs }, { data: evidence }] = await Promise.all([

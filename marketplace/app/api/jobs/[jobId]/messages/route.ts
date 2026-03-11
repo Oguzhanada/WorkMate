@@ -3,6 +3,7 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getUserRoles } from '@/lib/auth/rbac';
 import { createJobMessageSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiServerError } from '@/lib/api/error-response';
 
 async function resolveJobAccess(
   supabase: Awaited<ReturnType<typeof getSupabaseRouteClient>>,
@@ -42,10 +43,10 @@ export async function GET(
   const supabase = await getSupabaseRouteClient();
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (authError || !user) return apiUnauthorized();
 
   const { allowed } = await resolveJobAccess(supabase, jobId, user.id);
-  if (!allowed) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (!allowed) return apiForbidden();
 
   const { data, error } = await supabase
     .from('job_messages')
@@ -58,7 +59,7 @@ export async function GET(
     .order('created_at', { ascending: true })
     .limit(500);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return apiServerError(error.message);
 
   return NextResponse.json({ messages: data ?? [] });
 }
@@ -71,25 +72,25 @@ async function postHandler(
   const supabase = await getSupabaseRouteClient();
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (authError || !user) return apiUnauthorized();
 
   const { allowed, customerId, proId } = await resolveJobAccess(supabase, jobId, user.id);
-  if (!allowed) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (!allowed) return apiForbidden();
 
   let body: unknown;
   try { body = await request.json(); } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    return apiError('Invalid JSON', 400);
   }
 
   const parsed = createJobMessageSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Validation failed', details: parsed.error.flatten() }, { status: 400 });
+    return apiError('Validation failed', 400);
   }
 
   const { message, message_type, file_url, file_name, receiver_id } = parsed.data;
 
   if (message_type === 'file' && !file_url) {
-    return NextResponse.json({ error: 'file_url is required for file messages' }, { status: 400 });
+    return apiError('file_url is required for file messages', 400);
   }
 
   // Determine receiver: the other participant in the conversation
@@ -110,7 +111,7 @@ async function postHandler(
     .select('id, job_id, sender_id, receiver_id, message, message_type, file_url, file_name, visibility, created_at')
     .single();
 
-  if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
+  if (insertError) return apiServerError(insertError.message);
 
   return NextResponse.json({ message: inserted }, { status: 201 });
 }

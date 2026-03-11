@@ -6,6 +6,7 @@ import { createSecureHoldSchema } from '@/lib/validation/api';
 import { stripe } from '@/lib/stripe/client';
 import { calculateFees } from '@/lib/pricing/fee-calculator';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiNotFound } from '@/lib/api/error-response';
 
 async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
@@ -15,34 +16,31 @@ async function postHandler(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const roles = await getUserRoles(supabase, user.id);
   if (!canPostJob(roles)) {
-    return NextResponse.json({ error: 'Only customers can create secure hold' }, { status: 403 });
+    return apiForbidden('Only customers can create secure hold');
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = createSecureHoldSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const { amount_cents, connected_account_id, quote_id, job_id, customer_id, pro_id } = parsed.data;
   const platformBaseUrl = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
 
   if (customer_id !== user.id) {
-    return NextResponse.json({ error: 'Customer mismatch' }, { status: 403 });
+    return apiForbidden('Customer mismatch');
   }
 
   const { data: quote } = await supabase
@@ -52,7 +50,7 @@ async function postHandler(request: NextRequest) {
     .maybeSingle();
 
   if (!quote || quote.job_id !== job_id || quote.pro_id !== pro_id || quote.quote_amount_cents !== amount_cents) {
-    return NextResponse.json({ error: 'Quote details are invalid' }, { status: 400 });
+    return apiError('Quote details are invalid', 400);
   }
 
   const { data: job } = await supabase
@@ -62,11 +60,11 @@ async function postHandler(request: NextRequest) {
     .maybeSingle();
 
   if (!job || job.customer_id !== user.id) {
-    return NextResponse.json({ error: 'Job not found for this customer' }, { status: 404 });
+    return apiNotFound('Job not found for this customer');
   }
 
   if (job.accepted_quote_id !== quote_id || job.status !== 'accepted') {
-    return NextResponse.json({ error: 'Please accept this quote before secure hold payment' }, { status: 400 });
+    return apiError('Please accept this quote before secure hold payment', 400);
   }
 
   const serviceSupabase = getSupabaseServiceClient();
@@ -80,15 +78,15 @@ async function postHandler(request: NextRequest) {
     .maybeSingle();
 
   if (existingPayment) {
-    return NextResponse.json({ error: `Payment already exists with status: ${existingPayment.status}` }, { status: 400 });
+    return apiError(`Payment already exists with status: ${existingPayment.status}`, 400);
   }
 
   const fees = await calculateFees(amount_cents, customer_id, pro_id);
   const commission = Math.round(fees.transactionFee * 100);
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: 'payment',
-    success_url: `${platformBaseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${platformBaseUrl}/checkout/cancel`,
+    success_url: `${platformBaseUrl}/en/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${platformBaseUrl}/en/checkout/cancel`,
     line_items: [
       {
         quantity: 1,

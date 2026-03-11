@@ -5,6 +5,7 @@ import { canAccessAdmin, canPostJob, getUserRoles } from '@/lib/auth/rbac';
 import { capturePaymentSchema } from '@/lib/validation/api';
 import { stripe } from '@/lib/stripe/client';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiForbidden, apiNotFound } from '@/lib/api/error-response';
 
 async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
@@ -14,28 +15,25 @@ async function postHandler(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const roles = await getUserRoles(supabase, user.id);
   const isAdmin = canAccessAdmin(roles);
   if (!canPostJob(roles)) {
-    return NextResponse.json({ error: 'Only customers can capture payment' }, { status: 403 });
+    return apiForbidden('Only customers can capture payment');
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = capturePaymentSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const { payment_intent_id } = parsed.data;
@@ -48,15 +46,15 @@ async function postHandler(request: NextRequest) {
     .maybeSingle();
 
   if (paymentError || !payment) {
-    return NextResponse.json({ error: 'Payment record not found' }, { status: 404 });
+    return apiNotFound('Payment record not found');
   }
 
   if (payment.customer_id !== user.id && !isAdmin) {
-    return NextResponse.json({ error: 'You cannot capture this payment' }, { status: 403 });
+    return apiForbidden('You cannot capture this payment');
   }
 
   if (payment.status !== 'authorized') {
-    return NextResponse.json({ error: `Payment cannot be captured from status: ${payment.status}` }, { status: 400 });
+    return apiError(`Payment cannot be captured from status: ${payment.status}`, 400);
   }
 
   const { data: job } = await supabase
@@ -66,11 +64,11 @@ async function postHandler(request: NextRequest) {
     .maybeSingle();
 
   if (!job || (job.customer_id !== user.id && !isAdmin)) {
-    return NextResponse.json({ error: 'Job not found for this customer' }, { status: 404 });
+    return apiNotFound('Job not found for this customer');
   }
 
   if (job.status !== 'completed') {
-    return NextResponse.json({ error: 'Mark job as completed before releasing payment' }, { status: 400 });
+    return apiError('Mark job as completed before releasing payment', 400);
   }
 
   const captured = await stripe.paymentIntents.capture(payment_intent_id);
@@ -86,7 +84,7 @@ async function postHandler(request: NextRequest) {
     .eq('id', payment.job_id);
 
   if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 400 });
+    return apiError(updateError.message, 400);
   }
 
   return NextResponse.json({ status: captured.status, payment_intent_id: captured.id });

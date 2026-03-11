@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiUnauthorized, apiServerError } from '@/lib/api/error-response';
 
 const AVATAR_BUCKET = 'profile-avatars';
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
@@ -38,27 +39,27 @@ async function postHandler(request: Request) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const formData = await request.formData();
   const file = formData.get('avatar');
   if (!(file instanceof File)) {
-    return NextResponse.json({ error: 'Avatar file is required.' }, { status: 400 });
+    return apiError('Avatar file is required.', 400);
   }
 
   const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
   if (!ALLOWED_EXTENSIONS.has(ext)) {
-    return NextResponse.json({ error: 'Avatar must be PNG, JPG, JPEG or WEBP.' }, { status: 400 });
+    return apiError('Avatar must be PNG, JPG, JPEG or WEBP.', 400);
   }
 
   if (file.size > MAX_FILE_SIZE_BYTES) {
-    return NextResponse.json({ error: 'Avatar must be 5MB or smaller.' }, { status: 400 });
+    return apiError('Avatar must be 5MB or smaller.', 400);
   }
 
   const bucketError = await ensureAvatarBucket();
   if (bucketError) {
-    return NextResponse.json({ error: `Avatar storage setup failed: ${bucketError}` }, { status: 500 });
+    return apiServerError(`Avatar storage setup failed: ${bucketError}`);
   }
 
   const serviceClient = getSupabaseServiceClient();
@@ -73,7 +74,7 @@ async function postHandler(request: Request) {
     });
 
   if (uploadError) {
-    return NextResponse.json({ error: uploadError.message }, { status: 400 });
+    return apiError(uploadError.message, 400);
   }
 
   const { data: publicUrlData } = serviceClient.storage.from(AVATAR_BUCKET).getPublicUrl(path);
@@ -86,15 +87,11 @@ async function postHandler(request: Request) {
 
   if (profileError) {
     if (isMissingAvatarColumnError(profileError.message)) {
-      return NextResponse.json(
-        {
-          error:
-            'Profile avatar is not enabled in database yet. Run migration 023_profile_avatar.sql in Supabase SQL Editor, then retry.',
-        },
-        { status: 500 }
+      return apiServerError(
+        'Profile avatar is not enabled in database yet. Run migration 023_profile_avatar.sql in Supabase SQL Editor, then retry.'
       );
     }
-    return NextResponse.json({ error: profileError.message }, { status: 400 });
+    return apiError(profileError.message, 400);
   }
 
   return NextResponse.json({ avatar_url: avatarUrl }, { status: 200 });
@@ -108,22 +105,18 @@ async function deleteHandler() {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   const serviceClient = getSupabaseServiceClient();
   const { error } = await serviceClient.from('profiles').update({ avatar_url: null }).eq('id', user.id);
   if (error) {
     if (isMissingAvatarColumnError(error.message)) {
-      return NextResponse.json(
-        {
-          error:
-            'Profile avatar is not enabled in database yet. Run migration 023_profile_avatar.sql in Supabase SQL Editor, then retry.',
-        },
-        { status: 500 }
+      return apiServerError(
+        'Profile avatar is not enabled in database yet. Run migration 023_profile_avatar.sql in Supabase SQL Editor, then retry.'
       );
     }
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return apiError(error.message, 400);
   }
 
   return NextResponse.json({ ok: true }, { status: 200 });

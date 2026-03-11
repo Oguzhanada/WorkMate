@@ -12,6 +12,8 @@ module.exports = {
     '/en/dashboard*',
     '/en/post-job*',
     '/en/profile*',
+    '/en/checkout*',
+    '/checkout*',
     '/api/*',
     '/auth/*',
   ],

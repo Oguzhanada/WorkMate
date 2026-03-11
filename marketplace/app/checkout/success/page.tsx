@@ -1,10 +1,6 @@
-import { Suspense } from 'react';
-import CheckoutSuccessClient from '@/components/payments/CheckoutSuccessClient';
+// Permanent redirect — this page has moved to /en/checkout/success
+import { redirect } from 'next/navigation';
 
-export default function CheckoutSuccessPage() {
-  return (
-    <Suspense fallback={<main className="p-6">Verifying secure hold...</main>}>
-      <CheckoutSuccessClient />
-    </Suspense>
-  );
+export default function CheckoutSuccessRedirect() {
+  redirect('/en/checkout/success');
 }

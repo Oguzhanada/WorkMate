@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { logAdminAudit } from '@/lib/admin/audit';
 import { adminProviderDecisionSchema, adminProviderFiltersSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError } from '@/lib/api/error-response';
 
 export async function GET(request: NextRequest) {
   const auth = await ensureAdminRoute();
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
   });
 
   if (!parsedFilters.success) {
-    return NextResponse.json({ error: 'Invalid filters' }, { status: 400 });
+    return apiError('Invalid filters', 400);
   }
 
   const filters = parsedFilters.data;
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
   const { data: profiles, error } = await query;
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return apiError(error.message, 400);
   }
 
   const profileIds = (profiles ?? []).map((p) => p.id);
@@ -253,15 +254,12 @@ async function patchHandler(request: NextRequest) {
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = adminProviderDecisionSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const { profile_id, decision, note } = parsed.data;
@@ -280,7 +278,7 @@ async function patchHandler(request: NextRequest) {
       .eq('profile_id', profile_id);
 
     if (docsError) {
-      return NextResponse.json({ error: docsError.message }, { status: 400 });
+      return apiError(docsError.message, 400);
     }
 
     const hasVerifiedIdDocument = (docs ?? []).some(
@@ -296,20 +294,15 @@ async function patchHandler(request: NextRequest) {
 
     if (isProviderApplication) {
       if (!hasVerifiedId || !hasVerifiedInsurance) {
-        return NextResponse.json(
-          {
-            error:
-              'Cannot approve profile yet. ID and insurance documents must both be verified first.',
-          },
-          { status: 400 }
+        return apiError(
+          'Cannot approve profile yet. ID and insurance documents must both be verified first.',
+          400
         );
       }
     } else if (!hasVerifiedId) {
-      return NextResponse.json(
-        {
-          error: 'Cannot approve customer identity yet. ID document must be verified first.',
-        },
-        { status: 400 }
+      return apiError(
+        'Cannot approve customer identity yet. ID document must be verified first.',
+        400
       );
     }
   }
@@ -375,7 +368,7 @@ async function patchHandler(request: NextRequest) {
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return apiError(error.message, 400);
   }
 
   if (decision === 'approve' && isProviderApplication) {
@@ -391,7 +384,7 @@ async function patchHandler(request: NextRequest) {
       );
 
     if (roleError) {
-      return NextResponse.json({ error: roleError.message }, { status: 400 });
+      return apiError(roleError.message, 400);
     }
   } else {
     if (decision !== 'approve') {
@@ -423,7 +416,7 @@ async function patchHandler(request: NextRequest) {
       .eq('role', 'verified_pro');
 
     if (removeError) {
-      return NextResponse.json({ error: removeError.message }, { status: 400 });
+      return apiError(removeError.message, 400);
     }
   }
 
@@ -445,7 +438,7 @@ async function patchHandler(request: NextRequest) {
   });
 
   if (notificationError) {
-    return NextResponse.json({ error: notificationError.message }, { status: 400 });
+    return apiError(notificationError.message, 400);
   }
 
   const { data: targetProfile } = await supabase

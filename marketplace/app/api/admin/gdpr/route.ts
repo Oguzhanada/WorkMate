@@ -5,6 +5,7 @@ import { logAdminAudit } from '@/lib/admin/audit';
 import { sendTransactionalEmail } from '@/lib/email/send';
 import { processGdprDeletionSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
+import { apiError, apiNotFound, apiConflict, apiServerError } from '@/lib/api/error-response';
 
 const HOLD_DAYS = 30;
 
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
     .not('deletion_requested_at', 'is', null)
     .order('deletion_requested_at', { ascending: true });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return apiServerError(error.message);
 
   const now = Date.now();
   const records = (data ?? []).map((row) => {
@@ -66,15 +67,12 @@ async function deleteHandler(request: NextRequest) {
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return apiError('Invalid JSON body', 400);
   }
 
   const parsed = processGdprDeletionSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return apiError('Validation failed', 400);
   }
 
   const { profile_id } = parsed.data;
@@ -88,25 +86,19 @@ async function deleteHandler(request: NextRequest) {
     .single();
 
   if (fetchError || !profile) {
-    return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    return apiNotFound('Profile not found');
   }
 
   if (!profile.deletion_requested_at) {
-    return NextResponse.json(
-      { error: 'No deletion request on file for this profile' },
-      { status: 409 }
-    );
+    return apiConflict('No deletion request on file for this profile');
   }
 
   const requestedAt = new Date(profile.deletion_requested_at as string).getTime();
   const daysSince = Math.floor((Date.now() - requestedAt) / (1000 * 60 * 60 * 24));
   if (daysSince < HOLD_DAYS) {
-    return NextResponse.json(
-      {
-        error: `Deletion hold period not elapsed. ${HOLD_DAYS - daysSince} day(s) remaining.`,
-        days_remaining: HOLD_DAYS - daysSince,
-      },
-      { status: 409 }
+    return apiError(
+      `Deletion hold period not elapsed. ${HOLD_DAYS - daysSince} day(s) remaining.`,
+      409
     );
   }
 
@@ -119,7 +111,7 @@ async function deleteHandler(request: NextRequest) {
     .or(`reviewer_id.eq.${profile_id},provider_id.eq.${profile_id}`);
   if (reviewsErr) {
     console.error('[GDPR] reviews delete failed', profile_id, reviewsErr.message);
-    return NextResponse.json({ error: 'Failed during review deletion' }, { status: 500 });
+    return apiServerError('Failed during review deletion');
   }
 
   // 2b. Appointments (as customer or provider)
@@ -129,7 +121,7 @@ async function deleteHandler(request: NextRequest) {
     .or(`customer_id.eq.${profile_id},provider_id.eq.${profile_id}`);
   if (apptErr) {
     console.error('[GDPR] appointments delete failed', profile_id, apptErr.message);
-    return NextResponse.json({ error: 'Failed during appointment deletion' }, { status: 500 });
+    return apiServerError('Failed during appointment deletion');
   }
 
   // 2c. Jobs posted by the customer (offers/quotes cascade from jobs via FK)
@@ -139,7 +131,7 @@ async function deleteHandler(request: NextRequest) {
     .eq('customer_id', profile_id);
   if (jobsErr) {
     console.error('[GDPR] jobs delete failed', profile_id, jobsErr.message);
-    return NextResponse.json({ error: 'Failed during job deletion' }, { status: 500 });
+    return apiServerError('Failed during job deletion');
   }
 
   // 2d. Favourite providers (as customer or saved provider)
@@ -149,7 +141,7 @@ async function deleteHandler(request: NextRequest) {
     .or(`customer_id.eq.${profile_id},provider_id.eq.${profile_id}`);
   if (favErr) {
     console.error('[GDPR] favourite_providers delete failed', profile_id, favErr.message);
-    return NextResponse.json({ error: 'Failed during favourites deletion' }, { status: 500 });
+    return apiServerError('Failed during favourites deletion');
   }
 
   // 2e. User roles
@@ -159,7 +151,7 @@ async function deleteHandler(request: NextRequest) {
     .eq('user_id', profile_id);
   if (rolesErr) {
     console.error('[GDPR] user_roles delete failed', profile_id, rolesErr.message);
-    return NextResponse.json({ error: 'Failed during roles deletion' }, { status: 500 });
+    return apiServerError('Failed during roles deletion');
   }
 
   // 2f. Profile row
@@ -169,7 +161,7 @@ async function deleteHandler(request: NextRequest) {
     .eq('id', profile_id);
   if (profileErr) {
     console.error('[GDPR] profiles delete failed', profile_id, profileErr.message);
-    return NextResponse.json({ error: 'Failed during profile deletion' }, { status: 500 });
+    return apiServerError('Failed during profile deletion');
   }
 
   // 2g. Auth user — must be last (FK constraint from profiles.id → auth.users.id)

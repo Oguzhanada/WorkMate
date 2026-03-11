@@ -7,6 +7,7 @@ import { sendTransactionalEmail } from '@/lib/email/send';
 import { updateCustomerProviderHistory } from '@/lib/pricing/fee-calculator';
 import { stripeSubscriptionObjectSchema } from '@/lib/validation/api';
 import { sendNotification } from '@/lib/notifications/send';
+import { apiError } from '@/lib/api/error-response';
 
 // Subscription statuses that warrant a user-facing email notification.
 const SUBSCRIPTION_EMAIL_STATUSES = new Set(['active', 'past_due', 'cancelled']);
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   if (!signature || !webhookSecret) {
-    return NextResponse.json({ error: 'Missing webhook signature or secret' }, { status: 400 });
+    return apiError('Missing webhook signature or secret', 400);
   }
 
   const rawBody = await request.text();
@@ -26,7 +27,7 @@ export async function POST(request: NextRequest) {
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
   } catch (error) {
     console.error('[stripe-webhook] signature verification failed:', error instanceof Error ? error.message : error);
-    return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 });
+    return apiError('Webhook signature verification failed', 400);
   }
 
   const supabase = getSupabaseServiceClient();

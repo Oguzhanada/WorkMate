@@ -3,7 +3,7 @@ import {screen, waitFor} from '@testing-library/dom';
 import type {ReactNode} from 'react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 
-import Navbar from '@/components/home/Navbar';
+import Navbar from '@/components/layout/Navbar';
 
 const pushMock = vi.fn();
 const replaceMock = vi.fn();
