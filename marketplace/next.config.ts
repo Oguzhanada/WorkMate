@@ -1,7 +1,9 @@
+import path from 'node:path';
 import createNextIntlPlugin from 'next-intl/plugin';
 import { withSentryConfig } from '@sentry/nextjs';
 
 const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
+const repoRoot = path.resolve(__dirname, '..');
 
 const securityHeaders = [
   { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
@@ -30,7 +32,8 @@ const securityHeaders = [
 
 const nextConfig = {
   reactStrictMode: true,
-  turbopack: { root: __dirname },
+  outputFileTracingRoot: repoRoot,
+  turbopack: { root: repoRoot },
   images: {
     remotePatterns: [
       {
@@ -63,6 +66,10 @@ const nextConfig = {
 };
 
 export default withSentryConfig(withNextIntl(nextConfig), {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
   // Suppress source map upload logs in non-CI environments
   silent: !process.env.CI,
 

@@ -93,15 +93,40 @@ export function LoginForm() {
       }
 
       const supabase = getSupabaseBrowserClient();
-      const {error} = await supabase.auth.signInWithPassword({email, password});
+      const {data: signInData, error} = await supabase.auth.signInWithPassword({email, password});
 
       if (error) {
         setFormError(error.message);
         return;
       }
 
+      // Honour ?next= param set by middleware (protected page redirect)
+      const nextParam = new URLSearchParams(window.location.search).get('next');
+      if (nextParam && nextParam.startsWith('/')) {
+        setSuccessMessage(t('success'));
+        router.replace(nextParam);
+        router.refresh();
+        return;
+      }
+
+      // Role-aware default redirect
+      const userId = signInData.user?.id;
+      let dashboardPath = '/dashboard/customer';
+      if (userId) {
+        const {data: rolesData} = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userId);
+        const roles = (rolesData ?? []).map((r) => r.role as string);
+        if (roles.includes('admin')) {
+          dashboardPath = '/dashboard/admin';
+        } else if (roles.includes('verified_pro')) {
+          dashboardPath = '/dashboard/pro';
+        }
+      }
+
       setSuccessMessage(t('success'));
-      router.replace(withLocalePrefix(localeRoot, '/dashboard/customer'));
+      router.replace(withLocalePrefix(localeRoot, dashboardPath));
       router.refresh();
     } catch (submitError) {
       const message = submitError instanceof Error ? submitError.message : 'Login failed. Please try again.';
