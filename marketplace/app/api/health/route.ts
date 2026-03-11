@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { runAllHealthChecks } from '@/lib/monitoring/health-checks';
+import { apiUnauthorized, apiForbidden, apiServerError } from '@/lib/api/error-response';
 
 /**
  * GET /api/health
@@ -29,18 +30,12 @@ export async function GET(request: NextRequest) {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        return NextResponse.json(
-          { error: 'Authentication required' },
-          { status: 401 }
-        );
+        return apiUnauthorized('Authentication required');
       }
 
       const roles = await getUserRoles(supabase, user.id);
       if (!canAccessAdmin(roles)) {
-        return NextResponse.json(
-          { error: 'Insufficient permissions' },
-          { status: 403 }
-        );
+        return apiForbidden('Insufficient permissions');
       }
 
       const skipCache = searchParams.get('fresh') === 'true';
@@ -50,13 +45,7 @@ export async function GET(request: NextRequest) {
         status: result.status === 'down' ? 503 : 200,
       });
     } catch (err) {
-      return NextResponse.json(
-        {
-          error: 'Health check failed',
-          message: err instanceof Error ? err.message : 'Unknown error',
-        },
-        { status: 500 }
-      );
+      return apiServerError(err instanceof Error ? err.message : 'Health check failed');
     }
   }
 
