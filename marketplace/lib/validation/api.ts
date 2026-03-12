@@ -1,6 +1,13 @@
 import { z } from 'zod';
 import { JOB_BUDGET_OPTIONS } from '@/lib/data/budgets';
 
+// Postgres accepts any UUID format — z.string().uuid() in Zod 4 enforces version nibble [1-8]
+// which rejects valid Postgres UUIDs with version 0. Use this helper instead.
+const pgUuid = z.string().regex(
+  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/,
+  'Invalid UUID',
+);
+
 // ── Auth schemas ────────────────────────────────────────────────────────────
 
 export const loginSchema = z.object({
@@ -40,7 +47,7 @@ const availabilitySlotSchema = z.object({
 });
 
 export const createQuoteSchema = z.object({
-  job_id: z.string().uuid(),
+  job_id: pgUuid,
   quote_amount_cents: z.number().int().positive().max(100_000_000),
   message: z.string().trim().max(3000).optional().default(''),
   estimated_duration: z.string().trim().min(1).max(120),
@@ -56,10 +63,10 @@ export const createAccountLinkSchema = z.object({
 export const createSecureHoldSchema = z.object({
   amount_cents: z.number().int().positive().max(100_000_000),
   connected_account_id: z.string().trim().min(3).max(255),
-  quote_id: z.string().uuid(),
-  job_id: z.string().uuid(),
-  customer_id: z.string().uuid(),
-  pro_id: z.string().uuid(),
+  quote_id: pgUuid,
+  job_id: pgUuid,
+  customer_id: pgUuid,
+  pro_id: pgUuid,
 });
 
 export const capturePaymentSchema = z.object({
@@ -71,7 +78,7 @@ export const finalizeHoldSchema = z.object({
 });
 
 export const acceptQuoteSchema = z.object({
-  quote_id: z.string().uuid(),
+  quote_id: pgUuid,
 });
 
 export const addressLookupQuerySchema = z.object({
