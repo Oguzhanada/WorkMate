@@ -369,6 +369,24 @@ VALUES
    now()-interval'7 days', now()-interval'7 days', false,'','','','');
 
 
+-- ── 1b. AUTH IDENTITIES ──────────────────────────────────────
+-- GoTrue requires an auth.identities row per user for email/password login.
+-- Must run AFTER the auth.users inserts above.
+INSERT INTO auth.identities (id, provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
+SELECT
+  gen_random_uuid(),
+  u.email,
+  u.id,
+  jsonb_build_object('sub', u.id::text, 'email', u.email),
+  'email',
+  now(),
+  u.created_at,
+  now()
+FROM auth.users u
+WHERE u.email LIKE '%workmate-test.ie'
+ON CONFLICT DO NOTHING;
+
+
 -- ── 2. UPDATE PROFILES — Verified Providers ──────────────────
 -- Set is_verified, verification_status, loyalty_level, id_verification_status, county
 UPDATE public.profiles SET
