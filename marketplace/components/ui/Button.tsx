@@ -21,37 +21,51 @@ type ButtonProps = {
 } & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type' | 'onClick' | 'disabled' | 'className' | 'children'>;
 
 const variantClasses: Record<ButtonVariant, string> = {
+  // Irish Emerald — primary CTA
   primary:
     'text-white border border-transparent ' +
     'bg-[var(--wm-primary)] ' +
-    'shadow-[0_8px_20px_rgba(16,185,129,0.26)] ' +
-    'hover:bg-[var(--wm-primary-dark)] hover:shadow-[0_10px_24px_rgba(16,185,129,0.34)] hover:-translate-y-px ' +
-    'active:translate-y-0 active:shadow-[0_4px_12px_rgba(16,185,129,0.24)]',
+    'shadow-[0_4px_14px_rgba(22,155,98,0.30)] ' +
+    'hover:bg-[var(--wm-primary-dark)] hover:shadow-[0_8px_22px_rgba(22,155,98,0.38)] hover:-translate-y-0.5 ' +
+    'active:translate-y-0 active:shadow-[0_2px_8px_rgba(22,155,98,0.22)]',
+
+  // White card with navy text — secondary action
   secondary:
-    'bg-[var(--color-background-secondary)] text-[var(--color-text-primary)] ' +
-    'border border-[var(--color-border-default)] ' +
+    'bg-[var(--wm-surface)] text-[var(--color-text-primary)] ' +
+    'border border-[var(--wm-border)] ' +
     'shadow-[var(--wm-shadow-sm)] ' +
-    'hover:border-[var(--wm-primary)] hover:text-[var(--wm-primary)] hover:shadow-[var(--wm-shadow-md)] hover:-translate-y-px ' +
+    'hover:border-[var(--wm-primary)] hover:text-[var(--wm-primary)] ' +
+    'hover:shadow-[var(--wm-shadow-md)] hover:-translate-y-0.5 ' +
     'active:translate-y-0',
+
+  // Minimal — for toolbars and inline actions
   ghost:
-    'bg-transparent text-[var(--wm-muted)] border border-transparent ' +
+    'bg-transparent text-[var(--wm-text-soft)] border border-transparent ' +
     'hover:bg-[var(--wm-primary-light)] hover:text-[var(--wm-primary-dark)] ' +
-    'active:bg-[var(--wm-primary-light)]',
+    'active:bg-[var(--wm-primary-faint)]',
+
+  // Bordered emerald — for secondary emphasis
   outline:
-    'bg-transparent text-[var(--wm-primary)] border border-[var(--wm-primary)] ' +
-    'hover:bg-[var(--wm-primary)] hover:text-white hover:shadow-[0_4px_14px_rgba(0,184,148,0.30)] hover:-translate-y-px ' +
+    'bg-transparent text-[var(--wm-primary)] ' +
+    'border-2 border-[var(--wm-primary)] ' +
+    'hover:bg-[var(--wm-primary)] hover:text-white ' +
+    'hover:shadow-[0_4px_14px_rgba(22,155,98,0.28)] hover:-translate-y-0.5 ' +
     'active:translate-y-0',
+
+  // Danger — destructive actions
   destructive:
     'text-white border border-transparent ' +
     'bg-[var(--wm-destructive)] ' +
-    'shadow-[0_4px_14px_rgba(220,38,38,0.28)] ' +
-    'hover:bg-[var(--wm-destructive-dark)] hover:shadow-[0_6px_20px_rgba(220,38,38,0.38)] hover:-translate-y-px ' +
+    'shadow-[0_4px_14px_rgba(239,68,68,0.28)] ' +
+    'hover:bg-[var(--wm-destructive-dark)] hover:shadow-[0_6px_20px_rgba(239,68,68,0.36)] hover:-translate-y-0.5 ' +
     'active:translate-y-0',
+
+  // Navy — trust/authority actions (sign in, admin)
   navy:
     'text-white border border-transparent ' +
     'bg-[var(--wm-navy)] ' +
-    'shadow-[0_8px_20px_rgba(15,23,42,0.26)] ' +
-    'hover:bg-[var(--wm-navy-mid)] hover:shadow-[0_10px_24px_rgba(15,23,42,0.36)] hover:-translate-y-px ' +
+    'shadow-[0_4px_14px_rgba(27,42,74,0.30)] ' +
+    'hover:bg-[var(--wm-navy-mid)] hover:shadow-[0_8px_22px_rgba(27,42,74,0.38)] hover:-translate-y-0.5 ' +
     'active:translate-y-0',
 };
 

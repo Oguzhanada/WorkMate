@@ -10,10 +10,10 @@ type StatCardProps = {
 };
 
 const accentTokens = {
-  primary: {bg: 'var(--wm-primary-light)', icon: 'var(--wm-primary)', border: 'rgba(0,184,148,0.20)'},
-  amber:   {bg: 'var(--wm-amber-light)',   icon: 'var(--wm-amber-dark)', border: 'rgba(245,158,11,0.20)'},
-  blue:    {bg: 'var(--wm-blue-soft)',     icon: 'var(--wm-blue)',       border: 'rgba(26,86,219,0.18)'},
-  navy:    {bg: 'rgba(12,27,51,0.07)',     icon: 'var(--wm-navy)',       border: 'rgba(12,27,51,0.14)'}
+  primary: {bg: 'var(--wm-primary-light)', icon: 'var(--wm-primary)',   border: 'rgba(22,155,98,0.22)'},
+  amber:   {bg: 'var(--wm-gold-light)',    icon: 'var(--wm-gold-dark)', border: 'rgba(212,168,71,0.22)'},
+  blue:    {bg: 'var(--wm-blue-soft)',     icon: 'var(--wm-blue)',      border: 'rgba(26,86,219,0.18)'},
+  navy:    {bg: 'rgba(27,42,74,0.07)',     icon: 'var(--wm-navy)',      border: 'rgba(27,42,74,0.14)'}
 };
 
 const trendClasses = {
@@ -29,8 +29,9 @@ export default function StatCard({ label, value, icon, trend, trendLabel, accent
 
   return (
     <article
-      className="rounded-2xl border bg-white p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[var(--wm-shadow-xl)]"
+      className="rounded-2xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--wm-shadow-lg)]"
       style={{
+        background: 'var(--wm-surface)',
         borderColor: colors.border,
         boxShadow: 'var(--wm-shadow-md)'
       }}

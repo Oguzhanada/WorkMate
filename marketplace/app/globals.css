@@ -1,100 +1,12 @@
 @import "tailwindcss";
 @import "./tokens.css";
 
+/* ── Globals-only extras (not in tokens.css) ─────────────────── */
 :root {
-  /* ── Typography ─────────────────────────────────────────── */
-  --wm-font-display: 'Syne', 'DM Sans', sans-serif;
-  --wm-font-sans:    'Plus Jakarta Sans', 'DM Sans', system-ui, sans-serif;
-
-  /* ── Colours — primary (teal) ───────────────────────────── */
-  --wm-primary:       #10b981;
-  --wm-primary-dark:  #059669;
-  --wm-primary-mid:   #0ea878;
-  --wm-primary-rgb:   16, 185, 129;
-  --wm-primary-light: #d1fae5;
-  --wm-primary-faint: #ecfdf5;
-
-  /* ── Colours — navy (depth / dark text) ────────────────── */
-  --wm-navy:      #0f172a;
-  --wm-navy-mid:  #1f2937;
-  --wm-navy-soft: #334155;
-  --wm-navy-rgb:  15, 23, 42;
-
-  /* ── Colours — amber (warm accent / highlights) ─────────── */
-  --wm-amber:       #f59e0b;
-  --wm-amber-dark:  #d97706;
-  --wm-amber-light: #fffbeb;
-  --wm-amber-faint: #fefce8;
-
-  /* ── Colours — blue (secondary CTA) ────────────────────── */
-  --wm-blue:      #2563eb;
-  --wm-blue-dark: #1d4ed8;
-  --wm-blue-soft: #eff6ff;
-
-  /* ── Colours — rose (destructive / alert) ──────────────── */
-  --wm-destructive:       #dc2626;
-  --wm-destructive-dark:  #b91c1c;
-  --wm-destructive-rgb:   220, 38, 38;
-  --wm-destructive-light: #fef2f2;
-
-  /* ── Colours — base surfaces ────────────────────────────── */
-  --wm-accent:  #0f172a;
-  --wm-bg:      #eef3f1;
-  --wm-surface:     rgba(255, 255, 255, 0.95);
-  --wm-surface-alt: rgba(248, 250, 252, 0.90);
-  --wm-text-strong:  #0b1324;
-  --wm-text-default: #0f172a;
-  --wm-text-muted:   #334155;
-  --wm-text-soft:    #475569;
-  --wm-text:    #0f172a;
-  --wm-muted:   #334155;
-  --wm-subtle:  #475569;
-  --wm-border:  #dbe1e7;
-  --wm-border-soft: rgba(0,0,0,0.06);
-
-  /* ── Border radius ──────────────────────────────────────── */
-  --wm-radius-xs:  0.375rem;
-  --wm-radius-sm:  0.5rem;
-  --wm-radius-md:  0.75rem;
-  --wm-radius-lg:  1rem;
-  --wm-radius-xl:  1.25rem;
-  --wm-radius-2xl: 1.5rem;
-  --wm-radius-3xl: 2rem;
-
-  /* ── Shadows ────────────────────────────────────────────── */
-  --wm-shadow-xs:  0 1px 2px rgba(15, 23, 42, 0.06);
-  --wm-shadow-sm:  0 2px 6px rgba(15, 23, 42, 0.07);
-  --wm-shadow-md:  0 8px 20px rgba(15, 23, 42, 0.08);
-  --wm-shadow-lg:  0 14px 36px rgba(15, 23, 42, 0.10);
-  --wm-shadow-xl:  0 22px 50px rgba(15, 23, 42, 0.14);
-  --wm-shadow-2xl: 0 40px 80px rgba(0,0,0,0.12), 0 16px 32px rgba(0,0,0,0.06);
-
-  /* ── Glow shadows ───────────────────────────────────────── */
-  --wm-glow-primary: 0 0 0 3px rgba(0, 184, 148, 0.18), 0 8px 24px rgba(0, 184, 148, 0.22);
-  --wm-glow-navy:    0 0 0 3px rgba(12, 27, 51, 0.15), 0 8px 24px rgba(12, 27, 51, 0.18);
-  --wm-glow-amber:   0 0 0 3px rgba(245, 158, 11, 0.18), 0 8px 24px rgba(245, 158, 11, 0.20);
-
-  /* ── Gradient tokens ────────────────────────────────────── */
-  --wm-grad-primary: linear-gradient(135deg, var(--wm-primary) 0%, var(--wm-primary-dark) 100%);
-  --wm-grad-navy:    linear-gradient(145deg, #0f172a 0%, #111f3f 65%, #1f2f55 100%);
-  --wm-grad-warm:    linear-gradient(135deg, var(--wm-amber) 0%, var(--wm-amber-dark) 100%);
-  --wm-grad-hero:    linear-gradient(180deg, #eef3f1 0%, #f3f5f6 58%, #eef4f3 100%);
-
-  /* ── Glass / blur surfaces ──────────────────────────────── */
-  --wm-glass:        rgba(255, 255, 255, 0.72);
-  --wm-glass-border: rgba(255, 255, 255, 0.55);
-  --wm-glass-dark:   rgba(12, 27, 51, 0.65);
-
-  /* ── Colours — chart palette (analytics visuals) ──────────── */
+  --wm-surface-alt: rgba(247, 245, 240, 0.90);
   --wm-chart-blue:   #0ea5e9;
   --wm-chart-purple: #8b5cf6;
   --wm-chart-pink:   #ec4899;
-
-  /* ── Transitions ────────────────────────────────────────── */
-  --wm-transition-fast:   100ms cubic-bezier(0.4, 0, 0.2, 1);
-  --wm-transition:        200ms cubic-bezier(0.4, 0, 0.2, 1);
-  --wm-transition-slow:   350ms cubic-bezier(0.4, 0, 0.2, 1);
-  --wm-transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* ── Reset ──────────────────────────────────────────────────── */
@@ -107,18 +19,36 @@ html, body {
   margin: 0;
   padding: 0;
   color: var(--wm-text);
-  background: var(--wm-grad-hero);
+  background: #ffffff;
   font-family: var(--wm-font-sans);
   font-size: 16px;
-  line-height: 1.6;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+  font-optical-sizing: auto;
 }
 
+/* ── Global blob background — Tema A (Ireland) ──────────────── */
 .wm-ds-root {
-  background: var(--color-background-primary);
+  min-height: 100vh;
   color: var(--color-text-primary);
+  background:
+    radial-gradient(ellipse 55% 45% at 8%  12%, rgba(22, 155, 98,  0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 45% 40% at 92%  8%, rgba(212,168, 71,  0.09) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 45% at 78% 88%, rgba(45,  74,122,  0.08) 0%, transparent 58%),
+    radial-gradient(ellipse 40% 38% at 18% 90%, rgba(22, 155, 98,  0.07) 0%, transparent 52%),
+    radial-gradient(ellipse 35% 35% at 55% 50%, rgba(212,168, 71,  0.04) 0%, transparent 60%),
+    #ffffff;
+  background-attachment: fixed;
+}
+
+/* ── Tema B (OnTask) — saf beyaz, blob yok ──────────────────── */
+[data-theme="b"] .wm-ds-root,
+[data-theme="b"].wm-ds-root {
+  background: #ffffff;
+  background-attachment: unset;
 }
 
 p,
@@ -140,18 +70,29 @@ a:not([class]) {
 /* ── Headings — Syne display font ───────────────────────────── */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--wm-font-display);
-  font-weight: 800;
-  line-height: 1.2;
+  font-weight: 700;
+  line-height: 1.15;
   color: inherit;
-  letter-spacing: -0.03em;
   margin: 0;
+  text-wrap: balance;
+  font-feature-settings: 'kern' 1, 'liga' 1;
 }
 
-h1 { font-size: clamp(2rem, 4vw, 3rem);   font-weight: 800; }
-h2 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 800; }
-h3 { font-size: 1.25rem; font-weight: 700; }
-h4 { font-size: 1.0625rem; font-weight: 600; }
-h5 { font-size: 0.9375rem; font-weight: 600; }
+h1 { font-size: clamp(2rem, 4vw, 3rem);         font-weight: 800; letter-spacing: -0.03em; }
+h2 { font-size: clamp(1.5rem, 3vw, 2.25rem);    font-weight: 800; letter-spacing: -0.025em; }
+h3 { font-size: clamp(1.2rem, 2vw, 1.375rem);   font-weight: 700; letter-spacing: -0.02em; }
+h4 { font-size: 1.0625rem; font-weight: 600; letter-spacing: -0.015em; }
+h5 { font-size: 0.9375rem; font-weight: 600; letter-spacing: -0.01em; }
+
+/* Paragraph spacing for prose contexts */
+p + p { margin-top: 0.875em; }
+
+/* ── Mono / code ─────────────────────────────────────────────── */
+code, kbd, pre, samp {
+  font-family: var(--font-family-mono);
+  font-size: 0.875em;
+  font-feature-settings: 'liga' 0, 'calt' 1;
+}
 
 /* ── Focus ring ─────────────────────────────────────────────── */
 :focus-visible {
@@ -204,7 +145,7 @@ h5 { font-size: 0.9375rem; font-weight: 600; }
   text-transform: uppercase;
   background: var(--wm-primary-light);
   color: var(--wm-primary-dark);
-  border: 1px solid rgba(0, 184, 148, 0.2);
+  border: 1px solid rgba(22, 155, 98, 0.22);
 }
 
 /* ── Display heading (Syne, extra bold) ─────────────────────── */
@@ -279,7 +220,7 @@ h5 { font-size: 0.9375rem; font-weight: 600; }
 
 /* ── Gradient text utility ────────────────────────────────── */
 .wm-text-gradient {
-  background: linear-gradient(135deg, var(--wm-primary) 0%, var(--wm-primary-dark) 60%, #047857 100%);
+  background: linear-gradient(135deg, var(--wm-primary) 0%, var(--wm-primary-dark) 60%, #0a5436 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -333,31 +274,33 @@ h5 { font-size: 0.9375rem; font-weight: 600; }
 ::-webkit-scrollbar-thumb { background: var(--wm-border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--wm-muted); }
 
-/* ── Dark mode policy ────────────────────────────────────────── */
+/* ── Dark mode policy (DR-007) ───────────────────────────────── */
+/* prefers-color-scheme activates [data-theme="dark"] token overrides from tokens.css */
 @media (prefers-color-scheme: dark) {
-  /* WorkMate keeps a light-first high-contrast UI to avoid mixed-theme readability regressions. */
   :root {
-    --wm-bg:         #eef3f1;
-    --wm-surface:    rgba(255, 255, 255, 0.95);
-    --wm-text-strong:#0b1324;
-    --wm-text-default:#0f172a;
-    --wm-text-muted: #334155;
-    --wm-text-soft:  #475569;
-    --wm-text:       #0f172a;
-    --wm-muted:      #334155;
-    --wm-subtle:     #475569;
-    --wm-border:     #dbe1e7;
-    --wm-border-soft:rgba(0,0,0,0.06);
-    --wm-glass:      rgba(255, 255, 255, 0.72);
-    --wm-glass-border: rgba(255, 255, 255, 0.55);
-    --wm-primary-light: #d1fae5;
-    --wm-primary-faint: #ecfdf5;
-    --wm-amber-light: #fffbeb;
-    --wm-blue-soft:   #eff6ff;
+    color-scheme: dark;
   }
-
-  html, body {
-    background: var(--wm-grad-hero);
+  html:not([data-theme="light"]) {
+    --wm-bg:           #111827;
+    --wm-surface:      rgba(31, 41, 55, 0.97);
+    --wm-text-strong:  #F9FAFB;
+    --wm-text-default: #F9FAFB;
+    --wm-text-muted:   #E5E7EB;
+    --wm-text-soft:    #9CA3AF;
+    --wm-text:         #F9FAFB;
+    --wm-muted:        #E5E7EB;
+    --wm-subtle:       #9CA3AF;
+    --wm-border:       #374151;
+    --wm-border-soft:  rgba(255, 255, 255, 0.06);
+    --wm-glass:        rgba(31, 41, 55, 0.80);
+    --wm-glass-border: rgba(255, 255, 255, 0.10);
+    --color-background-primary:   #111827;
+    --color-background-secondary: #1F2937;
+    --color-surface:              rgba(31, 41, 55, 0.97);
+    --color-text-primary:         #F9FAFB;
+    --color-text-secondary:       #E5E7EB;
+    --color-text-muted:           #9CA3AF;
+    --color-border-default:       #374151;
   }
 }
 

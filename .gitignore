@@ -89,3 +89,9 @@ sandbox/
 Thumbs.db
 *.swp
 *.swo
+
+# Temporary AI analysis files (DR-009)
+ai-reports/
+
+# Playwright MCP session cache
+.playwright-mcp/

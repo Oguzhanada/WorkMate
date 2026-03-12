@@ -25,8 +25,8 @@ export default function WorkMateLogo({ size = 40, className = '' }: Props) {
       />
       <defs>
         <linearGradient id="wm-logo-grad" x1="1" y1="1" x2="35" y2="35" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#10b981" />
-          <stop offset="1" stopColor="#059669" />
+          <stop offset="0" stopColor="#169B62" />
+          <stop offset="1" stopColor="#0D6B45" />
         </linearGradient>
       </defs>
     </svg>

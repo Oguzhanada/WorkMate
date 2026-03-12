@@ -2,7 +2,7 @@
   margin: 0;
   color: var(--wm-text);
   font-family: var(--wm-font-sans);
-  background: var(--wm-grad-hero);
+  background: transparent;
   min-height: 100vh;
 }
 

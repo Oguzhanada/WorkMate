@@ -251,7 +251,7 @@ DR-XXX | Date | Author | Decision changed | Reason | Approved by
 | # | Frozen Decision | Why it exists |
 |---|----------------|---------------|
 | FD-01 | All Zod schemas in `lib/validation/api.ts` — never inline in route files | Single source of truth; prevents schema drift; enables reuse across tests |
-| FD-02 | `loading.tsx` on every data-fetching page under `app/[locale]/` | No blank screens on navigation; required by `ai-context/prompts/claude-guidelines.md` |
+| FD-02 | `loading.tsx` required on pages with async Supabase/DB calls. Exempt: static pages with only `getTranslations()` (e.g. terms, pricing, how-it-works, about). Decision criterion: does the page call `createServerClient()` or `createClient()`? Yes → loading.tsx required. See DR-008. | No blank screens on data-fetching navigation |
 | FD-03 | Colors/spacing/radius/shadows must map to `--wm-*` tokens; wrapper internals may use Shadcn/Radix primitives | Preserves brand identity while enabling modern primitive internals |
 | FD-04 | Keep wrapper API (`Button`, `Card`, `Badge`, etc.) as the page-facing contract | Stable app-level API, safer migration path, consistent behavior |
 | FD-05 | `<PageHeader>` remains required at page top; avoid ad-hoc page-level style systems | Consistent page structure and reduced UI drift |
@@ -263,7 +263,7 @@ DR-XXX | Date | Author | Decision changed | Reason | Approved by
 | FD-11 | No hardcoded `/en/` in hrefs, redirects, or router.push — use `lib/i18n/locale-path` helpers | Locale routing correctness; future locale expansion readiness |
 | FD-12 | Webhook delivery: HTTPS-only, HMAC-SHA256 via `X-WorkMate-Signature` from `lib/webhook/send.ts` | Security — unsigned webhooks are spoofable |
 | FD-13 | Contrast contract: text on light surfaces must use semantic text tokens (`--wm-text-strong/default/muted/soft`), never low-opacity text color hacks | Prevents recurring unreadable UI regressions across pages |
-| FD-14 | Theme application is explicit-only: light theme locked by default on `<html data-theme="light">`; no automatic `prefers-color-scheme` overrides in token source | Prevents accidental global washed-out/low-contrast regressions after unrelated changes |
+| FD-14 | Light is default (`<html data-theme="light">` in layout.tsx). Dark mode supported via `[data-theme="dark"]` toggle and `prefers-color-scheme: dark`. Token coverage complete in `tokens.css` lines 167–176. Never use Tailwind `dark:` utilities — `--wm-*` tokens only. All component changes must pass visual QA in both modes. See DR-007. | Dark mode fully supported since UI overhaul (2026-03-12) |
 | FD-15 | No page/container-level opacity on readable content wrappers (`main`, `section`, hero/content cards) except loading/skeleton states | Prevents whole-screen faded text incidents and preserves readability baseline |
 | FD-16 | Ireland-specific logic MUST live in `lib/ireland/` — never at `lib/` root | Session 27 restructure — prevents re-scattering of domain logic |
 | FD-17 | Static data/enums MUST live in `lib/data/` — never at `lib/` root or `lib/constants/` | Session 27 restructure — consolidates all enums/data in one place |
@@ -273,7 +273,7 @@ DR-XXX | Date | Author | Decision changed | Reason | Approved by
 | FD-21 | `components/ui/index.ts` barrel export must be updated when adding new UI primitives | Session 27 — barrel export exists, keep it current |
 | FD-22 | Pre-commit hooks (Husky + lint-staged) must NOT be bypassed with `--no-verify` | Session 27 — quality gates must run locally |
 | FD-23 | AI agents MUST work on feature branches — NEVER commit directly to `main` | Session 27 — main protection, user-only merge |
-| FD-24 | AI agents MUST NOT create completion/audit/task report files (`*REPORT*.md`, `*COMPLETION*.md`, `*GUIDE*.md` at repo root or `docs/`) — only architectural/operational docs allowed | Session 28 — anti-doc-bloat, keep repo clean |
+| FD-24 | AI agents MUST NOT create report files in `docs/` or repo root (`*REPORT*.md`, `*COMPLETION*.md`, `*GUIDE*.md`). Exception: temporary analysis files in `ai-reports/` (gitignored, never committed) are allowed for local review. See DR-009. | Anti-doc-bloat; repo stays clean |
 | FD-25 | New `.claude/skills/` MUST be whitelisted in `.gitignore` before commit — unwhitelisted skills are silently ignored by git | Session 28 — skill creation requires gitignore update |
 | FD-26 | `next/image` for all static images — no raw `<img>` except blob/data URLs | Session 34 — performance + LCP |
 | FD-27 | `lib/api/error-response.ts` helpers in all API routes — no raw `NextResponse.json` for errors | Session 35 — consistent error shape |
@@ -343,14 +343,14 @@ Components MUST live in their feature directory, NOT in `dashboard/`:
 - If you are on `main`, create a new branch first: `git checkout -b feat/<description>`
 - **NEVER** run `git push origin main` — push your feature branch instead
 
-### 20.9) Documentation policy — NO agent self-reports (FD-24)
-- **NEVER** create `*REPORT*.md`, `*COMPLETION*.md`, `*GUIDE*.md`, `*AUDIT*.md` files
+### 20.9) Documentation policy — NO agent self-reports (FD-24, updated DR-009)
+- **NEVER** create `*REPORT*.md`, `*COMPLETION*.md`, `*GUIDE*.md`, `*AUDIT*.md` files in `docs/` or repo root
 - These are agent self-reports and add no value — they bloat the repo
 - The only allowed documentation in `docs/` is **architectural/operational**:
   - `ARCHITECTURE_REVIEW.md`, `PRODUCTION_LAUNCH.md`, `DB_RUNBOOK.md`, `ROPA.md`, checkpoints
+- **Exception (DR-009):** Temporary analysis files may be written to `ai-reports/` (gitignored) for local review. Never commit them.
 - If you need to communicate what you did, use **PR description** and **commit messages** — not separate files
 - Existing `PROJECT_CONTEXT.md` is the single onboarding reference — do not create duplicates
-- The user will review and merge via PR or direct merge at their discretion
 
 ### 20.10) Skill creation — whitelist in `.gitignore` required (FD-25)
 - Skills live in `.claude/skills/<skill-name>/SKILL.md`
