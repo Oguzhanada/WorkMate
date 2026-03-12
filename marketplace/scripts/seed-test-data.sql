@@ -372,6 +372,10 @@ VALUES
 -- ── 1b. AUTH IDENTITIES ──────────────────────────────────────
 -- GoTrue requires an auth.identities row per user for email/password login.
 -- Must run AFTER the auth.users inserts above.
+-- IMPORTANT: confirmation_token / recovery_token / email_change / email_change_token_new
+--            must be '' (empty string) in auth.users — NOT NULL.
+--            GoTrue scans them as non-nullable strings and crashes with
+--            "converting NULL to string is unsupported" on login.
 INSERT INTO auth.identities (id, provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
 SELECT
   gen_random_uuid(),
