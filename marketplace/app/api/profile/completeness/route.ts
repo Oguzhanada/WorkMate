@@ -26,20 +26,25 @@ export async function GET() {
 
   const service = getSupabaseServiceClient();
 
-  const [{ data: profile, error: profileError }, { count: servicesCount, error: servicesError }] =
-    await Promise.all([
-      service
-        .from('profiles')
-        .select(
-          'full_name,phone,avatar_url,county,locality,id_verification_status,stripe_requirements_due',
-        )
-        .eq('id', user.id)
-        .maybeSingle(),
-      service
-        .from('pro_services')
-        .select('id', { count: 'exact', head: true })
-        .eq('profile_id', user.id),
-    ]);
+  const [
+    { data: profile, error: profileError },
+    { count: servicesCount, error: servicesError },
+    { count: serviceAreasCount, error: serviceAreasError },
+  ] = await Promise.all([
+    service
+      .from('profiles')
+      .select('full_name,phone,avatar_url,id_verification_status,stripe_requirements_due')
+      .eq('id', user.id)
+      .maybeSingle(),
+    service
+      .from('pro_services')
+      .select('id', { count: 'exact', head: true })
+      .eq('profile_id', user.id),
+    service
+      .from('pro_service_areas')
+      .select('id', { count: 'exact', head: true })
+      .eq('profile_id', user.id),
+  ]);
 
   if (profileError || !profile) {
     return apiNotFound('Profile not found');
@@ -49,8 +54,13 @@ export async function GET() {
     return apiServerError(servicesError.message);
   }
 
+  if (serviceAreasError) {
+    return apiServerError(serviceAreasError.message);
+  }
+
   const hasServices = (servicesCount ?? 0) > 0;
-  const result = calculateCompleteness(profile, hasServices);
+  const hasServiceAreas = (serviceAreasCount ?? 0) > 0;
+  const result = calculateCompleteness(profile, hasServices, hasServiceAreas);
 
   return NextResponse.json(result);
 }

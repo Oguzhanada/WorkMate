@@ -55,7 +55,7 @@ export default function ProviderEarningsWidget() {
 
       const { data: completedQuotes, error: quotesError } = await supabase
         .from('quotes')
-        .select('id,quote_amount_cents,jobs!inner(status,completed_at,accepted_quote_id)')
+        .select('id,quote_amount_cents,jobs!quotes_job_id_fkey(status,completed_at,accepted_quote_id)')
         .eq('pro_id', user.id)
         .eq('jobs.status', 'completed')
         .gte('created_at', start)
@@ -81,7 +81,7 @@ export default function ProviderEarningsWidget() {
 
       const { data: inProgressQuotes } = await supabase
         .from('quotes')
-        .select('id,quote_amount_cents,jobs!inner(status,accepted_quote_id)')
+        .select('id,quote_amount_cents,jobs!quotes_job_id_fkey(status,accepted_quote_id)')
         .eq('pro_id', user.id)
         .eq('jobs.status', 'in_progress');
 

@@ -36,8 +36,6 @@ export type ProfileRowForCompleteness = {
   full_name?: string | null;
   phone?: string | null;
   avatar_url?: string | null;
-  county?: string | null;
-  locality?: string | null;
   id_verification_status?: string | null;
   stripe_requirements_due?: Record<string, unknown> | null;
 };
@@ -48,7 +46,7 @@ type CheckDefinition = {
   points: number;
   href: string;
   /** Returns true when the check is satisfied. */
-  passes: (profile: ProfileRowForCompleteness, hasServices: boolean) => boolean;
+  passes: (profile: ProfileRowForCompleteness, hasServices: boolean, hasServiceAreas: boolean) => boolean;
 };
 
 const COMPLETENESS_CHECKS: CheckDefinition[] = [
@@ -78,7 +76,7 @@ const COMPLETENESS_CHECKS: CheckDefinition[] = [
     label: 'Location / service area',
     points: 10,
     href: '/become-provider/apply',
-    passes: (p) => Boolean(p.county?.trim() || p.locality?.trim()),
+    passes: (_p, _hasServices, hasServiceAreas) => hasServiceAreas,
   },
   {
     key: 'experience',
@@ -120,12 +118,13 @@ export const MAX_SCORE = COMPLETENESS_CHECKS.reduce((sum, c) => sum + c.points, 
 export function calculateCompleteness(
   profile: ProfileRowForCompleteness,
   hasServices: boolean,
+  hasServiceAreas = false,
 ): CompletenessResult {
   const checks: CheckResult[] = COMPLETENESS_CHECKS.map((def) => ({
     key: def.key,
     label: def.label,
     points: def.points,
-    complete: def.passes(profile, hasServices),
+    complete: def.passes(profile, hasServices, hasServiceAreas),
     href: def.href,
   }));
 

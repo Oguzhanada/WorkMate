@@ -55,7 +55,7 @@ export default async function JobsPage({
 
   let queryBuilder = supabase
     .from('jobs')
-    .select('id,title,description,category,county,locality,budget_range,status,review_status,created_at,expires_at,is_urgent,max_quotes,job_mode,quotes(count)')
+    .select('id,title,description,category,county,locality,budget_range,status,review_status,created_at,expires_at,is_urgent,max_quotes,job_mode,quotes!quotes_job_id_fkey(count)')
     .in('status', ['open', 'quoted', 'accepted', 'in_progress'])
     .eq('review_status', 'approved')
     .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
