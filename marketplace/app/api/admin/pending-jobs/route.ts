@@ -10,7 +10,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('jobs')
-    .select('id,title,description,category,county,locality,budget_range,status,review_status,rejection_reason,created_at,customer_id')
+    .select('id,title,description,category,county,locality,budget_range,status,review_status,rejection_reason,created_at,customer_id,photo_urls')
     .eq('review_status', 'pending_review')
     .order('created_at', { ascending: true });
 

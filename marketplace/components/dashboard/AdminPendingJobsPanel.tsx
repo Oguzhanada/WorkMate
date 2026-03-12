@@ -6,6 +6,7 @@ import styles from './admin-pending-jobs.module.css';
 type PendingJob = {
   id: string;
   title: string;
+  description?: string;
   category: string;
   county: string | null;
   locality: string | null;
@@ -16,6 +17,7 @@ type PendingJob = {
   created_at: string;
   customer_id: string;
   customer_name: string | null;
+  photo_urls?: string[];
 };
 
 export default function AdminPendingJobsPanel() {
@@ -155,6 +157,23 @@ export default function AdminPendingJobsPanel() {
             <h4>{active.title}</h4>
             <p className={styles.muted}>{active.category} • {active.locality ?? '-'}, {active.county ?? '-'}</p>
             <p className={styles.muted}>Budget: {active.budget_range}</p>
+            {active.description ? (
+              <p className={styles.muted} style={{ marginTop: '0.5rem', whiteSpace: 'pre-wrap' }}>{active.description}</p>
+            ) : null}
+            {active.photo_urls && active.photo_urls.length > 0 ? (
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
+                {active.photo_urls.map((url, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={i}
+                    src={url}
+                    alt={`Job photo ${i + 1}`}
+                    style={{ width: '120px', height: '90px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--wm-border)', cursor: 'pointer' }}
+                    onClick={() => window.open(url, '_blank')}
+                  />
+                ))}
+              </div>
+            ) : null}
             <label className={styles.field}>
               <span>Rejection reason (required for reject)</span>
               <textarea
