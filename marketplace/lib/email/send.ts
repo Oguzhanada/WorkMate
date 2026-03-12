@@ -23,7 +23,10 @@ import {
   type JobApprovedData,
 } from './templates';
 
-const FROM = 'WorkMate <notifications@workmate.ie>';
+const FROM =
+  process.env.NODE_ENV === 'production'
+    ? 'WorkMate <notifications@workmate.ie>'
+    : 'WorkMate <onboarding@resend.dev>';
 
 type EmailEvent =
   | ({ type: 'quote_received' } & QuoteReceivedData)
@@ -80,7 +83,8 @@ export function sendTransactionalEmail(event: EmailEvent): void {
         ({ subject, html } = paymentReleasedEmail(event));
       }
 
-      await resend.emails.send({ from: FROM, to: event.to, subject, html });
+      const recipient = process.env.DEV_EMAIL_OVERRIDE ?? event.to;
+      await resend.emails.send({ from: FROM, to: recipient, subject, html });
     } catch {
       // Non-blocking — email delivery failure never propagates to the API caller.
     }
