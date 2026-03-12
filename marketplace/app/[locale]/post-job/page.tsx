@@ -72,9 +72,9 @@ export default async function LocalizedPostJobPage({
             </div>
           </div>
           <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
-            <StatCard label="Step 1" value="Describe" icon={<FileText className="h-4 w-4" />} />
-            <StatCard label="Step 2" value="Locate" icon={<MapPin className="h-4 w-4" />} />
-            <StatCard label="Step 3" value="Submit" icon={<Send className="h-4 w-4" />} />
+            <StatCard label="Step 1" value="Tell us what you need" icon={<FileText className="h-4 w-4" />} />
+            <StatCard label="Step 2" value="Where do you need it?" icon={<MapPin className="h-4 w-4" />} />
+            <StatCard label="Step 3" value="Post your request" icon={<Send className="h-4 w-4" />} />
           </div>
         </Card>
       }

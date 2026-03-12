@@ -181,7 +181,7 @@ export default function GuestJobIntentForm() {
 
   return (
     <div className={styles.card}>
-      <p className={styles.step}>Guest Request Flow - Step {step}/3</p>
+      <p className={styles.step}>Post as a guest — Step {step} of 3</p>
       {isDuplicateEmail ? (
         <div
           className={`${styles.feedback} ${styles.error}`}
@@ -336,7 +336,7 @@ export default function GuestJobIntentForm() {
           {step === 3 ? (
             <div className={styles.field}>
               <h2 className={styles.title}>Email confirmation</h2>
-              <p className={styles.sectionLead}>Save your request and continue with sign up or login.</p>
+              <p className={styles.sectionLead}>Almost there! Enter your email to publish your request — or sign in for better visibility.</p>
               <label className={styles.field}>
                 <span>Email</span>
                 <input
