@@ -292,7 +292,8 @@
   --wm-shadow-lg:  0 14px 36px rgba(15, 23, 42, 0.10);
   --wm-shadow-xl:  0 22px 50px rgba(15, 23, 42, 0.13);
 
-  /* Glass — crisp white */
+  /* Glass — crisp white (nav becomes white in theme B) */
   --wm-glass:        rgba(255, 255, 255, 0.95);
+  --wm-glass-dark:   rgba(255, 255, 255, 0.92);
   --wm-glass-border: rgba(226, 232, 240, 0.80);
 }
