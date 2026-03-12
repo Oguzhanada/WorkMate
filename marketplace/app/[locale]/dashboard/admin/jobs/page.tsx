@@ -6,7 +6,7 @@ import Shell from '@/components/ui/Shell';
 import AdminPendingJobsPanel from '@/components/dashboard/AdminPendingJobsPanel';
 
 export const metadata: Metadata = {
-  title: 'Job Reviews | Admin | WorkMate',
+  title: 'Job Reviews | Admin',
   description: 'Review and approve pending job listings.',
 };
 

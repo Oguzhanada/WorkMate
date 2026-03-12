@@ -328,7 +328,7 @@ const ARTICLES: Article[] = [
 /* ------------------------------------------------------------------ */
 
 export function generateStaticParams() {
-  return ARTICLES.map((a) => ({ slug: a.slug }));
+  return ARTICLES.map((a) => ({ locale: 'en', slug: a.slug }));
 }
 
 /* ------------------------------------------------------------------ */

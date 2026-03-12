@@ -1,7 +1,7 @@
 import styles from '../inner.module.css';
 
 export const metadata = {
-  title: 'Cookie Policy | WorkMate',
+  title: 'Cookie Policy',
   description: 'Learn how WorkMate uses cookies and how to manage your preferences.',
 };
 

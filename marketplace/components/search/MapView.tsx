@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -121,6 +121,33 @@ export default function MapView({
   locale,
   flyToCenter,
 }: MapViewProps) {
+  // Hold the Leaflet map instance and the wrapper div ref so we can
+  // destroy the map on unmount and clear Leaflet's internal container
+  // lock. Without this, React Strict Mode (dev) double-mounts trigger
+  // "Map container is already initialized".
+  const mapRef = useRef<L.Map | null>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // useLayoutEffect cleanup runs SYNCHRONOUSLY before the next render's
+  // DOM mutations, ensuring _leaflet_id is cleared before react-leaflet
+  // tries to reinitialize on the same container element.
+  useLayoutEffect(() => {
+    return () => {
+      // Imperatively clear Leaflet's container lock
+      if (wrapperRef.current) {
+        const lc = wrapperRef.current.querySelector('.leaflet-container');
+        if (lc && '_leaflet_id' in lc) {
+          delete (lc as Record<string, unknown>)._leaflet_id;
+        }
+      }
+      // Destroy the map instance
+      if (mapRef.current) {
+        try { mapRef.current.remove(); } catch { /* already removed */ }
+        mapRef.current = null;
+      }
+    };
+  }, []);
+
   // Stable ref to persist positions across provider list changes (avoids jitter recalc)
   const stablePositionsRef = useRef(new Map<string, [number, number]>());
 
@@ -155,8 +182,9 @@ export default function MapView({
   }, [providers, getProviderPosition]);
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+    <div ref={wrapperRef} style={{ width: '100%', height: '100%', position: 'relative' }}>
       <MapContainer
+        ref={mapRef}
         center={IRELAND_CENTER}
         zoom={IRELAND_ZOOM}
         style={{ width: '100%', height: '100%', borderRadius: 0 }}

@@ -23,7 +23,7 @@ type Props = {
 
 function getLocaleRoot(pathname: string) {
   const match = pathname.match(/^\/([a-z]{2}(?:-[A-Z]{2})?)(?:\/|$)/);
-  if (!match?.[1]) return '/';
+  if (!match?.[1]) return '';
   return `/${match[1]}`;
 }
 

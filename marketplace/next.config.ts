@@ -55,6 +55,12 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      { source: '/signup', destination: '/sign-up', permanent: false },
+      { source: '/register', destination: '/sign-up', permanent: false },
+    ];
+  },
   async headers() {
     return [
       {

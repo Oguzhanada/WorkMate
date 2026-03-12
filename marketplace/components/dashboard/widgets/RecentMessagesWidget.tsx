@@ -12,6 +12,28 @@ type Notification = {
   created_at: string;
 };
 
+const NOTIFICATION_LABELS: Record<string, string> = {
+  new_quote: 'New quote received',
+  quote_accepted: 'Quote accepted',
+  quote_rejected: 'Quote declined',
+  job_completed: 'Job marked complete',
+  job_review_approved: 'Review approved',
+  job_pending_review: 'Job pending review',
+  payment_released: 'Payment released',
+  payment_held: 'Payment held',
+  dispute_opened: 'Dispute opened',
+  dispute_resolved: 'Dispute resolved',
+  message_received: 'New message',
+  provider_approved: 'Provider approved',
+  provider_rejected: 'Application declined',
+  verification_approved: 'Verification approved',
+  verification_rejected: 'Verification rejected',
+};
+
+function labelFor(type: string): string {
+  return NOTIFICATION_LABELS[type] ?? type.replaceAll('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 type Props = {
   limit?: number;
 };
@@ -74,7 +96,7 @@ export default function RecentMessagesWidget({ limit = 6 }: Props) {
       <div className="mt-2 space-y-2">
         {rows.map((row) => (
           <div key={row.id} className="rounded-xl px-3 py-2.5 text-sm" style={{ border: '1px solid var(--wm-border)', background: 'var(--wm-surface)' }}>
-            <p className="font-semibold" style={{ color: 'var(--wm-navy)' }}>{row.type.replaceAll('_', ' ')}</p>
+            <p className="font-semibold" style={{ color: 'var(--wm-navy)' }}>{labelFor(row.type)}</p>
             <p className="text-xs" style={{ color: 'var(--wm-muted)' }}>{new Date(row.created_at).toLocaleString('en-IE')}</p>
           </div>
         ))}

@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!job) return {};
 
   const isOpen = job.status === 'open';
-  const title = `${job.title} — Find a Provider | WorkMate`;
+  const title = `${job.title} — Find a Provider`;
   const rawDescription = job.description ?? `${job.title} — find a trusted provider in Ireland.`;
   const description = rawDescription.length > 160 ? rawDescription.slice(0, 157) + '...' : rawDescription;
   const location = job.county ?? job.locality ?? 'Ireland';

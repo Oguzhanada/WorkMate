@@ -26,7 +26,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const title = 'Find Local Service Providers in Ireland | WorkMate';
+  const title = 'Find Local Service Providers in Ireland';
   const description =
     'Browse verified tradespeople and service providers across Ireland. Book online, read reviews, and get quotes.';
 

@@ -15,10 +15,10 @@ export default async function ProviderBadges({ providerId }: Props) {
 
   const isoNow = new Date().toISOString();
   const { data: docs } = await supabase
-    .from('provider_documents')
-    .select('document_type,status')
+    .from('pro_documents')
+    .select('document_type,verification_status')
     .eq('profile_id', providerId)
-    .eq('status', 'verified')
+    .eq('verification_status', 'verified')
     .or(`expires_at.is.null,expires_at.gt.${isoNow}`);
 
   const activeDocs = docs ?? [];

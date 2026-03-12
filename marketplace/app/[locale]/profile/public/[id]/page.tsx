@@ -37,8 +37,8 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const providerName = profile.full_name ?? 'Service Provider';
   const primaryCategory = serviceNames[0] ?? 'Service Provider';
   const title = serviceNames.length
-    ? `${providerName} — ${primaryCategory} | WorkMate`
-    : `${providerName} | WorkMate`;
+    ? `${providerName} — ${primaryCategory}`
+    : providerName;
   const description = serviceNames.length
     ? `Book ${providerName} on WorkMate Ireland. Services: ${serviceNames.join(', ')}.`
     : `Book ${providerName} on WorkMate Ireland.`;
@@ -432,7 +432,11 @@ export default async function PublicProfilePage({ params }: { params: Params }) 
                 >
                   <div className="grid grid-cols-2 gap-0.5">
                     <div className="relative aspect-square">
-                      <Image src={item.before_image_url} alt="Before" fill className="object-cover" sizes="(max-width: 768px) 50vw, 300px" />
+                      {item.before_image_url ? (
+                        <Image src={item.before_image_url} alt="Before" fill className="object-cover" sizes="(max-width: 768px) 50vw, 300px" />
+                      ) : (
+                        <div className="h-full w-full" style={{ background: 'var(--wm-surface-alt)' }} />
+                      )}
                       <span
                         className="absolute bottom-1 left-1 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase"
                         style={{ background: 'rgba(15,23,42,0.7)', color: '#fff' }}
@@ -441,7 +445,11 @@ export default async function PublicProfilePage({ params }: { params: Params }) 
                       </span>
                     </div>
                     <div className="relative aspect-square">
-                      <Image src={item.after_image_url} alt="After" fill className="object-cover" sizes="(max-width: 768px) 50vw, 300px" />
+                      {item.after_image_url ? (
+                        <Image src={item.after_image_url} alt="After" fill className="object-cover" sizes="(max-width: 768px) 50vw, 300px" />
+                      ) : (
+                        <div className="h-full w-full" style={{ background: 'var(--wm-surface-alt)' }} />
+                      )}
                       <span
                         className="absolute bottom-1 left-1 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase"
                         style={{ background: 'rgba(var(--wm-primary-rgb), 0.8)', color: '#fff' }}

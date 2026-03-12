@@ -9,7 +9,7 @@ import Button from '@/components/ui/Button';
 import SavedSearchesList from '@/components/providers/SavedSearchesList';
 
 export const metadata = {
-  title: 'Saved Searches | WorkMate',
+  title: 'Saved Searches',
   description: 'Manage your saved provider searches and notification preferences.',
 };
 

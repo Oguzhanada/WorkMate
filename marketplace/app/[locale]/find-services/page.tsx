@@ -9,7 +9,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const title = 'Find Services Near You | WorkMate';
+  const title = 'Find Services Near You';
   const description =
     'Explore verified service providers across Ireland on an interactive map. Filter by category, county, rating, and more.';
 
