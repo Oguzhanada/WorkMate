@@ -1,44 +1,42 @@
-# AI Session Bootstrap (WorkMate)
+# AI Session Bootstrap — WorkMate
 
-Use this file as the single entry point for any new AI session (Codex or Claude).
-
-## Session Opener (one line)
-`Please read ai-context/context/PROJECT_CONTEXT.md + ai-context/context/agents.md + ai-context/context/compliance-rules.md + the current skills list (Codex: ~/.codex/skills, "<repo>/.claude/skills"; Claude: .claude/skills), choose only scope-matching skills, and if a skill mismatches, warn briefly and continue with the safest fallback.`
+Use this file as the single entry point for any new AI session (Claude Code or Codex).
 
 ## Mandatory Read Order
-1. `ai-context/context/PROJECT_CONTEXT.md`
-2. `ai-context/context/agents.md`
-3. `ai-context/context/compliance-rules.md`
-4. `~/.claude/projects/<project-slug>/memory/MEMORY.md`
-5. `.claude/skills/workmate-core/SKILL.md`
-6. `.claude/skills/workmate-schema-guardian/SKILL.md`
-7. `marketplace/lib/auth/rbac.ts`
-8. `marketplace/lib/dashboard/widgets.ts`
-9. `marketplace/lib/i18n/locale-path.ts`
-10. `marketplace/lib/validation/api.ts`
 
-## Skill Paths
-- Codex shared skills: `~/.codex/skills/`
-- Project skills (Claude): `.claude/skills/`
+Read these files before starting any task:
+
+1. `ai-context/context/agents.md` — all rules, guardrails, and frozen decisions
+2. `ai-context/context/PROJECT_CONTEXT.md` — current project state and architecture
+3. `ai-context/decisions/index.md` — active decision record index
+
+Then activate only the skills matching your task scope. Full skill activation matrix is in `agents.md` section 3.9.
+
+## Task-Specific Reads
+
+| Task type | Additional read required |
+|-----------|--------------------------|
+| DB / migration work | `docs/DB_RUNBOOK.md` |
+| Launch / env / ops | `docs/PRODUCTION_LAUNCH.md` |
+| Architecture health | `docs/ARCHITECTURE_REVIEW.md` |
+| Env var reference | `docs/SECRETS_MAP.md` |
 
 ## Skill Safety Rules
+
 - Do not force a skill if the task is out of scope.
 - If multiple skills match, use the minimum valid set.
 - If a skill is unavailable or unreadable, state it briefly and use a safe fallback.
 - Do not carry skills from previous turns unless explicitly re-mentioned.
 
-## Non-Negotiable Guardrails
-- English-only project artifacts.
-- Ireland-first compliance and terminology.
-- Respect frozen decisions in `ai-context/context/agents.md` (Rule 19).
-- No architecture changes that violate frozen decisions without a Decision Record.
-- Use context-appropriate Supabase clients only (`client/server/route/service` split).
-- No hardcoded `/en/` routes; use locale helpers.
-- Money in integer EUR cents only.
+## First Response Contract
 
-## First Response Contract (what AI must return first)
-1. Confirm files/skills loaded.
-2. Summarize current state in 5-10 bullets.
+1. Confirm canonical files loaded.
+2. Summarise current state in 5–10 bullets.
 3. List top 3 priorities and top 3 risks.
 4. State the exact skills selected (or fallback reason).
 5. Propose the next concrete implementation step.
+
+---
+
+> All rules, guardrails, and frozen decisions are in `ai-context/context/agents.md`.
+> Do not duplicate them here. If you see a rule in this file, it is stale — agents.md wins.

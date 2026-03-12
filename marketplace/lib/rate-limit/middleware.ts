@@ -61,13 +61,16 @@ function applyRateLimitHeaders(
  * When the limit is exceeded the wrapper returns 429 with a `Retry-After` header
  * and standard `X-RateLimit-*` headers. All allowed responses also receive the
  * `X-RateLimit-*` headers so clients can track their quota.
+ *
+ * The underlying store is async-capable (Upstash Redis when configured,
+ * in-memory fallback otherwise).
  */
 export function withRateLimit(config: RateLimitConfig, handler: RouteHandler): RouteHandler {
   const check = rateLimit(config);
 
   return async function rateLimitedHandler(req: NextRequest, ctx?: unknown): Promise<NextResponse> {
     const identifier = extractIdentifier(req);
-    const { allowed, remaining, resetAt } = check(identifier);
+    const { allowed, remaining, resetAt } = await check(identifier);
 
     if (!allowed) {
       const retryAfterSeconds = Math.ceil((resetAt - Date.now()) / 1000);

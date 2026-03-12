@@ -3,6 +3,9 @@ import type { Metadata } from 'next';
 import Card from '@/components/ui/Card';
 import PageHeader from '@/components/ui/PageHeader';
 
+// Legal content — revalidate once per day
+export const revalidate = 86400;
+
 export const metadata: Metadata = {
   title: 'Terms & Conditions — WorkMate',
   description:

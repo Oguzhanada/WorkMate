@@ -3,6 +3,9 @@ import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 
+// Pricing content is updated occasionally — revalidate every hour
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: 'Pricing — WorkMate',
   description:

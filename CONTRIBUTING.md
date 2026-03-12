@@ -69,64 +69,16 @@ npm run health-check      # Runtime health check script
 
 ## Code Standards
 
-### TypeScript
+> Full frozen decisions, design rules, and code patterns: `ai-context/context/agents.md` (sections 2–4).
+> This section is a short reminder for human contributors — not the authoritative source. If there is a conflict, agents.md wins.
 
-- Strict mode is **off** (`strict: false` in `tsconfig.json` — permanent decision). Avoid `any` types where possible.
-- All Zod schemas go in `lib/validation/api.ts`. No inline schemas in route files.
-- Zod 4 syntax: `z.record()` requires two type arguments:
-
-  ```ts
-  // Correct
-  z.record(z.string(), z.string())
-
-  // Wrong — will throw at runtime
-  z.record(z.string())
-  ```
-
-### Design System
-
-- **Colors via CSS tokens only.** Use `--wm-*` variables. Never write hardcoded hex values (`#00B894`) or Tailwind color utilities (`text-zinc-500`, `bg-emerald-600`) in page or feature code.
-
-  ```tsx
-  // Correct
-  <p style={{ color: 'var(--wm-muted)' }}>...</p>
-
-  // Wrong
-  <p className="text-zinc-500">...</p>
-  ```
-
-- **`Button` component always.** Never use a raw `<button className="bg-...">` or `<Link className="bg-...">`.
-- **`PageHeader` component always.** Never use a raw `<Card>` + `<h1>` combination at the top of a page.
-- **`EmptyState` component always.** Every list view must handle the zero-item state explicitly.
-- **Responsive grids.** Card lists default to `sm:grid-cols-2 lg:grid-cols-3`.
-
-### Routing
-
-- All pages live under `app/[locale]/`. Never create pages outside this directory.
-- Every page that fetches data **must** have a co-located `loading.tsx` file.
-
-### Supabase Clients
-
-Use the correct client for each context. Never create a module-scope singleton.
-
-| Context | Import |
-|---|---|
-| Client component (`'use client'`) | `getSupabaseBrowserClient()` from `lib/supabase/client.ts` |
-| Server component / page | `getSupabaseServerClient()` from `lib/supabase/server.ts` |
-| API route handler | `getSupabaseRouteClient()` from `lib/supabase/route.ts` |
-| Admin / service-role bypass | `getSupabaseServiceClient()` from `lib/supabase/service.ts` |
-
-### Money
-
-- All monetary values are stored as integers in **cents** (`*_amount_cents`).
-- Currency is **EUR only**. No multi-currency support.
-- Never store decimal euro values.
-
-### Ireland-Specific
-
-- **Eircode**: validation is enforced on all job-posting and address forms.
-- **Phone**: normalize to `+353XXXXXXXXX` (valid mobile prefixes: 83, 85, 86, 87, 89).
-- **UI language**: English only. No translated strings, no additional locales.
+- Strict mode is **off** (`strict: false` in `tsconfig.json`). Avoid `any` types where possible.
+- Zod schemas in `lib/validation/api.ts` only. `z.record()` requires two args: `z.record(z.string(), z.string())`.
+- Colors via `--wm-*` CSS tokens only — no hardcoded hex, no Tailwind color names in page/feature code.
+- `<Button>`, `<PageHeader>`, `<EmptyState>` always — no raw HTML equivalents.
+- Money as integer cents (`*_amount_cents`) in EUR — never floats. Supabase client: use the right one per context.
+- All pages under `app/[locale]/`. Every data-fetching page needs co-located `loading.tsx`.
+- Eircode + Irish phone normalisation enforced on all address/job forms.
 
 ---
 
@@ -219,22 +171,15 @@ Note: there is a known file naming collision at `021` (`021_pro_documents_rls.sq
 
 ## Security
 
-- **RLS on every table.** Row Level Security must be enabled on all new tables. Never use an open policy (`FOR ALL USING (true)`).
-- **Zod validation on every API route.** All request bodies and query params must be validated with a Zod schema defined in `lib/validation/api.ts`.
-- **No PII in logs.** Never log email addresses, phone numbers, full names, or financial data.
-- **Webhooks are HMAC-SHA256 signed.** All outbound webhooks go through `lib/webhook/send.ts` and include an `X-WorkMate-Signature` header. HTTPS only.
-- **No secrets in code.** All secrets go in `.env.local` (gitignored). Run `npm run check:prepublic-security` and `npm run check:pr-guardrails` before pushing sensitive changes.
-- **Stripe payments.** Use the secure hold-then-capture flow. Never capture payments server-side without verifying job completion status first.
+> Full security guardrails: `ai-context/context/agents.md` sections 2–3.
+
+Key reminders:
+- RLS on every table — never `FOR ALL USING (true)`.
+- No PII in logs. No secrets in code — use `.env.local` (gitignored).
+- Run `npm run check:prepublic-security` and `npm run check:pr-guardrails` before pushing sensitive changes.
+- Webhooks: HMAC-SHA256 signed via `lib/webhook/send.ts`, HTTPS only.
+- Stripe: secure hold-then-capture. Never capture without verifying job completion.
 
 ---
 
-## Ireland-Specific Rules (Summary)
-
-| Rule | Detail |
-|---|---|
-| Currency | EUR only, stored in cents (`*_amount_cents`) |
-| Eircode | Validated on all address/job forms |
-| Phone | Must normalize to `+353XXXXXXXXX` |
-| Language | English only — no other locales |
-| Legal | Privacy Policy at `/privacy`, Terms at `/terms` |
-| Garda vetting | System fully removed as of v0.1.0 (migration 074) — do not implement |
+> Ireland-specific rules (Eircode, phone, currency, language, GDPR) are in `ai-context/context/agents.md` sections 2.1–2.2.

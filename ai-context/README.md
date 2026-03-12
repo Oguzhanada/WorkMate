@@ -1,34 +1,40 @@
 # AI Context Directory (`ai-context/`)
 
-This is the canonical location for WorkMate AI context.
+Canonical location for WorkMate AI context.
 
-## Canonical Read Order
-1. `ai-context/context/PROJECT_CONTEXT.md`
-2. `ai-context/context/agents.md`
-3. `ai-context/context/compliance-rules.md`
-4. `ai-context/prompts/session-bootstrap.md`
-5. `.claude/skills/*` (tool/runtime skills)
+## Canonical Files (read in this order)
+
+1. `ai-context/context/agents.md` — **single source of truth** for rules, guardrails, frozen decisions
+2. `ai-context/context/PROJECT_CONTEXT.md` — current project state, architecture, env
+3. `ai-context/decisions/index.md` — active decision record index
+
+Entry point for new sessions: `ai-context/prompts/session-bootstrap.md`
 
 ## Directory Layout
-- `context/`: stable project context and guardrails
-- `memory/checkpoints/`: session checkpoints and archived memory snapshots
-- `memory/daily/`: day-level notes (`YYYY-MM-DD.md`)
-- `prompts/`: reusable prompt templates and bootstrap guides
-- `decisions/`: decision records (`DR-XXX`)
 
-## Migration Notes
+| Path | Purpose |
+|------|---------|
+| `context/agents.md` | Canonical rules (this wins all conflicts) |
+| `context/PROJECT_CONTEXT.md` | Project state snapshot |
+| `decisions/index.md` | DR index |
+| `decisions/DR-*.md` | Individual decision records |
+| `prompts/session-bootstrap.md` | Session entry point — reads only, no rules |
+| `prompts/claude-guidelines.md` | **Deprecated stub** — do not read for rules |
+| `context/compliance-rules.md` | **Deprecated stub** — do not read for rules |
+| `memory/checkpoints/` | Historical session checkpoints — read-only reference, never rules |
+| `memory/daily/` | Day-level notes |
 
-| Old path | New path |
-|---|---|
-| `PROJECT_CONTEXT.md` | `ai-context/context/PROJECT_CONTEXT.md` |
-| `.agents.md` | `ai-context/context/agents.md` |
-| `AI_SESSION_BOOTSTRAP.md` | `ai-context/prompts/session-bootstrap.md` |
-| `CLAUDE.md` | `ai-context/prompts/claude-guidelines.md` |
-| `CLAUDE_PROMPT_CUSTOMER_DASHBOARD.md` | `ai-context/prompts/customer-dashboard-prompt.md` |
-| `docs/CHECKPOINT_SESSION*.md` | `ai-context/memory/checkpoints/CHECKPOINT_SESSION*.md` |
-| `docs/archive/memory_snapshot_20260228/*.md` | `ai-context/memory/checkpoints/memory_snapshot_20260228__*.md` |
+## Deprecated / Deleted Files
+
+| File | Status | Canonical replacement |
+|------|--------|-----------------------|
+| `ai-context/prompts/claude-guidelines.md` | Deprecated stub (still present, content replaced with pointer) | `ai-context/context/agents.md` |
+| `ai-context/context/compliance-rules.md` | Deprecated stub (still present, content replaced with pointer) | `ai-context/context/agents.md` section 2 |
+| `docs/PROJECT_GUIDE.md` | **Deleted** (S39 consolidation) | `ai-context/context/agents.md` + `PROJECT_CONTEXT.md` |
+| `docs/strategy/*` | **Deleted** (S39 consolidation) | Not needed for development |
 
 ## Reference Update Policy
+
 - Use `rg` to find stale path references before and after edits.
-- Update active sources to `ai-context/...` paths.
-- Do not bulk-rewrite historical archive documents unless explicitly requested.
+- Update active sources to point to `ai-context/context/agents.md`.
+- Do not bulk-rewrite historical archive documents.

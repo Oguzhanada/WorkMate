@@ -6,7 +6,7 @@ import { adminProviderDecisionSchema, adminProviderFiltersSchema } from '@/lib/v
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { apiError } from '@/lib/api/error-response';
 
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   const auth = await ensureAdminRoute();
   if (auth.error) return auth.error;
 
@@ -242,6 +242,8 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({ applications, filters, audit_logs: auditLogs ?? [] });
 }
+
+export const GET = withRateLimit(RATE_LIMITS.ADMIN_READ, getHandler);
 
 async function patchHandler(request: NextRequest) {
   const auth = await ensureAdminRoute();

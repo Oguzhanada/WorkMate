@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ensureAdminRoute } from '@/lib/auth/admin';
 import { apiServerError } from '@/lib/api/error-response';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 // ─── GET /api/admin/audit-logs ────────────────────────────────────────────────
 // Returns admin_audit_logs newest-first.
@@ -11,7 +12,7 @@ import { apiServerError } from '@/lib/api/error-response';
 //   ?days=7|30|all      filter by created_at recency (default 30)
 //   ?offset=0           pagination offset (default 0)
 
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   const auth = await ensureAdminRoute();
   if (auth.error) return auth.error;
 
@@ -66,3 +67,5 @@ export async function GET(request: NextRequest) {
     offset,
   });
 }
+
+export const GET = withRateLimit(RATE_LIMITS.ADMIN_READ, getHandler);

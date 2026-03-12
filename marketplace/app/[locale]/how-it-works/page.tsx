@@ -3,6 +3,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { isValidLocale } from '@/lib/i18n';
 import { getTranslations } from 'next-intl/server';
+
+// Static content — revalidate once per day
+export const revalidate = 86400;
 import styles from './how.module.css';
 
 const baseUrl = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? 'http://localhost:3000';

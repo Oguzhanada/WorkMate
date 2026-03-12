@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { ensureAdminRoute } from '@/lib/auth/admin';
 import { apiError } from '@/lib/api/error-response';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function GET() {
+async function getHandler(_request: NextRequest) {
   const auth = await ensureAdminRoute();
   if (auth.error) return auth.error;
 
@@ -40,3 +41,5 @@ export async function GET() {
 
   return NextResponse.json({ jobs }, { status: 200 });
 }
+
+export const GET = withRateLimit(RATE_LIMITS.ADMIN_READ, getHandler);

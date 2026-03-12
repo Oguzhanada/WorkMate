@@ -4,6 +4,7 @@ import { ensureAdminRoute } from '@/lib/auth/admin';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { adminStatsQuerySchema } from '@/lib/validation/api';
 import { apiError } from '@/lib/api/error-response';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -116,7 +117,7 @@ async function fetchMonthlyGrowth(): Promise<MonthlyDataPoint[]> {
 
 // ─── Route Handler ─────────────────────────────────────────────────────────────
 
-export async function GET(req: NextRequest) {
+async function getHandler(req: NextRequest) {
   const auth = await ensureAdminRoute();
   if (auth.error) return auth.error;
 
@@ -250,3 +251,5 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json(stats, { status: 200 });
 }
+
+export const GET = withRateLimit(RATE_LIMITS.ADMIN_READ, getHandler);

@@ -9,7 +9,7 @@ import { apiError, apiServerError } from '@/lib/api/error-response';
 // GET /api/admin/risk
 // Returns all providers with risk_score > 0, ordered by risk_score DESC.
 // Optional query param: ?unreviewed=true — only return profiles with risk_reviewed_at IS NULL.
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   const auth = await ensureAdminRoute();
   if (auth.error) return auth.error;
 
@@ -34,6 +34,8 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({ providers: data ?? [] });
 }
+
+export const GET = withRateLimit(RATE_LIMITS.ADMIN_READ, getHandler);
 
 // PATCH /api/admin/risk
 // Bulk mark-as-reviewed: sets risk_reviewed_at = now() for all given profile IDs.

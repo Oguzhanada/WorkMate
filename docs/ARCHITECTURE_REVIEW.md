@@ -1,3 +1,6 @@
+> **Scope note:** This document is an architecture snapshot. It is not a source of truth for AI rules or frozen decisions.
+> Canonical AI sources: `ai-context/context/agents.md` · `ai-context/context/PROJECT_CONTEXT.md` · `ai-context/decisions/index.md`
+
 # WorkMate — Repository Architecture & DevOps Review
 
 **Date:** 2026-03-11 (updated session 36)
@@ -139,7 +142,7 @@ WorkMate is a well-structured, production-approaching Next.js 16 application wit
 `preflight.mjs`, `health-check.mjs`, `check-english-only.mjs`, `check-pr-guardrails.ps1`, `pre-public-security-check.mjs`, `cleanup-non-admin.mjs`, `run-provider-customer-e2e-flow.mjs`, `test-provider-scheduling-api-flow.mjs`, `test-time-tracking-api-flow.mjs`
 
 **Docs (`docs/`) — 8 active files:**
-Production launch, ROPA, DB runbook, architecture review, project guide, user guide. Session checkpoints moved to `docs/archive/`; strategy reports moved to `docs/strategy/`.
+Production launch, ROPA, DB runbook, architecture review, secrets map, user guide. Session checkpoints in `docs/archive/` (historical). Strategy reports deleted (were agent self-reports, FD-24).
 
 **Gaps:**
 - No `LICENSE` file at repo root

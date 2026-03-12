@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ensureAdminRoute } from '@/lib/auth/admin';
 import { apiError, apiNotFound } from '@/lib/api/error-response';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function GET(
+async function getHandler(
   _request: NextRequest,
   { params }: { params: Promise<{ profileId: string }> }
 ) {
@@ -54,3 +55,5 @@ export async function GET(
     },
   });
 }
+
+export const GET = withRateLimit(RATE_LIMITS.ADMIN_READ, getHandler);

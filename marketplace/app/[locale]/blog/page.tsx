@@ -3,6 +3,9 @@ import Link from 'next/link';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 
+// Blog listing — revalidate every 30 minutes
+export const revalidate = 1800;
+
 export const metadata: Metadata = {
   title: 'Blog',
   description: 'Latest news, tips, and updates from WorkMate Ireland.',

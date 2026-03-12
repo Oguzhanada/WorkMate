@@ -5,6 +5,9 @@ import { ArrowLeft, Clock, Tag } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 
+// Blog articles are static — revalidate every 30 minutes
+export const revalidate = 1800;
+
 /* ------------------------------------------------------------------ */
 /*  Article data                                                        */
 /* ------------------------------------------------------------------ */

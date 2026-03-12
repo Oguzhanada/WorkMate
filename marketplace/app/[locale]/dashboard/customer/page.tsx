@@ -1,11 +1,9 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
-import { Heart } from 'lucide-react';
 import { canAccessAdmin, canAccessProDashboard, canPostJob, getUserRoles } from '@/lib/auth/rbac';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
-import Shell from '@/components/ui/Shell';
-import DashboardShell from '@/components/dashboard/DashboardShell';
+import CustomerDashboard from '@/components/dashboard/CustomerDashboard';
+import type { CustomerDashboardData } from '@/components/dashboard/types';
 
 export const metadata: Metadata = {
   title: 'Customer Dashboard',
@@ -19,9 +17,7 @@ export default async function CustomerDashboardPage({
 }) {
   const { locale } = await params;
   const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) redirect(`/${locale}/login`);
 
@@ -30,31 +26,31 @@ export default async function CustomerDashboardPage({
   if (canAccessProDashboard(roles)) redirect(`/${locale}/dashboard/pro`);
   if (!canPostJob(roles)) redirect(`/${locale}/profile`);
 
-  return (
-    <Shell>
-      {/* Quick links bar */}
-      <div
-        className="mx-auto mb-6 flex w-full max-w-7xl flex-wrap gap-3 px-4 pt-6 sm:px-6 lg:px-8"
-      >
-        <Link
-          href={`/${locale}/saved-providers`}
-          className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all hover:scale-[1.02]"
-          style={{
-            background: 'var(--wm-surface)',
-            border: '1px solid var(--wm-border)',
-            color: 'var(--wm-navy)',
-          }}
-        >
-          <Heart className="h-4 w-4" style={{ color: 'var(--wm-primary)' }} />
-          Saved Providers
-        </Link>
-      </div>
+  const [
+    { data: profile },
+    { count: openJobs },
+    { count: completedJobs },
+    { count: activeQuotes },
+    { count: savedProviders },
+    { data: recentJobs },
+  ] = await Promise.all([
+    supabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle(),
+    supabase.from('jobs').select('*', { count: 'exact', head: true }).eq('customer_id', user.id).eq('status', 'open'),
+    supabase.from('jobs').select('*', { count: 'exact', head: true }).eq('customer_id', user.id).eq('status', 'completed'),
+    supabase.from('quotes').select('*', { count: 'exact', head: true }).eq('status', 'pending')
+      .in('job_id', (await supabase.from('jobs').select('id').eq('customer_id', user.id)).data?.map((j) => j.id) ?? []),
+    supabase.from('saved_providers').select('*', { count: 'exact', head: true }).eq('customer_id', user.id),
+    supabase.from('jobs').select('id, title, status, created_at').eq('customer_id', user.id).order('created_at', { ascending: false }).limit(6),
+  ]);
 
-      <DashboardShell
-        mode="customer"
-        title="Customer Dashboard"
-        description="Drag widgets to reorder, add what matters most, and keep your layout saved."
-      />
-    </Shell>
-  );
+  const data: CustomerDashboardData = {
+    fullName: (profile as { full_name?: string | null } | null)?.full_name ?? null,
+    openJobs: openJobs ?? 0,
+    completedJobs: completedJobs ?? 0,
+    activeQuotes: activeQuotes ?? 0,
+    savedProviders: savedProviders ?? 0,
+    recentJobs: (recentJobs ?? []) as CustomerDashboardData['recentJobs'],
+  };
+
+  return <CustomerDashboard data={data} locale={locale} />;
 }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { ensureAdminRoute } from '@/lib/auth/admin';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { apiServerError } from '@/lib/api/error-response';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
 type RoleRow = { user_id: string; role: string };
 
@@ -10,7 +11,7 @@ function maskHash(value: string | null) {
   return `${value.slice(0, 8)}...`;
 }
 
-export async function GET() {
+async function getHandler() {
   const auth = await ensureAdminRoute();
   if (auth.error) return auth.error;
 
@@ -50,3 +51,5 @@ export async function GET() {
     { status: 200 }
   );
 }
+
+export const GET = withRateLimit(RATE_LIMITS.ADMIN_READ, getHandler);

@@ -6,6 +6,8 @@ import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { liveServices } from '@/lib/live-services';
 import { getAnthropicClient } from '@/lib/cloudflare/ai-gateway';
 import { apiError, apiUnauthorized, apiForbidden, apiServerError } from '@/lib/api/error-response';
+import { AI_MODELS } from '@/lib/ai/config';
+import { sanitizeListForPrompt } from '@/lib/ai/sanitize';
 
 type AISuggestion = {
   keywords: string[];
@@ -70,20 +72,22 @@ async function handler(request: NextRequest): Promise<NextResponse> {
     return apiError('No services found on your profile. Add services first.', 400);
   }
 
-  const serviceList = proServices
+  const rawServiceNames = proServices
     .map((s) => {
       const cat = s.categories as unknown as { name: string } | null;
       return cat?.name ?? null;
     })
-    .filter(Boolean)
-    .join(', ');
+    .filter((n): n is string => Boolean(n));
+
+  // Sanitize service names before prompt interpolation
+  const serviceList = sanitizeListForPrompt(rawServiceNames, 80);
 
   // Call Anthropic via AI Gateway
   let suggestions: AISuggestion[] = [];
   try {
     const anthropic = getAnthropicClient();
     const message = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
+      model: AI_MODELS.SUGGEST_ALERTS,
       max_tokens: 1024,
       messages: [
         {

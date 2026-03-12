@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import styles from '@/components/dashboard/dashboard.module.css';
 
 type MessageItem = {
@@ -24,12 +25,10 @@ export default function JobMessagePanel({ jobId, quoteId, visibility, receiverId
   const [text, setText] = useState('');
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState('');
+  const channelRef = useRef<ReturnType<ReturnType<typeof getSupabaseBrowserClient>['channel']> | null>(null);
 
   const loadMessages = async () => {
-    const query = new URLSearchParams({
-      job_id: jobId,
-      visibility,
-    });
+    const query = new URLSearchParams({ job_id: jobId, visibility });
     if (quoteId) query.set('quote_id', quoteId);
 
     const response = await fetch(`/api/messages?${query.toString()}`, { cache: 'no-store' });
@@ -42,10 +41,36 @@ export default function JobMessagePanel({ jobId, quoteId, visibility, receiverId
   };
 
   useEffect(() => {
-    let active = true;
-    queueMicrotask(() => { if (active) loadMessages(); });
-    const timer = setInterval(loadMessages, 15000);
-    return () => { active = false; clearInterval(timer); };
+    // Initial load
+    loadMessages();
+
+    // Subscribe to realtime inserts on job_messages for this job
+    const supabase = getSupabaseBrowserClient();
+    const channelName = `job-messages:${jobId}:${visibility}${quoteId ? `:${quoteId}` : ''}`;
+
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'job_messages',
+          filter: `job_id=eq.${jobId}`,
+        },
+        () => {
+          // Reload messages whenever a new one arrives
+          loadMessages();
+        }
+      )
+      .subscribe();
+
+    channelRef.current = channel;
+
+    return () => {
+      void supabase.removeChannel(channel);
+      channelRef.current = null;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobId, quoteId, visibility]);
 
@@ -80,7 +105,7 @@ export default function JobMessagePanel({ jobId, quoteId, visibility, receiverId
     }
 
     setText('');
-    await loadMessages();
+    // Realtime subscription will pick up the new message — no manual reload needed
   };
 
   return (

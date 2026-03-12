@@ -3,8 +3,9 @@ import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { apiUnauthorized, apiForbidden } from '@/lib/api/error-response';
+import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   // Auth + admin guard
   const supabase = await getSupabaseRouteClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -151,6 +152,8 @@ export async function GET(request: NextRequest) {
     days,
   });
 }
+
+export const GET = withRateLimit(RATE_LIMITS.ADMIN_READ, getHandler);
 
 // ── helpers ──
 

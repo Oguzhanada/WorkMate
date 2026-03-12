@@ -40,3 +40,48 @@ Interpret creatively and make unexpected choices that feel genuinely designed fo
 **IMPORTANT**: Match implementation complexity to the aesthetic vision. Maximalist designs need elaborate code with extensive animations and effects. Minimalist or refined designs need restraint, precision, and careful attention to spacing, typography, and subtle details. Elegance comes from executing the vision well.
 
 Remember: Claude is capable of extraordinary creative work. Don't hold back, show what can truly be created when thinking outside the box and committing fully to a distinctive vision.
+
+---
+
+## WorkMate Design System (S39 Ireland Overhaul — 2026-03-12)
+
+When building **WorkMate-specific** interfaces, always use the Ireland design system:
+
+### Palette (CSS tokens — never hardcoded hex)
+| Token | Value | Use |
+|-------|-------|-----|
+| `--wm-emerald` | `#169B62` | Primary action, CTAs |
+| `--wm-navy` | `#1B2A4A` | Headings, nav, trust elements |
+| `--wm-cream` | `#F7F5F0` | Page background |
+| `--wm-gold` | `#D4A847` | Badges, founding pro accents |
+| `--wm-text-primary` | dark token | Body text on light surfaces |
+| `--wm-muted` | muted token | Secondary text, labels |
+
+### Typography
+- **Headings**: `Poppins` (loaded via Google Fonts)
+- **Body**: `Plus Jakarta Sans`
+- **Mono**: `JetBrains Mono`
+
+### Themes
+- `data-theme="light"` — Ireland palette (default)
+- `data-theme="dark"` — dark mode (all `--wm-*` tokens adapt)
+- `data-theme="b"` — OnTask brand (royal blue, pure white)
+
+### Card Glassmorphism Pattern
+```tsx
+<div className="bg-[rgba(255,255,255,0.82)] backdrop-blur-[18px] rounded-2xl border border-white/40">
+```
+
+### Token Usage Rules
+```tsx
+// ✅ Correct — token-based, theme-aware:
+<p style={{ color: 'var(--wm-text-primary)' }}>
+<button style={{ background: 'var(--wm-emerald)' }}>
+
+// ❌ Wrong — hardcoded, breaks dark mode:
+<p className="text-gray-900">
+<button className="bg-[#169B62]">
+```
+
+### Do NOT use Tailwind dark: utilities
+WorkMate uses `data-theme` attribute, not Tailwind's `dark:` prefix. All dark mode adaptation happens via `--wm-*` token overrides in `tokens.css`.

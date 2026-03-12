@@ -6,15 +6,15 @@ description: WorkMate frozen architectural decisions enforcer. Activate before m
 # WorkMate Schema Guardian
 
 You are the guardian of WorkMate's frozen architectural decisions. Your job is to:
-1. Detect when a proposed change would violate a frozen decision (FD-01 through FD-25)
+1. Detect when a proposed change would violate a frozen decision (FD-01 through FD-28)
 2. Block the change and explain the rule
 3. If the change is genuinely needed, guide writing a Decision Record before proceeding
 
 ---
 
-## Frozen Decisions Reference (FD-01 — FD-25)
+## Frozen Decisions Reference (FD-01 — FD-28)
 
-These live permanently in `ai-context/context/agents.md` Rule 19. Quick reference:
+These live permanently in `ai-context/context/agents.md` section 6. Quick reference:
 
 | ID | Rule | Violation examples |
 |----|------|--------------------|
@@ -31,7 +31,7 @@ These live permanently in `ai-context/context/agents.md` Rule 19. Quick referenc
 | FD-11 | No hardcoded `/en/` in routing | `href="/en/dashboard"` or `redirect('/en/login')` |
 | FD-12 | Webhooks: HTTPS + HMAC-SHA256 via `lib/webhook/send.ts` | Direct `fetch()` to webhook URL without signing |
 | FD-13 | Contrast: text on light surfaces must use `--wm-text-strong/default/muted/soft` | `text-white/60` or `opacity-50` on light cards |
-| FD-14 | Light theme locked: `<html data-theme="light">`, no auto `prefers-color-scheme` | Adding `@media (prefers-color-scheme: dark)` overrides to token source |
+| FD-14 | Light is default (`<html data-theme="light">`). Dark mode supported via `[data-theme="dark"]`. Never use Tailwind `dark:` utilities — `--wm-*` tokens only. All changes must pass visual QA in both modes. (DR-007, S39) | Adding Tailwind `dark:` utilities or `@media (prefers-color-scheme)` overrides |
 | FD-15 | No page/container-level opacity on readable content | `<main style={{ opacity: 0.7 }}>` or `<section className="opacity-60">` |
 
 ---
@@ -65,8 +65,7 @@ Impact: [what breaks if this is done]
 Compliant alternative:
 [show the correct code]
 
-If this change is genuinely needed, write a Decision Record in
-ai-context/context/agents.md Rule 19 before implementing:
+If this change is genuinely needed, write a Decision Record first (see agents.md section 7):
 
 DR-XXX | [date] | [author] | FD-XX changed | [reason] | [approved by]
 ```
@@ -90,10 +89,10 @@ Before making any change, run this checklist mentally:
 - [ ] FD-11: Any link/redirect → uses `withLocalePrefix()` or relative path, no `/en/`
 - [ ] FD-12: Any webhook dispatch → via `lib/webhook/send.ts`, never raw fetch
 - [ ] FD-13: Text on light surfaces → uses `--wm-text-*` tokens, no low-opacity hacks
-- [ ] FD-14: No `prefers-color-scheme` overrides in token source — light theme locked
+- [ ] FD-14: No Tailwind `dark:` utilities — use `[data-theme="dark"]` + `--wm-*` tokens instead. Dark mode supported, but not via Tailwind.
 - [ ] FD-15: No page/container-level opacity on readable content wrappers
 
-All 15 checked? Proceed. Any failed? Fix first or write a Decision Record.
+All checked? Proceed. Any failed? Fix first or write a Decision Record.
 
 ## File Organization Frozen Rules (FD-16 — FD-24, session 27–28)
 
@@ -113,6 +112,9 @@ These protect the repository restructuring. **DO NOT** recreate deleted/moved fi
 | FD-25 | New skills must be whitelisted in `.gitignore` before commit | Creating `.claude/skills/new-skill/SKILL.md` without adding `!.claude/skills/new-skill/` to `.gitignore` |
 | FD-26 | `next/image` for all static images — no raw `<img>` except blob/data: URLs | Adding `<img src="...">` for any image served from a path or URL |
 | FD-27 | All API error responses use `lib/api/error-response.ts` helpers | Using `NextResponse.json({ error: '...' }, { status: 4xx/5xx })` directly in route files |
+| FD-28 | **`middleware.ts` is the sole Next.js middleware entry point. `proxy.ts` MUST NOT exist.** | Creating `proxy.ts` or removing `middleware.ts` |
+
+> Note: FD-23 (feature branch), FD-24 (no self-reports), FD-25 (skill whitelist) are process rules maintained in `agents.md` section 5 — not architecture frozen decisions.
 
 ### File Organization Checklist (add to pre-change checklist)
 
@@ -128,6 +130,7 @@ These protect the repository restructuring. **DO NOT** recreate deleted/moved fi
 - [ ] FD-25: If creating a skill, `.gitignore` whitelist entry added
 - [ ] FD-26: No raw `<img>` tags (use `next/image` unless blob/data: URL)
 - [ ] FD-27: API errors use helper functions from `lib/api/error-response.ts`
+- [ ] FD-28: `middleware.ts` exists with `export async function middleware(...)` — `proxy.ts` must not exist
 
 ---
 
@@ -137,8 +140,8 @@ When a frozen decision genuinely needs changing:
 
 1. **State the case**: Why is the existing rule wrong or blocking valid work?
 2. **Assess blast radius**: How many files would change? Any security implications?
-3. **Write the DR first** in `ai-context/context/agents.md` Rule 19 before touching code
-4. **Update this skill** and `MEMORY.md` to reflect the new rule
+3. **Write the DR first** in `ai-context/decisions/DR-XXX-description.md` and add to `ai-context/decisions/index.md`
+4. **Update `agents.md` section 6** (FD table status + DR reference) and this skill's checklist
 5. **Migrate existing violations** — a decision change must be applied consistently
 
 DR format:

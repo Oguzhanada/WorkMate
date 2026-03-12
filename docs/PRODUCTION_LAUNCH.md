@@ -1,3 +1,6 @@
+> **Scope note:** This document covers production launch operations only. It is not a source of truth for AI rules or frozen decisions.
+> Canonical AI sources: `ai-context/context/agents.md` · `ai-context/context/PROJECT_CONTEXT.md` · `ai-context/decisions/index.md`
+
 # WorkMate — Production Launch Guide
 > Last updated: 2026-03-11 (session 38)
 > This file is the single source of truth for everything that must be done before

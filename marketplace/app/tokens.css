@@ -119,6 +119,8 @@
   --wm-gold-dark:  #b08930;
   --wm-gold-light: #fef3c7;
   --wm-gold-faint: #fffbeb;
+  --wm-gold-rgb:   212, 168, 71;
+  --wm-navy-mid-rgb: 45, 74, 122;
 
   /* Legacy amber aliases (maps to gold) */
   --wm-amber:       #D4A847;

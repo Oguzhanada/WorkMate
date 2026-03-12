@@ -99,7 +99,7 @@ async function computeRiskScore(profileId: string) {
 }
 
 // GET /api/admin/risk/[profileId] — compute and return risk assessment
-export async function GET(
+async function getHandler(
   _request: NextRequest,
   { params }: { params: Promise<{ profileId: string }> }
 ) {
@@ -126,6 +126,8 @@ export async function GET(
 
   return NextResponse.json({ profileId, risk_score: result.score, risk_flags: result.flags });
 }
+
+export const GET = withRateLimit(RATE_LIMITS.ADMIN_READ, getHandler);
 
 // POST /api/admin/risk/[profileId] — compute, persist, and return risk assessment
 async function postHandler(

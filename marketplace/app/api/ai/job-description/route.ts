@@ -5,6 +5,8 @@ import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { liveServices } from '@/lib/live-services';
 import { getAnthropicClient } from '@/lib/cloudflare/ai-gateway';
 import { apiError, apiUnauthorized, apiServerError } from '@/lib/api/error-response';
+import { AI_MODELS } from '@/lib/ai/config';
+import { sanitizeForPrompt } from '@/lib/ai/sanitize';
 
 async function handler(request: NextRequest): Promise<NextResponse> {
   // Cost guard — blocked until LIVE_SERVICES_ENABLED=true (or AI_CALLS_ENABLED=true)
@@ -37,18 +39,19 @@ async function handler(request: NextRequest): Promise<NextResponse> {
 
   const { jobTitle, categoryName, scope, urgency, taskType } = parsed.data;
 
+  // Sanitize all user-supplied strings before prompt interpolation
   const promptParts = [
-    `Job type: ${jobTitle}`,
-    `Service category: ${categoryName}`,
-    scope ? `Scope: ${scope}` : null,
-    urgency ? `Urgency: ${urgency}` : null,
-    taskType ? `Task type: ${taskType}` : null,
+    `Job type: ${sanitizeForPrompt(jobTitle, 100)}`,
+    `Service category: ${sanitizeForPrompt(categoryName, 100)}`,
+    scope ? `Scope: ${sanitizeForPrompt(scope, 300)}` : null,
+    urgency ? `Urgency: ${sanitizeForPrompt(urgency, 50)}` : null,
+    taskType ? `Task type: ${sanitizeForPrompt(taskType, 50)}` : null,
   ].filter(Boolean);
 
   try {
     const client = getAnthropicClient();
     const message = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
+      model: AI_MODELS.JOB_DESCRIPTION,
       max_tokens: 300,
       messages: [
         {

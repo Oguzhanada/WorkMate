@@ -5,7 +5,7 @@ import { logAdminAudit } from '@/lib/admin/audit';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { apiError } from '@/lib/api/error-response';
 
-export async function GET() {
+async function getHandler() {
   const auth = await ensureAdminRoute();
   if (auth.error) return auth.error;
 
@@ -18,6 +18,8 @@ export async function GET() {
 
   return NextResponse.json({ rules: data ?? [] });
 }
+
+export const GET = withRateLimit(RATE_LIMITS.ADMIN_READ, getHandler);
 
 async function postHandler(request: NextRequest) {
   const auth = await ensureAdminRoute();

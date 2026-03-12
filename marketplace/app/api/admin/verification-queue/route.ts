@@ -19,7 +19,7 @@ function maskEmail(email: string | null | undefined): string {
 
 // ─── GET — verification queue with stats ──────────────────────────────────────
 
-export async function GET(_request: NextRequest) {
+async function getHandler(_request: NextRequest) {
   const auth = await ensureAdminRoute();
   if (auth.error) return auth.error;
 
@@ -92,13 +92,15 @@ export async function GET(_request: NextRequest) {
   });
 }
 
+export const GET = withRateLimit(RATE_LIMITS.ADMIN_READ, getHandler);
+
 // ─── PATCH — batch approve / reject ──────────────────────────────────────────
 
 async function patchHandler(request: NextRequest) {
   const auth = await ensureAdminRoute();
   if (auth.error) return auth.error;
 
-  const { supabase, user } = auth;
+  const { user } = auth;
   const serviceSupabase = getSupabaseServiceClient();
 
   let rawBody: unknown;

@@ -1,14 +1,18 @@
 // ── Sliding window rate limiter with pluggable store ─────────────────────────
 //
-// Current: in-memory store (resets on server restart).
-// Acceptable for MVP on single-container Vercel deployments.
+// Store selection (automatic at module init):
+//   1. Upstash Redis REST  — if UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN
+//   2. @vercel/kv          — if VERCEL_KV is available (future, add import below)
+//   3. In-memory fallback  — development / no KV configured (NOT suitable for production
+//                            with multiple Vercel instances — brute force protection fails)
 //
-// KV MIGRATION PLAN:
-//   1. Install @vercel/kv (or ioredis for self-hosted Redis)
-//   2. Implement RateLimitStore interface below using KV get/set with TTL
-//   3. Swap `activeStore` to the KV implementation
-//   4. Remove the setInterval cleanup (KV handles TTL expiry natively)
-//   5. No changes needed in route files — the rateLimit() API stays the same
+// To enable Upstash:
+//   1. Create a Redis database at https://upstash.com (free tier is sufficient for launch)
+//   2. Copy the REST URL and REST Token from the Upstash dashboard
+//   3. Add to Vercel env:
+//        UPSTASH_REDIS_REST_URL=https://xyz.upstash.io
+//        UPSTASH_REDIS_REST_TOKEN=AXxx...
+//   4. That's it — no code changes needed, the store auto-selects.
 
 export type RateLimitConfig = {
   /** Duration of the window in milliseconds */
@@ -30,19 +34,19 @@ export type RateLimitResult = {
   resetAt: number;
 };
 
-// ── Store adapter interface (KV-ready) ──────────────────────────────────────
+// ── Store adapter interface ──────────────────────────────────────────────────
 
 export interface RateLimitStore {
-  get(key: string): StoreEntry | null | Promise<StoreEntry | null>;
-  set(key: string, entry: StoreEntry, ttlMs: number): void | Promise<void>;
+  get(key: string): Promise<StoreEntry | null>;
+  set(key: string, entry: StoreEntry, ttlMs: number): Promise<void>;
 }
 
-// ── In-memory store (default) ───────────────────────────────────────────────
+// ── In-memory store (fallback for development) ───────────────────────────────
 
 const memoryMap = new Map<string, StoreEntry>();
 
 const inMemoryStore: RateLimitStore = {
-  get(key: string): StoreEntry | null {
+  async get(key: string): Promise<StoreEntry | null> {
     const entry = memoryMap.get(key);
     if (!entry) return null;
     if (entry.resetAt <= Date.now()) {
@@ -51,13 +55,96 @@ const inMemoryStore: RateLimitStore = {
     }
     return entry;
   },
-  set(key: string, entry: StoreEntry): void {
+  async set(key: string, entry: StoreEntry): Promise<void> {
     memoryMap.set(key, entry);
   },
 };
 
-// Active store — swap this for KV when ready
-const activeStore: RateLimitStore = inMemoryStore;
+// Periodic cleanup to prevent unbounded memory growth in dev
+if (typeof setInterval !== 'undefined') {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, value] of memoryMap.entries()) {
+      if (value.resetAt < now) memoryMap.delete(key);
+    }
+  }, 300_000);
+}
+
+// ── Upstash Redis REST store ─────────────────────────────────────────────────
+// Uses the Upstash HTTP API — no additional packages required.
+// Docs: https://upstash.com/docs/redis/features/restapi
+
+class UpstashStore implements RateLimitStore {
+  private baseUrl: string;
+  private token: string;
+
+  constructor(url: string, token: string) {
+    this.baseUrl = url.replace(/\/$/, '');
+    this.token = token;
+  }
+
+  private async call<T>(command: string[]): Promise<T> {
+    const res = await fetch(`${this.baseUrl}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(command),
+    });
+    if (!res.ok) throw new Error(`Upstash error: ${res.status}`);
+    const json = (await res.json()) as { result: T };
+    return json.result;
+  }
+
+  async get(key: string): Promise<StoreEntry | null> {
+    try {
+      const raw = await this.call<string | null>(['GET', key]);
+      if (!raw) return null;
+      return JSON.parse(raw) as StoreEntry;
+    } catch {
+      return null; // Degrade gracefully — allow request on KV error
+    }
+  }
+
+  async set(key: string, entry: StoreEntry, ttlMs: number): Promise<void> {
+    try {
+      const ttlSeconds = Math.ceil(ttlMs / 1000);
+      // SET key value EX ttl
+      await this.call<string>(['SET', key, JSON.stringify(entry), 'EX', String(ttlSeconds)]);
+    } catch {
+      // Degrade gracefully — don't throw on KV write error
+    }
+  }
+}
+
+// ── Active store selection ────────────────────────────────────────────────────
+
+function buildActiveStore(): RateLimitStore {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (url && token) {
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.log('[rate-limit] Using Upstash Redis distributed store');
+    }
+    return new UpstashStore(url, token);
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    // Warn operators that rate limiting is in-memory — less effective on multi-instance
+     
+    console.warn(
+      '[rate-limit] WARNING: Using in-memory store in production. ' +
+        'Set UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN for distributed rate limiting.'
+    );
+  }
+
+  return inMemoryStore;
+}
+
+const activeStore: RateLimitStore = buildActiveStore();
 
 // ── Predefined limit configurations ──────────────────────────────────────────
 
@@ -76,27 +163,23 @@ export const RATE_LIMITS = {
   READ_ENDPOINT: { windowMs: 60_000, max: 100, keyPrefix: 'read' } satisfies RateLimitConfig,
   /** 20 requests per minute — for public API key consumers */
   PUBLIC_API: { windowMs: 60_000, max: 20, keyPrefix: 'pub' } satisfies RateLimitConfig,
+  /** 60 requests per minute — for admin dashboard GET requests */
+  ADMIN_READ: { windowMs: 60_000, max: 60, keyPrefix: 'admin-read' } satisfies RateLimitConfig,
 } as const;
 
-// ── Core rate limit function ──────────────────────────────────────────────────
+// ── Core rate limit function (async) ─────────────────────────────────────────
 
 export function rateLimit(config: RateLimitConfig) {
-  return function checkRateLimit(identifier: string): RateLimitResult {
+  return async function checkRateLimit(identifier: string): Promise<RateLimitResult> {
     const now = Date.now();
     const key = `${config.keyPrefix}:${identifier}`;
 
-    const existing = activeStore.get(key);
-
-    // Handle async stores (future KV) — for now, in-memory is sync
-    if (existing instanceof Promise) {
-      // Fallback: allow the request when store is async (sync path only)
-      return { allowed: true, remaining: config.max - 1, resetAt: now + config.windowMs };
-    }
+    const existing = await activeStore.get(key);
 
     // No existing entry, or the window has expired — start a fresh window
     if (!existing || existing.resetAt <= now) {
       const resetAt = now + config.windowMs;
-      activeStore.set(key, { count: 1, resetAt }, config.windowMs);
+      await activeStore.set(key, { count: 1, resetAt }, config.windowMs);
       return { allowed: true, remaining: config.max - 1, resetAt };
     }
 
@@ -105,25 +188,12 @@ export function rateLimit(config: RateLimitConfig) {
       return { allowed: false, remaining: 0, resetAt: existing.resetAt };
     }
 
-    existing.count++;
-    activeStore.set(key, existing, existing.resetAt - now);
+    const updated = { count: existing.count + 1, resetAt: existing.resetAt };
+    await activeStore.set(key, updated, existing.resetAt - now);
     return {
       allowed: true,
-      remaining: config.max - existing.count,
+      remaining: config.max - updated.count,
       resetAt: existing.resetAt,
     };
   };
-}
-
-// ── Periodic cleanup — prevent unbounded memory growth ───────────────────────
-// Runs every 5 minutes and removes entries whose window has already expired.
-// NOTE: Remove this block when migrating to KV (KV handles TTL expiry natively).
-
-if (typeof setInterval !== 'undefined') {
-  setInterval(() => {
-    const now = Date.now();
-    for (const [key, value] of memoryMap.entries()) {
-      if (value.resetAt < now) memoryMap.delete(key);
-    }
-  }, 300_000);
 }

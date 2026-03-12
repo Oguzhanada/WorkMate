@@ -9,7 +9,7 @@ description: WorkMate project core skill — security guardrails, PM mindset, an
 
 - **Product**: WorkMate — Ireland-first services marketplace (26 counties)
 - **Stack**: Next.js 16.1.6 (App Router, Turbopack), React 19, TypeScript, Supabase (Postgres + RLS + Storage + Edge Functions), Stripe Connect, next-intl (English only), Zod 4, @dnd-kit
-- **Source of truth (in order)**: existing code → `ai-context/prompts/claude-guidelines.md` → `~/.claude/projects/<project-slug>/memory/MEMORY.md` → `ai-context/context/PROJECT_CONTEXT.md` → latest `ai-context/memory/checkpoints/CHECKPOINT_SESSION*.md`
+- **Source of truth (in order)**: `ai-context/context/agents.md` → `ai-context/context/PROJECT_CONTEXT.md` → `ai-context/decisions/index.md` → existing code
 - **App root**: `marketplace/` — all commands run from here
 
 ## Security DNA (Non-Negotiable)
@@ -32,7 +32,7 @@ These rules apply to every line of code produced:
 - Button component always — no raw `<button className="bg-...">` in pages
 - PageHeader component for all page-level headers
 - EmptyState on every list — handle zero-item state
-- Migrations additive only — never rewrite existing files, next = **059**
+- Migrations additive only — never rewrite existing files, next = **080**
 - Webhook delivery: HTTPS-only, HMAC-SHA256 signed via `X-WorkMate-Signature`
 
 ## PM Mindset
@@ -63,16 +63,7 @@ When user types these in chat (NOT as /skill-name — these are conversational t
 - `!tasks` — P0/P1/P2/P3 priority list based on Phase 1 roadmap
 - `!blockers` — Open issues + recommended resolution for each
 - `!decisions` — Recent architectural decisions with date and rationale
-- `!audit` — Activate `workmate-schema-guardian` skill and run the full FD-01–FD-12 frozen decisions audit checklist
-
-## Phase 1 Roadmap (Current Focus)
-
-1. Irish Compliance Badge (migration 050 must be applied in Supabase first)
-2. Smart Match Score (ranking_score × compliance_score × response_time)
-3. Rebooking 1.9% fee (uses customer_provider_history table, migration 036)
-4. "Why WorkMate?" homepage section
-5. Provider AI Suggested Alerts (auto-create from pro_services)
-6. Offer Ranking Badge polish (48h countdown, viewer count)
+- `!audit` — Activate `workmate-schema-guardian` skill and run the full FD-01–FD-28 frozen decisions audit checklist
 
 ## Key File Locations
 
@@ -87,4 +78,11 @@ When user types these in chat (NOT as /skill-name — these are conversational t
 | Job access resolver | `lib/jobs/access.ts` |
 | Public API auth | `lib/api/public-auth.ts` |
 | i18n strings | `messages/en.json` |
-| Migrations | `migrations/` (001–058 applied, next = 059) |
+| Migrations | `migrations/` (001–080 applied, next = **081**) |
+| AI model config | `lib/ai/config.ts` |
+| AI prompt sanitize | `lib/ai/sanitize.ts` |
+| Structured logger | `lib/logger.ts` |
+| Rate limiting | `lib/rate-limit/index.ts` (Upstash KV auto-selected) |
+
+> For current roadmap / priorities, read `ai-context/context/PROJECT_CONTEXT.md`.
+> For frozen architectural decisions (FD-01–FD-28), activate `workmate-schema-guardian`.

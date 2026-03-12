@@ -8,7 +8,7 @@ import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { apiError, apiUnauthorized, apiForbidden, apiServerError } from '@/lib/api/error-response';
 
 // GET /api/admin/feature-flags — list all flags
-export async function GET() {
+async function getHandler() {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -34,6 +34,8 @@ export async function GET() {
 
   return NextResponse.json({ flags: data ?? [] });
 }
+
+export const GET = withRateLimit(RATE_LIMITS.ADMIN_READ, getHandler);
 
 // PATCH /api/admin/feature-flags — toggle a flag
 async function patchHandler(request: NextRequest) {

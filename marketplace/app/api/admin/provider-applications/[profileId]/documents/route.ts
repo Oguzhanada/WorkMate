@@ -8,7 +8,7 @@ import { fireAutomationEvent } from '@/lib/automation/engine';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { apiError, apiNotFound } from '@/lib/api/error-response';
 
-export async function GET(
+async function getHandler(
   _request: NextRequest,
   { params }: { params: Promise<{ profileId: string }> }
 ) {
@@ -53,6 +53,8 @@ export async function GET(
 
   return NextResponse.json({ documents: withUrls });
 }
+
+export const GET = withRateLimit(RATE_LIMITS.ADMIN_READ, getHandler);
 
 async function patchHandler(
   request: NextRequest,

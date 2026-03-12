@@ -12,7 +12,7 @@ const HOLD_DAYS = 30;
 // GET /api/admin/gdpr
 // Returns all profiles with a pending deletion request, ordered by request date.
 // Each record includes days_since_request and is_eligible (>= 30 days).
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   void request; // no query params used
   const auth = await ensureAdminRoute();
   if (auth.error) return auth.error;
@@ -43,6 +43,8 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({ requests: records });
 }
+
+export const GET = withRateLimit(RATE_LIMITS.ADMIN_READ, getHandler);
 
 // DELETE /api/admin/gdpr
 // Processes a hard deletion for a profile that has passed the 30-day hold.

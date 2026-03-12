@@ -1,3 +1,6 @@
+> **Scope note:** This document covers database operations only. It is not a source of truth for AI rules or frozen decisions.
+> Canonical AI sources: `ai-context/context/agents.md` · `ai-context/context/PROJECT_CONTEXT.md` · `ai-context/decisions/index.md`
+
 # WorkMate — Database Operations Runbook
 
 **Project:** WorkMate (Ireland-first services marketplace)

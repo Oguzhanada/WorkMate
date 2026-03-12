@@ -1,3 +1,6 @@
+> **Scope note:** This document covers environment variables and service setup only. It is not a source of truth for AI rules or frozen decisions.
+> Canonical AI sources: `ai-context/context/agents.md` · `ai-context/context/PROJECT_CONTEXT.md` · `ai-context/decisions/index.md`
+
 # WorkMate — Secrets, API Keys & Service Setup Guide
 
 > **Tek kaynak.** Yeni bir key eklendiğinde veya servis değiştiğinde bu dosyayı güncelle.

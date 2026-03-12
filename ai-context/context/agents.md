@@ -1,199 +1,197 @@
-# WorkMate AI Canonical Agents and Guardrails
+# WorkMate AI Agents — Canonical Rules
 
-This is the canonical AI rules file for this repository.
-
-Canonical paths:
-- `ai-context/context/PROJECT_CONTEXT.md`
-- `ai-context/context/agents.md`
-- `ai-context/context/compliance-rules.md`
-- `ai-context/prompts/session-bootstrap.md`
+> **This is the single source of truth for AI rules, guardrails, and frozen decisions.**
+>
+> Conflict resolution priority: **this file > PROJECT_CONTEXT.md > relevant DR file > all other docs**.
+>
+> If any other file contradicts this file, this file wins. Update the other file, not this one.
 
 ---
 
-## Custom Agent Roles
-# WorkMate Custom Agents
+## 1. Document Precedence
 
-These agents are part of the WorkMate 8-Agent Team.
+### What to read (session startup order)
 
-=== ProjectManager ===
-You are the official Project Manager of WorkMate (Ireland services marketplace). You coordinate all other 7 agents. Always read and update `ai-context/context/PROJECT_CONTEXT.md`. Distribute tasks, track Production Launch Checklist, and never allow any change without ComplianceAgent and QAAgent approval.
+1. `ai-context/context/agents.md` — this file (rules + frozen decisions)
+2. `ai-context/context/PROJECT_CONTEXT.md` — current project state, architecture, env
+3. `ai-context/decisions/index.md` — active decision record index
+4. `ai-context/prompts/session-bootstrap.md` — session entry point (what task to start with)
+5. `marketplace/AGENTS.md` — tool auto-discovery pointer only
 
-=== DesignAgent ===
-You are the Apple-level Premium UI Expert. Always design with generous whitespace, soft shadows, green accent (#10b981), Framer Motion spring animations. Reference the MacBook dashboard image the user previously shared.
+**Task-specific reads (only when relevant):**
+- DB / migration work → also read `docs/DB_RUNBOOK.md`
+- Launch / env / ops → also read `docs/PRODUCTION_LAUNCH.md`
+- Architecture health check → also read `docs/ARCHITECTURE_REVIEW.md`
+- Env var reference → `docs/SECRETS_MAP.md`
 
-=== FrontendAgent ===
-You are the Next.js 16 + React 19 + Tailwind + shadcn/ui + Framer Motion expert. Build clean, responsive, accessible components.
+### What NOT to read as a rule source
 
-=== BackendAgent ===
-You are the Supabase + PostgreSQL + RLS + Edge Functions + Migration expert. Always follow migration numbering (050+) and create full RLS policies.
-
-=== FintechAgent ===
-You are the Stripe Connect expert. Handle Secure Hold, Capture, rebooking 1.9% logic, and webhooks.
-
-=== ComplianceAgent ===
-You are the Ireland Compliance Guardian. Check every change for SafePass, €6.5M Insurance, Tax Clearance, GDPR, Eircode, and RLS compliance. Never approve without full check.
-
-=== QAAgent ===
-You are the QA & Testing expert. Write and run Vitest + Playwright tests for every new feature.
-
-=== DevOpsAgent ===
-You are the Vercel + Production + Env + Deployment expert.
+| File | Status | Use instead |
+|------|--------|-------------|
+| `ai-context/prompts/claude-guidelines.md` | ARCHIVED (legacy CLAUDE.md) | This file |
+| `ai-context/context/compliance-rules.md` | ARCHIVED (content merged into section 2) | Section 2.1–2.2 of this file |
+| `ai-context/memory/checkpoints/*` | Historical — read-only | `ai-context/context/PROJECT_CONTEXT.md` |
+| `docs/strategy/*` | Historical reports | Not needed for development |
+| `.claude/skills/*/SKILL.md` | Task workflow guides | For task-specific workflows only — not global rules |
 
 ---
 
-## Guardrails and Technical Rules
-# WorkMate Guardrails (Permanent)
+## 2. Non-Negotiable Guardrails
 
-These rules are mandatory for every change in this project.
+These apply to every single change — no exceptions without a Decision Record.
 
-## 1) Language policy
-- All user-facing and developer-facing content must be in English only.
-- Do not add Turkish or any other language to UI strings, docs, errors, or policies.
+### 2.1 Language and jurisdiction
 
-## 2) Jurisdiction policy
-- WorkMate is Ireland-first. Product, legal, payments, onboarding, verification, and dispute logic must follow Ireland context.
-- If a request conflicts with Ireland compliance or introduces legal risk, stop and raise a warning before implementation.
+- **English only** — all user-facing and developer-facing content. No Turkish or other languages in UI strings, docs, errors, or policies.
+- **Ireland-first** — product, legal, payments, onboarding, verification, and dispute logic follow Ireland context. If a request conflicts with Ireland compliance, stop and raise a warning before implementation.
+- **Policy writing** — do not copy competitor legal text verbatim. Use neutral wording. Prefer official Irish/EU references (DPC, Revenue, Irish consumer guidance).
+- **Terminology** — use PPSN in Irish tax contexts (not generic "tax ID"). Correct incorrect terminology before proceeding. TIN handling must support non-PPSN users where applicable.
 
-## 3) Safety policy for policy/legal text
-- Do not copy competitor legal text verbatim.
-- Use policy-safe, neutral wording and adapt to WorkMate operations.
-- Prefer official Irish/EU references for compliance-sensitive content (e.g., DPC, Revenue, Irish consumer guidance).
+### 2.2 Ireland validation baseline
 
-## 4) Verification and tax terminology
-- Use correct Ireland terminology:
-  - PPSN (Ireland), not generic assumptions.
-  - TIN handling must support non-PPSN users via valid alternatives where applicable.
-- If terminology in a request is incorrect, correct it first, then proceed.
+- Enforce Eircode validation in all job-posting and address flows.
+- Enforce Irish phone normalisation to `+353XXXXXXXXX`, valid prefixes: `83, 85, 86, 87, 89`.
+- Do not accept generic EU/UK postal or phone formats as Irish-valid.
+- GDPR obligations and retention workflows are mandatory in architecture decisions.
+- For compliance-sensitive releases: require QA + compliance review before merge.
 
-## 5) Architecture and cleanliness
+### 2.3 Architecture and code quality
+
 - Remove dead/unused code paths when safely confirmed.
+- Keep source of truth centralised (taxonomy, constants, validation, policy links).
 - Avoid duplicate UI systems and parallel legacy components.
-- Keep source of truth centralized (taxonomy, constants, validation, policy links).
+- **Pre-commit hooks** (Husky + lint-staged) MUST run `npm run lint` + type-check on every commit. Do NOT bypass with `--no-verify` unless user explicitly approves.
+- Commit messages must be explicit and scoped.
 
-## 6) Change quality gates
-- Before commit:
-  - `npm run lint`
-  - `npm run test`
-- Before merge (PR gate, mandatory):
-  - Backstop visual regression check must pass
-  - Lighthouse CI check must pass
-- Keep commit messages explicit and scoped.
+### 2.4 Change quality gates
 
-## 7) Delivery behavior
-- If a requested change is risky/non-compliant:
-  - Explain why (short and concrete),
-  - Provide a compliant alternative,
-- Ask for confirmation only if needed.
+Before every commit:
+- `npm run lint`
+- `npm run test`
 
-## 7.1) Flow maturity execution order
-- Follow flow modernization order strictly:
-  1) Provider funnel
-  2) Trust/policy/dispute certainty
-  3) Ops reliability and telemetry
-- Do not start telemetry-heavy work before provider funnel and trust policy contracts are in place.
-- Source roadmap: `marketplace/docs/flow-maturity-roadmap-10w.md`
+Before every merge (PR gate):
+- Playwright visual/smoke tests must pass
+- Lighthouse CI check must pass
 
-## 8) UI architecture rule
+### 2.5 Delivery behaviour
+
+If a requested change is risky or non-compliant:
+1. Explain why (short and concrete).
+2. Provide a compliant alternative.
+3. Ask for confirmation only if the path forward is genuinely ambiguous.
+
+### 2.6 Flow maturity execution order
+
+Follow flow modernisation order strictly:
+1. Provider funnel
+2. Trust / policy / dispute certainty
+3. Ops reliability and telemetry
+
+Do not start telemetry-heavy work before provider funnel and trust policy contracts are in place.
+
+### 2.7 UI architecture
+
 - No new raw page-level CSS for visual redesign work unless shared tokens/components are insufficient.
-- Prefer centralized design tokens in `app/globals.css` and shared primitives in `components/ui/*`.
-- If a new visual primitive is required, add it once to the shared layer and reuse it across pages.
-- Hybrid UI boundary is allowed:
-  - Shadcn/Radix primitives are allowed inside `components/ui/*` wrappers.
-  - Do not scatter primitive-specific utility patterns directly across page files.
-  - Keep color/spacing/radius/shadow decisions mapped to `--wm-*` tokens.
-- Readability-first contrast is mandatory:
-  - On light surfaces, body/supporting text must use `--wm-text-muted` or darker.
-  - Never use reduced opacity text (`text-white/..`, `opacity-..`) on light cards/sections.
-  - Any new section must pass a manual readability check at 100% and 125% zoom before merge.
+- Prefer centralised design tokens in `app/globals.css` and shared primitives in `components/ui/*`.
+- If a new visual primitive is required, add it once to the shared layer — reuse across pages.
+- Shadcn/Radix primitives are allowed inside `components/ui/*` wrappers — do not scatter them across page files.
+- Keep colour/spacing/radius/shadow decisions mapped to `--wm-*` tokens.
+- Readability-first contrast: text on light surfaces must use `--wm-text-muted` or darker. Never use reduced opacity text (`text-white/..`, `opacity-..`) on light cards/sections.
+- Every new section must pass a manual readability check at 100% and 125% zoom before merge.
 
 ---
 
-# Technical Guardrails (Enforced — no exceptions)
+## 3. Technical Guardrails (Enforced — no exceptions)
 
-## 9) Supabase client — STRICT import rule
-- **NEVER** call `getSupabaseBrowserClient()` at module scope or as a top-level export.
-- **ALWAYS** call it inside an async function or `useEffect` callback, immediately before use.
-- **NEVER** import from `@/lib/supabase` — that file was deleted. The only valid imports are:
-  - Client components: `import { getSupabaseBrowserClient } from '@/lib/supabase/client'`
-  - Server components / route handlers: `import { getSupabaseServerClient } from '@/lib/supabase/server'`
-  - Route handlers (alternative): `import { getSupabaseRouteClient } from '@/lib/supabase/route'`
-  - Service role (admin only): `import { getSupabaseServiceClient } from '@/lib/supabase/service'`
+### 3.1 Supabase client — STRICT import rule
+
+**NEVER** call `getSupabaseBrowserClient()` at module scope or as a top-level export.
+**ALWAYS** call it inside an async function or `useEffect` callback, immediately before use.
+**NEVER** import from `@/lib/supabase` — that file was deleted. Valid imports only:
+
+| Context | Import |
+|---------|--------|
+| Client component (`'use client'`) | `import { getSupabaseBrowserClient } from '@/lib/supabase/client'` |
+| Server component / page | `import { getSupabaseServerClient } from '@/lib/supabase/server'` |
+| Route handler | `import { getSupabaseRouteClient } from '@/lib/supabase/route'` |
+| Admin / service-role bypass | `import { getSupabaseServiceClient } from '@/lib/supabase/service'` |
 
 ```tsx
-// FORBIDDEN — will cause hydration errors and shared state bugs:
+// FORBIDDEN — hydration errors and shared state bugs:
 const supabase = getSupabaseBrowserClient(); // at module scope
-export const supabase = getSupabaseBrowserClient(); // as export
 
 // CORRECT:
 useEffect(() => {
   const load = async () => {
-    const supabase = getSupabaseBrowserClient(); // inside callback
+    const supabase = getSupabaseBrowserClient();
     ...
   };
   load();
 }, []);
 ```
 
-## 10) Locale routing — STRICT path rule
-- **NEVER** hardcode `/en/` in any `href`, `redirect()`, or `router.push()` call.
-- **ALWAYS** use locale-aware helpers from `@/lib/i18n/locale-path`:
-  - `getLocaleRoot(pathname)` — extracts `/en` or `/ga` from current path
-  - `withLocalePrefix(localeRoot, '/target-path')` — builds correct locale-prefixed URL
-- All routed pages must live under `app/[locale]/`. No pages under `app/` directly (except `layout.tsx`, `globals.css`, `auth/callback/`).
+### 3.2 Locale routing — STRICT path rule
+
+**NEVER** hardcode `/en/` in any `href`, `redirect()`, or `router.push()` call.
+**ALWAYS** use locale-aware helpers from `@/lib/i18n/locale-path`:
+- `getLocaleRoot(pathname)` — extracts `/en` from current path
+- `withLocalePrefix(localeRoot, '/target-path')` — builds correct locale-prefixed URL
 
 ```tsx
 // FORBIDDEN:
 redirect('/en/dashboard/customer');
-router.push('/en/login');
 
 // CORRECT:
-const pathname = usePathname();
 const localeRoot = getLocaleRoot(pathname);
 router.push(withLocalePrefix(localeRoot, '/dashboard/customer'));
 ```
 
-## 11) Money — STRICT currency rule
-- All monetary values are stored and passed as **integer cents** in EUR only.
-- Column names must end in `_amount_cents` (e.g., `quote_amount_cents`, `payment_amount_cents`).
-- **NEVER** store or pass floats for money. **NEVER** assume any currency other than EUR.
-- Display only: divide by 100 and format with `Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR' })`.
+### 3.3 Money — STRICT currency rule
 
-## 12) Database — STRICT RLS rule
+- All monetary values stored and passed as **integer cents** in EUR only.
+- Column names must end in `_amount_cents` (e.g. `quote_amount_cents`, `payment_amount_cents`).
+- **NEVER** store or pass floats for money. **NEVER** assume any currency other than EUR.
+- Display only: `Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR' })`.
+
+### 3.4 Database — STRICT RLS rule
+
 - Every new table **must** have RLS enabled and explicit policies.
 - **NEVER** add `FOR ALL USING (true)` — this bypasses security entirely.
-- Every migration must be additive (001, 002… never rewrite or renumber existing files).
-- Next migration number: **073** — check `migrations/` before creating any new migration.
-- Migrations are applied manually by the user in Supabase SQL Editor — do not attempt to run them via CLI.
+- Every migration must be additive — never rewrite or renumber existing files.
+- **Next migration number: 080** — check `marketplace/migrations/` before creating any new migration.
+- Migrations are applied manually in Supabase SQL Editor — do not attempt CLI apply.
 
-## 13) Zod — API validation rule
+### 3.5 Zod — API validation rule
+
 - `z.record()` requires **two** arguments: `z.record(z.string(), z.string())` — NOT `z.record(z.string())`.
 - All API route inputs must be validated with Zod schemas defined in `lib/validation/api.ts`.
 - Do not add inline ad-hoc Zod schemas inside route handlers — extend the shared file.
 
-## 14) Dashboard widget system — STRICT extension rule
-- Widget types are defined in `lib/dashboard/widgets.ts` (`WidgetType`, `DashboardMode`, allowed/default config).
+### 3.6 Dashboard widget system — STRICT extension rule
+
+- Widget types defined in `lib/dashboard/widgets.ts` (`WidgetType`, `DashboardMode`, allowed/default config).
 - All dashboard pages must use `<DashboardShell mode="..." />` — never build a monolithic page component.
 - New widget cards go in `components/dashboard/widgets/` and must be registered in `WidgetRenderer.tsx`.
 - Do not add widget logic directly to dashboard page files.
 
-## 15) Webhook and public API rules
-- Webhooks: HTTPS delivery only. Signed with HMAC-SHA256 via `X-WorkMate-Signature` header. Implementation in `lib/webhook/send.ts`.
+### 3.7 Webhook and public API rules
+
+- Webhooks: HTTPS delivery only. Signed with HMAC-SHA256 via `X-WorkMate-Signature`. Implementation in `lib/webhook/send.ts`.
 - Public API auth: `x-api-key` header → `profiles.api_key` lookup. Implementation in `lib/api/public-auth.ts`.
 - Do not create new public endpoints outside `app/api/public/v1/` without explicit approval.
 
-## 16) Ireland validation rules
+### 3.8 Ireland validation rules
+
 - Eircode: enforce validation in all job-posting and address flows.
-- Irish phone: normalize to `+353XXXXXXXXX`, valid prefixes: 83, 85, 86, 87, 89.
+- Irish phone: normalise to `+353XXXXXXXXX`, valid prefixes: 83, 85, 86, 87, 89.
 - Do not accept generic EU or UK phone/postal formats as valid Irish inputs.
 
-## 17) Skill activation guide
-When working on these areas, activate the matching skill first:
-- Skill locations:
-  - Repo-local WorkMate skills: `.claude/skills/workmate-*` and `.claude/skills/ui-system-hybrid-migration`
-  - Codex global skills: `~/.codex/skills/*`
+### 3.9 Skill activation guide
 
-| Area | Skill to activate |
-|------|-------------------|
+When working in these areas, activate the matching skill first:
+
+| Area | Skill |
+|------|-------|
 | New migration / RLS policy | `supabase-migration-guardian` |
 | Payment / Stripe / webhook / dispute | `stripe-connect-payment-ops` |
 | Provider onboarding / admin review flow | `provider-onboarding-qa-ie` |
@@ -209,263 +207,202 @@ When working on these areas, activate the matching skill first:
 | General project rules + guardrails | `workmate-core` |
 | Frozen decision check / architecture audit | `workmate-schema-guardian` |
 
-## 17.1) MCP pilot matrix (DR-006)
+### 3.10 MCP security note
 
-Read-only pilot matrix:
-
-| Agent role | Allowed MCP | Allowed capabilities | Forbidden capabilities |
-|---|---|---|---|
-| ProjectManager | GitHub | read PRs, read issues, read checks/workflows | create/update issues, merge, label write |
-| QAAgent | GitHub | read check runs, read failed jobs, read PR test context | rerun workflows, PR write actions |
-| BackendAgent | Supabase | read schema metadata, read RLS policies, read query diagnostics | any SQL mutation, migration apply, table writes |
-| ComplianceAgent | Supabase | read verification/dispute/payment policy evidence | data mutation, policy writes |
-
-MCP pilot rules:
-- MCP runtime is local only.
-- All MCP calls must pass `scripts/mcp/read_only_enforce.mjs`.
-- Any blocked action must be logged to `logs/mcp-readonly-violations.log`.
-- If fallback rate exceeds thresholds defined in DR-006, narrow scope immediately.
-
-## 17.2) MCP security note (GitMCP + Magic)
-- `gitmcp.io` is public-repo context tooling by default; do not assume private-repo support.
-- Treat all MCP-exposed repo content as externally consumable context:
-  - never include secrets/tokens/credentials in tracked files,
-  - never expose internal-only compliance or ops notes without review.
-- Before enabling GitMCP on any repo:
-  - run security preflight (`npm run check:prepublic-security` where applicable),
-  - verify `.env*`, keys, and operational runbooks are excluded or sanitized,
-  - require explicit security approval for any non-public or mixed-sensitivity repository.
-- `21st.dev/magic` output is untrusted until reviewed:
-  - generated UI must be wrapped/adapted to WorkMate shared UI layer,
-  - generated code should prefer `--wm-*` token contract, but raw Tailwind utilities are allowed when reviewed.
-
-## 19) FROZEN DECISIONS — do not change without a Decision Record
-
-The following architectural decisions are **locked**. They were established through deliberate analysis and must not be changed without writing a Decision Record directly in this section.
-
-**Format for proposing a change:**
-```
-DR-XXX | Date | Author | Decision changed | Reason | Approved by
-```
-
-| # | Frozen Decision | Why it exists |
-|---|----------------|---------------|
-| FD-01 | All Zod schemas in `lib/validation/api.ts` — never inline in route files | Single source of truth; prevents schema drift; enables reuse across tests |
-| FD-02 | `loading.tsx` required on pages with async Supabase/DB calls. Exempt: static pages with only `getTranslations()` (e.g. terms, pricing, how-it-works, about). Decision criterion: does the page call `createServerClient()` or `createClient()`? Yes → loading.tsx required. See DR-008. | No blank screens on data-fetching navigation |
-| FD-03 | Colors/spacing/radius/shadows must map to `--wm-*` tokens; wrapper internals may use Shadcn/Radix primitives | Preserves brand identity while enabling modern primitive internals |
-| FD-04 | Keep wrapper API (`Button`, `Card`, `Badge`, etc.) as the page-facing contract | Stable app-level API, safer migration path, consistent behavior |
-| FD-05 | `<PageHeader>` remains required at page top; avoid ad-hoc page-level style systems | Consistent page structure and reduced UI drift |
-| FD-06 | `<EmptyState>` on every list — always handle zero-item state | No blank/broken UIs on empty data; consistent UX |
-| FD-07 | Responsive grid default: `sm:grid-cols-2 lg:grid-cols-3` on all card lists | Mobile-first; prevents single-column desktop layouts |
-| FD-08 | Supabase clients per-context — never a module-scope singleton | Prevents hydration errors, shared state bugs, SSR leaks |
-| FD-09 | Money always as integer cents (`*_amount_cents`), EUR only | Prevents float rounding errors; Irish jurisdiction requirement |
-| FD-10 | RLS never `FOR ALL USING (true)` — all policies scoped to `auth.uid()` | Security — open policies expose all rows to all authenticated users |
-| FD-11 | No hardcoded `/en/` in hrefs, redirects, or router.push — use `lib/i18n/locale-path` helpers | Locale routing correctness; future locale expansion readiness |
-| FD-12 | Webhook delivery: HTTPS-only, HMAC-SHA256 via `X-WorkMate-Signature` from `lib/webhook/send.ts` | Security — unsigned webhooks are spoofable |
-| FD-13 | Contrast contract: text on light surfaces must use semantic text tokens (`--wm-text-strong/default/muted/soft`), never low-opacity text color hacks | Prevents recurring unreadable UI regressions across pages |
-| FD-14 | Light is default (`<html data-theme="light">` in layout.tsx). Dark mode supported via `[data-theme="dark"]` toggle and `prefers-color-scheme: dark`. Token coverage complete in `tokens.css` lines 167–176. Never use Tailwind `dark:` utilities — `--wm-*` tokens only. All component changes must pass visual QA in both modes. See DR-007. | Dark mode fully supported since UI overhaul (2026-03-12) |
-| FD-15 | No page/container-level opacity on readable content wrappers (`main`, `section`, hero/content cards) except loading/skeleton states | Prevents whole-screen faded text incidents and preserves readability baseline |
-| FD-16 | Ireland-specific logic MUST live in `lib/ireland/` — never at `lib/` root | Session 27 restructure — prevents re-scattering of domain logic |
-| FD-17 | Static data/enums MUST live in `lib/data/` — never at `lib/` root or `lib/constants/` | Session 27 restructure — consolidates all enums/data in one place |
-| FD-18 | Stripe SDK MUST live in `lib/stripe/client.ts` — never as `lib/stripe.ts` | Session 27 restructure — consistent with other integrations |
-| FD-19 | Feature components in their domain dir (`jobs/`, `offers/`, `reviews/`) — NOT in `dashboard/` | Session 27 restructure — prevents dashboard/ becoming a catch-all |
-| FD-20 | No orphaned files in `lib/` root (except `live-services.ts`, `i18n.ts`) | Session 27 restructure — all utilities must live in subdirectories |
-| FD-21 | `components/ui/index.ts` barrel export must be updated when adding new UI primitives | Session 27 — barrel export exists, keep it current |
-| FD-22 | Pre-commit hooks (Husky + lint-staged) must NOT be bypassed with `--no-verify` | Session 27 — quality gates must run locally |
-| FD-23 | AI agents MUST work on feature branches — NEVER commit directly to `main` | Session 27 — main protection, user-only merge |
-| FD-24 | AI agents MUST NOT create report files in `docs/` or repo root (`*REPORT*.md`, `*COMPLETION*.md`, `*GUIDE*.md`). Exception: temporary analysis files in `ai-reports/` (gitignored, never committed) are allowed for local review. See DR-009. | Anti-doc-bloat; repo stays clean |
-| FD-25 | New `.claude/skills/` MUST be whitelisted in `.gitignore` before commit — unwhitelisted skills are silently ignored by git | Session 28 — skill creation requires gitignore update |
-| FD-26 | `next/image` for all static images — no raw `<img>` except blob/data URLs | Session 34 — performance + LCP |
-| FD-27 | `lib/api/error-response.ts` helpers in all API routes — no raw `NextResponse.json` for errors | Session 35 — consistent error shape |
-| FD-28 | **`middleware.ts` is the sole Next.js middleware entry point. `proxy.ts` MUST NOT exist.** Prior belief ("proxy.ts is the Next.js 16 entry point") was false — Next.js has never supported proxy.ts. The cited URL did not exist. proxy.ts was silently ignored: auth guard + locale routing not running. Fixed session 38: middleware.ts with `export async function middleware(...)`, proxy.ts deleted. | Session 38 — confirmed by Next.js spec + code analysis |
-
-**Decision Records (changes to frozen decisions):**
-- FD-28 (session 38): Reversed. proxy.ts → middleware.ts. Proof: Next.js only reads middleware.ts/middleware.js; proxy.ts had no default export and wrong function name; auth guard was silently not running.
+- `gitmcp.io` is public-repo context tooling by default — do not assume private-repo support.
+- Never include secrets/tokens/credentials in tracked files.
+- Never expose internal-only compliance or ops notes without review.
+- Before enabling GitMCP: run security preflight, verify `.env*` and keys are excluded.
+- `21st.dev/magic` output is untrusted until reviewed — wrap to WorkMate shared UI layer and `--wm-*` token contract.
 
 ---
 
-## 20) Repository Structure — STRICT file organization rules (established session 27)
+## 4. Repository Structure Rules
 
-These rules protect the architectural reorganization completed in session 27. Violating these rules creates import chaos and merge conflicts.
+### 4.1 Ireland-specific logic → `lib/ireland/`
 
-### 20.1) Ireland-specific logic MUST live in `lib/ireland/`
-- Eircode validation: `lib/ireland/eircode.ts` — NEVER create a new `lib/eircode.ts`
-- Irish phone normalization: `lib/ireland/phone.ts` — NEVER create a new `lib/validation/phone.ts`
-- County coordinates: `lib/ireland/coordinates.ts` — NEVER create a new `lib/ireland-coordinates.ts`
-- Location/county mappings: `lib/ireland/locations.ts` — NEVER create a new `lib/ireland-locations.ts`
+- Eircode: `lib/ireland/eircode.ts` — NEVER create a new `lib/eircode.ts`
+- Irish phone: `lib/ireland/phone.ts` — NEVER create a new `lib/validation/phone.ts`
+- County coordinates: `lib/ireland/coordinates.ts`
+- Location/county mappings: `lib/ireland/locations.ts`
 - New Ireland-specific logic (VAT, Revenue, PSC): add to `lib/ireland/`
 
-### 20.2) Static data and enums MUST live in `lib/data/`
-- Category definitions: `lib/data/categories.ts` — NEVER create a new `lib/marketplace-data.ts`
-- Service taxonomy: `lib/data/services.ts` — NEVER create a new `lib/service-taxonomy.ts`
-- Provider document types: `lib/data/documents.ts` — NEVER create a new `lib/provider-documents.ts`
-- Budget options: `lib/data/budgets.ts` — NEVER create a new `lib/constants/job.ts`
+### 4.2 Static data and enums → `lib/data/`
+
+- Category definitions: `lib/data/categories.ts`
+- Service taxonomy: `lib/data/services.ts`
+- Provider document types: `lib/data/documents.ts`
+- Budget options: `lib/data/budgets.ts`
 - New static data/enums: add to `lib/data/`
 
-### 20.3) Stripe SDK MUST live in `lib/stripe/`
-- Stripe client: `lib/stripe/client.ts` — NEVER create a new `lib/stripe.ts` at root
-- Stripe webhook handlers: `lib/stripe/handlers/` (when extracted)
-- New Stripe-related logic: add to `lib/stripe/`
+### 4.3 Stripe SDK → `lib/stripe/`
 
-### 20.4) Component domain boundaries — STRICT ownership
+- Stripe client: `lib/stripe/client.ts` — NEVER create a new `lib/stripe.ts` at root.
+- New Stripe-related logic: add to `lib/stripe/`.
+
+### 4.4 Component domain boundaries
+
 Components MUST live in their feature directory, NOT in `dashboard/`:
-- Job-related: `components/jobs/` (JobMessagePanel, JobPhotoUploader, JobContractPanel, etc.)
-- Quote/offer-related: `components/offers/` (QuoteActions, etc.)
-- Review-related: `components/reviews/` (LeaveReviewForm, etc.)
-- `components/dashboard/` is ONLY for dashboard-specific layout, widgets, and analytics panels
-- `components/ui/` is ONLY for design system primitives — no business logic, no data fetching
+- Job-related: `components/jobs/`
+- Quote/offer-related: `components/offers/`
+- Review-related: `components/reviews/`
+- `components/dashboard/` is ONLY for dashboard-specific layout, widgets, and analytics panels.
+- `components/ui/` is ONLY for design system primitives — no business logic, no data fetching.
 
-### 20.5) No orphaned files in `lib/` root
-- `lib/` root should ONLY contain `live-services.ts` (master switch) and `i18n.ts`
-- All other utilities MUST be in a subdirectory (`lib/ireland/`, `lib/data/`, `lib/stripe/`, etc.)
-- If you need to add a new utility, create or use an appropriate subdirectory
+### 4.5 No orphaned files in `lib/` root
 
-### 20.6) Barrel exports exist — use them
-- `components/ui/index.ts` — exports all UI primitives
-- `lib/ireland/index.ts` — exports all Ireland logic
-- `lib/data/index.ts` — exports all static data
-- New barrel exports can be added, but existing imports via direct paths also remain valid
+- `lib/` root should ONLY contain `live-services.ts` (master switch) and `i18n.ts`.
+- All other utilities MUST be in a subdirectory (`lib/ireland/`, `lib/data/`, `lib/stripe/`, etc.).
 
-### 20.7) Pre-commit hooks are active
-- Husky + lint-staged run ESLint + tsc on every commit
-- Do NOT bypass with `--no-verify` unless explicitly approved by the user
-- If a hook fails, fix the issue — do not disable the hook
+### 4.6 Barrel exports — keep current
 
-### 20.8) Git branching — AI agents MUST NOT commit to `main` (FD-23)
-- **NEVER** commit directly to the `main` branch
-- **ALWAYS** create a feature branch before making changes:
-  - `feat/<description>` — new features
-  - `fix/<description>` — bug fixes
-  - `chore/<description>` — maintenance, deps, config
-  - `docs/<description>` — documentation only
-- **Only the repository owner** (user) can merge branches into `main`
-- Before starting work, check which branch you are on: `git branch --show-current`
-- If you are on `main`, create a new branch first: `git checkout -b feat/<description>`
-- **NEVER** run `git push origin main` — push your feature branch instead
-
-### 20.9) Documentation policy — NO agent self-reports (FD-24, updated DR-009)
-- **NEVER** create `*REPORT*.md`, `*COMPLETION*.md`, `*GUIDE*.md`, `*AUDIT*.md` files in `docs/` or repo root
-- These are agent self-reports and add no value — they bloat the repo
-- The only allowed documentation in `docs/` is **architectural/operational**:
-  - `ARCHITECTURE_REVIEW.md`, `PRODUCTION_LAUNCH.md`, `DB_RUNBOOK.md`, `ROPA.md`, checkpoints
-- **Exception (DR-009):** Temporary analysis files may be written to `ai-reports/` (gitignored) for local review. Never commit them.
-- If you need to communicate what you did, use **PR description** and **commit messages** — not separate files
-- Existing `PROJECT_CONTEXT.md` is the single onboarding reference — do not create duplicates
-
-### 20.10) Skill creation — whitelist in `.gitignore` required (FD-25)
-- Skills live in `.claude/skills/<skill-name>/SKILL.md`
-- `.gitignore` blocks ALL skills by default (``.claude/skills/*``)
-- Only **whitelisted** skills are committed. Current whitelist (9 skills):
-  - `!.claude/skills/ui-system-hybrid-migration/`
-  - `!.claude/skills/workmate-visual-qa/`
-  - `!.claude/skills/workmate-schema-guardian/`
-  - `!.claude/skills/workmate-core/`
-  - `!.claude/skills/workmate-api-route/`
-  - `!.claude/skills/workmate-dashboard-widget/`
-  - `!.claude/skills/workmate-front-engineer/`
-  - `!.claude/skills/workmate-production-launch/`
-  - `!.claude/skills/workmate-seed-ireland/`
-- **When creating a new skill**, you MUST also add whitelist entries to `.gitignore`:
-  ```
-  !.claude/skills/<new-skill-name>/
-  !.claude/skills/<new-skill-name>/SKILL.md
-  ```
-- Without this step, your skill file will be silently ignored by git and **never committed**
-- Always create skills on a **feature branch** (FD-23) and include the `.gitignore` change in the same PR
+- `components/ui/index.ts` — exports all UI primitives. Update when adding new ones (FD-20).
+- `lib/ireland/index.ts` — exports all Ireland logic.
+- `lib/data/index.ts` — exports all static data.
 
 ---
 
-## 18) AI onboarding — mandatory reading order
-Before making any change, a new AI agent must read these files in order:
+## 5. Process Rules
 
-1. `ai-context/context/PROJECT_CONTEXT.md` — single highest-density project reference
-2. `ai-context/context/agents.md` — this file (immutable rules)
-3. `~/.claude/projects/<project-slug>/memory/MEMORY.md` — session history and decisions
-4. `.claude/skills/` (project root) — WorkMate specialist skills (`workmate-*`)
-5. `marketplace/lib/auth/rbac.ts` — RBAC helpers
-6. `marketplace/lib/dashboard/widgets.ts` — widget system source of truth
-7. `marketplace/lib/i18n/locale-path.ts` — locale path helpers
+Mandatory process rules. These govern how work is done, not what the architecture is.
+
+### 5.1 Branching — AI agents MUST NOT commit to `main`
+
+- **NEVER** commit directly to the `main` branch.
+- **ALWAYS** create a feature branch: `feat/<desc>`, `fix/<desc>`, `chore/<desc>`, `docs/<desc>`.
+- **Only the repository owner** (user) can merge branches into `main`.
+- Check branch before starting: `git branch --show-current`.
+- **NEVER** run `git push origin main`.
+
+### 5.2 Documentation — no agent self-reports
+
+- **NEVER** create `*REPORT*.md`, `*COMPLETION*.md`, `*GUIDE*.md`, `*AUDIT*.md` in `docs/` or repo root.
+- Allowed in `docs/`: architectural/operational docs only (ARCHITECTURE_REVIEW.md, PRODUCTION_LAUNCH.md, DB_RUNBOOK.md, ROPA.md, SECRETS_MAP.md).
+- **Exception (DR-009):** Temporary analysis files may be written to `ai-reports/` (gitignored, never committed).
+- Communicate what you did via PR description and commit messages — not separate files.
+
+### 5.3 Skill creation — whitelist required
+
+- Skills live in `.claude/skills/<skill-name>/SKILL.md`.
+- `.gitignore` blocks ALL skills by default — new skills MUST be explicitly whitelisted in `.gitignore`.
+- Always create skills on a feature branch (5.1 applies). Include the `.gitignore` change in the same PR.
+
+### 5.4 File deletion protocol — MANDATORY before deleting any file
+
+Before deleting any file, you MUST complete all steps:
+
+1. **Read the file first** — a file is not a duplicate just because another looks similar.
+2. **Verify with evidence** — for framework behaviour claims, cite official docs or source code. For "duplicate file" claims, read both files side-by-side.
+3. **Check frozen decisions table** (section 6) — if the file appears there, stop immediately.
+4. **Check git history** — `git log --all --oneline -- <filepath>`. If a delete→restore cycle exists, investigate before acting.
+5. **Ask the user** — state what the file does, why it should be deleted, what evidence you have, what will break if wrong.
+
+**NEVER delete silently as part of a larger commit.**
+
+### 5.5 Git log reading standard
+
+AI-authored commit messages CAN be factually wrong. Apply these rules:
+
+- Treat AI commit messages as **claims, not facts**. Verify framework behaviour claims against official docs or source code.
+- A "fix" commit may have introduced a regression — always check for subsequent restore commits.
+- `Co-Authored-By: Claude` in the commit trailer = AI wrote or heavily influenced this commit. Apply scepticism to framework behaviour claims.
+- If `git log --all -- <file>` shows a delete→restore cycle: read both the delete commit AND the restore commit. Reproduce the actual error before acting.
+
+**Known cycle in this repo:**
+- `middleware.ts` was deleted and restored multiple times. **Final correct state (session 38):** `middleware.ts` MUST exist with `export async function middleware(...)`. `proxy.ts` was a false belief — Next.js never read it as middleware. `proxy.ts` has been permanently deleted. See FD-28.
 
 ---
 
-## 21) File deletion protocol — MANDATORY before deleting any file
+## 6. Frozen Decisions (FD-01 — FD-28)
 
-Before deleting any file from this repository, the agent MUST complete all steps below.
-Skipping even one step is a protocol violation.
+> These decisions are locked. Do not change without writing a Decision Record.
+>
+> **How to propose a change:**
+> ```
+> DR-XXX | Date | Author | Decision changed | Reason | Approved by
+> ```
 
-### Step 1 — Read the file first
-- Open and read the file before forming any opinion about it.
-- A file is not a duplicate just because another file looks similar.
+| ID | Frozen Decision | Status | Why it exists |
+|----|----------------|--------|---------------|
+| FD-01 | All Zod schemas in `lib/validation/api.ts` — never inline in route files | 🟢 Active | Single source of truth; prevents schema drift; enables test reuse |
+| FD-02 | `loading.tsx` required on pages with async Supabase/DB calls. Exempt: static pages with only `getTranslations()`. See DR-008. | 🟢 Active | No blank screens on data-fetching navigation |
+| FD-03 | Colors/spacing/radius/shadows must map to `--wm-*` tokens; wrapper internals may use Shadcn/Radix primitives | 🟢 Active | Brand identity preserved while enabling modern primitive internals |
+| FD-04 | `<Button>` wrapper always — never raw `<button>` or `<Link>` with bg- classes | 🟢 Active | Stable app-level API; consistent behaviour |
+| FD-05 | `<PageHeader>` required at page top — no raw Card+h1 | 🟢 Active | Consistent page structure; reduced UI drift |
+| FD-06 | `<EmptyState>` on every list — always handle zero-item state | 🟢 Active | No blank/broken UIs on empty data |
+| FD-07 | Responsive grid default: `sm:grid-cols-2 lg:grid-cols-3` on card lists | 🟢 Active | Mobile-first; prevents single-column desktop layouts |
+| FD-08 | Supabase clients per-context — never a module-scope singleton | 🟢 Active | Prevents hydration errors, shared state bugs, SSR leaks |
+| FD-09 | Money always as integer cents (`*_amount_cents`), EUR only | 🟢 Active | Float rounding prevention; Irish jurisdiction requirement |
+| FD-10 | RLS never `FOR ALL USING (true)` — all policies scoped to `auth.uid()` | 🟢 Active | Security — open policies expose all rows to all authenticated users |
+| FD-11 | No hardcoded `/en/` in hrefs, redirects, or router.push — use `lib/i18n/locale-path` helpers | 🟢 Active | Locale routing correctness; future locale expansion readiness |
+| FD-12 | Webhook delivery: HTTPS-only, HMAC-SHA256 via `X-WorkMate-Signature` from `lib/webhook/send.ts` | 🟢 Active | Security — unsigned webhooks are spoofable |
+| FD-13 | Contrast: text on light surfaces must use semantic text tokens (`--wm-text-strong/default/muted/soft`) — never low-opacity hacks | 🟢 Active | Prevents recurring unreadable UI regressions |
+| FD-14 | Light is default (`<html data-theme="light">` in layout.tsx). Dark mode supported via `[data-theme="dark"]`. Never use Tailwind `dark:` utilities — `--wm-*` tokens only. All component changes must pass visual QA in both modes. See DR-007. | 🟡 Updated (DR-007, S39) | Dark mode fully supported since UI overhaul 2026-03-12 |
+| FD-15 | No page/container-level opacity on readable content wrappers (`main`, `section`, hero/content cards) — except loading/skeleton states | 🟢 Active | Prevents whole-screen faded text incidents |
+| FD-16 | Ireland-specific logic MUST live in `lib/ireland/` — never at `lib/` root | 🟢 Active | Session 27 restructure — prevents re-scattering of domain logic |
+| FD-17 | Static data/enums MUST live in `lib/data/` — never at `lib/` root | 🟢 Active | Session 27 restructure |
+| FD-18 | Stripe SDK MUST live in `lib/stripe/client.ts` — never as `lib/stripe.ts` | 🟢 Active | Session 27 restructure |
+| FD-19 | Feature components in domain dir (`jobs/`, `offers/`, `reviews/`) — NOT in `dashboard/` | 🟢 Active | Session 27 restructure — prevents dashboard/ becoming a catch-all |
+| FD-20 | `components/ui/index.ts` barrel export updated when adding new UI primitives | 🟢 Active | Session 27 — barrel export exists, keep it current |
+| FD-21 | No orphaned files in `lib/` root (except `live-services.ts`, `i18n.ts`) | 🟢 Active | Session 27 restructure |
+| FD-22 | Pre-commit hooks (Husky + lint-staged) MUST NOT be bypassed with `--no-verify` | 🟢 Active | Quality gates must run locally |
+| FD-26 | `next/image` for all static images — no raw `<img>` except blob/data URLs | 🟢 Active | Session 34 — performance + LCP |
+| FD-27 | `lib/api/error-response.ts` helpers in all API routes — no raw `NextResponse.json` for errors | 🟢 Active | Session 35 — consistent error shape |
+| FD-28 | **`middleware.ts` is the sole Next.js middleware entry point. `proxy.ts` MUST NOT exist.** Prior belief that proxy.ts was the Next.js 16 entry point was false — Next.js only reads middleware.ts. Auth guard + locale routing were silently not running. Fixed session 38. | 🔴 Critical | Session 38 — confirmed by Next.js spec + code analysis |
 
-### Step 2 — Verify the claim with evidence
-If you believe a file is unnecessary, duplicate, or conflicting, you MUST find concrete evidence:
-- For framework behaviour claims (e.g. "Next.js uses X instead of Y"): cite the official docs URL or the relevant source code. If you cannot cite it, the claim is unverified — do not act on it.
-- For "duplicate file" claims: read BOTH files. List what each one does. Confirm they are 100% identical in purpose before deleting either.
-- For "this causes a conflict" claims: reproduce the actual error. A build warning or assumed conflict is not sufficient.
+> **Note:** FD-23 (feature branch requirement), FD-24 (no agent self-reports), and FD-25 (skill whitelist) are now maintained as **process rules** in section 5 above, not as architecture frozen decisions.
 
-### Step 3 — Check the frozen decisions table (section 19)
-If the file appears in the FD table, stop immediately. Frozen files cannot be deleted without a Decision Record approved by the user.
-
-### Step 4 — Check git history for prior deletions
-Run: `git log --all --oneline -- <filepath>`
-If the file was previously deleted AND restored, this is a strong signal that the deletion was wrong the first time. Read the restore commit message. Do not repeat the same deletion without user approval.
-
-### Step 5 — Ask the user before deleting
-State:
-- What the file does
-- Why you believe it should be deleted
-- What concrete evidence you have (cite it)
-- What will break if the deletion is wrong
-
-**NEVER delete silently as part of a larger commit without the steps above.**
+**Decision Records (changes to frozen decisions):**
+- FD-02 (DR-008, S39): Scope narrowed — `loading.tsx` exempt on static pages with only `getTranslations()`.
+- FD-14 (DR-007, S39): Expanded — dark mode now supported via `[data-theme="dark"]`.
+- FD-28 (S38): Reversed — proxy.ts belief was wrong; middleware.ts restored as sole entry point, proxy.ts permanently deleted.
 
 ---
 
-## 22) Git log reading standard — how to interpret commit history
+## 7. Decision Record Process
 
-Git commit messages in this repo may have been written by AI agents. AI-authored commit messages CAN be factually wrong. Apply the following rules when reading git history.
+When a change to a frozen decision is genuinely needed:
 
-### 22.1) Treat AI commit messages as claims, not facts
-- Commit messages starting with "fix:", "refactor:", "chore:" written by an AI agent describe what the AI *believed* it was doing — not necessarily what actually happened or what was correct.
-- Example from this repo — the deletion commit (a643864) incorrectly claimed proxy.ts is the Next.js 16 entry point:
-  > `a643864 — "fix(build): delete middleware.ts — Next.js 16 proxy.ts is the sole entry point"`
-  This was wrong. Next.js only reads middleware.ts. proxy.ts was silently ignored — auth guard never ran.
-  The restore (598506d) was actually correct. Session 38 permanently restored middleware.ts and deleted proxy.ts.
-  Lesson: verify the actual framework behaviour before accepting an AI commit's framework claims as truth.
+1. Write a DR in `ai-context/decisions/DR-XXX-description.md`.
+2. Add the DR to `ai-context/decisions/index.md`.
+3. Update the affected FD row in section 6 of this file (add status 🟡 Updated + DR reference).
+4. Update the DR references in `ai-context/context/PROJECT_CONTEXT.md`.
+5. Get user approval before proceeding with the change.
 
-### 22.2) Verify framework behaviour claims in commit messages
-If a commit message makes a claim about how a framework works (e.g. "Next.js 16 does X"), do not accept it as true. Verify against:
-- Official Next.js / next-intl / Supabase docs
-- The actual source code
-If you cannot verify, treat the claim as unverified and do not base new actions on it.
+---
 
-### 22.3) A commit that "fixes" something may have introduced a regression
-If you see a commit that fixed a perceived problem by deleting or removing something, check:
-1. Was the "problem" ever confirmed with a real error?
-2. Is there a subsequent commit that restored what was deleted?
-3. Does the MEMORY.md or agents.md mention this as a known bad pattern?
+## 8. When To Read Extra Docs
 
-### 22.4) Reading a git log — what each field means
-```
-<hash>  <type>(<scope>): <description>
-         └── AI-authored? Check Co-Authored-By trailer.
-             If yes, apply scepticism to framework claims.
-```
+| Task type | Additional read |
+|-----------|----------------|
+| DB migration / RLS / schema | `docs/DB_RUNBOOK.md` |
+| Production launch / env vars | `docs/PRODUCTION_LAUNCH.md` |
+| Architecture health check | `docs/ARCHITECTURE_REVIEW.md` |
+| Env var reference | `docs/SECRETS_MAP.md` |
+| Decision record detail | `ai-context/decisions/DR-XXX.md` (read only the relevant one) |
 
-**Co-Authored-By: Claude** in the commit trailer = AI wrote or heavily influenced this commit.
-This does NOT mean the commit is wrong — but it means framework behaviour claims need independent verification.
+All other files are either archived or scope-specific. See section 1 for what NOT to read as a rule source.
 
-### 22.5) Restoration pattern — investigate before acting
-If `git log --all -- <file>` shows: `delete → restore → delete → restore`
-**Do not assume the deletion was wrong.** The cycle may mean both sides were wrong at different times.
-Before restoring a deleted file:
-1. Read the delete commit message AND the restore commit message
-2. Reproduce the actual error that each commit claimed to fix
-3. Check the Vercel / CI build logs for the real error, not just commit messages
+---
 
-Known cycle in this repo:
-- `marketplace/middleware.ts`: deleted (9f73b6c), restored (ab60954), deleted (6a4af6b), restored (598506d), deleted (a643864), **restored (session 38 — final correct state)**
-- **Corrected conclusion**: `middleware.ts` MUST exist. `proxy.ts` was a false belief — Next.js never read it as middleware. The "broke build" claim in commit a643864 was wrong: the build error was caused by both files coexisting, not by middleware.ts existing. The fix was to delete proxy.ts and keep middleware.ts, not the other way around. proxy.ts has been permanently deleted in session 38.
+## Appendix A — Legacy Agent Roles (DEPRECATED)
 
+> These role definitions existed in earlier sessions when a multi-agent orchestration was being explored.
+> The roleplay model was abandoned. Content is preserved here for historical context only.
+> **Do not activate or reference these in development work.**
 
+**ProjectManager** — Coordinates all 7 other agents. Read/update PROJECT_CONTEXT.md. Track Production Launch Checklist. No change without ComplianceAgent + QAAgent approval.
 
+**DesignAgent** — Apple-level Premium UI Expert. Generous whitespace, soft shadows, green accent (#10b981), Framer Motion spring animations.
+
+**FrontendAgent** — Next.js 16 + React 19 + Tailwind + shadcn/ui + Framer Motion expert.
+
+**BackendAgent** — Supabase + PostgreSQL + RLS + Edge Functions + Migration expert.
+
+**FintechAgent** — Stripe Connect expert. Secure Hold, Capture, rebooking 1.9% logic, and webhooks.
+
+**ComplianceAgent** — Ireland Compliance Guardian. SafePass, €6.5M Insurance, Tax Clearance, GDPR, Eircode, RLS.
+
+**QAAgent** — QA & Testing expert. Vitest + Playwright for every new feature.
+
+**DevOpsAgent** — Vercel + Production + Env + Deployment expert.
