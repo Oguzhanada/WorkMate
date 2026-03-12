@@ -39,7 +39,7 @@ export default async function CustomerDashboardPage({
     supabase.from('jobs').select('*', { count: 'exact', head: true }).eq('customer_id', user.id).eq('status', 'completed'),
     supabase.from('quotes').select('*', { count: 'exact', head: true }).eq('status', 'pending')
       .in('job_id', (await supabase.from('jobs').select('id').eq('customer_id', user.id)).data?.map((j) => j.id) ?? []),
-    supabase.from('saved_providers').select('*', { count: 'exact', head: true }).eq('customer_id', user.id),
+    supabase.from('favourite_providers').select('*', { count: 'exact', head: true }).eq('customer_id', user.id),
     supabase.from('jobs').select('id, title, status, created_at').eq('customer_id', user.id).order('created_at', { ascending: false }).limit(6),
   ]);
 

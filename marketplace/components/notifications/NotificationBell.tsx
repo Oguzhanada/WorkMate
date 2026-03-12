@@ -16,6 +16,37 @@ type NotificationRow = {
   created_at: string;
 };
 
+function getNotificationHref(n: NotificationRow, localeRoot: string): string {
+  const p = n.payload ?? {};
+  if (n.type === 'new_quote' && p.job_id)
+    return withLocalePrefix(localeRoot, `/jobs/${p.job_id as string}`);
+  if (n.type === 'new_quote')
+    return withLocalePrefix(localeRoot, '/dashboard/customer');
+  if (n.type === 'new_message' && p.job_id)
+    return withLocalePrefix(localeRoot, `/jobs/${p.job_id as string}`);
+  if (n.type === 'new_message')
+    return withLocalePrefix(localeRoot, '/messages');
+  if (n.type === 'new_job_lead' && p.job_id)
+    return withLocalePrefix(localeRoot, `/jobs/${p.job_id as string}`);
+  if (n.type === 'new_job_lead')
+    return withLocalePrefix(localeRoot, '/dashboard/pro');
+  if (n.type.startsWith('dispute_') && p.dispute_id)
+    return withLocalePrefix(localeRoot, `/dashboard/disputes`);
+  if (n.type.startsWith('dispute_'))
+    return withLocalePrefix(localeRoot, '/dashboard/disputes');
+  if (n.type === 'job_pending_review')
+    return withLocalePrefix(localeRoot, '/dashboard/admin/jobs');
+  if (n.type.startsWith('job_review_') && p.job_id)
+    return withLocalePrefix(localeRoot, `/jobs/${p.job_id as string}`);
+  if (n.type.startsWith('job_review_'))
+    return withLocalePrefix(localeRoot, '/dashboard/customer');
+  if (n.type === 'admin_verification_update' || n.type === 'admin_document_update')
+    return withLocalePrefix(localeRoot, '/dashboard/pro');
+  if (n.type === 'payment_auto_released' || n.type === 'payment_release_reminder')
+    return withLocalePrefix(localeRoot, '/dashboard/customer');
+  return withLocalePrefix(localeRoot, '/profile');
+}
+
 const POLL_INTERVAL_MS = 30_000;
 const DROPDOWN_LIMIT = 5;
 
@@ -290,65 +321,77 @@ export default function NotificationBell() {
             {items.map((n) => (
               <li
                 key={n.id}
-                onClick={() => handleMarkOneRead(n.id)}
                 style={{
                   display: 'flex',
                   alignItems: 'flex-start',
-                  gap: '10px',
-                  padding: '12px 16px',
                   borderBottom: '1px solid var(--wm-border)',
                   background: n.read_at ? 'transparent' : 'var(--wm-primary-faint)',
-                  cursor: 'pointer',
                   transition: 'background 0.12s',
                 }}
               >
-                {/* Unread dot */}
-                <span
-                  aria-hidden="true"
+                {/* Clickable area — navigates + marks read */}
+                <Link
+                  href={getNotificationHref(n, localeRoot)}
+                  onClick={() => { handleMarkOneRead(n.id); setOpen(false); }}
                   style={{
-                    flexShrink: 0,
-                    marginTop: '5px',
-                    width: '7px',
-                    height: '7px',
-                    borderRadius: '50%',
-                    background: n.read_at ? 'transparent' : 'var(--wm-primary)',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '10px',
+                    flex: 1,
+                    padding: '12px 8px 12px 16px',
+                    textDecoration: 'none',
+                    color: 'inherit',
+                    minWidth: 0,
                   }}
-                />
-
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p
+                >
+                  {/* Unread dot */}
+                  <span
+                    aria-hidden="true"
                     style={{
-                      margin: 0,
-                      fontSize: '13px',
-                      fontWeight: n.read_at ? 500 : 700,
-                      color: 'var(--wm-text)',
-                      lineHeight: 1.4,
+                      flexShrink: 0,
+                      marginTop: '5px',
+                      width: '7px',
+                      height: '7px',
+                      borderRadius: '50%',
+                      background: n.read_at ? 'transparent' : 'var(--wm-primary)',
                     }}
-                  >
-                    {truncate(getTitle(n), 60)}
-                  </p>
-                  {n.body && (
+                  />
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <p
                       style={{
-                        margin: '2px 0 0',
-                        fontSize: '12px',
-                        color: 'var(--wm-muted)',
+                        margin: 0,
+                        fontSize: '13px',
+                        fontWeight: n.read_at ? 500 : 700,
+                        color: 'var(--wm-text)',
                         lineHeight: 1.4,
                       }}
                     >
-                      {truncate(n.body, 80)}
+                      {truncate(getTitle(n), 60)}
                     </p>
-                  )}
-                  <p
-                    style={{
-                      margin: '4px 0 0',
-                      fontSize: '11px',
-                      color: 'var(--wm-subtle)',
-                    }}
-                  >
-                    {relativeTime(n.created_at)}
-                  </p>
-                </div>
+                    {n.body && (
+                      <p
+                        style={{
+                          margin: '2px 0 0',
+                          fontSize: '12px',
+                          color: 'var(--wm-muted)',
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {truncate(n.body, 80)}
+                      </p>
+                    )}
+                    <p
+                      style={{
+                        margin: '4px 0 0',
+                        fontSize: '11px',
+                        color: 'var(--wm-subtle)',
+                      }}
+                    >
+                      {relativeTime(n.created_at)}
+                    </p>
+                  </div>
+                </Link>
 
                 {/* Dismiss button */}
                 <Button
@@ -358,13 +401,15 @@ export default function NotificationBell() {
                   onClick={(e) => handleDismiss(n.id, e as React.MouseEvent)}
                   style={{
                     flexShrink: 0,
-                    width: '20px',
-                    height: '20px',
+                    width: '36px',
+                    height: '36px',
+                    alignSelf: 'center',
                     borderRadius: '6px',
                     color: 'var(--wm-muted)',
-                    fontSize: '14px',
+                    fontSize: '16px',
                     lineHeight: 1,
                     padding: 0,
+                    marginRight: '8px',
                   }}
                 >
                   ×

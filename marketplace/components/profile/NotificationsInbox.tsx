@@ -38,14 +38,31 @@ function getNotificationText(item: NotificationItem) {
 }
 
 function getNotificationHref(item: NotificationItem, localeRoot: string) {
-  if (item.type === 'new_quote') return withLocalePrefix(localeRoot, '/dashboard/customer');
-  if (item.type === 'new_message') return withLocalePrefix(localeRoot, '/messages');
-  if (item.type.startsWith('dispute_')) return withLocalePrefix(localeRoot, '/dashboard/disputes');
-  if (item.type === 'job_pending_review') return withLocalePrefix(localeRoot, '/dashboard/admin/jobs');
-  if (item.type.startsWith('job_review_')) return withLocalePrefix(localeRoot, '/dashboard/customer');
-  if (item.type === 'payment_auto_released' || item.type === 'payment_release_reminder') {
+  const p = item.payload ?? {};
+  if (item.type === 'new_quote' && p.job_id)
+    return withLocalePrefix(localeRoot, `/jobs/${p.job_id as string}`);
+  if (item.type === 'new_quote')
     return withLocalePrefix(localeRoot, '/dashboard/customer');
-  }
+  if (item.type === 'new_message' && p.job_id)
+    return withLocalePrefix(localeRoot, `/jobs/${p.job_id as string}`);
+  if (item.type === 'new_message')
+    return withLocalePrefix(localeRoot, '/messages');
+  if (item.type === 'new_job_lead' && p.job_id)
+    return withLocalePrefix(localeRoot, `/jobs/${p.job_id as string}`);
+  if (item.type === 'new_job_lead')
+    return withLocalePrefix(localeRoot, '/dashboard/pro');
+  if (item.type.startsWith('dispute_'))
+    return withLocalePrefix(localeRoot, '/dashboard/disputes');
+  if (item.type === 'job_pending_review')
+    return withLocalePrefix(localeRoot, '/dashboard/admin/jobs');
+  if (item.type.startsWith('job_review_') && p.job_id)
+    return withLocalePrefix(localeRoot, `/jobs/${p.job_id as string}`);
+  if (item.type.startsWith('job_review_'))
+    return withLocalePrefix(localeRoot, '/dashboard/customer');
+  if (item.type === 'admin_verification_update' || item.type === 'admin_document_update')
+    return withLocalePrefix(localeRoot, '/dashboard/pro');
+  if (item.type === 'payment_auto_released' || item.type === 'payment_release_reminder')
+    return withLocalePrefix(localeRoot, '/dashboard/customer');
   return withLocalePrefix(localeRoot, '/profile');
 }
 
@@ -93,7 +110,11 @@ export default function NotificationsInbox({initialItems}: {initialItems: Notifi
           ) : null}
           <p className={styles.meta}>{new Date(item.created_at).toLocaleString()}</p>
           <div className={styles.actions}>
-            <Link href={getNotificationHref(item, localeRoot)} className={styles.btnGhost}>
+            <Link
+              href={getNotificationHref(item, localeRoot)}
+              className={styles.btnGhost}
+              onClick={() => { if (!item.read_at) markRead(item.id); }}
+            >
               Open
             </Link>
             {!item.read_at ? (
