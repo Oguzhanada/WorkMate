@@ -41,6 +41,7 @@ function getNotificationHref(item: NotificationItem, localeRoot: string) {
   if (item.type === 'new_quote') return withLocalePrefix(localeRoot, '/dashboard/customer');
   if (item.type === 'new_message') return withLocalePrefix(localeRoot, '/messages');
   if (item.type.startsWith('dispute_')) return withLocalePrefix(localeRoot, '/dashboard/disputes');
+  if (item.type === 'job_pending_review') return withLocalePrefix(localeRoot, '/dashboard/admin/jobs');
   if (item.type.startsWith('job_review_')) return withLocalePrefix(localeRoot, '/dashboard/customer');
   if (item.type === 'payment_auto_released' || item.type === 'payment_release_reminder') {
     return withLocalePrefix(localeRoot, '/dashboard/customer');

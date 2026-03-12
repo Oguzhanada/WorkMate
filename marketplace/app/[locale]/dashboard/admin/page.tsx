@@ -14,6 +14,11 @@ export const metadata: Metadata = {
 // Admin quick-links — surfaces key admin tools that live outside the widget grid.
 const ADMIN_QUICK_LINKS = [
   {
+    label: 'Job Reviews',
+    description: 'Approve or reject pending job listings before they go live.',
+    path: '/dashboard/admin/jobs',
+  },
+  {
     label: 'Platform Stats',
     description: "Bird's-eye view of users, jobs, revenue, and growth trends.",
     path: '/dashboard/admin/stats',
