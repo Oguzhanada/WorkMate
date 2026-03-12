@@ -10,14 +10,16 @@ const themes: { id: ThemeId; label: string; color: string }[] = [
 ];
 
 export default function ThemeSwitcher() {
-  const [active, setActive] = useState<ThemeId>(
-    () => (localStorage.getItem('wm-theme') as ThemeId) ?? 'light',
-  );
+  const [active, setActive] = useState<ThemeId>('light');
   const [open, setOpen] = useState(false);
 
+  // Read saved theme from localStorage after mount (SSR-safe)
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', active);
-  }, [active]);
+    const saved = (localStorage.getItem('wm-theme') as ThemeId) ?? 'light';
+    document.documentElement.setAttribute('data-theme', saved);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setActive(saved);
+  }, []);
 
   function apply(id: ThemeId) {
     setActive(id);
