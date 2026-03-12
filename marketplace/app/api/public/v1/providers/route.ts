@@ -18,6 +18,13 @@ export async function GET(request: NextRequest) {
   const categoryId = search.get('category_id');
   const q = search.get('q');
 
+  // Fetch admin user IDs upfront so they can be excluded from the public provider list.
+  const { data: adminRoleRows } = await svc
+    .from('user_roles')
+    .select('user_id')
+    .eq('role', 'admin');
+  const adminIds = (adminRoleRows ?? []).map((row) => row.user_id as string);
+
   let filteredIds: string[] | null = null;
 
   if (categoryId) {
@@ -49,6 +56,11 @@ export async function GET(request: NextRequest) {
     .range(offset, offset + limit - 1);
 
   if (q) providersQuery = providersQuery.ilike('full_name', `%${q}%`);
+  // Exclude admin-role users from the public provider directory.
+  if (adminIds.length) {
+    // PostgREST requires UUID values to be double-quoted inside the parentheses.
+    providersQuery = providersQuery.not('id', 'in', `(${adminIds.map((id) => `"${id}"`).join(',')})`);
+  }
   if (filteredIds !== null) {
     if (filteredIds.length === 0) return NextResponse.json({ providers: [] }, { status: 200 });
     providersQuery = providersQuery.in('id', filteredIds);

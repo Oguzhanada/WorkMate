@@ -172,7 +172,8 @@ export default async function ProvidersPage({
     profileQuery = profileQuery.ilike('full_name', `%${q}%`);
   }
   if (adminIds.length) {
-    profileQuery = profileQuery.not('id', 'in', `(${adminIds.join(',')})`);
+    // PostgREST requires UUID values to be double-quoted inside the parentheses.
+    profileQuery = profileQuery.not('id', 'in', `(${adminIds.map((id) => `"${id}"`).join(',')})`);
   }
 
   if (!needsPostSort) {

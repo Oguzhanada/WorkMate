@@ -22,6 +22,13 @@ export async function GET(req: NextRequest) {
 
   const supabase = getSupabaseServiceClient();
 
+  // Fetch admin user IDs upfront so they can be excluded from all provider queries.
+  const { data: adminRoleRows } = await supabase
+    .from('user_roles')
+    .select('user_id')
+    .eq('role', 'admin');
+  const adminIds = (adminRoleRows ?? []).map((r) => (r as { user_id: string }).user_id);
+
   // Step 1: Resolve provider IDs from pro_services if category filter is active.
   let categoryFilterIds: string[] | null = null;
   if (category_id) {
@@ -83,6 +90,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ providers: [], total: 0, page, limit }, { status: 200 });
     }
     query = query.in('id', intersection);
+  }
+
+  // Exclude admin-role users from the public provider directory.
+  if (adminIds.length) {
+    // PostgREST requires UUID values to be double-quoted inside the parentheses.
+    query = query.not('id', 'in', `(${adminIds.map((id) => `"${id}"`).join(',')})`);
   }
 
   // Full-name text search (simple ilike).
