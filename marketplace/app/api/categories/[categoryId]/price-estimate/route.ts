@@ -16,7 +16,7 @@ export async function GET(
 
   const { data, error } = await supabase
     .from('quotes')
-    .select('quote_amount_cents,jobs!inner(category_id)')
+    .select('quote_amount_cents,jobs!job_id(category_id)')
     .eq('jobs.category_id', categoryId)
     .eq('status', 'accepted')
     .not('quote_amount_cents', 'is', null)
