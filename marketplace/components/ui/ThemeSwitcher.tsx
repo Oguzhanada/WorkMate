@@ -99,15 +99,15 @@ export default function ThemeSwitcher() {
         </div>
       )}
 
-      {/* Toggle button */}
+      {/* Toggle button — border colour shows active theme (debug indicator) */}
       <button
         onClick={() => setOpen((o) => !o)}
-        title="Tema değiştir (test)"
+        title={`Tema: ${active === 'b' ? 'OnTask' : 'Ireland'}`}
         style={{
           width: '48px',
           height: '48px',
           borderRadius: '50%',
-          border: '2px solid #e2e8f0',
+          border: `3px solid ${active === 'b' ? '#2563EB' : '#169B62'}`,
           background: '#fff',
           boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
           cursor: 'pointer',
@@ -115,7 +115,7 @@ export default function ThemeSwitcher() {
           alignItems: 'center',
           justifyContent: 'center',
           fontSize: '20px',
-          transition: 'transform 0.2s',
+          transition: 'transform 0.2s, border-color 0.2s',
         }}
         onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.08)'; }}
         onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)'; }}

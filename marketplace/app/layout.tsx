@@ -12,6 +12,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" data-theme="light" suppressHydrationWarning>
       <head>
+        {/* Inline script: set theme from localStorage before first paint (prevents flash) */}
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('wm-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}` }} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
