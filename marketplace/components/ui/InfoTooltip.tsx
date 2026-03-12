@@ -17,7 +17,6 @@ export default function InfoTooltip({text, label = 'Info'}: Props) {
         type="button"
         className={styles.trigger}
         aria-label={label}
-        title={text}
         onClick={() => setOpen((value) => !value)}
       >
         ?

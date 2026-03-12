@@ -742,16 +742,15 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
                 <div className={styles.field}>
                   <span>Task type</span>
                   <div className={styles.chipRow}>
-                    {(['in_person', 'remote', 'flexible'] as TaskType[]).map((value) => (
-                      <Button
-                        key={value}
-                        variant={taskType === value ? 'primary' : 'ghost'}
-                        size="sm"
-                        className={`${styles.chip} ${taskType === value ? styles.chipActive : ''}`}
-                        onClick={() => setTaskType(value)}
+                    {(['in_person', 'remote', 'flexible'] as TaskType[]).map((v) => (
+                      <button
+                        key={v}
+                        type="button"
+                        className={`${styles.chip} ${taskType === v ? styles.chipActive : ''}`}
+                        onClick={() => setTaskType(v)}
                       >
-                        {taskTypeLabel(value)}
-                      </Button>
+                        {taskTypeLabel(v)}
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -761,20 +760,15 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
                   <span>Scope</span>
                   <div className={styles.chipRow}>
                     {JOB_SCOPE_OPTIONS.map((item) => (
-                      <Button
+                      <button
                         key={item}
-                        variant={scope === item ? 'primary' : 'ghost'}
-                        size="sm"
-                        className={`${styles.chip} ${scope === item ? styles.chipActive : ''}`}
+                        type="button"
+                        className={`${styles.chip} ${styles.chipWide} ${scope === item ? styles.chipActive : ''}`}
                         onClick={() => setScope(item)}
                       >
-                        <span style={{ display: 'grid', gap: '0.1rem', textAlign: 'left' }}>
-                          <span>{item.split('(')[0].trim()}</span>
-                          <span style={{ fontSize: '0.76rem', fontWeight: 400, opacity: 0.8 }}>
-                            {JOB_SCOPE_DESCRIPTIONS[item]}
-                          </span>
-                        </span>
-                      </Button>
+                        <span className={styles.chipLabel}>{item.split('(')[0].trim()}</span>
+                        <span className={styles.chipSub}>{JOB_SCOPE_DESCRIPTIONS[item]}</span>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -784,15 +778,14 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
                   <span>When do you need this done?</span>
                   <div className={styles.chipRow}>
                     {JOB_URGENCY_OPTIONS.map((item) => (
-                      <Button
+                      <button
                         key={item}
-                        variant={urgency === item ? 'primary' : 'ghost'}
-                        size="sm"
+                        type="button"
                         className={`${styles.chip} ${urgency === item ? styles.chipActive : ''}`}
                         onClick={() => setUrgency(item)}
                       >
                         {item}
-                      </Button>
+                      </button>
                     ))}
                   </div>
                 </div>
