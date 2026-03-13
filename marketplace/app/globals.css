@@ -304,6 +304,42 @@ code, kbd, pre, samp {
   }
 }
 
+/* ── Semantic utility aliases (Pit-of-Success, DR-010/FD-13/FD-14) ──────── */
+/* Use these instead of raw opacity or hardcoded colors.                     */
+/* "text-strong", "text-muted", "text-soft" are always WCAG-contrast tested. */
+
+@utility text-strong {
+  color: var(--wm-text-strong);
+}
+
+@utility text-default {
+  color: var(--wm-text-default);
+}
+
+@utility text-muted {
+  color: var(--wm-text-muted);
+}
+
+@utility text-soft {
+  color: var(--wm-text-soft);
+}
+
+@utility bg-surface {
+  background-color: var(--wm-surface);
+}
+
+@utility bg-base {
+  background-color: var(--wm-bg);
+}
+
+@utility border-default {
+  border-color: var(--wm-border);
+}
+
+@utility border-soft {
+  border-color: var(--wm-border-soft);
+}
+
 /* ── Reduced motion ─────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
