@@ -164,8 +164,11 @@ router.push(withLocalePrefix(localeRoot, '/dashboard/customer'));
 ### 3.5 Zod — API validation rule
 
 - `z.record()` requires **two** arguments: `z.record(z.string(), z.string())` — NOT `z.record(z.string())`.
-- All API route inputs must be validated with Zod schemas defined in `lib/validation/api.ts`.
-- Do not add inline ad-hoc Zod schemas inside route handlers — extend the shared file.
+- All API route inputs must be validated with Zod schemas in `lib/validation/<domain>.ts` (see DR-010).
+  Domain files: `auth`, `jobs`, `quotes`, `billing`, `disputes`, `admin`, `profile`, `search`,
+  `availability`, `dashboard`, `notifications`, `analytics`, `ai`, `webhooks`.
+- `lib/validation/api.ts` is a **re-export barrel only** — never add new schema definitions there.
+- Do not add inline ad-hoc Zod schemas inside route handlers.
 
 ### 3.6 Dashboard widget system — STRICT extension rule
 
@@ -324,13 +327,13 @@ AI-authored commit messages CAN be factually wrong. Apply these rules:
 
 | ID | Frozen Decision | Status | Why it exists |
 |----|----------------|--------|---------------|
-| FD-01 | All Zod schemas in `lib/validation/api.ts` — never inline in route files | 🟢 Active | Single source of truth; prevents schema drift; enables test reuse |
+| FD-01 | Zod schemas in domain files under `lib/validation/<domain>.ts` — never inline in route files. `lib/validation/api.ts` is a re-export barrel only; never add new schema definitions there. See DR-010. | 🟡 Updated (DR-010, S41) | Domain split for scalability; api.ts retained as backward-compat barrel |
 | FD-02 | `loading.tsx` required on pages with async Supabase/DB calls. Exempt: static pages with only `getTranslations()`. See DR-008. | 🟢 Active | No blank screens on data-fetching navigation |
 | FD-03 | Colors/spacing/radius/shadows must map to `--wm-*` tokens; wrapper internals may use Shadcn/Radix primitives | 🟢 Active | Brand identity preserved while enabling modern primitive internals |
 | FD-04 | `<Button>` wrapper always — never raw `<button>` or `<Link>` with bg- classes | 🟢 Active | Stable app-level API; consistent behaviour |
-| FD-05 | `<PageHeader>` required at page top — no raw Card+h1 | 🟢 Active | Consistent page structure; reduced UI drift |
+| FD-05 | `<PageHeader>` required on all top-level page routes — no raw Card+h1. **Exempt**: modal contents, wizard steps, widget inner views, sub-route tabs inside a page that already has a PageHeader. See DR-011. | 🟡 Updated (DR-011, S41) | Scope narrowed to top-level pages; modal/wizard DX improved |
 | FD-06 | `<EmptyState>` on every list — always handle zero-item state | 🟢 Active | No blank/broken UIs on empty data |
-| FD-07 | Responsive grid default: `sm:grid-cols-2 lg:grid-cols-3` on card lists | 🟢 Active | Mobile-first; prevents single-column desktop layouts |
+| FD-07 | Responsive grid default: `sm:grid-cols-2 lg:grid-cols-3` on card lists. Override allowed for admin dashboards, fluid layouts, or wide-card lists — must include a `{/* DR-011: reason */}` comment. See DR-011. | 🟡 Updated (DR-011, S41) | Grid density flexibility for dashboard contexts; default preserved |
 | FD-08 | Supabase clients per-context — never a module-scope singleton | 🟢 Active | Prevents hydration errors, shared state bugs, SSR leaks |
 | FD-09 | Money always as integer cents (`*_amount_cents`), EUR only | 🟢 Active | Float rounding prevention; Irish jurisdiction requirement |
 | FD-10 | RLS never `FOR ALL USING (true)` — all policies scoped to `auth.uid()` | 🟢 Active | Security — open policies expose all rows to all authenticated users |
@@ -346,7 +349,7 @@ AI-authored commit messages CAN be factually wrong. Apply these rules:
 | FD-20 | `components/ui/index.ts` barrel export updated when adding new UI primitives | 🟢 Active | Session 27 — barrel export exists, keep it current |
 | FD-21 | No orphaned files in `lib/` root (except `live-services.ts`, `i18n.ts`) | 🟢 Active | Session 27 restructure |
 | FD-22 | Pre-commit hooks (Husky + lint-staged) MUST NOT be bypassed with `--no-verify` | 🟢 Active | Quality gates must run locally |
-| FD-26 | `next/image` for all static images — no raw `<img>` except blob/data URLs | 🟢 Active | Session 34 — performance + LCP |
+| FD-26 | `next/image` for known-size, long-lived remote URLs (Supabase Storage avatars, portfolio images, etc.) — raw `<img>` is allowed for: blob/object URLs, signed/temporary URLs, dynamic document previews, and Leaflet contexts. Every intentional `<img>` MUST have an `// eslint-disable-next-line @next/next/no-img-element` comment explaining why. | 🟢 Active | Session 34 — performance + LCP; refined after code audit confirmed signed-URL and preview exceptions |
 | FD-27 | `lib/api/error-response.ts` helpers in all API routes — no raw `NextResponse.json` for errors | 🟢 Active | Session 35 — consistent error shape |
 | FD-28 | **`middleware.ts` is the sole Next.js middleware entry point. `proxy.ts` MUST NOT exist.** Prior belief that proxy.ts was the Next.js 16 entry point was false — Next.js only reads middleware.ts. Auth guard + locale routing were silently not running. Fixed session 38. | 🔴 Critical | Session 38 — confirmed by Next.js spec + code analysis |
 
@@ -356,6 +359,9 @@ AI-authored commit messages CAN be factually wrong. Apply these rules:
 - FD-02 (DR-008, S39): Scope narrowed — `loading.tsx` exempt on static pages with only `getTranslations()`.
 - FD-14 (DR-007, S39): Expanded — dark mode now supported via `[data-theme="dark"]`.
 - FD-28 (S38): Reversed — proxy.ts belief was wrong; middleware.ts restored as sole entry point, proxy.ts permanently deleted.
+- FD-01 (DR-010, S41): Domain split — `api.ts` becomes re-export barrel; schemas live in `lib/validation/<domain>.ts`.
+- FD-05 (DR-011, S41): Scope narrowed — `<PageHeader>` exempt in modals, wizard steps, widget inner views.
+- FD-07 (DR-011, S41): Override allowed — non-default grid column counts allowed with inline comment.
 
 ---
 

@@ -596,15 +596,15 @@ SELECT 'a1000000-0000-0000-0000-000000000001', id FROM public.categories WHERE s
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.pro_services (profile_id, category_id)
-SELECT 'a1000000-0000-0000-0000-000000000002', id FROM public.categories WHERE slug = 'plumbing-repair'
+SELECT 'a1000000-0000-0000-0000-000000000002', id FROM public.categories WHERE slug = 'general-plumbing'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.pro_services (profile_id, category_id)
-SELECT 'a1000000-0000-0000-0000-000000000003', id FROM public.categories WHERE slug = 'electrical-repair'
+SELECT 'a1000000-0000-0000-0000-000000000003', id FROM public.categories WHERE slug = 'general-electrical'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.pro_services (profile_id, category_id)
-SELECT 'a1000000-0000-0000-0000-000000000004', id FROM public.categories WHERE slug = 'painting-decorating'
+SELECT 'a1000000-0000-0000-0000-000000000004', id FROM public.categories WHERE slug = 'interior-painting'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.pro_services (profile_id, category_id)
@@ -616,7 +616,7 @@ SELECT 'a1000000-0000-0000-0000-000000000005', id FROM public.categories WHERE s
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.pro_services (profile_id, category_id)
-SELECT 'a1000000-0000-0000-0000-000000000006', id FROM public.categories WHERE slug = 'math-tutoring'
+SELECT 'a1000000-0000-0000-0000-000000000006', id FROM public.categories WHERE slug = 'maths-tutoring'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.pro_services (profile_id, category_id)
@@ -632,7 +632,7 @@ SELECT 'a1000000-0000-0000-0000-000000000009', id FROM public.categories WHERE s
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.pro_services (profile_id, category_id)
-SELECT 'a1000000-0000-0000-0000-000000000010', id FROM public.categories WHERE slug = 'birthday-planning'
+SELECT 'a1000000-0000-0000-0000-000000000010', id FROM public.categories WHERE slug = 'event-decoration'
 ON CONFLICT DO NOTHING;
 
 -- Incomplete providers: some have partial services
@@ -641,11 +641,11 @@ SELECT 'a2000000-0000-0000-0000-000000000002', id FROM public.categories WHERE s
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.pro_services (profile_id, category_id)
-SELECT 'a2000000-0000-0000-0000-000000000006', id FROM public.categories WHERE slug = 'electrical-repair'
+SELECT 'a2000000-0000-0000-0000-000000000006', id FROM public.categories WHERE slug = 'general-electrical'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.pro_services (profile_id, category_id)
-SELECT 'a2000000-0000-0000-0000-000000000009', id FROM public.categories WHERE slug = 'painting-decorating'
+SELECT 'a2000000-0000-0000-0000-000000000009', id FROM public.categories WHERE slug = 'interior-painting'
 ON CONFLICT DO NOTHING;
 -- ip17 (Colm Breathnach) intentionally has NO services — tests empty state
 
@@ -756,7 +756,7 @@ VALUES
   ('b1000000-0000-0000-0000-000000000002',
    'a3000000-0000-0000-0000-000000000002',
    'Fix leaking bathroom tap and replace kitchen mixer',
-   'Repairs', 'Bathroom hot tap drips constantly. Kitchen mixer needs full replacement. Ground floor flat.',
+   'Plumbing', 'Bathroom hot tap drips constantly. Kitchen mixer needs full replacement. Ground floor flat.',
    'T12HK42','Cork','Cork City','€50-€100','completed','get_quotes','in_person',
    true, now()-interval'55 days', now()-interval'70 days', now()-interval'55 days'),
 
@@ -764,7 +764,7 @@ VALUES
   ('b1000000-0000-0000-0000-000000000003',
    'a3000000-0000-0000-0000-000000000003',
    'Install 4 outdoor security lights',
-   'Repairs', 'Need 4 LED security lights installed around the perimeter. External cabling required.',
+   'Electrical', 'Need 4 LED security lights installed around the perimeter. External cabling required.',
    'D14FV29','Dublin','Dublin 14','€100-€200','completed','get_quotes','in_person',
    true, now()-interval'50 days', now()-interval'65 days', now()-interval'50 days'),
 
@@ -772,7 +772,7 @@ VALUES
   ('b1000000-0000-0000-0000-000000000004',
    'a3000000-0000-0000-0000-000000000005',
    'Paint 2 bedrooms and hallway',
-   'Renovation', 'Full repaint including ceilings. Customer provides paint. 2 coats required. Mid-terrace house.',
+   'Painting & Decorating', 'Full repaint including ceilings. Customer provides paint. 2 coats required. Mid-terrace house.',
    'D18AH26','Dublin','Dublin 18','€200-€500','completed','get_quotes','in_person',
    false, now()-interval'45 days', now()-interval'60 days', now()-interval'45 days'),
 
@@ -780,7 +780,7 @@ VALUES
   ('b1000000-0000-0000-0000-000000000005',
    'a3000000-0000-0000-0000-000000000005',
    'House move Dublin 18 to Cork',
-   'Moving', '3-bed house full furniture move. Dublin to Cork, approx 260 km. Van + 2 people needed.',
+   'Moving & Removals', '3-bed house full furniture move. Dublin to Cork, approx 260 km. Van + 2 people needed.',
    'D18AH26','Dublin','Dublin 18','€500+','completed','get_quotes','in_person',
    false, now()-interval'90 days', now()-interval'110 days', now()-interval'90 days'),
 
@@ -788,7 +788,7 @@ VALUES
   ('b1000000-0000-0000-0000-000000000006',
    'a3000000-0000-0000-0000-000000000007',
    'Junior Cert maths grinds — 6 sessions',
-   'Private Lessons', 'My son is struggling with algebra and geometry. Need 6 x 1-hour grinds over 3 weeks. Sligo.',
+   'Tutoring & Education', 'My son is struggling with algebra and geometry. Need 6 x 1-hour grinds over 3 weeks. Sligo.',
    'F91PH93','Sligo','Sligo Town','€50-€100','completed','get_quotes','in_person',
    false, now()-interval'30 days', now()-interval'50 days', now()-interval'30 days'),
 
@@ -796,7 +796,7 @@ VALUES
   ('b1000000-0000-0000-0000-000000000007',
    'a3000000-0000-0000-0000-000000000008',
    'Tile new bathroom floor and shower surround',
-   'Renovation', '5 m² floor + 8 m² shower walls. 30x60 cm porcelain tiles supplied by customer.',
+   'Flooring', '5 m² floor + 8 m² shower walls. 30x60 cm porcelain tiles supplied by customer.',
    'X91WH43','Waterford','Waterford City','€200-€500','completed','get_quotes','in_person',
    false, now()-interval'40 days', now()-interval'55 days', now()-interval'40 days'),
 
@@ -821,7 +821,7 @@ VALUES
   ('b2000000-0000-0000-0000-000000000001',
    'a3000000-0000-0000-0000-000000000004',
    'Emergency plumber needed — burst pipe in kitchen',
-   'Repairs', 'Pipe burst under kitchen sink. Water flowing. Need someone today if possible. Galway city centre.',
+   'Plumbing', 'Pipe burst under kitchen sink. Water flowing. Need someone today if possible. Galway city centre.',
    'H91AY93','Galway','Galway City','€0-€50',
    'open','quick_hire','in_person', true, now()-interval'2 hours', now()-interval'2 hours'),
 
@@ -829,7 +829,7 @@ VALUES
   ('b2000000-0000-0000-0000-000000000002',
    'a3000000-0000-0000-0000-000000000004',
    'Garden clearance and grass cutting — large back garden',
-   'Cleaning', '100 m² overgrown back garden. Need full clearance, weeds, grass cutting, disposal.',
+   'Garden & Outdoor', '100 m² overgrown back garden. Need full clearance, weeds, grass cutting, disposal.',
    'H91AY93','Galway','Galway City','€100-€200',
    'quoted','get_quotes','in_person', false, now()-interval'3 days', now()-interval'3 days'),
 
@@ -837,7 +837,7 @@ VALUES
   ('b2000000-0000-0000-0000-000000000003',
    'a3000000-0000-0000-0000-000000000001',
    'Repaint exterior of semi-detached house',
-   'Renovation', 'Full exterior repaint. 2 storey semi-d, Dublin 12. Customer provides paint. Weather permitting.',
+   'Painting & Decorating', 'Full exterior repaint. 2 storey semi-d, Dublin 12. Customer provides paint. Weather permitting.',
    'D12P5HX','Dublin','Dublin 12','€200-€500',
    'quoted','get_quotes','in_person', false, now()-interval'5 days', now()-interval'5 days'),
 
@@ -845,7 +845,7 @@ VALUES
   ('b2000000-0000-0000-0000-000000000004',
    'a3000000-0000-0000-0000-000000000013',
    'Wedding photographer + videographer — June 2026',
-   'Events', 'Wedding in Galway, June 14 2026. Need photographer and videographer for full day (10am-11pm).',
+   'Events & Entertainment', 'Wedding in Galway, June 14 2026. Need photographer and videographer for full day (10am-11pm).',
    'H14PK23','Galway','Galway City','€500+',
    'accepted','direct_request','in_person', true, now()-interval'10 days', now()-interval'8 days'),
 
@@ -853,7 +853,7 @@ VALUES
   ('b2000000-0000-0000-0000-000000000005',
    'a3000000-0000-0000-0000-000000000003',
    'Full rewire — 3 bed house Dublin 14',
-   'Repairs', 'Old wiring needs full replacement. Consumer unit upgrade. 3-bed semi-d. Fuse board in utility.',
+   'Electrical', 'Old wiring needs full replacement. Consumer unit upgrade. 3-bed semi-d. Fuse board in utility.',
    'D14FV29','Dublin','Dublin 14','€500+',
    'in_progress','get_quotes','in_person', true, now()-interval'7 days', now()-interval'7 days'),
 
@@ -861,7 +861,7 @@ VALUES
   ('b2000000-0000-0000-0000-000000000006',
    'a3000000-0000-0000-0000-000000000006',
    'Removal and replacement of old boiler',
-   'Repairs', 'Old gas boiler needs full replacement. 4-bed house in Limerick. Gas Safe cert required.',
+   'Plumbing', 'Old gas boiler needs full replacement. 4-bed house in Limerick. Gas Safe cert required.',
    'V94K2HT','Limerick','Limerick City','€200-€500',
    'open','get_quotes','in_person', true, now()-interval'1 day', now()-interval'1 day');
 

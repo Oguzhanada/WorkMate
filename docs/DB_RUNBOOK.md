@@ -5,7 +5,7 @@
 
 **Project:** WorkMate (Ireland-first services marketplace)
 **Database:** Supabase (Postgres) — `ejpnmcxzycxqfdbetydp.supabase.co`
-**Migrations:** `marketplace/migrations/` — 001–079 all applied. Next = **080**.
+**Migrations:** `marketplace/migrations/` — 001–080 all applied. Next = **081**.
 
 ---
 
@@ -13,11 +13,11 @@
 
 ### Creating a new migration
 
-1. Determine the next sequence number. As of this writing it is **080**. Check `marketplace/migrations/` for the highest number currently present.
+1. Determine the next sequence number. As of this writing it is **081**. Check `marketplace/migrations/` for the highest number currently present.
 2. Create the file following this naming pattern:
 
    ```
-   marketplace/migrations/080_short_description.sql
+   marketplace/migrations/081_short_description.sql
    ```
 
 3. Write **additive-only** SQL — `CREATE TABLE`, `ALTER TABLE … ADD COLUMN`, `CREATE INDEX`, `CREATE POLICY`, etc.
@@ -32,6 +32,12 @@ Supabase CLI push is **not used** on this project. Apply every migration manuall
 3. Paste the full contents of the migration file.
 4. Click **Run**.
 5. Confirm there are no errors in the output pane.
+6. **Immediately verify** the migration applied (see section below) before committing or merging.
+
+> **Rule: apply before commit.**
+> A migration file must be applied in Supabase and verified **before** the PR or commit is merged.
+> Never merge a migration file that has only been written but not applied — this is how `046_webhook_subscriptions.sql`
+> sat unapplied for weeks while two API routes silently returned 500 errors (session 38 incident).
 
 ### Verifying a migration applied
 

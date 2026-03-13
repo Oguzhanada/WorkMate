@@ -415,3 +415,45 @@ Phase fallback:
 - Deployed: `work-mate-neon.vercel.app`
 - Supabase docs: `https://supabase.com/docs`
 - Stripe Connect docs: `https://stripe.com/docs/connect`
+
+---
+
+## 15. DATABASE GUARDRAILS (migration 081 audit — 2026-03-13)
+
+The following rules are mandatory to prevent the issues identified in the pre-production DB audit from recurring. Use this as a checklist every time a migration is written.
+
+### Function security
+- Every `CREATE OR REPLACE FUNCTION` definition **must** include **`SET search_path = public, pg_catalog`**.
+- This is especially critical for `SECURITY DEFINER` functions — omitting it creates a schema injection risk.
+
+### RLS policy pattern
+- Every policy created with `FOR ALL` **must** be restricted with **`TO <role>`** (e.g. `TO service_role`).
+- Without a role restriction, `USING (true)` is exposed to all authenticated users — `FOR ALL USING (true)` is strictly forbidden (see IMPORTANT DECISIONS).
+
+### Secret management
+- **Never hardcode** Bearer tokens / API keys / secrets inside `cron.job`, migration files, or any SQL.
+- All runtime secrets are stored in **Supabase Vault**; cron job commands read from `vault.decrypted_secrets`.
+- Vault secret names: `cron_idv_secret` (id-verification), `cron_gdpr_secret` (gdpr-retention).
+
+### Index design
+- A corresponding **index** must be created in the same migration as every `FOREIGN KEY` (`CREATE INDEX IF NOT EXISTS idx_<table>_<column>`).
+- Do **not** add btree indexes on boolean or low-cardinality columns (`true/false`, `bronze/silver/gold`, `open/closed`) — a sequential scan is always faster.
+
+### Cron job management
+- Before adding a new cron job, check existing schedules with **`SELECT * FROM cron.job`**.
+- Never create more than one job calling the same function (nightly + hourly conflict).
+- Create/remove jobs with `cron.schedule()` / `cron.unschedule()` — direct `UPDATE cron.job` table access does not work.
+
+### Extension usage
+- Use `extensions.unaccent()` in queries that require Irish name search (installed: migration 081).
+- Use `extensions.similarity()` / `pg_trgm` operators for fuzzy text search (installed: migration 081).
+
+### General checklist (after every migration)
+```
+[ ] New function → SET search_path added?
+[ ] New RLS policy → TO <role> specified?
+[ ] New FK → index created?
+[ ] New secret → stored in Vault, not written to SQL?
+[ ] New cron job → conflicts with existing schedule?
+[ ] Boolean column → index NOT added?
+```
