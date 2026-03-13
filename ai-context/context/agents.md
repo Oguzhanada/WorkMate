@@ -158,7 +158,7 @@ router.push(withLocalePrefix(localeRoot, '/dashboard/customer'));
 - Every new table **must** have RLS enabled and explicit policies.
 - **NEVER** add `FOR ALL USING (true)` — this bypasses security entirely.
 - Every migration must be additive — never rewrite or renumber existing files.
-- **Next migration number: 080** — check `marketplace/migrations/` before creating any new migration.
+- **Next migration number: 082** — check `marketplace/migrations/` before creating any new migration.
 - Migrations are applied manually in Supabase SQL Editor — do not attempt CLI apply.
 
 ### 3.5 Zod — API validation rule
@@ -208,6 +208,7 @@ When working in these areas, activate the matching skill first:
 | Production launch / env vars / go-live | `workmate-production-launch` |
 | Seed data / demo accounts | `workmate-seed-ireland` |
 | General project rules + guardrails | `workmate-core` |
+| AI route / lib/ai/ integration | `workmate-ai-integration` |
 | Frozen decision check / architecture audit | `workmate-schema-guardian` |
 
 ### 3.10 MCP security note

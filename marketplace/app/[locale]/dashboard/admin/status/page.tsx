@@ -24,7 +24,7 @@ const DASHBOARD_LINKS: Record<string, { label: string; url: string }> = {
   Supabase: { label: 'Supabase Dashboard', url: 'https://supabase.com/dashboard' },
   Stripe: { label: 'Stripe Dashboard', url: 'https://dashboard.stripe.com' },
   Resend: { label: 'Resend Dashboard', url: 'https://resend.com' },
-  Anthropic: { label: 'Anthropic Console', url: 'https://console.anthropic.com' },
+  Groq: { label: 'Groq Console', url: 'https://console.groq.com' },
   Sentry: { label: 'Sentry Dashboard', url: 'https://sentry.io' },
   IdealPostcodes: { label: 'IdealPostcodes Dashboard', url: 'https://ideal-postcodes.co.uk/dashboard' },
   Vercel: { label: 'Vercel Dashboard', url: 'https://vercel.com/dashboard' },

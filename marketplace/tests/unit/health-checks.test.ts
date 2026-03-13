@@ -43,7 +43,7 @@ describe('health-checks', () => {
       const services = [
         makeResult('Supabase', 'healthy'),
         makeResult('Resend', 'disabled'),
-        makeResult('Anthropic', 'disabled'),
+        makeResult('Groq', 'disabled'),
       ];
       expect(_deriveOverallStatus(services)).toBe('healthy');
     });
@@ -51,7 +51,7 @@ describe('health-checks', () => {
     it('returns healthy when all services are disabled', () => {
       const services = [
         makeResult('Resend', 'disabled'),
-        makeResult('Anthropic', 'disabled'),
+        makeResult('Groq', 'disabled'),
       ];
       expect(_deriveOverallStatus(services)).toBe('healthy');
     });

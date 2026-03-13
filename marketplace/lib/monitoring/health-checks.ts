@@ -196,12 +196,12 @@ async function checkResend(): Promise<HealthCheckResult> {
   }
 }
 
-async function checkAnthropic(): Promise<HealthCheckResult> {
+async function checkGroq(): Promise<HealthCheckResult> {
   const start = Date.now();
 
   if (!liveServices.ai) {
     return {
-      name: 'Anthropic',
+      name: 'Groq',
       status: 'disabled',
       latency_ms: 0,
       message: 'AI service disabled in this environment',
@@ -209,13 +209,13 @@ async function checkAnthropic(): Promise<HealthCheckResult> {
     };
   }
 
-  const key = process.env.ANTHROPIC_API_KEY;
+  const key = process.env.GROQ_API_KEY;
   if (!key) {
     return {
-      name: 'Anthropic',
+      name: 'Groq',
       status: 'disabled',
       latency_ms: 0,
-      message: 'ANTHROPIC_API_KEY not configured',
+      message: 'GROQ_API_KEY not configured',
       checked_at: new Date().toISOString(),
     };
   }
@@ -223,16 +223,15 @@ async function checkAnthropic(): Promise<HealthCheckResult> {
   try {
     // Lightweight models list — no token cost
     const res = await withTimeout(
-      fetch('https://api.anthropic.com/v1/models', {
+      fetch('https://api.groq.com/openai/v1/models', {
         headers: {
-          'x-api-key': key,
-          'anthropic-version': '2023-06-01',
+          Authorization: `Bearer ${key}`,
         },
       }),
       CHECK_TIMEOUT_MS
     );
     return {
-      name: 'Anthropic',
+      name: 'Groq',
       status: res.ok ? 'healthy' : 'degraded',
       latency_ms: Date.now() - start,
       message: res.ok ? undefined : `HTTP ${res.status}`,
@@ -240,7 +239,7 @@ async function checkAnthropic(): Promise<HealthCheckResult> {
     };
   } catch (err) {
     return {
-      name: 'Anthropic',
+      name: 'Groq',
       status: 'down',
       latency_ms: Date.now() - start,
       message: err instanceof Error ? err.message : 'Unknown error',
@@ -392,7 +391,7 @@ export async function runAllHealthChecks(
     checkSupabase(),
     checkStripe(),
     checkResend(),
-    checkAnthropic(),
+    checkGroq(),
     checkSentry(),
     checkIdealPostcodes(),
     checkVercel(),
@@ -415,7 +414,7 @@ export async function runAllHealthChecks(
  * Run a single service check by name.
  */
 export async function checkService(
-  name: 'supabase' | 'stripe' | 'resend' | 'anthropic' | 'sentry' | 'idealpostcodes' | 'vercel'
+  name: 'supabase' | 'stripe' | 'resend' | 'groq' | 'sentry' | 'idealpostcodes' | 'vercel'
 ): Promise<HealthCheckResult> {
   switch (name) {
     case 'supabase':
@@ -424,8 +423,8 @@ export async function checkService(
       return checkStripe();
     case 'resend':
       return checkResend();
-    case 'anthropic':
-      return checkAnthropic();
+    case 'groq':
+      return checkGroq();
     case 'sentry':
       return checkSentry();
     case 'idealpostcodes':

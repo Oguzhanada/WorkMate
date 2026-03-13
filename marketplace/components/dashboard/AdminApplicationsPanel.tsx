@@ -1,6 +1,7 @@
 
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { Fragment, useEffect, useMemo, useOptimistic, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -1146,7 +1147,7 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
                                     className={styles.thumbButton}
                                     onClick={() => setPreviewDocUrl(idPreview)}
                                   >
-                                    <img src={idPreview} alt="ID preview" className={styles.thumbImage} />
+                                    <Image src={idPreview} alt="ID preview" width={38} height={38} className={styles.thumbImage} />
                                   </button>
                                 ) : null}
                               </div>
@@ -1447,7 +1448,7 @@ export default function AdminApplicationsPanel({ adminEmail = 'Admin' }: { admin
             <button type="button" className={styles.modalClose} onClick={() => setPreviewDocUrl(null)}>
               ×
             </button>
-            <img src={previewDocUrl} alt="Identity document preview" className={styles.modalImage} />
+            <Image src={previewDocUrl} alt="Identity document preview" width={900} height={1200} className={styles.modalImage} style={{ width: '100%', height: 'auto' }} />
           </div>
         </div>
       ) : null}
