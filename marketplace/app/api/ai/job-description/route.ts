@@ -3,7 +3,7 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { jobDescriptionSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { liveServices } from '@/lib/live-services';
-import { getAnthropicClient } from '@/lib/cloudflare/ai-gateway';
+import { groqGenerate } from '@/lib/ai/groq';
 import { apiError, apiUnauthorized, apiServerError } from '@/lib/api/error-response';
 import { AI_MODELS } from '@/lib/ai/config';
 import { sanitizeForPrompt } from '@/lib/ai/sanitize';
@@ -49,8 +49,7 @@ async function handler(request: NextRequest): Promise<NextResponse> {
   ].filter(Boolean);
 
   try {
-    const client = getAnthropicClient();
-    const message = await client.messages.create({
+    const text = await groqGenerate({
       model: AI_MODELS.JOB_DESCRIPTION,
       max_tokens: 300,
       messages: [
@@ -72,9 +71,6 @@ Return only the description text, no preamble.`,
         },
       ],
     });
-
-    const text =
-      message.content[0]?.type === 'text' ? message.content[0].text.trim() : '';
 
     if (!text) {
       return apiServerError('No description generated');

@@ -4,7 +4,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { suggestAlertsSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { liveServices } from '@/lib/live-services';
-import { getAnthropicClient } from '@/lib/cloudflare/ai-gateway';
+import { groqGenerate } from '@/lib/ai/groq';
 import { apiError, apiUnauthorized, apiForbidden, apiServerError } from '@/lib/api/error-response';
 import { AI_MODELS } from '@/lib/ai/config';
 import { sanitizeListForPrompt } from '@/lib/ai/sanitize';
@@ -82,11 +82,10 @@ async function handler(request: NextRequest): Promise<NextResponse> {
   // Sanitize service names before prompt interpolation
   const serviceList = sanitizeListForPrompt(rawServiceNames, 80);
 
-  // Call Anthropic via AI Gateway
+  // Call Groq
   let suggestions: AISuggestion[] = [];
   try {
-    const anthropic = getAnthropicClient();
-    const message = await anthropic.messages.create({
+    const rawText = await groqGenerate({
       model: AI_MODELS.SUGGEST_ALERTS,
       max_tokens: 1024,
       messages: [
@@ -105,7 +104,6 @@ Return ONLY valid JSON array: [{"keywords": ["word1", "word2"], "category_hint":
       ],
     });
 
-    const rawText = message.content[0]?.type === 'text' ? message.content[0].text : '';
     // Extract JSON array from the response
     const jsonMatch = rawText.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
