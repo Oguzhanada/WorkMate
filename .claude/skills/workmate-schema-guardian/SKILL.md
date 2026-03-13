@@ -1,6 +1,10 @@
 ---
 name: workmate-schema-guardian
 description: WorkMate frozen architectural decisions enforcer. Activate before making any change that touches core patterns: Zod schemas, loading states, design system components, Supabase client usage, money handling, RLS policies, locale routing, or webhooks. Blocks unauthorized changes and guides writing a Decision Record when a change is genuinely needed.
+metadata:
+  severity: critical
+  last_synced: 2026-03-13
+  synced_with: FD-01..FD-28, DR-007, DR-010, DR-011
 ---
 
 # WorkMate Schema Guardian
@@ -18,13 +22,13 @@ These live permanently in `ai-context/context/agents.md` section 6. Quick refere
 
 | ID | Rule | Violation examples |
 |----|------|--------------------|
-| FD-01 | All Zod schemas in `lib/validation/api.ts` | `const schema = z.object({...})` inside a route file |
+| FD-01 | Zod schemas in domain files under `lib/validation/<domain>.ts` — `api.ts` is barrel only (DR-010) | `const schema = z.object({...})` inside a route file, or adding new schemas to `api.ts` |
 | FD-02 | `loading.tsx` on every data-fetching page | New page added without co-located `loading.tsx` |
 | FD-03 | CSS `--wm-*` tokens only, no hardcoded hex | `className="text-[#00B894]"` or `color: #008B74` in page code |
 | FD-04 | `<Button>` always, never raw button/link with bg- | `<button className="bg-green-500">` or `<Link className="bg-wm-primary">` |
-| FD-05 | `<PageHeader>` always at page top | Raw `<h1>` or `<Card><h1>` as first element in a page |
+| FD-05 | `<PageHeader>` on top-level page routes. Exempt: modals, wizard steps, widget inner views, sub-route tabs (DR-011) | Raw `<h1>` or `<Card><h1>` as first element in a top-level page |
 | FD-06 | `<EmptyState>` on every list | List renders nothing / null when data is empty |
-| FD-07 | Responsive grid: `sm:grid-cols-2 lg:grid-cols-3` | `grid-cols-1` or `grid-cols-3` without responsive breakpoints |
+| FD-07 | Default grid `sm:grid-cols-2 lg:grid-cols-3` — override allowed with `{/* DR-011: reason */}` comment (DR-011) | `grid-cols-1` or `grid-cols-3` without responsive breakpoints or override comment |
 | FD-08 | Supabase per-context clients, no singleton | `const supabase = getSupabaseBrowserClient()` at module scope |
 | FD-09 | Money = integer cents, EUR only | `price: 19.99` or `amount_euros` column or `currency: 'USD'` |
 | FD-10 | RLS never `FOR ALL USING (true)` | Any policy without `auth.uid()` scoping |
@@ -76,13 +80,13 @@ DR-XXX | [date] | [author] | FD-XX changed | [reason] | [approved by]
 
 Before making any change, run this checklist mentally:
 
-- [ ] FD-01: Any new Zod schema → goes to `lib/validation/api.ts`, not inline
+- [ ] FD-01: Any new Zod schema → goes to `lib/validation/<domain>.ts`, not inline or directly in `api.ts` (DR-010)
 - [ ] FD-02: New data-fetching page → has `loading.tsx` in same folder
 - [ ] FD-03: Any color → via `--wm-*` token, not hex, not Tailwind color name
 - [ ] FD-04: Any clickable element → using `<Button>` component
-- [ ] FD-05: Any new page → starts with `<PageHeader title="...">`, not `<h1>`
+- [ ] FD-05: Any new top-level page → starts with `<PageHeader title="...">`, not `<h1>`. Exempt: modals, wizard steps, widget views, sub-route tabs (DR-011)
 - [ ] FD-06: Any list → has `{items.length === 0 && <EmptyState ... />}` branch
-- [ ] FD-07: Any card grid → uses `grid sm:grid-cols-2 lg:grid-cols-3`
+- [ ] FD-07: Any card grid → default `grid sm:grid-cols-2 lg:grid-cols-3`. Override allowed with `{/* DR-011: reason */}` comment
 - [ ] FD-08: Any Supabase call → client created inside function, not at module scope
 - [ ] FD-09: Any money value → stored as cents integer, column named `*_amount_cents`
 - [ ] FD-10: Any new migration → has `ENABLE ROW LEVEL SECURITY` + scoped policies

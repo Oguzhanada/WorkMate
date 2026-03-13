@@ -1,6 +1,9 @@
 ---
 name: workmate-production-launch
 description: Step-by-step production launch workflow for WorkMate. Use when preparing for go-live, verifying production readiness, activating live services (Stripe, Resend, Supabase), or checking env vars. Covers all 5 launch phases from docs/PRODUCTION_LAUNCH.md.
+metadata:
+  severity: standard
+  last_synced: 2026-03-13
 ---
 
 # WorkMate Production Launch
@@ -45,7 +48,7 @@ npm run build              # production build succeeds
 - Email notifications: check Resend test logs (quote_received, quote_accepted, payment_released)
 
 ### Supabase dev checks
-- All migrations 001–050 applied, no errors
+- All migrations 001–081 applied, no errors
 - RLS on all tables — no `FOR ALL USING (true)` policies
 - `pg_cron` jobs registered: `provider_rankings`, `automation_rules`
 - Edge functions deployed: `match-task-alerts`, `auto-release-payments`, `escalate-stale-disputes`, `id-verification-retention`
@@ -59,7 +62,7 @@ npm run build              # production build succeeds
 
 ### Supabase Production (NEW project — not dev)
 1. Create separate Supabase project for production
-2. Apply ALL migrations 001–050 in SQL Editor
+2. Apply ALL migrations 001–081 in SQL Editor
 3. Enable `pg_cron` extension
 4. Auth → Site URL: `https://workmate.ie`
 5. Auth → Redirect URLs: `https://workmate.ie/auth/callback`

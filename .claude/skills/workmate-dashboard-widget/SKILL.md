@@ -1,6 +1,10 @@
 ---
 name: workmate-dashboard-widget
 description: Step-by-step workflow for adding a new dashboard widget to WorkMate. Use when creating a new widget type, adding it to a dashboard mode, or debugging widget rendering/drag-drop issues. Covers the full 5-step process from type registration to component implementation.
+metadata:
+  severity: standard
+  last_synced: 2026-03-13
+  synced_with: FD-04, FD-06, FD-08
 ---
 
 # WorkMate Dashboard Widget Development

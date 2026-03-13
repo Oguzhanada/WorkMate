@@ -1,6 +1,10 @@
 ---
 name: workmate-api-route
 description: Standard pattern for writing new API route handlers in WorkMate. Use when creating or reviewing any file under app/api/. Enforces correct Supabase client selection, Zod validation, RBAC checks, error handling format, and webhook trigger pattern.
+metadata:
+  severity: critical
+  last_synced: 2026-03-13
+  synced_with: FD-01, FD-08, FD-09, FD-12, FD-27, DR-010
 ---
 
 # WorkMate API Route Pattern
@@ -16,15 +20,15 @@ app/api/<resource>/[id]/route.ts      # item: GET, PATCH, DELETE
 
 ## Standard Route Template
 
-> **Rule 13 (AGENTS.md):** Never define Zod schemas inline inside a route handler.
-> Always add schemas to `lib/validation/api.ts` and import from there.
+> **FD-01 (DR-010):** Never define Zod schemas inline inside a route handler.
+> Add schemas to the appropriate domain file under `lib/validation/<domain>.ts` (e.g., `jobs.ts`, `auth.ts`, `quotes.ts`). `api.ts` is a re-export barrel only — never add new schema definitions there.
 
 ```typescript
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getUserRoles } from '@/lib/auth/rbac';
 // 1. Import schema from the shared validation file (never define inline)
-import { CreateResourceSchema } from '@/lib/validation/api';
+import { CreateResourceSchema } from '@/lib/validation/jobs';
 
 export async function POST(req: NextRequest) {
   const supabase = getSupabaseRouteClient();
@@ -69,14 +73,21 @@ export async function POST(req: NextRequest) {
 
 ### Adding a new schema
 
-Open `lib/validation/api.ts` and append your schema:
+Add your schema to the appropriate domain file under `lib/validation/` (DR-010):
 
 ```typescript
-// lib/validation/api.ts
+// lib/validation/jobs.ts  ← domain file, NOT api.ts
 export const CreateResourceSchema = z.object({
   field: z.string().min(1),
   amount_cents: z.number().int().positive(), // money always in cents
 });
+```
+
+Then re-export from `lib/validation/api.ts` (barrel only):
+
+```typescript
+// lib/validation/api.ts  ← re-export barrel, never define schemas here
+export { CreateResourceSchema } from './jobs';
 ```
 
 Never add schemas in the route file itself.

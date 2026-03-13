@@ -1,6 +1,10 @@
 ---
 name: ui-system-hybrid-migration
 description: Hybrid UI migration workflow for WorkMate. Use when introducing or migrating shared UI primitives, creating wrapper-based components in components/ui, updating token mappings, or enforcing the boundary that Shadcn/Radix primitives are allowed in wrappers but not scattered across page-level code.
+metadata:
+  severity: standard
+  last_synced: 2026-03-13
+  synced_with: FD-03, FD-14, FD-20, DR-007
 ---
 
 # UI System Hybrid Migration
@@ -27,7 +31,7 @@ description: Hybrid UI migration workflow for WorkMate. Use when introducing or 
 5. Validate:
 - `npm run lint`
 - `npm run test`
-- Run visual gate checks through PR workflows (Backstop + Lighthouse).
+- Run visual gate checks through PR workflows (Lighthouse).
 
 ## Checklist
 

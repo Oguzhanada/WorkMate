@@ -1,6 +1,10 @@
 ---
 name: workmate-core
 description: WorkMate project core skill — security guardrails, PM mindset, and project-specific rules for the Ireland-first services marketplace. Auto-activates for all work in this repository. Covers RLS enforcement, architectural decisions, priority framing, and crisis management protocol.
+metadata:
+  severity: critical
+  last_synced: 2026-03-13
+  synced_with: FD-01..FD-12, DR-010
 ---
 
 # WorkMate Core — Security & PM Assistant
@@ -32,7 +36,7 @@ These rules apply to every line of code produced:
 - Button component always — no raw `<button className="bg-...">` in pages
 - PageHeader component for all page-level headers
 - EmptyState on every list — handle zero-item state
-- Migrations additive only — never rewrite existing files, next = **080**
+- Migrations additive only — never rewrite existing files, next = **082**
 - Webhook delivery: HTTPS-only, HMAC-SHA256 signed via `X-WorkMate-Signature`
 
 ## PM Mindset
@@ -78,7 +82,7 @@ When user types these in chat (NOT as /skill-name — these are conversational t
 | Job access resolver | `lib/jobs/access.ts` |
 | Public API auth | `lib/api/public-auth.ts` |
 | i18n strings | `messages/en.json` |
-| Migrations | `migrations/` (001–080 applied, next = **081**) |
+| Migrations | `migrations/` (001–081 applied, next = **082**) |
 | AI model config | `lib/ai/config.ts` |
 | AI prompt sanitize | `lib/ai/sanitize.ts` |
 | Structured logger | `lib/logger.ts` |
