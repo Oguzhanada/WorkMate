@@ -57,6 +57,7 @@ export default async function AdminLayout({
       locale={locale}
       pendingVerification={pendingVerification}
       pendingDocs={pendingDocs}
+      adminEmail={user.email ?? undefined}
     >
       {children}
     </AdminSidebarLayout>

@@ -13,6 +13,7 @@ export type AdminDashboardData = {
   auditTotal: number;
   recentAuditLogs: { action: string; target_type: string; created_at: string }[];
   featureFlags: { flag_key: string; enabled: boolean }[];
+  weeklyRegistrations: { day: string; count: number }[];
   dateLabel: string;
 };
 

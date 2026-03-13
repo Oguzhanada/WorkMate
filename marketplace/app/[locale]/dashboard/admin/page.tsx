@@ -23,8 +23,8 @@ export default async function AdminDashboardPage({
   const roles = await getUserRoles(supabase, user.id);
   if (!canAccessAdmin(roles)) redirect(`/${locale}/profile`);
 
-  // eslint-disable-next-line react-hooks/purity -- Server Component, not a hook
-  const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 86400000).toISOString();
 
   const [
     { count: pros },
@@ -41,6 +41,7 @@ export default async function AdminDashboardPage({
     { count: auditTotal },
     { data: recentAuditLogs },
     { data: featureFlags },
+    { data: regRows },
   ] = await Promise.all([
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'verified_pro'),
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer'),
@@ -56,9 +57,25 @@ export default async function AdminDashboardPage({
     supabase.from('admin_audit_logs').select('*', { count: 'exact', head: true }),
     supabase.from('admin_audit_logs').select('action, target_type, created_at').order('created_at', { ascending: false }).limit(5),
     supabase.from('feature_flags').select('flag_key, enabled').order('flag_key'),
+    supabase.from('profiles').select('created_at').gte('created_at', sevenDaysAgo),
   ]);
 
-  const now = new Date();
+  // Build weekly registrations map (last 7 days, grouped by day)
+  const nowMs = now.getTime();
+  const dayMap: Record<string, number> = {};
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(nowMs - i * 86400000);
+    dayMap[d.toISOString().split('T')[0]] = 0;
+  }
+  for (const row of regRows ?? []) {
+    const day = (row.created_at as string).split('T')[0];
+    if (day in dayMap) dayMap[day]++;
+  }
+  const weeklyRegistrations = Object.entries(dayMap).map(([isoDay, count]) => ({
+    day: new Date(isoDay).toLocaleDateString('en-IE', { weekday: 'short' }),
+    count,
+  }));
+
   const dateLabel = now.toLocaleDateString('en-IE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   const data: AdminDashboardData = {
@@ -76,6 +93,7 @@ export default async function AdminDashboardPage({
     auditTotal: auditTotal ?? 0,
     recentAuditLogs: (recentAuditLogs ?? []) as AdminDashboardData['recentAuditLogs'],
     featureFlags: (featureFlags ?? []) as AdminDashboardData['featureFlags'],
+    weeklyRegistrations,
     dateLabel,
   };
 
