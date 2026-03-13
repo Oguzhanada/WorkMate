@@ -1,32 +1,32 @@
-# DR-008: loading.tsx Kapsamı Netleştirme — FD-02 Güncelleme
+# DR-008: loading.tsx Scope Clarification — FD-02 Refinement
 
-- **Tarih:** 2026-03-12
-- **Durum:** Accepted
-- **Sahip:** WorkMate maintainers
+- **Date:** 2026-03-12
+- **Status:** Accepted
+- **Owner:** WorkMate maintainers
 - **Refines:** FD-02
 
-## Karar
+## Decision
 
-`loading.tsx` yalnızca async Supabase/DB çağrısı içeren sayfalarda zorunludur. Tamamen statik sayfalar (yalnızca `getTranslations()` çağıran) muaftır.
+`loading.tsx` is only required on pages that contain async Supabase/DB calls. Fully static pages (those that only call `getTranslations()`) are exempt.
 
-## Gerekçe
+## Rationale
 
-FD-02 "her data-fetching sayfada" diyordu, ancak `terms`, `pricing`, `how-it-works`, `about` gibi tamamen statik sayfalar gereksiz yere `loading.tsx` barındırıyordu. Bu sayfalar Supabase çağrısı yapmadığından loading state'i gerçekte asla gösterilmez — sadece dosya şişkinliği yaratır.
+FD-02 said "every data-fetching page", but fully static pages such as `terms`, `pricing`, `how-it-works`, and `about` were unnecessarily carrying `loading.tsx`. Because these pages make no Supabase calls, the loading state is never actually shown — it only adds file bloat.
 
-## Yeni Kural (FD-02'yi rafine eder)
+## New Rule (refines FD-02)
 
-**Zorunlu:** `loading.tsx` — async Supabase/DB sorgusu yapan tüm sayfalar için.
+**Required:** `loading.tsx` — for all pages that make async Supabase/DB queries.
 
-**Muaf:** Yalnızca `getTranslations()` (next-intl) çağıran, Supabase bağlantısı olmayan statik sayfalar.
-Mevcut muaf sayfalar: `terms`, `pricing`, `how-it-works`, `about`.
+**Exempt:** Static pages that only call `getTranslations()` (next-intl) with no Supabase connection.
+Current exempt pages: `terms`, `pricing`, `how-it-works`, `about`.
 
-**Karar kriteri:** Sayfa `createServerClient()` veya `createClient()` (Supabase) çağırıyor mu?
-- Evet → `loading.tsx` zorunlu
-- Hayır → isteğe bağlı
+**Decision criterion:** Does the page call `createServerClient()` or `createClient()` (Supabase)?
+- Yes → `loading.tsx` required
+- No → optional
 
-## Uygulama
+## Implementation
 
-Silinen `loading.tsx` dosyaları:
+Deleted `loading.tsx` files:
 - `app/[locale]/terms/loading.tsx`
 - `app/[locale]/pricing/loading.tsx`
 - `app/[locale]/how-it-works/loading.tsx`

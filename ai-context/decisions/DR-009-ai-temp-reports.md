@@ -1,27 +1,27 @@
-# DR-009: Geçici AI Analiz Dosyaları — FD-24 Esnetme
+# DR-009: Temporary AI Analysis Files — FD-24 Relaxation
 
-- **Tarih:** 2026-03-12
-- **Durum:** Accepted
-- **Sahip:** WorkMate maintainers
+- **Date:** 2026-03-12
+- **Status:** Accepted
+- **Owner:** WorkMate maintainers
 - **Refines:** FD-24
 
-## Karar
+## Decision
 
-AI agents, `ai-reports/` klasörüne geçici analiz dosyaları yazabilir. Bu klasör gitignored'dır, dosyalar asla commit edilmez.
+AI agents may write temporary analysis files to the `ai-reports/` directory. This directory is gitignored; files are never committed.
 
-## Gerekçe
+## Rationale
 
-FD-24, AI'nın `docs/` ve repo root'a gereksiz rapor dosyaları biriktirmesini önlemek amacıyla yazılmıştı. Ancak kullanıcının yerel review için geçici analiz çıktılarına ihtiyacı var. `ai-reports/` gitignored klasörüyle bu ikisi ayrışır: yerel review mümkün, repo temiz kalır.
+FD-24 was written to prevent AI from accumulating unnecessary report files in `docs/` and the repo root. However, the user needs temporary analysis output for local review. The `ai-reports/` gitignored directory separates the two concerns: local review is possible, the repo stays clean.
 
-## Yeni Kural (FD-24'ü rafine eder)
+## New Rule (refines FD-24)
 
-**Yasak (korunuyor):** `docs/`, repo root, `ai-context/` altına `*REPORT*.md`, `*COMPLETION*.md`, `*GUIDE*.md` türünde dosya oluşturmak.
+**Forbidden (preserved):** Creating files of the type `*REPORT*.md`, `*COMPLETION*.md`, `*GUIDE*.md` under `docs/`, the repo root, or `ai-context/`.
 
-**İzin verilen (yeni):** `ai-reports/` klasörüne geçici analiz dosyaları yazmak.
-- Bu klasör `.gitignore`'da tanımlıdır
-- Dosyalar commit edilmez, CI'ya girmez
-- Oturum sonunda temizlenebilir
+**Permitted (new):** Writing temporary analysis files to the `ai-reports/` directory.
+- This directory is declared in `.gitignore`
+- Files are never committed or included in CI
+- Can be cleaned up at the end of a session
 
-## Uygulama
+## Implementation
 
-`.gitignore`'a eklenen satır: `ai-reports/`
+Line added to `.gitignore`: `ai-reports/`

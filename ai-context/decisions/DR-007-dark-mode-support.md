@@ -1,28 +1,28 @@
-# DR-007: Dark Mode Desteği — FD-14 Güncelleme
+# DR-007: Dark Mode Support — FD-14 Update
 
-- **Tarih:** 2026-03-12
-- **Durum:** Accepted
-- **Sahip:** WorkMate maintainers
+- **Date:** 2026-03-12
+- **Status:** Accepted
+- **Owner:** WorkMate maintainers
 - **Supersedes:** FD-14 (light-only lock)
 
-## Karar
+## Decision
 
-Dark mode artık desteklenmektedir. `[data-theme="dark"]` mekanizması `layout.tsx`'te toggle edilebilir; `prefers-color-scheme: dark` sistemi de otomatik olarak dark token'larını devreye sokar.
+Dark mode is now supported. The `[data-theme="dark"]` mechanism can be toggled in `layout.tsx`; the `prefers-color-scheme: dark` media query also automatically activates the dark tokens.
 
-## Gerekçe
+## Rationale
 
-`marketplace/tokens.css` satır 167–176'da dark mode token'ları tam olarak uygulanmıştı. Ancak `globals.css` satır 337–362'deki `@media (prefers-color-scheme: dark)` bloğu, geçmişteki bir kontrast regresyonunu önlemek amacıyla light renkleri zorla koruyordu. Tam UI overhaul kapsamında tüm komponentler dark mode'a göre test edileceğinden bu kilide artık gerek kalmamaktadır.
+Dark mode tokens were fully implemented in `marketplace/tokens.css` lines 167–176. However, the `@media (prefers-color-scheme: dark)` block in `globals.css` lines 337–362 was forcibly preserving light colours to prevent a past contrast regression. Since all components will be tested against dark mode as part of the full UI overhaul, this lock is no longer needed.
 
-## Yeni Kural (FD-14 yerini alır)
+## New Rule (replaces FD-14)
 
-- Light tema default'tur: `<html data-theme="light">` `layout.tsx`'te sabit gelir.
-- Dark mode `[data-theme="dark"]` toggle ile ya da `prefers-color-scheme: dark` ile aktif olur.
-- Token coverage `tokens.css`'de tamdır — Tailwind `dark:` utility class'ları kullanılmaz, yalnızca `--wm-*` token'ları kullanılır.
-- Tüm yeni komponent değişiklikleri dark + light modda görsel QA'dan geçmek zorundadır.
+- Light theme is the default: `<html data-theme="light">` is set statically in `layout.tsx`.
+- Dark mode activates via the `[data-theme="dark"]` toggle or via `prefers-color-scheme: dark`.
+- Token coverage is complete in `tokens.css` — do not use Tailwind `dark:` utility classes; use only `--wm-*` tokens.
+- All new component changes must pass visual QA in both dark and light mode.
 
-## Etki Analizi
+## Impact Analysis
 
-- `globals.css` dark media query bloğu: light override kaldırılır, `[data-theme="dark"]` token'ları devreye girer.
-- `layout.tsx`: `<html>` tag'ına `data-theme="light"` eklenir (zaten mevcut olabilir).
-- `components/ui/` tüm primitive'leri: dark mode token uyumları doğrulanır.
-- Playwright QA: tüm kritik sayfalar light + dark modda screenshot ile doğrulanır.
+- `globals.css` dark media query block: light override removed; `[data-theme="dark"]` tokens take effect.
+- `layout.tsx`: `data-theme="light"` added to the `<html>` tag (may already be present).
+- `components/ui/` all primitives: dark mode token compatibility verified.
+- Playwright QA: all critical pages verified via screenshot in both light and dark mode.
