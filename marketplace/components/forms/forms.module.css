@@ -531,6 +531,156 @@
   font-weight: 600;
 }
 
+/* ── Address form fields wrapper ─────────────────────────── */
+.addressFormFields {
+  display: grid;
+  gap: 12px;
+}
+
+/* ── Eircode suggestion dropdown ─────────────────────────── */
+.suggestionDropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 60;
+  background: var(--wm-surface);
+  border: 1.5px solid var(--wm-primary);
+  border-radius: var(--wm-radius-md);
+  box-shadow: 0 8px 28px rgba(22, 155, 98, 0.18);
+  overflow: hidden;
+  animation: wm-suggestion-in 0.15s ease;
+}
+
+@keyframes wm-suggestion-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.suggestionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px 0;
+}
+
+.suggestionTag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: var(--wm-font-display);
+  color: var(--wm-primary-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.suggestionDismiss {
+  background: none;
+  border: none;
+  font-size: 0.8rem;
+  color: var(--wm-muted);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.suggestionDismiss:hover {
+  color: var(--wm-text);
+  background: var(--wm-bg);
+}
+
+.suggestionBody {
+  padding: 6px 12px 12px;
+  display: grid;
+  gap: 2px;
+}
+
+.suggestionLine1 {
+  margin: 0;
+  font-size: 0.94rem;
+  font-weight: 600;
+  color: var(--wm-text);
+}
+
+.suggestionLine {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--wm-text);
+}
+
+.suggestionMuted {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--wm-muted);
+}
+
+.suggestionAccept {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: var(--wm-primary);
+  color: #fff;
+  border-radius: var(--wm-radius-sm);
+  padding: 7px 14px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: var(--wm-font-display);
+  cursor: pointer;
+  transition: background var(--wm-transition), transform var(--wm-transition);
+  box-shadow: 0 2px 8px rgba(22, 155, 98, 0.28);
+}
+
+.suggestionAccept:hover {
+  background: var(--wm-primary-dark);
+  transform: translateY(-1px);
+}
+
+/* ── Suggestion list items ───────────────────────────────── */
+.suggestionItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 9px 12px;
+  font: inherit;
+  font-size: 0.88rem;
+  color: var(--wm-text);
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--wm-border);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.suggestionItem:hover,
+.suggestionItemActive {
+  background: var(--wm-primary-faint, rgba(22, 155, 98, 0.07));
+  color: var(--wm-navy);
+}
+
+.suggestionItemMain {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggestionItemEircode {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: var(--wm-font-mono);
+  color: var(--wm-primary-dark);
+  background: var(--wm-primary-faint, rgba(22, 155, 98, 0.1));
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
 /* ── Animations ───────────────────────────────────────────── */
 @keyframes wm-spin {
   from { transform: rotate(0deg); }

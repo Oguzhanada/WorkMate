@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { IRISH_COUNTIES, getCitiesByCounty } from '@/lib/ireland/locations';
 import styles from './forms.module.css';
 
@@ -13,11 +13,15 @@ export type Address = {
   eircode_valid?: boolean;
 };
 
-/** Normalize county string from IdealPostcodes to match IRISH_COUNTIES list */
-function normalizeCounty(raw: string): string {
-  // IdealPostcodes may return "County Cork" or "Cork" — strip prefix
-  return raw.replace(/^county\s+/i, '').trim();
-}
+type AutocompleteHit = {
+  id: string;
+  suggestion: string;
+  address_line_1: string;
+  address_line_2?: string;
+  locality?: string;
+  county?: string;
+  eircode?: string;
+};
 
 export default function EircodeAddressForm({
   value,
@@ -26,98 +30,163 @@ export default function EircodeAddressForm({
   value: Address;
   onChange: (address: Address) => void;
 }) {
+  const [query, setQuery] = useState(value.eircode);
+  const [hits, setHits] = useState<AutocompleteHit[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(-1);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const isInitialRender = useRef(true);
 
   const cityOptions = useMemo(() => getCitiesByCounty(value.county ?? ''), [value.county]);
 
   const reset = (partial: Partial<Address>) => {
-    setError('');
-    onChange({ ...value, ...partial, eircode_valid: partial.eircode_valid ?? false });
+    onChange({ ...value, ...partial });
   };
 
-  const lookupEircode = async () => {
-    const raw = value.eircode.trim().toUpperCase();
+  const acceptHit = (hit: AutocompleteHit) => {
+    const eircode = hit.eircode ?? '';
+    setQuery(eircode);
+    setShowDropdown(false);
+    setHits([]);
+    setActiveIdx(-1);
+    onChange({
+      ...value,
+      eircode,
+      eircode_valid: !!eircode,
+      address_line_1: hit.address_line_1,
+      address_line_2: hit.address_line_2,
+      locality: hit.locality,
+      county: hit.county,
+    });
+  };
 
-    if (!raw) {
-      setError('Eircode is required to match providers in your area.');
-      onChange({ ...value, eircode_valid: false });
+  // Debounce: fetch suggestions 300ms after typing (skip initial render)
+  useEffect(() => {
+    if (isInitialRender.current) {
+      isInitialRender.current = false;
       return;
     }
-
-    // Basic format check before hitting the API
-    if (!/^[A-Z0-9]{3}\s?[A-Z0-9]{4}$/.test(raw)) {
-      setError('Invalid Eircode format — should look like D02 X285.');
-      onChange({ ...value, eircode_valid: false });
+    const q = query.trim();
+    if (!q) {
+      setHits([]);
+      setShowDropdown(false);
       return;
     }
-
-    const normalized = raw.length === 7 ? `${raw.slice(0, 3)} ${raw.slice(3)}` : raw;
-    setError('');
-    setLoading(true);
-
-    try {
-      const res = await fetch(`/api/address-lookup?eircode=${encodeURIComponent(normalized)}`);
-      const json = await res.json() as {
-        address?: {
-          line_1?: string | null;
-          line_2?: string | null;
-          post_town?: string | null;
-          county?: string | null;
-        };
-        provider?: string;
-        error?: string;
-      };
-
-      if (!res.ok || json.error) {
-        // Not found but format is valid — user can fill manually
-        onChange({ ...value, eircode: normalized, eircode_valid: true });
-        return;
+    const timer = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/address-autocomplete?q=${encodeURIComponent(q)}`);
+        const json = await res.json() as { hits: AutocompleteHit[] };
+        setHits(json.hits ?? []);
+        setShowDropdown((json.hits?.length ?? 0) > 0);
+      } catch {
+        setHits([]);
+        setShowDropdown(false);
+      } finally {
+        setLoading(false);
       }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query]);
 
-      const addr = json.address ?? {};
-      const updates: Partial<Address> = { eircode: normalized, eircode_valid: true };
+  // Keep query in sync when value.eircode changes from outside (e.g. initial load)
+  useEffect(() => {
+    if (value.eircode && value.eircode !== query) {
+      setQuery(value.eircode);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value.eircode]);
 
-      if (addr.county) {
-        const matched = normalizeCounty(addr.county);
-        if ((IRISH_COUNTIES as readonly string[]).includes(matched)) updates.county = matched;
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
       }
-      if (addr.post_town) updates.locality = addr.post_town;
-      if (addr.line_1)    updates.address_line_1 = addr.line_1;
-      if (addr.line_2)    updates.address_line_2 = addr.line_2;
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
-      onChange({ ...value, ...updates });
-    } catch {
-      // Network error — still accept the eircode, let user fill manually
-      onChange({ ...value, eircode: normalized, eircode_valid: true });
-    } finally {
-      setLoading(false);
+  // Keyboard navigation
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (!showDropdown || !hits.length) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIdx((i) => Math.min(i + 1, hits.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIdx((i) => Math.max(i - 1, 0));
+    } else if (e.key === 'Enter' && activeIdx >= 0) {
+      e.preventDefault();
+      acceptHit(hits[activeIdx]);
+    } else if (e.key === 'Escape') {
+      setShowDropdown(false);
     }
   };
 
   return (
-    <div className={styles.card}>
-      <label className={styles.field}>
-        <span>Eircode</span>
-        <input
-          className={`${styles.input} ${error ? styles.inputError : ''} ${value.eircode_valid ? styles.inputOk : ''}`}
-          value={value.eircode}
-          placeholder="D02 X285"
-          onChange={(e) => {
-            setError('');
-            reset({ eircode: e.target.value.toUpperCase() });
-          }}
-          onBlur={lookupEircode}
-        />
-      </label>
+    <div className={styles.addressFormFields}>
+      {/* Eircode / address search field */}
+      <div style={{ position: 'relative' }} ref={wrapperRef}>
+        <label className={styles.field}>
+          <span>Eircode or address</span>
+          <input
+            className={`${styles.input} ${value.eircode_valid && value.eircode ? styles.inputOk : ''}`}
+            value={query}
+            placeholder="Type Eircode or address…"
+            autoComplete="off"
+            onChange={(e) => {
+              const v = e.target.value.toUpperCase();
+              setQuery(v);
+              // If user clears or edits, reset eircode_valid
+              if (v !== value.eircode) {
+                onChange({ ...value, eircode: v, eircode_valid: false });
+              }
+              setActiveIdx(-1);
+            }}
+            onFocus={() => { if (hits.length) setShowDropdown(true); }}
+            onKeyDown={onKeyDown}
+          />
+        </label>
 
-      {loading ? (
-        <p className={styles.muted} style={{ fontSize: '0.82rem' }}>
-          Looking up address…
-        </p>
-      ) : null}
-      {error ? <p className={`${styles.feedback} ${styles.error}`}>{error}</p> : null}
+        {loading && (
+          <p className={styles.muted} style={{ fontSize: '0.8rem', margin: '3px 0 0' }}>
+            Searching…
+          </p>
+        )}
 
+        {/* Suggestion dropdown */}
+        {showDropdown && hits.length > 0 && (
+          <div className={styles.suggestionDropdown} role="listbox">
+            <p className={styles.suggestionTag} style={{ padding: '7px 12px 4px', margin: 0 }}>
+              Select your address
+            </p>
+            {hits.map((hit, idx) => (
+              <button
+                key={hit.id}
+                type="button"
+                role="option"
+                aria-selected={idx === activeIdx}
+                className={`${styles.suggestionItem} ${idx === activeIdx ? styles.suggestionItemActive : ''}`}
+                onMouseDown={(e) => { e.preventDefault(); acceptHit(hit); }}
+              >
+                <span className={styles.suggestionItemMain}>
+                  {hit.address_line_1}
+                  {hit.address_line_2 ? `, ${hit.address_line_2}` : ''}
+                  {hit.locality ? `, ${hit.locality}` : ''}
+                </span>
+                {hit.eircode && (
+                  <span className={styles.suggestionItemEircode}>{hit.eircode}</span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Manual fields — editable after auto-fill or for manual entry */}
       <div className={styles.grid2}>
         <div className={styles.field}>
           <span>County</span>
@@ -133,14 +202,14 @@ export default function EircodeAddressForm({
           </select>
         </div>
         <div className={styles.field}>
-          <span>City</span>
+          <span>City / Town</span>
           <select
             className={styles.select}
             value={value.locality ?? ''}
             onChange={(e) => reset({ locality: e.target.value })}
             disabled={!value.county}
           >
-            <option value="">Select city</option>
+            <option value="">Select city / town</option>
             {cityOptions.map((item) => (
               <option key={item} value={item}>{item}</option>
             ))}
