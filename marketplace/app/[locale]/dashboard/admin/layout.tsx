@@ -3,16 +3,14 @@ import { redirect } from 'next/navigation';
 
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import AdminSidebarLayout from '@/components/admin/AdminSidebarLayout';
 
 /**
- * Admin section layout guard.
+ * Admin section layout — persistent sidebar + auth guard.
  *
- * Runs server-side on every admin route (stats, verification, risk, gdpr,
- * analytics, applications, audit-logs, status). Redirects unauthenticated
- * users to login and non-admins to /dashboard.
- *
- * Defence-in-depth — individual sub-pages may still check roles for their
- * own API calls, but this layout prevents loading admin UI entirely.
+ * The sidebar stays mounted across all admin routes; only the content area
+ * (`{children}`) is replaced on navigation, giving SPA-like feel without
+ * client-side routing complexity.
  */
 export default async function AdminLayout({
   children,
@@ -36,5 +34,31 @@ export default async function AdminLayout({
     redirect(`/${locale}/dashboard`);
   }
 
-  return <>{children}</>;
+  // Fetch badge counts for sidebar (non-fatal — defaults to 0 on error)
+  let pendingVerification = 0;
+  let pendingDocs = 0;
+  try {
+    const [{ count: pv }, { count: pd }] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('id', { count: 'exact', head: true })
+        .eq('verification_status', 'pending'),
+      supabase
+        .from('pro_documents')
+        .select('id', { count: 'exact', head: true })
+        .eq('verification_status', 'pending'),
+    ]);
+    pendingVerification = pv ?? 0;
+    pendingDocs = pd ?? 0;
+  } catch { /* non-fatal */ }
+
+  return (
+    <AdminSidebarLayout
+      locale={locale}
+      pendingVerification={pendingVerification}
+      pendingDocs={pendingDocs}
+    >
+      {children}
+    </AdminSidebarLayout>
+  );
 }

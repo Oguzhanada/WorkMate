@@ -249,6 +249,92 @@ async function checkAnthropic(): Promise<HealthCheckResult> {
   }
 }
 
+async function checkIdealPostcodes(): Promise<HealthCheckResult> {
+  const provider = process.env.ADDRESS_PROVIDER ?? 'none';
+  if (provider !== 'ideal_postcodes') {
+    return {
+      name: 'IdealPostcodes',
+      status: 'disabled',
+      latency_ms: 0,
+      message: 'ADDRESS_PROVIDER is not set to ideal_postcodes',
+      checked_at: new Date().toISOString(),
+    };
+  }
+
+  const key = process.env.IDEAL_POSTCODES_API_KEY;
+  if (!key) {
+    return {
+      name: 'IdealPostcodes',
+      status: 'disabled',
+      latency_ms: 0,
+      message: 'IDEAL_POSTCODES_API_KEY not configured',
+      checked_at: new Date().toISOString(),
+    };
+  }
+
+  const start = Date.now();
+  try {
+    // Lightweight ping — check a known valid Eircode (Dublin 2 landmark)
+    const res = await withTimeout(
+      fetch(`https://api.ideal-postcodes.co.uk/v1/eircodes/D02X285?api_key=${key}`),
+      CHECK_TIMEOUT_MS
+    );
+    return {
+      name: 'IdealPostcodes',
+      status: res.ok || res.status === 404 ? 'healthy' : 'degraded',
+      latency_ms: Date.now() - start,
+      message: res.ok || res.status === 404 ? undefined : `HTTP ${res.status}`,
+      checked_at: new Date().toISOString(),
+    };
+  } catch (err) {
+    return {
+      name: 'IdealPostcodes',
+      status: 'down',
+      latency_ms: Date.now() - start,
+      message: err instanceof Error ? err.message : 'Unknown error',
+      checked_at: new Date().toISOString(),
+    };
+  }
+}
+
+async function checkVercel(): Promise<HealthCheckResult> {
+  const baseUrl = process.env.NEXT_PUBLIC_PLATFORM_BASE_URL ?? process.env.VERCEL_URL;
+
+  if (!baseUrl) {
+    return {
+      name: 'Vercel',
+      status: 'disabled',
+      latency_ms: 0,
+      message: 'NEXT_PUBLIC_PLATFORM_BASE_URL not set',
+      checked_at: new Date().toISOString(),
+    };
+  }
+
+  const start = Date.now();
+  try {
+    const normalised = baseUrl.startsWith('http') ? baseUrl : `https://${baseUrl}`;
+    const res = await withTimeout(
+      fetch(`${normalised}/api/health`, { method: 'GET' }),
+      CHECK_TIMEOUT_MS
+    );
+    return {
+      name: 'Vercel',
+      status: res.ok ? 'healthy' : res.status < 500 ? 'degraded' : 'down',
+      latency_ms: Date.now() - start,
+      message: res.ok ? undefined : `HTTP ${res.status}`,
+      checked_at: new Date().toISOString(),
+    };
+  } catch (err) {
+    return {
+      name: 'Vercel',
+      status: 'down',
+      latency_ms: Date.now() - start,
+      message: err instanceof Error ? err.message : 'Unknown error',
+      checked_at: new Date().toISOString(),
+    };
+  }
+}
+
 async function checkSentry(): Promise<HealthCheckResult> {
   const dsn = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN;
 
@@ -308,6 +394,8 @@ export async function runAllHealthChecks(
     checkResend(),
     checkAnthropic(),
     checkSentry(),
+    checkIdealPostcodes(),
+    checkVercel(),
   ]);
 
   const overallStatus = deriveOverallStatus(services);
@@ -327,7 +415,7 @@ export async function runAllHealthChecks(
  * Run a single service check by name.
  */
 export async function checkService(
-  name: 'supabase' | 'stripe' | 'resend' | 'anthropic' | 'sentry'
+  name: 'supabase' | 'stripe' | 'resend' | 'anthropic' | 'sentry' | 'idealpostcodes' | 'vercel'
 ): Promise<HealthCheckResult> {
   switch (name) {
     case 'supabase':
@@ -340,6 +428,10 @@ export async function checkService(
       return checkAnthropic();
     case 'sentry':
       return checkSentry();
+    case 'idealpostcodes':
+      return checkIdealPostcodes();
+    case 'vercel':
+      return checkVercel();
   }
 }
 

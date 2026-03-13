@@ -20,7 +20,7 @@ async function getHandler(request: NextRequest) {
 
   let query = svc
     .from('profiles')
-    .select('id,full_name,email,risk_score,risk_flags,risk_reviewed_at,verification_status')
+    .select('id,full_name,risk_score,risk_flags,risk_reviewed_at,verification_status')
     .gt('risk_score', 0)
     .order('risk_score', { ascending: false });
 

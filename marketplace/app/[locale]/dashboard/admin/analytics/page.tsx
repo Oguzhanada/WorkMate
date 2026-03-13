@@ -7,9 +7,20 @@ import Button from '@/components/ui/Button';
 import StatCard from '@/components/ui/StatCard';
 import Badge from '@/components/ui/Badge';
 import EmptyState from '@/components/ui/EmptyState';
-import { TrendingDown, ArrowRight } from 'lucide-react';
+import { TrendingDown, ArrowRight, Users, Briefcase, FileText, AlertTriangle } from 'lucide-react';
 
-export const metadata = { title: 'Funnel Analytics — WorkMate Admin' };
+export const metadata = { title: 'Analytics — WorkMate Admin' };
+
+// ─── Platform overview types ──────────────────────────────────────────────────
+
+type PlatformStats = {
+  customers: number;
+  verified_pros: number;
+  open_jobs: number;
+  total_quotes: number;
+  high_risk_providers: number;
+  pending_applications: number;
+};
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -322,6 +333,88 @@ function FunnelDropOffPanel({ groups }: { groups: FunnelGroup[] }) {
   );
 }
 
+function PlatformOverview({ stats, locale }: { stats: PlatformStats; locale: string }) {
+  const items = [
+    {
+      label: 'Customers',
+      value: stats.customers,
+      icon: <Users size={16} />,
+      href: `/${locale}/dashboard/admin`,
+      accent: 'navy' as const,
+    },
+    {
+      label: 'Verified Pros',
+      value: stats.verified_pros,
+      icon: <Users size={16} />,
+      href: `/${locale}/dashboard/admin/applications`,
+      accent: 'primary' as const,
+    },
+    {
+      label: 'Open Jobs',
+      value: stats.open_jobs,
+      icon: <Briefcase size={16} />,
+      href: `/${locale}/dashboard/admin/jobs`,
+      accent: 'blue' as const,
+    },
+    {
+      label: 'Total Quotes',
+      value: stats.total_quotes,
+      icon: <FileText size={16} />,
+      href: `/${locale}/dashboard/admin`,
+      accent: 'amber' as const,
+    },
+    {
+      label: 'High Risk Providers',
+      value: stats.high_risk_providers,
+      icon: <AlertTriangle size={16} />,
+      href: `/${locale}/dashboard/admin/risk`,
+      accent: 'amber' as const,
+    },
+    {
+      label: 'Pending Applications',
+      value: stats.pending_applications,
+      icon: <FileText size={16} />,
+      href: `/${locale}/dashboard/admin/applications`,
+      accent: 'navy' as const,
+    },
+  ];
+
+  return (
+    <div
+      className="rounded-2xl border p-6"
+      style={{ borderColor: 'var(--wm-border)', background: 'var(--wm-surface)', boxShadow: 'var(--wm-shadow-sm)' }}
+    >
+      <h2
+        className="mb-4 text-base font-bold"
+        style={{ fontFamily: 'var(--wm-font-display)', color: 'var(--wm-navy)' }}
+      >
+        Platform Overview
+      </h2>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        {items.map((item) => (
+          <a
+            key={item.label}
+            href={item.href}
+            className="group flex flex-col gap-1.5 rounded-xl border p-3 transition-colors hover:border-[var(--wm-primary)] hover:bg-[var(--wm-primary-faint,rgba(22,155,98,0.05))]"
+            style={{ borderColor: 'var(--wm-border)', textDecoration: 'none' }}
+          >
+            <div className="flex items-center gap-1.5" style={{ color: 'var(--wm-muted)' }}>
+              {item.icon}
+              <span className="text-xs font-semibold">{item.label}</span>
+            </div>
+            <span
+              className="text-2xl font-extrabold tabular-nums"
+              style={{ color: 'var(--wm-navy)', fontFamily: 'var(--wm-font-display)' }}
+            >
+              {item.value.toLocaleString()}
+            </span>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function DateFilterBar({ locale, currentDays }: { locale: string; currentDays: DaysParam }) {
   const options: { label: string; value: DaysParam }[] = [
     { label: 'Last 7 days', value: '7' },
@@ -377,6 +470,32 @@ export default async function AdminAnalyticsPage({
   const rawDays = sp?.days;
   const days: DaysParam =
     rawDays === '7' || rawDays === '30' ? rawDays : 'all';
+
+  // Platform overview stats (parallel fetch)
+  const platformStats: PlatformStats = { customers: 0, verified_pros: 0, open_jobs: 0, total_quotes: 0, high_risk_providers: 0, pending_applications: 0 };
+  try {
+    const [
+      { count: customers },
+      { count: verified_pros },
+      { count: open_jobs },
+      { count: total_quotes },
+      { count: high_risk_providers },
+      { count: pending_applications },
+    ] = await Promise.all([
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'customer'),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'verified_pro'),
+      supabase.from('jobs').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+      supabase.from('quotes').select('id', { count: 'exact', head: true }),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).gt('risk_score', 74),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('verification_status', 'pending'),
+    ]);
+    platformStats.customers = customers ?? 0;
+    platformStats.verified_pros = verified_pros ?? 0;
+    platformStats.open_jobs = open_jobs ?? 0;
+    platformStats.total_quotes = total_quotes ?? 0;
+    platformStats.high_risk_providers = high_risk_providers ?? 0;
+    platformStats.pending_applications = pending_applications ?? 0;
+  } catch { /* non-fatal */ }
 
   // Fetch data from API (server-side, cookies forwarded automatically via supabase client)
   let funnelData: FunnelRow[] = [];
@@ -451,14 +570,17 @@ export default async function AdminAnalyticsPage({
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-8">
         {/* Header */}
         <PageHeader
-          title="Funnel Analytics"
-          description="Step-by-step conversion rates across job posting, provider onboarding, and booking funnels."
+          title="Analytics"
+          description="Platform overview and step-by-step conversion rates across all key funnels."
           action={
             <Button href={`/${locale}/dashboard/admin`} variant="secondary" size="sm">
               Back to Dashboard
             </Button>
           }
         />
+
+        {/* Platform overview */}
+        <PlatformOverview stats={platformStats} locale={locale} />
 
         {/* Summary stats */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -509,10 +631,17 @@ export default async function AdminAnalyticsPage({
           />
         </div>
 
-        {/* Date filter */}
-        <DateFilterBar locale={locale} currentDays={days} />
+        {/* Date filter + drop-off summary */}
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <DateFilterBar locale={locale} currentDays={days} />
+          {!fetchError && groups.length > 0 && (
+            <span className="text-xs" style={{ color: 'var(--wm-muted)' }}>
+              Showing {groups.reduce((n, g) => n + g.steps.reduce((s, step) => s + step.count, 0), 0).toLocaleString()} total events
+            </span>
+          )}
+        </div>
 
-        {/* Conversion & Drop-Off Summary — derived from the same funnel data */}
+        {/* Conversion & Drop-Off Summary */}
         {!fetchError && groups.length > 0 && (
           <FunnelDropOffPanel groups={groups} />
         )}
@@ -561,7 +690,7 @@ export default async function AdminAnalyticsPage({
           >
             <p className="text-xs" style={{ color: 'var(--wm-muted)' }}>
               Bar width = % of step 1 count (conversion from funnel entry).
-              "(prev)" shown on wide screens = drop-off from preceding step.
+              &ldquo;(prev)&rdquo; shown on wide screens = drop-off from preceding step.
               Data period: {days === 'all' ? 'all time' : `last ${days} days`}.
             </p>
           </div>

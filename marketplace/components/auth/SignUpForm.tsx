@@ -1,13 +1,12 @@
 "use client";
 
 import Link from 'next/link';
-import {FormEvent, useCallback, useEffect, useMemo, useState} from 'react';
+import {FormEvent, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {usePathname, useRouter} from 'next/navigation';
 import {motion} from 'framer-motion';
 import {
   AtSign,
   CheckCircle2,
-  CircleX,
   Eye,
   EyeOff,
   Loader2,
@@ -129,6 +128,13 @@ type FieldErrors = Partial<Record<keyof SignUpFormData, string>>;
 
 type EircodeStatus = 'idle' | 'validating' | 'valid' | 'invalid';
 
+type EircodeSuggestion = {
+  line1: string | null;
+  line2: string | null;
+  postTown: string | null;
+  county: string | null;
+};
+
 type SignUpDraft = {
   role: AccountRole;
   form: SignUpFormData;
@@ -204,7 +210,7 @@ function validatePhone(masked: string) {
   return undefined;
 }
 
-function validateByRole(role: AccountRole, form: SignUpFormData, eircodeStatus: EircodeStatus) {
+function validateByRole(role: AccountRole, form: SignUpFormData) {
   const common = commonSchema
     .refine((data) => data.password === data.confirmPassword, {
       message: 'Passwords do not match.',
@@ -237,9 +243,7 @@ function validateByRole(role: AccountRole, form: SignUpFormData, eircodeStatus: 
         }
       }
     }
-    if (eircodeStatus !== 'valid') {
-      errors.eircode = 'Please validate your Eircode first.';
-    }
+    // eircode validated automatically via debounced lookup; no manual button needed
   }
 
   return errors;
@@ -282,6 +286,10 @@ export function SignUpForm() {
   const [isPending, setIsPending] = useState(false);
   const [oauthPending, setOauthPending] = useState<'' | 'google' | 'facebook'>('');
   const [eircodeStatus, setEircodeStatus] = useState<EircodeStatus>('idle');
+  const [eircodeLoading, setEircodeLoading] = useState(false);
+  const [eircodeSuggestion, setEircodeSuggestion] = useState<EircodeSuggestion | null>(null);
+  const [eircodeDropdownOpen, setEircodeDropdownOpen] = useState(false);
+  const eircodeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleTurnstileVerify = useCallback((token: string) => setCfToken(token), []);
   const handleTurnstileExpire = useCallback(() => setCfToken(''), []);
@@ -341,6 +349,59 @@ export function SignUpForm() {
     return orderedCounties.filter((county) => county.toLowerCase().includes(q));
   }, [countyQuery]);
 
+  // Debounced Eircode autocomplete lookup
+  useEffect(() => {
+    if (role !== 'provider') return;
+    const raw = form.eircode.trim().toUpperCase();
+    const compact = raw.replace(/\s/g, '');
+    if (compact.length < 7) {
+      setEircodeSuggestion(null);
+      setEircodeDropdownOpen(false);
+      return;
+    }
+    if (eircodeDebounceRef.current) clearTimeout(eircodeDebounceRef.current);
+    eircodeDebounceRef.current = setTimeout(async () => {
+      setEircodeLoading(true);
+      try {
+        const res = await fetch(`/api/address-lookup?eircode=${encodeURIComponent(raw)}`);
+        if (!res.ok) { setEircodeSuggestion(null); setEircodeDropdownOpen(false); return; }
+        const json = await res.json();
+        const addr = json.address ?? {};
+        if (addr.line_1 || addr.post_town) {
+          setEircodeSuggestion({ line1: addr.line_1 ?? null, line2: addr.line_2 ?? null, postTown: addr.post_town ?? null, county: addr.county ?? null });
+          setEircodeDropdownOpen(true);
+        } else {
+          setEircodeSuggestion(null);
+          setEircodeDropdownOpen(false);
+          setEircodeStatus('valid');
+        }
+      } catch { /* ignore */ }
+      finally { setEircodeLoading(false); }
+    }, 700);
+    return () => { if (eircodeDebounceRef.current) clearTimeout(eircodeDebounceRef.current); };
+   
+  }, [form.eircode, role]);
+
+  const applyEircodeSuggestion = () => {
+    if (!eircodeSuggestion) return;
+    const updates: Partial<SignUpFormData> = {};
+    if (eircodeSuggestion.line1) updates.address1 = eircodeSuggestion.line1;
+    if (eircodeSuggestion.line2) updates.address2 = eircodeSuggestion.line2;
+    if (eircodeSuggestion.postTown) updates.city = eircodeSuggestion.postTown;
+    if (eircodeSuggestion.county) {
+      const raw = eircodeSuggestion.county.replace(/^County\s+/i, '').trim();
+      const matched = (orderedCounties as readonly string[]).find(
+        (c) => c.toLowerCase() === raw.toLowerCase()
+      );
+      if (matched) { updates.county = matched; updates.city = eircodeSuggestion.postTown || updates.city || ''; }
+    }
+    setForm((prev) => ({ ...prev, ...updates }));
+    setEircodeStatus('valid');
+    setEircodeDropdownOpen(false);
+    setEircodeSuggestion(null);
+    setErrors((prev) => ({ ...prev, eircode: undefined }));
+  };
+
   const updateField = <K extends keyof SignUpFormData>(key: K, value: SignUpFormData[K]) => {
     setForm((prev) => ({...prev, [key]: value}));
     if (errors[key]) {
@@ -348,36 +409,11 @@ export function SignUpForm() {
     }
     if (key === 'eircode') {
       setEircodeStatus('idle');
+      setEircodeSuggestion(null);
+      setEircodeDropdownOpen(false);
     }
   };
 
-  const handleAddressLookup = async () => {
-    const parsedEircode = normalizeEircode(form.eircode);
-    setFormError('');
-
-    if (!parsedEircode.trim()) {
-      setEircodeStatus('invalid');
-      setErrors((prev) => ({...prev, eircode: 'Please enter your Eircode.'}));
-      return;
-    }
-
-    setEircodeStatus('validating');
-
-    try {
-      const response = await fetch(`/api/address-lookup?eircode=${encodeURIComponent(parsedEircode)}`);
-      if (response.ok) {
-        setEircodeStatus('valid');
-        setSuccess('✅ Valid Eircode');
-        setErrors((prev) => ({...prev, eircode: undefined}));
-      } else {
-        setEircodeStatus('invalid');
-        setErrors((prev) => ({...prev, eircode: '❌ Invalid Eircode'}));
-      }
-    } catch {
-      setEircodeStatus('invalid');
-      setErrors((prev) => ({...prev, eircode: '❌ Invalid Eircode'}));
-    }
-  };
 
   const signUpWithOAuth = async (provider: 'google' | 'facebook') => {
     setFormError('');
@@ -414,7 +450,7 @@ export function SignUpForm() {
     setFormError('');
     setSuccess('');
 
-    const validationErrors = validateByRole(role, form, eircodeStatus);
+    const validationErrors = validateByRole(role, form);
 
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -616,6 +652,43 @@ export function SignUpForm() {
 
           {role === 'provider' ? (
             <>
+              {/* Eircode first — autocomplete fills the fields below */}
+              <label className={`${styles.field} ${styles.fullWidth}`} style={{ position: 'relative' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  Eircode
+                  {eircodeLoading && <Loader2 size={13} className={styles.spinner} style={{ color: 'var(--wm-muted)' }} />}
+                  {eircodeStatus === 'valid' && !eircodeLoading && <CheckCircle2 size={13} color="var(--wm-primary)" />}
+                </span>
+                <div className={styles.inputWrap} style={eircodeInputStyle}>
+                  <MapPin size={16} aria-hidden="true" />
+                  <input
+                    value={form.eircode}
+                    onChange={(event) => updateField('eircode', normalizeEircode(event.target.value))}
+                    placeholder="D02 X285 — start typing to auto-fill address"
+                    autoComplete="off"
+                    onBlur={() => setEircodeDropdownOpen(false)}
+                    onFocus={() => { if (eircodeSuggestion) setEircodeDropdownOpen(true); }}
+                  />
+                </div>
+                {eircodeDropdownOpen && eircodeSuggestion && (
+                  <div className={styles.eircodeDropdown} onMouseDown={(e) => e.preventDefault()}>
+                    <button
+                      type="button"
+                      className={styles.eircodeDropdownItem}
+                      onClick={applyEircodeSuggestion}
+                    >
+                      <span className={styles.eircodeDropdownMain}>
+                        {[eircodeSuggestion.line1, eircodeSuggestion.line2].filter(Boolean).join(', ')}
+                      </span>
+                      <span className={styles.eircodeDropdownSub}>
+                        {[eircodeSuggestion.postTown, eircodeSuggestion.county].filter(Boolean).join(', ')}
+                      </span>
+                    </button>
+                  </div>
+                )}
+                {errors.eircode ? <p className={styles.fieldError}>{errors.eircode}</p> : null}
+              </label>
+
               <label className={`${styles.field} ${styles.fullWidth}`}>
                 <span>Address line 1 (Street + house number)</span>
                 <div className={styles.inputWrap}>
@@ -683,42 +756,6 @@ export function SignUpForm() {
                 </div>
                 {errors.city ? <p className={styles.fieldError}>{errors.city}</p> : null}
               </label>
-
-              <label className={styles.field}>
-                <span>Eircode</span>
-                <div className={styles.fieldButtonRow}>
-                  <div className={styles.inputWrap} style={{flex: 1, ...eircodeInputStyle}}>
-                    <input
-                      value={form.eircode}
-                      onChange={(event) => updateField('eircode', normalizeEircode(event.target.value))}
-                      placeholder="D02 23B5"
-                    />
-                    {eircodeStatus === 'valid' ? <CheckCircle2 size={16} color="var(--wm-primary)" /> : null}
-                    {eircodeStatus === 'invalid' ? <CircleX size={16} color="var(--wm-destructive)" /> : null}
-                  </div>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className={styles.smallButton}
-                    onClick={handleAddressLookup}
-                    disabled={eircodeStatus === 'validating'}
-                  >
-                    {eircodeStatus === 'validating' ? (
-                      <>
-                        <Loader2 size={14} className={styles.spinner} /> Validating...
-                      </>
-                    ) : eircodeStatus === 'valid' ? (
-                      '✅ Valid'
-                    ) : eircodeStatus === 'invalid' ? (
-                      '❌ Invalid'
-                    ) : (
-                      'Validate'
-                    )}
-                  </Button>
-                </div>
-                {errors.eircode ? <p className={styles.fieldError}>{errors.eircode}</p> : null}
-              </label>
-
             </>
           ) : null}
 
