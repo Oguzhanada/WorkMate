@@ -13,9 +13,9 @@ if (-not (Test-Path -LiteralPath $TargetRoot)) {
   New-Item -ItemType Directory -Path $TargetRoot -Force | Out-Null
 }
 
-$sourceSkills = Get-ChildItem -LiteralPath $sourceRoot -Directory | Where-Object { $_.Name -like "workmate-*" }
+$sourceSkills = Get-ChildItem -LiteralPath $sourceRoot -Directory | Where-Object { Test-Path (Join-Path $_.FullName "SKILL.md") }
 if ($sourceSkills.Count -eq 0) {
-  Write-Host "No workmate-* skills found under $sourceRoot" -ForegroundColor Yellow
+  Write-Host "No skills with SKILL.md found under $sourceRoot" -ForegroundColor Yellow
   exit 0
 }
 

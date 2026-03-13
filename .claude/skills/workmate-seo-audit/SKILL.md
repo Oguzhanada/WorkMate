@@ -1,6 +1,10 @@
 ---
 name: workmate-seo-audit
 description: Audit SEO metadata across all WorkMate pages. Checks for missing <title>, meta description, Open Graph tags, and JSON-LD structured data. Use when reviewing SEO completeness, preparing for launch, or after adding new pages.
+metadata:
+  severity: standard
+  last_synced: 2026-03-13
+  synced_with: FD-11
 ---
 
 # WorkMate SEO Audit

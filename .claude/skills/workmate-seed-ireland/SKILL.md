@@ -1,6 +1,10 @@
 ---
 name: workmate-seed-ireland
 description: WorkMate Ireland seed data management. Use when running the seed script, adding new seed entries, resetting demo data, or verifying seed output in Supabase. Covers demo accounts, data patterns, and post-seed validation steps.
+metadata:
+  severity: standard
+  last_synced: 2026-03-13
+  synced_with: FD-09
 ---
 
 # WorkMate Ireland Seed Data
