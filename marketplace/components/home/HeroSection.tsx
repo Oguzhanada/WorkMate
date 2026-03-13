@@ -237,7 +237,7 @@ export default function HeroSection() {
                     if (suggestions.length > 0) setShowSuggestions(true);
                   }}
                   placeholder="What do you need done?"
-                  className="w-full border-none bg-transparent text-sm font-medium outline-none placeholder:text-white/30"
+                  className="w-full border-none bg-transparent text-sm font-medium outline-none placeholder:text-soft"
                   style={{ color: 'white', fontFamily: 'var(--wm-font-sans)' }}
                   autoComplete="off"
                   aria-autocomplete="list"
