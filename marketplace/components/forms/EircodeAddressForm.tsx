@@ -210,6 +210,10 @@ export default function EircodeAddressForm({
             disabled={!value.county}
           >
             <option value="">Select city / town</option>
+            {/* Show auto-filled locality from API even if not in predefined list */}
+            {value.locality && !cityOptions.includes(value.locality) && (
+              <option key="__api__" value={value.locality}>{value.locality}</option>
+            )}
             {cityOptions.map((item) => (
               <option key={item} value={item}>{item}</option>
             ))}
