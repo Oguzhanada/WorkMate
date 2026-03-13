@@ -35,6 +35,7 @@ export default function EircodeAddressForm({
   const [loading, setLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [activeIdx, setActiveIdx] = useState(-1);
+  const [eircodeError, setEircodeError] = useState<string | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const isInitialRender = useRef(true);
 
@@ -50,6 +51,7 @@ export default function EircodeAddressForm({
     setShowDropdown(false);
     setHits([]);
     setActiveIdx(-1);
+    setEircodeError(null);
     onChange({
       ...value,
       eircode,
@@ -131,7 +133,7 @@ export default function EircodeAddressForm({
       {/* Eircode / address search field */}
       <div style={{ position: 'relative' }} ref={wrapperRef}>
         <label className={styles.field}>
-          <span>Eircode or address</span>
+          <span>Eircode or address <span style={{ color: 'var(--wm-error, #ef4444)' }}>*</span></span>
           <input
             className={`${styles.input} ${value.eircode_valid && value.eircode ? styles.inputOk : ''}`}
             value={query}
@@ -146,7 +148,12 @@ export default function EircodeAddressForm({
               }
               setActiveIdx(-1);
             }}
-            onFocus={() => { if (hits.length) setShowDropdown(true); }}
+            onFocus={() => { if (hits.length) setShowDropdown(true); setEircodeError(null); }}
+            onBlur={() => {
+              if (query.trim() && !value.eircode_valid) {
+                setEircodeError('Please select a valid address from the suggestions.');
+              }
+            }}
             onKeyDown={onKeyDown}
           />
         </label>
@@ -154,6 +161,11 @@ export default function EircodeAddressForm({
         {loading && (
           <p className={styles.muted} style={{ fontSize: '0.8rem', margin: '3px 0 0' }}>
             Searching…
+          </p>
+        )}
+        {eircodeError && !loading && (
+          <p style={{ fontSize: '0.75rem', color: 'var(--wm-error, #ef4444)', margin: '3px 0 0' }}>
+            {eircodeError}
           </p>
         )}
 

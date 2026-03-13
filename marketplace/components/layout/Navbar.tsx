@@ -440,8 +440,9 @@ export default function Navbar() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-            className="overflow-hidden lg:hidden"
+            className="overflow-y-auto lg:hidden"
             style={{
+              maxHeight: 'calc(100vh - 60px)',
               background: 'var(--wm-glass)',
               backdropFilter: 'blur(20px) saturate(1.2)',
               borderTop: '1px solid var(--wm-border-soft)',

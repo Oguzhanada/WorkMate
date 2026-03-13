@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Home, FilePlus, Briefcase, Map, Heart, CalendarCheck, Scale, Gift } from 'lucide-react';
 import type { CustomerDashboardData } from './types';
 
 const STATUS_ORDER = ['open', 'quoted', 'accepted', 'in_progress', 'completed'];
@@ -10,14 +11,14 @@ const STATUS_COLORS = ['var(--wm-primary)', 'var(--wm-navy-mid)', 'var(--wm-gold
 const STATUS_BG_RGB = ['var(--wm-primary-rgb)', 'var(--wm-navy-mid-rgb)', 'var(--wm-gold-rgb)', 'var(--wm-navy-mid-rgb)', null];
 
 const NAV = [
-  { icon: '🏠', label: 'Overview', path: '/dashboard/customer' },
-  { icon: '📝', label: 'Post a Job', path: '/post-job' },
-  { icon: '💼', label: 'My Jobs', path: '/jobs' },
-  { icon: '🗺️', label: 'Find Services', path: '/find-services' },
-  { icon: '❤️', label: 'Saved Providers', path: '/saved-providers' },
-  { icon: '💬', label: 'Appointments', path: '/dashboard/appointments' },
-  { icon: '⚖️', label: 'Disputes', path: '/dashboard/disputes' },
-  { icon: '🎁', label: 'Referrals', path: '/dashboard/referrals' },
+  { icon: Home, label: 'Overview', path: '/dashboard/customer' },
+  { icon: FilePlus, label: 'Post a Job', path: '/post-job' },
+  { icon: Briefcase, label: 'My Jobs', path: '/jobs' },
+  { icon: Map, label: 'Find Services', path: '/find-services' },
+  { icon: Heart, label: 'Saved Providers', path: '/saved-providers' },
+  { icon: CalendarCheck, label: 'Appointments', path: '/dashboard/appointments' },
+  { icon: Scale, label: 'Disputes', path: '/dashboard/disputes' },
+  { icon: Gift, label: 'Referrals', path: '/dashboard/referrals' },
 ];
 
 function MetricRow({ label, value, accent }: { label: string; value: string | number; accent?: string }) {
@@ -56,7 +57,7 @@ export default function CustomerDashboard({ data, locale }: { data: CustomerDash
               borderLeft: isActive ? '2px solid var(--wm-primary)' : '2px solid transparent',
               textDecoration: 'none', transition: 'all 0.12s',
             }}>
-              <span style={{ fontSize: '14px' }}>{item.icon}</span>
+              <item.icon size={15} aria-hidden="true" style={{ flexShrink: 0 }} />
               {item.label}
             </Link>
           );

@@ -586,9 +586,11 @@ export function SignUpForm() {
             <div className={styles.inputWrap}>
               <UserRound size={16} aria-hidden="true" />
               <input
+                type="text"
                 value={form.fullName}
                 onChange={(event) => updateField('fullName', event.target.value)}
                 placeholder="John Murphy"
+                autoComplete="name"
               />
             </div>
             {errors.fullName ? <p className={styles.fieldError}>{errors.fullName}</p> : null}
@@ -631,6 +633,7 @@ export function SignUpForm() {
                 }}
                 onBlur={() => updateField('phone', formatIrishPhone(normalizeIrishPhone(form.phone)))}
                 placeholder="+353 87 123 4567"
+                autoComplete="tel"
               />
             </div>
             {errors.phone ? <p className={styles.fieldError}>{errors.phone}</p> : null}
@@ -645,6 +648,7 @@ export function SignUpForm() {
                 value={form.email}
                 onChange={(event) => updateField('email', event.target.value)}
                 placeholder="your@email.com"
+                autoComplete="email"
               />
             </div>
             {errors.email ? <p className={styles.fieldError}>{errors.email}</p> : null}

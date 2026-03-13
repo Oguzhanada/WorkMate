@@ -388,6 +388,7 @@ export default function MapSearchView({ locale, initialFilters }: MapSearchViewP
           .search-list-panel {
             width: 100% !important;
             display: ${mobileView === 'list' ? 'flex' : 'none'} !important;
+            padding-bottom: 80px !important;
           }
           .search-map-panel {
             width: 100% !important;

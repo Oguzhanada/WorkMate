@@ -1,18 +1,19 @@
 'use client';
 
 import Link from 'next/link';
+import { Home, Bell, Banknote, Tag, Star, Calendar, ClipboardList, Gift, Scale } from 'lucide-react';
 import type { ProDashboardData } from './types';
 
 const NAV = [
-  { icon: '🏠', label: 'Overview', path: '/dashboard/pro' },
-  { icon: '🔔', label: 'Job Alerts', path: '/jobs' },
-  { icon: '💰', label: 'Earnings', path: '/dashboard/pro/earnings' },
-  { icon: '🏷️', label: 'Credits', path: '/dashboard/pro/credits' },
-  { icon: '⭐', label: 'Reviews', path: '/profile' },
-  { icon: '📅', label: 'Appointments', path: '/dashboard/appointments' },
-  { icon: '📋', label: 'Profile', path: '/profile' },
-  { icon: '🎁', label: 'Referrals', path: '/dashboard/referrals' },
-  { icon: '⚖️', label: 'Disputes', path: '/dashboard/disputes' },
+  { icon: Home, label: 'Overview', path: '/dashboard/pro' },
+  { icon: Bell, label: 'Job Alerts', path: '/jobs' },
+  { icon: Banknote, label: 'Earnings', path: '/dashboard/pro/earnings' },
+  { icon: Tag, label: 'Credits', path: '/dashboard/pro/credits' },
+  { icon: Star, label: 'Reviews', path: '/profile' },
+  { icon: Calendar, label: 'Appointments', path: '/dashboard/appointments' },
+  { icon: ClipboardList, label: 'Profile', path: '/profile' },
+  { icon: Gift, label: 'Referrals', path: '/dashboard/referrals' },
+  { icon: Scale, label: 'Disputes', path: '/dashboard/disputes' },
 ];
 
 function MetricRow({ label, value, accent, delta }: { label: string; value: string | number; accent?: string; delta?: string }) {
@@ -67,7 +68,7 @@ export default function ProDashboard({ data, locale }: { data: ProDashboardData;
               borderLeft: isActive ? '2px solid var(--wm-primary)' : '2px solid transparent',
               textDecoration: 'none', transition: 'all 0.12s',
             }}>
-              <span style={{ fontSize: '14px' }}>{item.icon}</span>
+              <item.icon size={15} aria-hidden="true" style={{ flexShrink: 0 }} />
               {item.label}
               {item.label === 'Job Alerts' && data.pendingAlerts > 0 && (
                 <span style={{ marginLeft: 'auto', background: 'var(--wm-primary)', color: '#fff', borderRadius: '10px', padding: '1px 7px', fontSize: '10px', fontWeight: 700 }}>
@@ -143,17 +144,17 @@ export default function ProDashboard({ data, locale }: { data: ProDashboardData;
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
               {[
-                { label: 'Job Alerts', href: `/${locale}/jobs`, badge: data.pendingAlerts, icon: '🔔' },
-                { label: 'Earnings', href: `/${locale}/dashboard/pro/earnings`, icon: '💰' },
-                { label: 'Credits', href: `/${locale}/dashboard/pro/credits`, icon: '🏷️' },
-                { label: 'Referrals', href: `/${locale}/dashboard/referrals`, icon: '🎁' },
+                { label: 'Job Alerts', href: `/${locale}/jobs`, badge: data.pendingAlerts, Icon: Bell },
+                { label: 'Earnings', href: `/${locale}/dashboard/pro/earnings`, Icon: Banknote },
+                { label: 'Credits', href: `/${locale}/dashboard/pro/credits`, Icon: Tag },
+                { label: 'Referrals', href: `/${locale}/dashboard/referrals`, Icon: Gift },
               ].map((a) => (
                 <Link key={a.href} href={a.href} style={{
                   display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 10px',
                   background: 'rgba(var(--wm-primary-rgb), 0.04)', border: '1px solid var(--wm-border)', borderRadius: '10px',
                   textDecoration: 'none', position: 'relative',
                 }}>
-                  <span style={{ fontSize: '14px' }}>{a.icon}</span>
+                  <a.Icon size={14} aria-hidden="true" style={{ color: 'var(--wm-muted)', flexShrink: 0 }} />
                   <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--wm-foreground)' }}>{a.label}</span>
                   {'badge' in a && (a.badge ?? 0) > 0 && (
                     <span style={{ position: 'absolute', top: '4px', right: '6px', background: 'var(--wm-primary)', color: '#fff', borderRadius: '8px', padding: '1px 5px', fontSize: '9px', fontWeight: 700 }}>
