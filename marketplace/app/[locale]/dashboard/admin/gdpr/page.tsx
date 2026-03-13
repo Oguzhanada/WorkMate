@@ -9,6 +9,8 @@ import StatCard from '@/components/ui/StatCard';
 import Badge from '@/components/ui/Badge';
 import EmptyState from '@/components/ui/EmptyState';
 import Card from '@/components/ui/Card';
+import AlertBanner from '@/components/ui/AlertBanner';
+import { useToast } from '@/components/ui/Toast';
 
 type DeletionRequest = {
   id: string;
@@ -44,6 +46,7 @@ export default function AdminGdprPage() {
   const params = useParams();
   const locale = typeof params?.locale === 'string' ? params.locale : 'en';
 
+  const { toast } = useToast();
   const [requests, setRequests] = useState<DeletionRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -91,8 +94,11 @@ export default function AdminGdprPage() {
       if (!res.ok) throw new Error(json.error ?? 'Deletion failed');
       // Remove from local state on success
       setRequests((prev) => prev.filter((r) => r.id !== request.id));
+      toast({ variant: 'success', title: 'Account deleted', description: 'All personal data has been permanently removed.' });
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Deletion failed. Please try again.');
+      const msg = e instanceof Error ? e.message : 'Deletion failed. Please try again.';
+      setError(msg);
+      toast({ variant: 'error', title: 'Deletion failed', description: msg });
     } finally {
       setProcessingId(null);
     }
@@ -164,18 +170,15 @@ export default function AdminGdprPage() {
         </div>
 
         {/* Error banner */}
-        {error ? (
-          <div
-            className="rounded-xl border px-4 py-3 text-sm"
-            style={{
-              borderColor: 'var(--wm-destructive)',
-              background: 'rgba(220,38,38,0.06)',
-              color: 'var(--wm-destructive)',
-            }}
-          >
-            {error}
-          </div>
-        ) : null}
+        {error && (
+          <AlertBanner
+            variant="error"
+            title="Action failed"
+            description={error}
+            dismissible
+            onDismiss={() => setError(null)}
+          />
+        )}
 
         {/* Table */}
         {!loading && requests.length === 0 ? (

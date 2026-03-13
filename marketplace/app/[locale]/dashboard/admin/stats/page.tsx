@@ -8,6 +8,11 @@ import PageHeader from '@/components/ui/PageHeader';
 import StatCard from '@/components/ui/StatCard';
 import Button from '@/components/ui/Button';
 import EmptyState from '@/components/ui/EmptyState';
+import AlertBanner from '@/components/ui/AlertBanner';
+import {
+  BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  ResponsiveContainer,
+} from 'recharts';
 
 import type { PlatformStats, MonthlyDataPoint } from '@/app/api/admin/stats/route';
 
@@ -24,89 +29,84 @@ const DATE_FILTER_LABELS: Record<DateFilter, string> = {
   all: 'All Time',
 };
 
-// ─── Growth bar chart ─────────────────────────────────────────────────────────
+// ─── Growth bar chart (recharts) ──────────────────────────────────────────────
+
+const CHART_EMERALD = '#169B62';
+const CHART_NAVY = '#1B2A4A';
+
+function GrowthChartTooltip({
+  active, payload, label,
+}: {
+  active?: boolean;
+  payload?: { name: string; value: number; color: string }[];
+  label?: string;
+}) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div
+      style={{
+        background: '#fff',
+        border: '1px solid #e2e8f0',
+        borderRadius: '10px',
+        padding: '10px 14px',
+        fontSize: '12px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.10)',
+      }}
+    >
+      {label && <p style={{ margin: '0 0 4px', fontWeight: 600, color: '#0f172a' }}>{label}</p>}
+      {payload.map((entry, i) => (
+        <p key={i} style={{ margin: '2px 0', color: entry.color }}>
+          <span style={{ fontWeight: 500 }}>{entry.name}: </span>
+          <span style={{ fontWeight: 700 }}>{entry.value.toLocaleString()}</span>
+        </p>
+      ))}
+    </div>
+  );
+}
 
 function GrowthChart({ data }: { data: MonthlyDataPoint[] }) {
   if (!data.length) return null;
 
-  const maxUsers = Math.max(...data.map((d) => d.new_users), 1);
-  const maxJobs = Math.max(...data.map((d) => d.new_jobs), 1);
-  const chartMax = Math.max(maxUsers, maxJobs, 1);
+  const chartData = data.map((point) => {
+    const [year, month] = point.month.split('-');
+    const label = new Date(Number(year), Number(month) - 1, 1).toLocaleString('en-IE', { month: 'short' });
+    return { month: label, 'New Users': point.new_users, 'New Jobs': point.new_jobs };
+  });
 
   return (
     <div
-      className="rounded-2xl border p-6 space-y-4"
+      className="rounded-2xl border p-5"
       style={{ borderColor: 'var(--wm-border)', background: 'var(--wm-surface)', boxShadow: 'var(--wm-shadow-sm)' }}
     >
-      {/* Legend */}
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span
-            className="inline-block h-3 w-3 rounded-sm"
-            style={{ background: 'var(--wm-primary)' }}
+      <ResponsiveContainer width="100%" height={200}>
+        <BarChart data={chartData} margin={{ top: 4, right: 4, left: -22, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+          <XAxis
+            dataKey="month"
+            tick={{ fontSize: 10, fill: '#64748b' }}
+            axisLine={false}
+            tickLine={false}
           />
-          <span className="text-xs font-semibold" style={{ color: 'var(--wm-muted)' }}>
-            New Users
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span
-            className="inline-block h-3 w-3 rounded-sm"
-            style={{ background: 'var(--wm-navy)' }}
+          <YAxis
+            allowDecimals={false}
+            tick={{ fontSize: 10, fill: '#64748b' }}
+            axisLine={false}
+            tickLine={false}
           />
-          <span className="text-xs font-semibold" style={{ color: 'var(--wm-muted)' }}>
-            New Jobs
-          </span>
-        </div>
-      </div>
-
-      {/* Bars */}
-      <div className="flex items-end gap-2 sm:gap-4" style={{ height: '160px' }}>
-        {data.map((point) => {
-          const userPct = Math.round((point.new_users / chartMax) * 100);
-          const jobPct = Math.round((point.new_jobs / chartMax) * 100);
-          const [year, month] = point.month.split('-');
-          const label = new Date(Number(year), Number(month) - 1, 1).toLocaleString('en-IE', {
-            month: 'short',
-          });
-          return (
-            <div key={point.month} className="flex flex-1 flex-col items-center gap-1">
-              {/* Bar group */}
-              <div className="flex w-full items-end justify-center gap-0.5" style={{ height: '140px' }}>
-                {/* Users bar */}
-                <div
-                  className="flex-1 rounded-t-md transition-all duration-500"
-                  style={{
-                    height: `${userPct}%`,
-                    minHeight: point.new_users > 0 ? '4px' : '0',
-                    background: 'var(--wm-primary)',
-                    opacity: 0.85,
-                  }}
-                  title={`${point.new_users} new users`}
-                />
-                {/* Jobs bar */}
-                <div
-                  className="flex-1 rounded-t-md transition-all duration-500"
-                  style={{
-                    height: `${jobPct}%`,
-                    minHeight: point.new_jobs > 0 ? '4px' : '0',
-                    background: 'var(--wm-navy)',
-                    opacity: 0.75,
-                  }}
-                  title={`${point.new_jobs} new jobs`}
-                />
-              </div>
-              {/* Month label */}
-              <span
-                className="text-[10px] font-bold uppercase tracking-wide"
-                style={{ color: 'var(--wm-muted)', fontFamily: 'var(--wm-font-display)' }}
-              >
-                {label}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+          <Tooltip content={<GrowthChartTooltip />} />
+          <Legend
+            iconType="circle"
+            iconSize={8}
+            wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }}
+          />
+          <Bar dataKey="New Users" fill={CHART_EMERALD} radius={[4, 4, 0, 0]}>
+            {chartData.map((_, i) => <Cell key={i} fill={CHART_EMERALD} />)}
+          </Bar>
+          <Bar dataKey="New Jobs" fill={CHART_NAVY} radius={[4, 4, 0, 0]} opacity={0.85}>
+            {chartData.map((_, i) => <Cell key={i} fill={CHART_NAVY} />)}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }
@@ -202,7 +202,7 @@ export default function AdminStatsPage() {
 
   if (loading) return null; // Suspense/loading.tsx handles skeleton
 
-  if (error) {
+  if (!loading && !stats && error) {
     return (
       <Shell>
         <EmptyState
@@ -240,6 +240,17 @@ export default function AdminStatsPage() {
             </div>
           }
         />
+
+        {/* Inline error alert (soft refresh failures) */}
+        {error && (
+          <AlertBanner
+            variant="error"
+            title="Failed to refresh stats"
+            description={error}
+            dismissible
+            onDismiss={() => setError(null)}
+          />
+        )}
 
         {/* Date filter */}
         <div

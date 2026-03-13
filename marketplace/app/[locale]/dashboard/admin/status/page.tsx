@@ -5,6 +5,7 @@ import Shell from '@/components/ui/Shell';
 import PageHeader from '@/components/ui/PageHeader';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
+import AlertBanner from '@/components/ui/AlertBanner';
 import type { DetailedHealthResponse, HealthCheckResult, ServiceStatus } from '@/lib/monitoring/health-checks';
 
 const REFRESH_INTERVAL_MS = 60_000;
@@ -47,7 +48,11 @@ function ServiceCard({ service }: { service: HealthCheckResult }) {
         <div className="flex items-center gap-2.5">
           <span
             className="inline-block h-2.5 w-2.5 rounded-full"
-            style={{ backgroundColor: config.dot }}
+            style={{
+              backgroundColor: config.dot,
+              boxShadow: service.status === 'healthy' ? `0 0 0 0 ${config.dot}` : undefined,
+              animation: service.status === 'healthy' ? 'statusPulse 2s infinite' : undefined,
+            }}
           />
           <h3
             className="text-base font-semibold"
@@ -167,10 +172,13 @@ export default function AdminStatusPage() {
             <>
               <span
                 className="inline-block h-3 w-3 rounded-full"
-                style={{ backgroundColor: overallConfig.dot }}
+                style={{
+                  backgroundColor: overallConfig.dot,
+                  animation: data?.status === 'healthy' ? 'statusPulse 2s infinite' : undefined,
+                }}
               />
-              <span className="text-sm font-medium" style={{ color: 'var(--wm-text-default)' }}>
-                Overall: {overallConfig.label}
+              <span className="text-sm font-semibold" style={{ color: 'var(--wm-text-default)' }}>
+                {overallConfig.label === 'Healthy' ? 'All Systems Operational' : `Overall: ${overallConfig.label}`}
               </span>
             </>
           )}
@@ -197,15 +205,14 @@ export default function AdminStatusPage() {
 
       {/* Error state */}
       {error && (
-        <div
-          className="mb-6 rounded-2xl border px-5 py-4 text-sm"
-          style={{
-            borderColor: 'var(--wm-destructive)',
-            background: 'var(--wm-destructive-light)',
-            color: 'var(--wm-destructive)',
-          }}
-        >
-          {error}
+        <div className="mb-6">
+          <AlertBanner
+            variant="error"
+            title="Health check failed"
+            description={error}
+            dismissible
+            onDismiss={() => setError(null)}
+          />
         </div>
       )}
 
@@ -230,6 +237,14 @@ export default function AdminStatusPage() {
           ))}
         </div>
       )}
+
+      <style>{`
+        @keyframes statusPulse {
+          0%   { box-shadow: 0 0 0 0 rgba(22,155,98,0.5); }
+          70%  { box-shadow: 0 0 0 6px rgba(22,155,98,0); }
+          100% { box-shadow: 0 0 0 0 rgba(22,155,98,0); }
+        }
+      `}</style>
     </Shell>
   );
 }
