@@ -8,6 +8,7 @@ import StatCard from '@/components/ui/StatCard';
 import Badge from '@/components/ui/Badge';
 import EmptyState from '@/components/ui/EmptyState';
 import { TrendingDown, ArrowRight, Users, Briefcase, FileText, AlertTriangle } from 'lucide-react';
+import AdminAnalyticsCharts from '@/components/admin/AdminAnalyticsCharts';
 
 export const metadata = { title: 'Analytics — WorkMate Admin' };
 
@@ -497,6 +498,43 @@ export default async function AdminAnalyticsPage({
     platformStats.pending_applications = pending_applications ?? 0;
   } catch { /* non-fatal */ }
 
+  // Weekly registrations for charts (last 7 days)
+  let weeklyRegistrations: { day: string; count: number }[] = [];
+  try {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+    const { data: regRows } = await supabase
+      .from('profiles')
+      .select('created_at')
+      .gte('created_at', sevenDaysAgo);
+
+    const now = new Date();
+    const dayMap: Record<string, number> = {};
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 86400000);
+      dayMap[d.toISOString().split('T')[0]] = 0;
+    }
+    for (const row of regRows ?? []) {
+      const day = (row.created_at as string).split('T')[0];
+      if (day in dayMap) dayMap[day]++;
+    }
+    weeklyRegistrations = Object.entries(dayMap).map(([isoDay, count]) => ({
+      day: new Date(isoDay).toLocaleDateString('en-IE', { weekday: 'short' }),
+      count,
+    }));
+  } catch { /* non-fatal */ }
+
+  // Open/active/completed job counts for charts
+  let openJobs = 0; let activeJobs = 0; let completedJobs = 0; let totalReviews = 0;
+  try {
+    const [{ count: oj }, { count: aj }, { count: cj }, { count: tr }] = await Promise.all([
+      supabase.from('jobs').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+      supabase.from('jobs').select('id', { count: 'exact', head: true }).eq('status', 'in_progress'),
+      supabase.from('jobs').select('id', { count: 'exact', head: true }).eq('status', 'completed'),
+      supabase.from('reviews').select('id', { count: 'exact', head: true }),
+    ]);
+    openJobs = oj ?? 0; activeJobs = aj ?? 0; completedJobs = cj ?? 0; totalReviews = tr ?? 0;
+  } catch { /* non-fatal */ }
+
   // Fetch data from API (server-side, cookies forwarded automatically via supabase client)
   let funnelData: FunnelRow[] = [];
   let totalToday = 0;
@@ -581,6 +619,19 @@ export default async function AdminAnalyticsPage({
 
         {/* Platform overview */}
         <PlatformOverview stats={platformStats} locale={locale} />
+
+        {/* Visual charts */}
+        <AdminAnalyticsCharts
+          weeklyRegistrations={weeklyRegistrations}
+          openJobs={openJobs}
+          activeJobs={activeJobs}
+          completedJobs={completedJobs}
+          totalReviews={totalReviews}
+          totalQuotes={platformStats.total_quotes}
+          customers={platformStats.customers}
+          verifiedPros={platformStats.verified_pros}
+          highRiskProviders={platformStats.high_risk_providers}
+        />
 
         {/* Summary stats */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

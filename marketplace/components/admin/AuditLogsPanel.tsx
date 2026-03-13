@@ -1,10 +1,22 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  CheckCircle,
+  XCircle,
+  ShieldAlert,
+  Flag,
+  Settings,
+  Clock,
+  LayoutList,
+  GitBranch,
+} from 'lucide-react';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import EmptyState from '@/components/ui/EmptyState';
 import Skeleton from '@/components/ui/Skeleton';
+import AlertBanner from '@/components/ui/AlertBanner';
+import Timeline, { type TimelineItem } from '@/components/ui/Timeline';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -27,12 +39,14 @@ type ApiResponse = {
   offset: number;
 };
 
+type ViewMode = 'table' | 'timeline';
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const PAGE_SIZE = 50;
 
 const ACTION_OPTIONS = [
-  { value: '', label: 'All actions' },
+  { value: '',                              label: 'All actions' },
   { value: 'batch_verification_approved',   label: 'Verification approved' },
   { value: 'batch_verification_rejected',   label: 'Verification rejected' },
   { value: 'gdpr_deletion_processed',       label: 'GDPR deletion' },
@@ -46,7 +60,7 @@ const DAYS_OPTIONS = [
   { value: 'all', label: 'All time' },
 ];
 
-// ─── Action badge mapping ─────────────────────────────────────────────────────
+// ─── Action badge / tone ──────────────────────────────────────────────────────
 
 type BadgeTone = 'open' | 'pending' | 'completed' | 'assigned' | 'neutral' | 'primary' | 'amber' | 'navy';
 
@@ -60,6 +74,61 @@ function actionTone(action: string): BadgeTone {
 
 function formatAction(action: string): string {
   return action.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+// ─── Timeline helpers ─────────────────────────────────────────────────────────
+
+type ActionStyle = { iconColor: string; iconBg: string; badgeColor: string; badgeBg: string };
+
+function actionToStyle(action: string): ActionStyle {
+  if (action.includes('approved'))   return { iconColor: '#16a34a', iconBg: 'rgba(22,163,74,0.12)',   badgeColor: '#16a34a', badgeBg: 'rgba(22,163,74,0.10)' };
+  if (action.includes('rejected'))   return { iconColor: '#dc2626', iconBg: 'rgba(220,38,38,0.12)',   badgeColor: '#dc2626', badgeBg: 'rgba(220,38,38,0.10)' };
+  if (action.includes('gdpr'))       return { iconColor: '#1B2A4A', iconBg: 'rgba(27,42,74,0.12)',    badgeColor: '#1B2A4A', badgeBg: 'rgba(27,42,74,0.10)' };
+  if (action.includes('risk'))       return { iconColor: '#d97706', iconBg: 'rgba(217,119,6,0.12)',   badgeColor: '#d97706', badgeBg: 'rgba(217,119,6,0.10)' };
+  if (action.includes('flag'))       return { iconColor: '#7c3aed', iconBg: 'rgba(124,58,237,0.12)', badgeColor: '#7c3aed', badgeBg: 'rgba(124,58,237,0.10)' };
+  return                               { iconColor: '#0284c7', iconBg: 'rgba(2,132,199,0.12)',   badgeColor: '#0284c7', badgeBg: 'rgba(2,132,199,0.10)' };
+}
+
+function actionToIcon(action: string) {
+  if (action.includes('approved'))  return <CheckCircle size={14} />;
+  if (action.includes('rejected'))  return <XCircle size={14} />;
+  if (action.includes('risk'))      return <ShieldAlert size={14} />;
+  if (action.includes('gdpr'))      return <Flag size={14} />;
+  if (action.includes('flag'))      return <Settings size={14} />;
+  return <Clock size={14} />;
+}
+
+function logsToTimeline(logs: AuditLog[]): TimelineItem[] {
+  return logs.map((log) => {
+    const style = actionToStyle(log.action);
+    const ts = new Date(log.created_at);
+    const timestamp = ts.toLocaleString('en-IE', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const desc = [
+      log.admin_email ? `by ${log.admin_email}` : null,
+      log.target_label ?? (log.target_type ? log.target_type.replace(/_/g, ' ') : null),
+    ]
+      .filter(Boolean)
+      .join(' — ');
+
+    return {
+      id: log.id,
+      title: formatAction(log.action),
+      description: desc || undefined,
+      timestamp,
+      icon: actionToIcon(log.action),
+      iconColor: style.iconColor,
+      iconBg: style.iconBg,
+      badge: log.target_type ? log.target_type.replace(/_/g, ' ') : undefined,
+      badgeColor: style.badgeColor,
+      badgeBg: style.badgeBg,
+    };
+  });
 }
 
 // ─── CSV export ───────────────────────────────────────────────────────────────
@@ -97,6 +166,7 @@ export default function AuditLogsPanel() {
   const [total, setTotal]         = useState(0);
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState<string | null>(null);
+  const [viewMode, setViewMode]   = useState<ViewMode>('table');
 
   // Filters
   const [action, setAction]       = useState('');
@@ -104,7 +174,6 @@ export default function AuditLogsPanel() {
   const [adminId, setAdminId]     = useState('');
   const [offset, setOffset]       = useState(0);
 
-  // For CSV: we need a ref to the current filter state to pass to the full-fetch
   const filtersRef = useRef({ action, days, adminId });
   filtersRef.current = { action, days, adminId };
 
@@ -135,14 +204,13 @@ export default function AuditLogsPanel() {
     }
   }, [action, days, adminId]);
 
-  // Re-fetch when filters change; reset to page 0
   useEffect(() => {
     setOffset(0);
     fetchLogs(0);
   }, [fetchLogs]);
 
-  const totalPages = Math.ceil(total / PAGE_SIZE);
-  const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
+  const totalPages   = Math.ceil(total / PAGE_SIZE);
+  const currentPage  = Math.floor(offset / PAGE_SIZE) + 1;
 
   function handlePrev() {
     const newOffset = Math.max(offset - PAGE_SIZE, 0);
@@ -159,7 +227,6 @@ export default function AuditLogsPanel() {
   }
 
   async function handleExport() {
-    // Fetch up to 1000 rows for export (no pagination)
     const { action: a, days: d, adminId: ai } = filtersRef.current;
     const params = new URLSearchParams({ limit: '1000', offset: '0', days: d || '30' });
     if (a)  params.set('action',   a);
@@ -169,6 +236,8 @@ export default function AuditLogsPanel() {
     const data: ApiResponse = await res.json();
     exportToCsv(data.logs);
   }
+
+  const timelineItems = logsToTimeline(logs);
 
   return (
     <div className="space-y-4">
@@ -224,7 +293,51 @@ export default function AuditLogsPanel() {
           }}
         />
 
-        <div className="ml-auto flex gap-2">
+        <div className="ml-auto flex items-center gap-2">
+          {/* View toggle */}
+          <div
+            className="flex rounded-xl border overflow-hidden"
+            style={{ borderColor: 'var(--wm-border)' }}
+          >
+            <button
+              onClick={() => setViewMode('table')}
+              title="Table view"
+              style={{
+                padding: '6px 10px',
+                border: 'none',
+                cursor: 'pointer',
+                background: viewMode === 'table' ? 'var(--wm-primary)' : 'var(--wm-bg)',
+                color: viewMode === 'table' ? '#fff' : 'var(--wm-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontSize: '12px',
+              }}
+            >
+              <LayoutList size={13} />
+              <span>Table</span>
+            </button>
+            <button
+              onClick={() => setViewMode('timeline')}
+              title="Timeline view"
+              style={{
+                padding: '6px 10px',
+                border: 'none',
+                borderLeft: `1px solid var(--wm-border)`,
+                cursor: 'pointer',
+                background: viewMode === 'timeline' ? 'var(--wm-primary)' : 'var(--wm-bg)',
+                color: viewMode === 'timeline' ? '#fff' : 'var(--wm-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontSize: '12px',
+              }}
+            >
+              <GitBranch size={13} />
+              <span>Timeline</span>
+            </button>
+          </div>
+
           <Button variant="secondary" size="sm" onClick={() => fetchLogs(offset)}>
             Refresh
           </Button>
@@ -234,27 +347,24 @@ export default function AuditLogsPanel() {
         </div>
       </div>
 
+      {/* ── Error state ─────────────────────────────────────────────────────── */}
+      {error && (
+        <AlertBanner
+          variant="error"
+          title="Failed to load audit logs"
+          description={error}
+          dismissible
+          onDismiss={() => setError(null)}
+        />
+      )}
+
       {/* ── Results summary ─────────────────────────────────────────────────── */}
       {!loading && !error && (
         <p className="text-sm" style={{ color: 'var(--wm-muted)' }}>
           {total === 0
             ? 'No audit log entries match the current filters.'
-            : `Showing ${offset + 1}–${Math.min(offset + PAGE_SIZE, total)} of ${total} entries`}
+            : `Showing ${offset + 1}–${Math.min(offset + PAGE_SIZE, total)} of ${total} entries · ${viewMode === 'timeline' ? 'Timeline' : 'Table'} view`}
         </p>
-      )}
-
-      {/* ── Error state ─────────────────────────────────────────────────────── */}
-      {error && (
-        <div
-          className="rounded-2xl border p-4 text-sm"
-          style={{
-            borderColor: 'var(--wm-border)',
-            background: 'var(--wm-surface)',
-            color: 'var(--wm-error, #e53e3e)',
-          }}
-        >
-          {error}
-        </div>
       )}
 
       {/* ── Loading skeleton ────────────────────────────────────────────────── */}
@@ -280,8 +390,18 @@ export default function AuditLogsPanel() {
         </div>
       )}
 
-      {/* ── Audit log table ─────────────────────────────────────────────────── */}
-      {!loading && !error && logs.length > 0 && (
+      {/* ── Timeline view ───────────────────────────────────────────────────── */}
+      {!loading && !error && logs.length > 0 && viewMode === 'timeline' && (
+        <div
+          className="rounded-2xl border p-5"
+          style={{ borderColor: 'var(--wm-border)', background: 'var(--wm-surface)' }}
+        >
+          <Timeline items={timelineItems} variant="default" />
+        </div>
+      )}
+
+      {/* ── Table view ──────────────────────────────────────────────────────── */}
+      {!loading && !error && logs.length > 0 && viewMode === 'table' && (
         <div
           className="overflow-x-auto rounded-2xl border"
           style={{ borderColor: 'var(--wm-border)', background: 'var(--wm-surface)' }}
@@ -309,7 +429,6 @@ export default function AuditLogsPanel() {
                     background: idx % 2 === 0 ? 'transparent' : 'var(--wm-surface-alt, var(--wm-surface))',
                   }}
                 >
-                  {/* Timestamp */}
                   <td className="px-4 py-3 whitespace-nowrap" style={{ color: 'var(--wm-muted)', fontVariantNumeric: 'tabular-nums' }}>
                     <time dateTime={log.created_at} title={log.created_at}>
                       {new Date(log.created_at).toLocaleString('en-IE', {
@@ -322,7 +441,6 @@ export default function AuditLogsPanel() {
                     </time>
                   </td>
 
-                  {/* Admin */}
                   <td className="px-4 py-3" style={{ color: 'var(--wm-text)' }}>
                     {log.admin_email ? (
                       <span title={log.admin_user_id ?? undefined}>{log.admin_email}</span>
@@ -331,14 +449,12 @@ export default function AuditLogsPanel() {
                     )}
                   </td>
 
-                  {/* Action badge */}
                   <td className="px-4 py-3">
                     <Badge tone={actionTone(log.action)} dot>
                       {formatAction(log.action)}
                     </Badge>
                   </td>
 
-                  {/* Target */}
                   <td className="px-4 py-3" style={{ color: 'var(--wm-text)' }}>
                     {log.target_type ? (
                       <div className="flex flex-col gap-0.5">
@@ -363,7 +479,6 @@ export default function AuditLogsPanel() {
                     )}
                   </td>
 
-                  {/* Details */}
                   <td className="px-4 py-3 max-w-xs">
                     {log.details && Object.keys(log.details).length > 0 ? (
                       <details className="cursor-pointer">
@@ -399,20 +514,10 @@ export default function AuditLogsPanel() {
           <span className="text-sm" style={{ color: 'var(--wm-muted)' }}>
             Page {currentPage} of {totalPages}
           </span>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handlePrev}
-            disabled={offset === 0}
-          >
+          <Button variant="secondary" size="sm" onClick={handlePrev} disabled={offset === 0}>
             Previous
           </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleNext}
-            disabled={offset + PAGE_SIZE >= total}
-          >
+          <Button variant="secondary" size="sm" onClick={handleNext} disabled={offset + PAGE_SIZE >= total}>
             Next
           </Button>
         </div>

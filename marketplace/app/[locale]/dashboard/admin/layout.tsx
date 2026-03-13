@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import AdminSidebarLayout from '@/components/admin/AdminSidebarLayout';
+import AdminToastWrapper from '@/components/admin/AdminToastWrapper';
 
 /**
  * Admin section layout — persistent sidebar + auth guard.
@@ -53,13 +54,15 @@ export default async function AdminLayout({
   } catch { /* non-fatal */ }
 
   return (
-    <AdminSidebarLayout
-      locale={locale}
-      pendingVerification={pendingVerification}
-      pendingDocs={pendingDocs}
-      adminEmail={user.email ?? undefined}
-    >
-      {children}
-    </AdminSidebarLayout>
+    <AdminToastWrapper>
+      <AdminSidebarLayout
+        locale={locale}
+        pendingVerification={pendingVerification}
+        pendingDocs={pendingDocs}
+        adminEmail={user.email ?? undefined}
+      >
+        {children}
+      </AdminSidebarLayout>
+    </AdminToastWrapper>
   );
 }

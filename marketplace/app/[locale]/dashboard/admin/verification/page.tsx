@@ -7,6 +7,8 @@ import StatCard from '@/components/ui/StatCard';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import EmptyState from '@/components/ui/EmptyState';
+import AlertBanner from '@/components/ui/AlertBanner';
+import { useToast } from '@/components/ui/Toast';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -131,6 +133,7 @@ function RejectModal({
 
 export default function VerificationQueuePage() {
   const pathname = usePathname();
+  const { toast } = useToast();
   // Derive locale prefix from current path (e.g. "/en/dashboard/..." → "/en")
   const localePrefix = pathname.split('/').slice(0, 2).join('/');
 
@@ -215,8 +218,22 @@ export default function VerificationQueuePage() {
         const data = await res.json();
         if (!res.ok) {
           setError(data.error ?? 'Action failed');
+          toast({
+            variant: 'error',
+            title: `${action === 'approve' ? 'Approval' : 'Rejection'} failed`,
+            description: data.error ?? 'Please try again.',
+          });
           return;
         }
+        toast({
+          variant: action === 'approve' ? 'success' : 'warning',
+          title: action === 'approve'
+            ? `${ids.length} provider${ids.length > 1 ? 's' : ''} approved`
+            : `${ids.length} provider${ids.length > 1 ? 's' : ''} rejected`,
+          description: action === 'approve'
+            ? 'They will be notified by email.'
+            : 'A rejection reason has been recorded.',
+        });
         // Refresh queue after successful action
         clearSelection();
         await fetchQueue();
@@ -323,14 +340,15 @@ export default function VerificationQueuePage() {
         </div>
 
         {/* Error banner */}
-        {error ? (
-          <div
-            className="rounded-xl px-4 py-3 text-sm font-medium"
-            style={{ background: 'var(--wm-primary-light)', color: 'var(--wm-destructive)', border: '1px solid var(--wm-destructive)' }}
-          >
-            {error}
-          </div>
-        ) : null}
+        {error && (
+          <AlertBanner
+            variant="error"
+            title="Action failed"
+            description={error}
+            dismissible
+            onDismiss={() => setError(null)}
+          />
+        )}
 
         {/* Filter tabs */}
         <div
