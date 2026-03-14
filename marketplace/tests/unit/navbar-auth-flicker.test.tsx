@@ -1,6 +1,6 @@
 import {act, render} from '@testing-library/react';
 import {screen, waitFor} from '@testing-library/dom';
-import type {ReactNode} from 'react';
+import {createElement, type ReactNode} from 'react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 
 import Navbar from '@/components/layout/Navbar';
@@ -48,8 +48,7 @@ vi.mock('framer-motion', () => ({
     {
       get: (_target, tag: string) =>
         ({children, initial: _initial, animate: _animate, variants: _variants, exit: _exit, transition: _transition, ...props}: {children?: ReactNode; [key: string]: unknown}) => {
-          const Component = tag as keyof JSX.IntrinsicElements;
-          return <Component {...props}>{children}</Component>;
+          return createElement(tag, props, children);
         }
     }
   )
