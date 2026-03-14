@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { connection } from 'next/server';
 
 /**
  * Dashboard nested layout.
@@ -10,7 +11,8 @@ import { ReactNode } from 'react';
  * only supplies shared structure so the error boundary and loading
  * states render in a consistent container.
  */
-export default function DashboardLayout({ children }: { children: ReactNode }) {
+export default async function DashboardLayout({ children }: { children: ReactNode }) {
+  await connection();
   return (
     <div className="min-h-[calc(100vh-4rem)]">
       {children}

@@ -70,3 +70,5 @@ Runbook: `docs/mcp-pilot/` · `docs/agent-ops-runbook.md`
 ## Documentation
 
 Active docs: `docs/` · Archived: `docs/archive/`
+
+Security note: CSP is route-tiered and nonce-aware. See `docs/csp-architecture.md` before changing security headers or adding inline scripts.

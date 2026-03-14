@@ -1,10 +1,20 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import Script from 'next/script';
+
+import { isStrictCspPath } from '@/lib/security/csp-routes';
 
 const STORAGE_KEY = 'wm_cookie_consent';
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+
+declare global {
+  interface Window {
+    dataLayer?: unknown[];
+    gtag?: (...args: unknown[]) => void;
+  }
+}
 
 /**
  * Consent-aware GA4 loader.
@@ -16,9 +26,11 @@ const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
  */
 export default function GoogleAnalytics() {
   const [consented, setConsented] = useState(false);
+  const pathname = usePathname();
+  const shouldSkipAnalytics = isStrictCspPath(pathname ?? '/');
 
   useEffect(() => {
-    if (!GA_MEASUREMENT_ID) return;
+    if (!GA_MEASUREMENT_ID || shouldSkipAnalytics) return;
 
     function checkConsent() {
       try {
@@ -56,19 +68,22 @@ export default function GoogleAnalytics() {
       clearInterval(interval);
       clearTimeout(timeout);
     };
-  }, []);
+  }, [shouldSkipAnalytics]);
 
-  if (!GA_MEASUREMENT_ID || !consented) return null;
+  if (!GA_MEASUREMENT_ID || !consented || shouldSkipAnalytics) return null;
 
   return (
-    <>
-      <Script
-        src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-        strategy="afterInteractive"
-      />
-      <Script id="ga4-init" strategy="afterInteractive">
-        {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_MEASUREMENT_ID}',{anonymize_ip:true});`}
-      </Script>
-    </>
+    <Script
+      src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+      strategy="afterInteractive"
+      onLoad={() => {
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = (...args: unknown[]) => {
+          window.dataLayer?.push(args);
+        };
+        window.gtag('js', new Date());
+        window.gtag('config', GA_MEASUREMENT_ID, { anonymize_ip: true });
+      }}
+    />
   );
 }

@@ -4,6 +4,8 @@ import {NextRequest, NextResponse} from 'next/server';
 
 import {defaultLocale, locales} from './i18n/config';
 import {rateLimit, RATE_LIMITS} from './lib/rate-limit';
+import {buildCspHeader, getCspResponseHeaderName} from './lib/security/csp';
+import {getCspTierForPath, type CspTier} from './lib/security/csp-routes';
 
 const intlMiddleware = createMiddleware({
   locales,
@@ -35,14 +37,36 @@ function isProtectedPath(pathname: string) {
   return /^\/(profile|dashboard)(?:\/|$)/.test(pathname);
 }
 
+function applyPageSecurityHeaders(response: NextResponse, requestId: string, cspTier: CspTier, cspHeader: string) {
+  response.headers.set(getCspResponseHeaderName(), cspHeader);
+  response.headers.set('x-csp-tier', cspTier);
+  response.headers.set('x-request-id', requestId);
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
   const requestId = crypto.randomUUID();
+  // CSP is computed here, not in next.config.ts, because strict routes need a
+  // request-scoped nonce. A global `strict-dynamic` header without a nonce/hash
+  // previously caused the UI to render only SSR shells/loading states.
+  const cspTier = getCspTierForPath(request.nextUrl.pathname);
+  const nonce = cspTier === 'strict' ? btoa(crypto.randomUUID()) : undefined;
+  const cspHeader = buildCspHeader({
+    tier: cspTier,
+    nonce,
+    reportUri: process.env.CSP_REPORT_URI,
+  });
 
   // Propagate the request ID to downstream handlers via a request header.
   // NextResponse.next() with request.headers override is the only safe way to
   // mutate headers for the route handler in Next.js middleware.
   const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('Content-Security-Policy', cspHeader);
+  requestHeaders.set('x-csp-tier', cspTier);
   requestHeaders.set('x-request-id', requestId);
+  if (nonce) {
+    requestHeaders.set('x-nonce', nonce);
+  }
 
   // OAuth callback route must bypass locale rewrites and reach its route handler directly.
   if (request.nextUrl.pathname === '/auth/callback') {
@@ -103,12 +127,12 @@ export async function middleware(request: NextRequest) {
     loginUrl.pathname = '/login';
     loginUrl.searchParams.set('next', request.nextUrl.pathname + request.nextUrl.search);
     const redirectResponse = NextResponse.redirect(loginUrl);
+    redirectResponse.headers.set('x-csp-tier', cspTier);
     redirectResponse.headers.set('x-request-id', requestId);
     return redirectResponse;
   }
 
-  response.headers.set('x-request-id', requestId);
-  return response;
+  return applyPageSecurityHeaders(response, requestId, cspTier, cspHeader);
 }
 
 export const config = {

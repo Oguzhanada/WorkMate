@@ -5,6 +5,11 @@ import { withSentryConfig } from '@sentry/nextjs';
 const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 const repoRoot = path.resolve(__dirname, '..');
 
+// Keep CSP out of next.config headers().
+// We use route-tier CSP in middleware so strict pages can receive a per-request
+// nonce. Re-introducing a global `script-src ... strict-dynamic` header here
+// will break Next/Turbopack hydration on baseline pages because there is no
+// nonce/hash relationship for the framework bundles.
 const securityHeaders = [
   { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
   { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -12,23 +17,6 @@ const securityHeaders = [
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self), payment=(self)' },
   { key: 'X-DNS-Prefetch-Control', value: 'on' },
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
-  {
-    key: 'Content-Security-Policy',
-    value: [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'strict-dynamic' https://js.stripe.com https://challenges.cloudflare.com https://static.cloudflareinsights.com",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
-      "img-src 'self' data: blob: https://ejpnmcxzycxqfdbetydp.supabase.co https://*.stripe.com https://images.unsplash.com https://*.tile.openstreetmap.org https://*.r2.dev https://*.cloudflarestorage.com",
-      "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
-      "connect-src 'self' https://ejpnmcxzycxqfdbetydp.supabase.co wss://ejpnmcxzycxqfdbetydp.supabase.co https://api.stripe.com https://api.ideal-postcodes.co.uk https://*.tile.openstreetmap.org https://*.ingest.de.sentry.io https://*.sentry.io https://challenges.cloudflare.com https://cloudflareinsights.com https://*.r2.dev https://*.cloudflarestorage.com https://gateway.ai.cloudflare.com",
-      "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://challenges.cloudflare.com",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "frame-ancestors 'none'",
-      "upgrade-insecure-requests",
-    ].join('; '),
-  },
 ];
 
 const nextConfig = {

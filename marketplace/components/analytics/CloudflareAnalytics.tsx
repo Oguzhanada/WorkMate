@@ -1,6 +1,9 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import Script from 'next/script';
+
+import { isStrictCspPath } from '@/lib/security/csp-routes';
 
 /**
  * Cloudflare Web Analytics
@@ -18,7 +21,9 @@ import Script from 'next/script';
  */
 export default function CloudflareAnalytics() {
   const token = process.env.NEXT_PUBLIC_CF_ANALYTICS_TOKEN;
-  if (!token) return null;
+  const pathname = usePathname();
+
+  if (!token || isStrictCspPath(pathname ?? '/')) return null;
 
   return (
     <Script
