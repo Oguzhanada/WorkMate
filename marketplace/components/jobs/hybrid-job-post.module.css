@@ -73,7 +73,7 @@
 .radioCheck {
   width: 0.7rem;
   height: 0.7rem;
-  color: #fff;
+  color: var(--wm-white);
 }
 
 /* ── Icon ─────────────────────────────────────────────────── */

@@ -43,7 +43,7 @@
   align-items: center;
   justify-content: center;
   background: var(--wm-grad-primary);
-  color: #fff;
+  color: var(--wm-white);
   padding: 9px 20px;
   border-radius: 999px;
   font-family: var(--wm-font-display);
@@ -56,7 +56,7 @@
 }
 
 .logoText {
-  color: #ffffff;
+  color: var(--wm-white);
   font-family: var(--wm-font-display);
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -71,7 +71,7 @@
 
 .ctaBig {
   background: var(--wm-grad-primary);
-  color: #fff;
+  color: var(--wm-white);
   border: none;
   text-decoration: none;
   font-family: var(--wm-font-display);
@@ -91,7 +91,7 @@
 .ctaBigSecondary {
   background: rgba(255, 255, 255, 0.10);
   border: 1px solid rgba(255, 255, 255, 0.22);
-  color: #ffffff;
+  color: var(--wm-white);
   box-shadow: none;
 }
 
@@ -116,7 +116,7 @@
   position: relative;
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  color: var(--wm-white);
   width: 40px;
   height: 40px;
   border-radius: var(--wm-radius-sm);
@@ -138,7 +138,7 @@
   top: -6px;
   right: -6px;
   background: var(--wm-amber);
-  color: #fff;
+  color: var(--wm-white);
   min-width: 18px;
   height: 18px;
   border-radius: 999px;
@@ -154,7 +154,7 @@
   right: 0;
   top: calc(100% + 8px);
   width: min(360px, 90vw);
-  background: #fff;
+  background: var(--wm-white);
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-lg);
   box-shadow: var(--wm-shadow-xl);
@@ -212,7 +212,7 @@
 
 .notificationDelete {
   border: 1px solid var(--wm-border);
-  background: #fff;
+  background: var(--wm-white);
   color: var(--wm-subtle);
   border-radius: var(--wm-radius-sm);
   padding: 4px 8px;
@@ -249,7 +249,7 @@
 /* ── Auth buttons ─────────────────────────────────────────── */
 .primaryButton {
   background: var(--wm-grad-primary);
-  color: #fff;
+  color: var(--wm-white);
   border-radius: var(--wm-radius-sm);
   text-decoration: none;
   font-family: var(--wm-font-display);
@@ -278,7 +278,7 @@
 }
 
 .linkButton:hover {
-  color: #fff;
+  color: var(--wm-white);
 }
 
 .linkButtonPlain {
@@ -291,7 +291,7 @@
 .switcher {
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  color: var(--wm-white);
   border-radius: var(--wm-radius-sm);
   padding: 8px 10px;
   font: inherit;
@@ -303,7 +303,7 @@
   justify-content: center;
   flex-wrap: wrap;
   gap: 18px;
-  background: #fff;
+  background: var(--wm-white);
   border-radius: var(--wm-radius-lg);
   box-shadow: var(--wm-shadow-md);
   padding: 14px;
@@ -342,7 +342,7 @@
 
 .kpiCard {
   border: 1px solid var(--wm-border);
-  background: #ffffff;
+  background: var(--wm-white);
   border-radius: var(--wm-radius-md);
   padding: 10px 14px;
   display: grid;
@@ -385,7 +385,7 @@
 }
 
 .card {
-  background: #fff;
+  background: var(--wm-white);
   border-radius: var(--wm-radius-xl);
   border: 1px solid var(--wm-border);
   box-shadow: var(--wm-shadow-sm);
@@ -402,7 +402,7 @@
   position: relative;
   padding: 70px 0 52px;
   background: var(--wm-grad-navy);
-  color: #fff;
+  color: var(--wm-white);
   overflow: hidden;
 }
 
@@ -421,7 +421,7 @@
   font-family: var(--wm-font-display);
   font-size: clamp(1.7rem, 3vw, 2.7rem);
   font-weight: 800;
-  color: #fff;
+  color: var(--wm-white);
 }
 
 .pageHero p {
@@ -432,7 +432,7 @@
 
 /* ── Footer ───────────────────────────────────────────────── */
 .footer {
-  background: #081938;
+  background: var(--wm-neutral-900);
   color: rgba(255, 255, 255, 0.75);
   padding: 72px 0 30px;
 }
@@ -469,7 +469,7 @@
 
 .footerGrid h4 {
   margin-top: 0;
-  color: #fff;
+  color: var(--wm-white);
   font-family: var(--wm-font-display);
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -570,7 +570,7 @@
 }
 
 .consentInner {
-  background: #fff;
+  background: var(--wm-white);
   border-radius: var(--wm-radius-lg);
   padding: 16px;
   display: flex;
@@ -601,7 +601,7 @@
 
 .secondaryButton {
   border: 1px solid var(--wm-border);
-  background: #fff;
+  background: var(--wm-white);
   color: var(--wm-navy);
   padding: 9px 14px;
   border-radius: var(--wm-radius-sm);

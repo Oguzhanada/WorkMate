@@ -12,6 +12,18 @@ vi.mock('@/lib/supabase/service', () => ({
   getSupabaseServiceClient: vi.fn(() => ({ from: mockFrom })),
 }));
 
+// Mock structured logger — code uses logWebhookDelivery instead of console.warn
+const mockLogWebhookDelivery = vi.fn();
+vi.mock('@/lib/logger', () => ({
+  logWebhookDelivery: (...args: unknown[]) => mockLogWebhookDelivery(...args),
+}));
+
+// Mock decrypt for encrypted_secret support
+vi.mock('@/lib/crypto/encrypt', () => ({
+  decrypt: (val: string) => val,
+  isEncrypted: () => false,
+}));
+
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function setupSupabaseChain(result: { data: unknown; error: unknown }) {
@@ -99,8 +111,8 @@ describe('webhook/send — sendWebhookEvent', () => {
     await promise;
 
     expect(fetch).not.toHaveBeenCalled();
-    expect(console.warn).toHaveBeenCalledWith(
-      expect.stringContaining('Skipping non-HTTPS URL')
+    expect(mockLogWebhookDelivery).toHaveBeenCalledWith(
+      expect.objectContaining({ success: false, url: 'http://insecure.example.com/hook' })
     );
   });
 
@@ -122,8 +134,8 @@ describe('webhook/send — sendWebhookEvent', () => {
     await promise;
 
     expect(fetch).toHaveBeenCalledTimes(3);
-    expect(console.warn).toHaveBeenCalledWith(
-      expect.stringContaining('Delivery failed')
+    expect(mockLogWebhookDelivery).toHaveBeenCalledWith(
+      expect.objectContaining({ success: false })
     );
   });
 
@@ -142,8 +154,8 @@ describe('webhook/send — sendWebhookEvent', () => {
     await promise;
 
     expect(fetch).toHaveBeenCalledTimes(1);
-    expect(console.warn).toHaveBeenCalledWith(
-      expect.stringContaining('HTTP 403')
+    expect(mockLogWebhookDelivery).toHaveBeenCalledWith(
+      expect.objectContaining({ success: false, statusCode: 403 })
     );
   });
 
@@ -184,8 +196,8 @@ describe('webhook/send — sendWebhookEvent', () => {
     await promise;
 
     expect(fetch).toHaveBeenCalledTimes(3);
-    expect(console.warn).toHaveBeenCalledWith(
-      expect.stringContaining('network error')
+    expect(mockLogWebhookDelivery).toHaveBeenCalledWith(
+      expect.objectContaining({ success: false })
     );
   });
 
@@ -244,7 +256,7 @@ describe('webhook/send — sendWebhookEvent', () => {
     expect(fetch).toHaveBeenCalledTimes(3);
 
     const urls = (fetch as ReturnType<typeof vi.fn>).mock.calls.map(
-      (call: [string]) => call[0]
+      (call: unknown[]) => call[0] as string
     );
     expect(urls).toContain('https://a.example.com/hook');
     expect(urls).toContain('https://b.example.com/hook');

@@ -3,7 +3,8 @@ name: workmate-seed-ireland
 description: WorkMate Ireland seed data management. Use when running the seed script, adding new seed entries, resetting demo data, or verifying seed output in Supabase. Covers demo accounts, data patterns, and post-seed validation steps.
 metadata:
   severity: standard
-  last_synced: 2026-03-13
+  status: active
+  last_synced: 2026-03-14
   synced_with: FD-09
 ---
 
@@ -14,7 +15,7 @@ Run from repo root: `node scripts/seed-ireland.mjs`
 
 ## Demo Accounts (created by seed)
 
-All accounts use password: **`WorkMate2026!`**
+Seed creates a fixed set of demo providers and customers for local/dev verification. Do not copy or document credential values in this skill; inspect `scripts/seed-ireland.mjs` locally if the auth flow needs to change.
 
 ### Providers (8 accounts)
 Irish-realistic names, verified_pro role, `is_verified: true`, Dublin/Cork/Galway counties, valid Eircodes, pro_services populated.
@@ -41,6 +42,8 @@ node scripts/seed-ireland.mjs
 
 ## Before Re-Seeding (clean up first)
 
+> **WARNING: DEV ONLY** — never run cleanup SQL on a production database. These DELETE statements bypass RLS via service role.
+
 In Supabase SQL Editor:
 ```sql
 -- Remove seed users by email pattern
@@ -55,9 +58,9 @@ Open `scripts/seed-ireland.mjs` and follow the existing pattern:
 
 ```javascript
 // Provider pattern
+// Omit credential details from skill docs; follow the current auth helper contract in scripts/seed-ireland.mjs.
 {
   email: 'newprovider@workmate-demo.ie',
-  password: 'WorkMate2026!',
   profile: {
     full_name: 'Seán Murphy',
     phone: '+353861234567',       // must be +353 + valid prefix (83/85/86/87/89)

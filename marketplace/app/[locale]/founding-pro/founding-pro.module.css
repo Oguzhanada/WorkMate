@@ -237,7 +237,7 @@
   border-radius: var(--wm-radius-xl);
   border: none;
   background: var(--wm-grad-warm);
-  color: #fff;
+  color: var(--wm-white);
   font-family: var(--wm-font-display);
   font-size: 1.125rem;
   font-weight: 700;

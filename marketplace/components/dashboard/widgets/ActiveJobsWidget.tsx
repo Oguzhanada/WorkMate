@@ -43,11 +43,11 @@ export default function ActiveJobsWidget({ limit = 6 }: Props) {
       }
 
       const { data: roleRows } = await supabase.from('user_roles').select('role').eq('user_id', user.id);
-      const isProvider = (roleRows ?? []).some((r) => r.role === 'verified_pro');
+      const isProvider = (roleRows ?? []).some((r: { role: string }) => r.role === 'verified_pro');
 
       if (isProvider) {
         const { data: quotes } = await supabase.from('quotes').select('id').eq('pro_id', user.id);
-        const acceptedQuoteIds = (quotes ?? []).map((row) => row.id);
+        const acceptedQuoteIds = (quotes ?? []).map((row: { id: string }) => row.id);
         if (acceptedQuoteIds.length === 0) {
           setJobs([]);
           setLoading(false);

@@ -19,7 +19,7 @@ export default function SignupPage() {
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
-    supabase.auth.getUser().then(({data}) => {
+    supabase.auth.getUser().then(({data}: { data: { user: unknown } }) => {
       if (data.user) {
         router.replace(withLocalePrefix(localeRoot, '/dashboard/customer'));
       }

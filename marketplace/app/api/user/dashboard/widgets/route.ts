@@ -97,9 +97,9 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ widgets, mode: context.mode }, { status: 200 });
 }
 
-async function postHandler(request: NextRequest) {
+async function postHandler(request: NextRequest): Promise<NextResponse> {
   const context = await resolveContext(request);
-  if ('error' in context) return context.error;
+  if ('error' in context) return context.error as NextResponse;
 
   let rawBody: unknown;
   try {

@@ -286,8 +286,8 @@
 
 .google { border-color: var(--wm-border); }
 
-.facebook { background: #1877f2; border-color: #1877f2; color: white; }
-.facebook:hover { background: #145ec2; border-color: #145ec2; }
+.facebook { background: var(--wm-social-facebook); border-color: var(--wm-social-facebook); color: white; }
+.facebook:hover { background: var(--wm-social-facebook-hover); border-color: var(--wm-social-facebook-hover); }
 
 /* ── Separator ────────────────────────────────────────────── */
 .separator {
@@ -315,7 +315,7 @@
 
 .field > span,
 .field > label {
-  color: #1f2937;
+  color: var(--wm-neutral-800);
   font-size: 0.84rem;
   font-weight: 700;
   letter-spacing: 0.01em;
@@ -344,11 +344,11 @@
   outline: none;
   font: inherit;
   font-size: 15px;
-  color: #0f172a;
+  color: var(--wm-neutral-900);
   background: transparent;
 }
 
-.inputWrap svg { color: #64748b; }
+.inputWrap svg { color: var(--wm-neutral-500); }
 
 .togglePassword {
   border: 0;

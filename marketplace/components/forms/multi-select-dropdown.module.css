@@ -4,16 +4,16 @@
 }
 
 .label {
-  color: #1f2b45;
+  color: var(--wm-navy);
   font-weight: 600;
 }
 
 .trigger {
   width: 100%;
-  border: 1px solid #d2d6dd;
+  border: 1px solid var(--wm-neutral-300);
   border-radius: 10px;
-  background: #fff;
-  color: #1f2b45;
+  background: var(--wm-white);
+  color: var(--wm-navy);
   font: inherit;
   padding: 11px 12px;
   display: flex;
@@ -30,17 +30,17 @@
 }
 
 .placeholder {
-  color: #6c748c;
+  color: var(--wm-neutral-500);
 }
 
 .value {
-  color: #1f2b45;
+  color: var(--wm-navy);
 }
 
 .panel {
-  border: 1px solid #dce1e8;
+  border: 1px solid var(--wm-neutral-200);
   border-radius: 10px;
-  background: #fff;
+  background: var(--wm-white);
   max-height: 260px;
   overflow: auto;
   padding: 8px;
@@ -55,14 +55,14 @@
 
 .empty {
   margin: 0;
-  color: #6c748c;
+  color: var(--wm-neutral-500);
   font-size: 0.9rem;
   padding: 8px;
 }
 
 .groupTitle {
   margin: 4px 4px 0;
-  color: #4a556f;
+  color: var(--wm-neutral-600);
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.01em;
@@ -77,5 +77,5 @@
 }
 
 .item:hover {
-  background: #f6f8fb;
+  background: var(--wm-neutral-50);
 }

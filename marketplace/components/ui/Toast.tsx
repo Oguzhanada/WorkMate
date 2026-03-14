@@ -42,27 +42,27 @@ export function useToast() {
 
 const VARIANT_CONFIG = {
   success: {
-    bg: '#f0fdf4',
-    border: '#86efac',
-    iconColor: '#16a34a',
+    bg: 'var(--wm-status-success-light)',
+    border: 'var(--wm-status-success-border)',
+    iconColor: 'var(--wm-status-success-text)',
     Icon: CheckCircle,
   },
   error: {
-    bg: '#fef2f2',
-    border: '#fca5a5',
-    iconColor: '#dc2626',
+    bg: 'var(--wm-status-error-light)',
+    border: 'var(--wm-status-error-border)',
+    iconColor: 'var(--wm-status-error-text)',
     Icon: XCircle,
   },
   warning: {
-    bg: '#fffbeb',
-    border: '#fcd34d',
-    iconColor: '#d97706',
+    bg: 'var(--wm-status-warning-light)',
+    border: 'var(--wm-status-warning-border)',
+    iconColor: 'var(--wm-status-warning-text)',
     Icon: AlertTriangle,
   },
   info: {
-    bg: '#eff6ff',
-    border: '#93c5fd',
-    iconColor: '#2563eb',
+    bg: 'var(--wm-status-info-light)',
+    border: 'var(--wm-status-info-border)',
+    iconColor: 'var(--wm-status-info-text)',
     Icon: Info,
   },
 } as const;
@@ -123,11 +123,11 @@ function ToastItem({
 
       {/* Text */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>
+        <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: 'var(--wm-neutral-900)' }}>
           {t.title}
         </p>
         {t.description && (
-          <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>
+          <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--wm-neutral-500)', lineHeight: 1.4 }}>
             {t.description}
           </p>
         )}
@@ -142,7 +142,7 @@ function ToastItem({
           background: 'transparent',
           border: 'none',
           cursor: 'pointer',
-          color: '#94a3b8',
+          color: 'var(--wm-neutral-400)',
           borderRadius: '4px',
           display: 'flex',
           alignItems: 'center',

@@ -1,16 +1,17 @@
 ---
 name: workmate-front-engineer
-description: Create distinctive, production-grade frontend interfaces with high design quality. Use this skill when the user asks to build web components, pages, artifacts, posters, or applications (examples include websites, landing pages, dashboards, React components, HTML/CSS layouts, or when styling/beautifying any web UI). Generates creative, polished code and UI design that avoids generic AI aesthetics.
+description: Build WorkMate marketplace UI components with the Ireland design system and --wm-* token system. Use when creating or styling pages, React components, or layouts specific to WorkMate. For general web design outside WorkMate, the user-level frontend-design skill applies instead.
 license: Complete terms in LICENSE.txt
 metadata:
   severity: standard
-  last_synced: 2026-03-13
-  synced_with: FD-03, FD-04, FD-13, FD-14, DR-007
+  status: active
+  last_synced: 2026-03-14
+  synced_with: FD-03, FD-04, FD-13, FD-14, FD-31, DR-007, DR-012
 ---
 
-This skill guides creation of distinctive, production-grade frontend interfaces that avoid generic "AI slop" aesthetics. Implement real working code with exceptional attention to aesthetic details and creative choices.
+This skill guides creation of WorkMate marketplace UI using the Ireland design system (`--wm-*` tokens, Poppins/Plus Jakarta Sans, emerald/navy/cream/gold palette). All output must conform to the WorkMate token system and frozen decisions (FD-03, FD-13, FD-14).
 
-The user provides frontend requirements: a component, page, application, or interface to build. They may include context about the purpose, audience, or technical constraints.
+> **Note:** The design thinking section below provides supplementary creative guidance for WorkMate UI work. For the WorkMate-specific token system and component patterns, see the "WorkMate Design System" section further below.
 
 ## Design Thinking
 
@@ -51,15 +52,111 @@ Remember: Claude is capable of extraordinary creative work. Don't hold back, sho
 
 When building **WorkMate-specific** interfaces, always use the Ireland design system:
 
-### Palette (CSS tokens — never hardcoded hex)
-| Token | Value | Use |
+### Token Palette (CSS custom properties — never hardcoded hex)
+
+All tokens are defined in `app/tokens.css` with automatic dark-mode overrides via `[data-theme="dark"]`.
+
+**Primary (Emerald / Irish Green)**
+| Token | Light | Use |
 |-------|-------|-----|
-| `--wm-emerald` | `#169B62` | Primary action, CTAs |
+| `--wm-primary` | `#169B62` | Primary action, CTAs |
+| `--wm-primary-dark` | `#0D6B45` | Hover / pressed states |
+| `--wm-primary-mid` | `#0e8a57` | Mid-tone accent |
+| `--wm-primary-light` | `#D1FAE5` | Tinted backgrounds |
+| `--wm-primary-faint` | `#edfaf3` | Very subtle tinted bg |
+| `--wm-primary-rgb` | `22, 155, 98` | For `rgba()` usage |
+
+**Navy**
+| Token | Light | Use |
+|-------|-------|-----|
 | `--wm-navy` | `#1B2A4A` | Headings, nav, trust elements |
-| `--wm-cream` | `#F7F5F0` | Page background |
+| `--wm-navy-mid` | `#2D4A7A` | Mid-tone nav accent |
+| `--wm-navy-soft` | `#3d5f94` | Softer navy for hover |
+| `--wm-navy-rgb` | `27, 42, 74` | For `rgba()` usage |
+
+**Gold / Accent**
+| Token | Light | Use |
+|-------|-------|-----|
 | `--wm-gold` | `#D4A847` | Badges, founding pro accents |
-| `--wm-text-primary` | dark token | Body text on light surfaces |
-| `--wm-muted` | muted token | Secondary text, labels |
+| `--wm-gold-dark` | `#b08930` | Hover / pressed gold |
+| `--wm-gold-light` | `#fef3c7` | Gold-tinted background |
+| `--wm-gold-faint` | `#fffbeb` | Very subtle gold bg |
+| `--wm-gold-rgb` | `212, 168, 71` | For `rgba()` usage |
+
+**Blue**
+| Token | Light | Use |
+|-------|-------|-----|
+| `--wm-blue` | `#2563eb` | Informational links, info state |
+| `--wm-blue-dark` | `#1d4ed8` | Hover / pressed blue |
+| `--wm-blue-soft` | `#eff6ff` | Blue-tinted background |
+| `--wm-blue-rgb` | `37, 99, 235` | For `rgba()` usage |
+
+**Destructive**
+| Token | Light | Use |
+|-------|-------|-----|
+| `--wm-destructive` | `#EF4444` | Delete actions, errors |
+| `--wm-destructive-dark` | `#b91c1c` | Hover / pressed destructive |
+| `--wm-destructive-light` | `#fef2f2` | Error-tinted background |
+| `--wm-destructive-rgb` | `239, 68, 68` | For `rgba()` usage |
+
+**Status** -- use for alerts, toasts, badges, inline banners
+| Token pattern | Variants |
+|---------------|----------|
+| `--wm-status-{level}-light` | Background fill |
+| `--wm-status-{level}-border` | Border color |
+| `--wm-status-{level}-text` | Text/icon color |
+
+Where `{level}` is one of: `success`, `warning`, `error`, `info`. Dark mode remaps these to translucent/bright values automatically.
+
+**Admin** -- use for admin sidebar, admin dashboard surfaces
+| Token | Use |
+|-------|-----|
+| `--wm-admin-bg` | Sidebar background (`#0f172a`) |
+| `--wm-admin-surface` | Card/panel surface (`#1e293b`) |
+| `--wm-admin-border` | Dividers (`#334155`) |
+| `--wm-admin-text` | Default text (`#94a3b8`) |
+| `--wm-admin-text-hover` | Hover/active text (`#e2e8f0`) |
+| `--wm-admin-accent` | Active indicator (`#34d399`) |
+
+**Chart / Data-viz** -- use for charts, graphs, data visualizations
+| Token | Color |
+|-------|-------|
+| `--wm-chart-emerald` | Primary green |
+| `--wm-chart-navy` | Navy |
+| `--wm-chart-blue` | `#0ea5e9` |
+| `--wm-chart-violet` | `#7c3aed` |
+| `--wm-chart-violet-soft` | `#f1efff` |
+| `--wm-chart-violet-dark` | `#5b21b6` |
+| `--wm-chart-amber` | `#d97706` |
+| `--wm-chart-amber-soft` | `#fffbeb` |
+| `--wm-chart-rose` | `#e11d48` |
+| `--wm-chart-sky` | `#0284c7` |
+| `--wm-chart-purple` | `#8b5cf6` |
+| `--wm-chart-pink` | `#ec4899` |
+
+**Neutral** -- use instead of hardcoded greys or Tailwind `gray-*`/`zinc-*`
+| Token | Light |
+|-------|-------|
+| `--wm-white` | `#ffffff` (remaps to `#1F2937` in dark) |
+| `--wm-neutral-50` through `--wm-neutral-900` | Full grey scale (inverted in dark mode) |
+
+**Social** -- use for OAuth / social login buttons
+| Token | Use |
+|-------|-----|
+| `--wm-social-facebook` | Facebook button (`#1877f2`) |
+| `--wm-social-facebook-hover` | Facebook hover |
+| `--wm-social-google` | Google button (`#ea4335`) |
+| `--wm-social-google-hover` | Google hover |
+
+**Surfaces, Text, Borders** (unchanged)
+| Token | Use |
+|-------|-----|
+| `--wm-bg` | Page background (cream light / dark) |
+| `--wm-surface` | Card/panel background |
+| `--wm-text-primary` / `--wm-text` | Body text |
+| `--wm-muted` | Secondary text, labels |
+| `--wm-text-soft` | Tertiary text |
+| `--wm-border` / `--wm-border-soft` | Borders |
 
 ### Typography
 - **Headings**: `Poppins` (loaded via Google Fonts)
@@ -89,3 +186,17 @@ When building **WorkMate-specific** interfaces, always use the Ireland design sy
 
 ### Do NOT use Tailwind dark: utilities
 WorkMate uses `data-theme` attribute, not Tailwind's `dark:` prefix. All dark mode adaptation happens via `--wm-*` token overrides in `tokens.css`.
+
+### No new hex without a token (DR-012)
+Never introduce a hardcoded hex value in component code. If the needed color does not yet have a `--wm-*` token, first add one to `app/tokens.css` with a corresponding dark-mode override in the `[data-theme="dark"]` block, then consume it via `var(--wm-*)`.
+
+### TypeScript strict mode (FD-31)
+The project uses `strict: true` in `tsconfig.json`. All new components and hooks must be fully type-safe -- no `any` casts, no `@ts-ignore`, no `as unknown as X` escape hatches unless justified with an inline comment.
+
+### Component Architecture — Custom Hooks Pattern
+Large components should be decomposed into focused custom hooks to keep the main component readable. Two reference implementations:
+
+- **`AdminApplicationsPanel`** (`components/dashboard/AdminApplicationsPanel.tsx`) -- business logic extracted into `hooks/useApplicationsData`, `hooks/useApplicationFilters`, `hooks/useApplicationActions`, `hooks/useApplicationStats`.
+- **`SignUpForm`** (`components/auth/SignUpForm.tsx`) -- form logic extracted into `hooks/useSignUpFormState`, `hooks/useSignUpSubmit`, `hooks/useEircodeValidation`.
+
+Follow this pattern when a component exceeds ~200 lines or manages multiple concerns (data fetching, filtering, actions, derived state).

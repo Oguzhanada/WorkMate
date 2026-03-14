@@ -3,8 +3,9 @@ name: workmate-dashboard-widget
 description: Step-by-step workflow for adding a new dashboard widget to WorkMate. Use when creating a new widget type, adding it to a dashboard mode, or debugging widget rendering/drag-drop issues. Covers the full 5-step process from type registration to component implementation.
 metadata:
   severity: standard
-  last_synced: 2026-03-13
-  synced_with: FD-04, FD-06, FD-08
+  status: active
+  last_synced: 2026-03-14
+  synced_with: FD-04, FD-06, FD-08, FD-31
 ---
 
 # WorkMate Dashboard Widget Development
@@ -142,8 +143,19 @@ The `WidgetGrid` handles positioning via @dnd-kit. No changes needed unless widg
 - Use `getSupabaseBrowserClient()` — never server client in widget (client component)
 - Always handle loading state with `<Skeleton />`
 - Always handle empty state with `<EmptyState />`
-- Colors via `--wm-*` CSS vars only
+- Colors via `--wm-*` CSS vars only — use expanded token families: `--wm-status-*` (success, warning, error, info), `--wm-admin-*`, `--wm-chart-*`, `--wm-neutral-*` in addition to core tokens
 - Widget must be wrapped in a `<Card>` for consistent styling
+- FD-31: TypeScript `strict: true` is enabled — all components must have explicit type annotations
+
+## Architecture Example: AdminApplicationsPanel Refactor
+
+AdminApplicationsPanel was refactored from 1457 to 790 lines by extracting custom hooks into `components/dashboard/hooks/`:
+- `useApplicationsData` — data fetching and state
+- `useApplicationFilters` — filter/search logic
+- `useApplicationActions` — approve/reject/bulk actions
+- `useApplicationStats` — computed statistics
+
+Use this pattern when building complex widgets: extract stateful logic into co-located hooks under the relevant `components/` feature directory.
 
 ## DB Widget Config (migration 049)
 

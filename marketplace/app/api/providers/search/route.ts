@@ -223,7 +223,7 @@ async function handler(req: NextRequest) {
 
     // Build service categories map — join result returns nested object.
     const categoriesByProvider = new Map<string, string[]>();
-    for (const row of (servicesData ?? []) as { profile_id: string; categories: { id: string; name: string } | null }[]) {
+    for (const row of (servicesData ?? []) as unknown as { profile_id: string; categories: { id: string; name: string } | null }[]) {
       const list = categoriesByProvider.get(row.profile_id) ?? [];
       const name = row.categories?.name;
       if (name && !list.includes(name)) list.push(name);

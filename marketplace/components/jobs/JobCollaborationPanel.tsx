@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import type { RealtimePostgresInsertPayload, RealtimePostgresUpdatePayload, RealtimePostgresDeletePayload } from '@supabase/realtime-js';
 import styles from './job-collaboration-panel.module.css';
 
 type Message = {
@@ -88,7 +89,7 @@ export default function JobCollaborationPanel({ jobId, currentUserId, otherUserN
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'job_messages', filter: `job_id=eq.${jobId}` },
-        (payload) => {
+        (payload: RealtimePostgresInsertPayload<Record<string, unknown>>) => {
           const newMsg = payload.new as Message;
           setMessages((prev) => {
             if (prev.some((m) => m.id === newMsg.id)) return prev;
@@ -99,7 +100,7 @@ export default function JobCollaborationPanel({ jobId, currentUserId, otherUserN
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'job_todos', filter: `job_id=eq.${jobId}` },
-        (payload) => {
+        (payload: RealtimePostgresInsertPayload<Record<string, unknown>>) => {
           const newTodoRow = payload.new as Todo;
           setTodos((prev) => {
             if (prev.some((t) => t.id === newTodoRow.id)) return prev;
@@ -110,7 +111,7 @@ export default function JobCollaborationPanel({ jobId, currentUserId, otherUserN
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'job_todos', filter: `job_id=eq.${jobId}` },
-        (payload) => {
+        (payload: RealtimePostgresUpdatePayload<Record<string, unknown>>) => {
           const updated = payload.new as Todo;
           setTodos((prev) => prev.map((t) => (t.id === updated.id ? { ...t, ...updated } : t)));
         }
@@ -118,7 +119,7 @@ export default function JobCollaborationPanel({ jobId, currentUserId, otherUserN
       .on(
         'postgres_changes',
         { event: 'DELETE', schema: 'public', table: 'job_todos', filter: `job_id=eq.${jobId}` },
-        (payload) => {
+        (payload: RealtimePostgresDeletePayload<Record<string, unknown>>) => {
           const deleted = payload.old as { id: string };
           setTodos((prev) => prev.filter((t) => t.id !== deleted.id));
         }

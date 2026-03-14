@@ -48,7 +48,7 @@ export default function PendingQuotesWidget({ limit = 8 }: Props) {
         .limit(limit);
 
       if ((providerQuotes ?? []).length > 0) {
-        const pending = (providerQuotes ?? []).filter((quote) => quote.status !== 'accepted' && quote.status !== 'rejected');
+        const pending = (providerQuotes ?? []).filter((quote: Quote) => quote.status !== 'accepted' && quote.status !== 'rejected');
         setItems(pending);
         setCount(pending.length);
         setLoading(false);
@@ -68,7 +68,7 @@ export default function PendingQuotesWidget({ limit = 8 }: Props) {
         return;
       }
 
-      const jobIds = (jobs ?? []).map((job) => job.id);
+      const jobIds = (jobs ?? []).map((job: { id: string }) => job.id);
       if (jobIds.length === 0) {
         setItems([]);
         setCount(0);
@@ -87,8 +87,8 @@ export default function PendingQuotesWidget({ limit = 8 }: Props) {
         setError(quotesError.message);
       } else {
         const pending = (quotes ?? [])
-          .filter((quote) => quote.status !== 'accepted' && quote.status !== 'rejected')
-          .sort((a, b) => {
+          .filter((quote: Quote) => quote.status !== 'accepted' && quote.status !== 'rejected')
+          .sort((a: Quote, b: Quote) => {
             const aScore = a.ranking_score ?? 0;
             const bScore = b.ranking_score ?? 0;
             if (bScore !== aScore) return bScore - aScore;

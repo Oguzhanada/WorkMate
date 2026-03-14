@@ -17,7 +17,7 @@ export default function QuoteRequestButton({ providerId, locale }: Props) {
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }: { data: { session: { user: unknown } | null } }) => {
       setIsLoggedIn(!!session?.user);
     });
   }, []);
@@ -48,7 +48,7 @@ export default function QuoteRequestButton({ providerId, locale }: Props) {
     <button
       onClick={handleClick}
       disabled={checking}
-      className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-bold no-underline transition-opacity hover:opacity-90 disabled:opacity-60"
+      className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-bold no-underline transition hover:brightness-110 disabled:brightness-90"
       style={{
         background: 'var(--wm-grad-primary)',
         color: '#fff',

@@ -55,7 +55,7 @@
 
 /* ── Card ─────────────────────────────────────────────────── */
 .card {
-  background: #fff;
+  background: var(--wm-white);
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-xl);
   padding: 14px;
@@ -117,7 +117,7 @@
 
 .secondaryLink {
   border: 1px solid var(--wm-border);
-  background: #fff;
+  background: var(--wm-white);
   color: var(--wm-navy);
   border-radius: var(--wm-radius-sm);
   padding: 9px 12px;
@@ -134,7 +134,7 @@
 .primary {
   border: none;
   background: var(--wm-grad-primary);
-  color: #fff;
+  color: var(--wm-white);
   border-radius: var(--wm-radius-sm);
   padding: 9px 12px;
   font-family: var(--wm-font-display);
@@ -207,7 +207,7 @@
 .docStatusCard {
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-md);
-  background: #fff;
+  background: var(--wm-white);
   padding: 10px;
   box-shadow: var(--wm-shadow-xs);
 }
@@ -231,7 +231,7 @@
 
 .modalCard {
   width: min(94vw, 560px);
-  background: #fff;
+  background: var(--wm-white);
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-xl);
   box-shadow: var(--wm-shadow-2xl);
@@ -313,7 +313,7 @@
 
 .aiPill {
   border-radius: 999px;
-  background: #fff;
+  background: var(--wm-white);
   border: 1px solid rgba(var(--wm-primary-rgb), 0.28);
   color: var(--wm-primary-dark);
   font-size: 0.8rem;
@@ -323,8 +323,8 @@
 
 .aiPillCounty {
   border-radius: 999px;
-  background: #fff;
-  border: 1px solid rgba(26, 86, 219, 0.25);
+  background: var(--wm-white);
+  border: 1px solid var(--wm-status-info-border);
   color: var(--wm-blue-dark);
   font-size: 0.8rem;
   padding: 3px 10px;

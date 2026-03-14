@@ -146,7 +146,7 @@
 .saveBtn {
   border: none;
   background: var(--wm-grad-primary);
-  color: #fff;
+  color: var(--wm-white);
   border-radius: var(--wm-radius-lg);
   padding: 12px 20px;
   font-family: var(--wm-font-display);

@@ -230,7 +230,7 @@ export default function ProReviewsPanel({ proId }: { proId: string }) {
       .eq('pro_id', proId)
       .order('created_at', { ascending: false })
       .limit(20)
-      .then(({ data }) => setReviews((data as Review[] | null) ?? []));
+      .then(({ data }: { data: Review[] | null }) => setReviews(data ?? []));
   }, [proId]);
 
   const handleUpdated = (id: string, response: string | null, respondedAt: string | null) => {

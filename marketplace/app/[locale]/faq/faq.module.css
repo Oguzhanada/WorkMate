@@ -54,7 +54,7 @@
 
 .sidebar,
 .article {
-  background: #fff;
+  background: var(--wm-white);
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-xl);
   box-shadow: var(--wm-shadow-sm);
@@ -91,7 +91,7 @@
   width: 100%;
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-sm);
-  background: #fff;
+  background: var(--wm-white);
   color: var(--wm-text);
   text-align: left;
   padding: 9px 12px;
@@ -195,7 +195,7 @@
 
 .relatedList button {
   border: 1px solid var(--wm-border);
-  background: #fff;
+  background: var(--wm-white);
   color: var(--wm-text);
   border-radius: 999px;
   padding: 7px 12px;
@@ -218,7 +218,7 @@
 .voteButton,
 .voteActive {
   border: 1px solid var(--wm-border);
-  background: #fff;
+  background: var(--wm-white);
   color: var(--wm-text);
   border-radius: var(--wm-radius-sm);
   padding: 8px 16px;

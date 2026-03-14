@@ -14,6 +14,18 @@ type EarningsSummary = {
   completedJobsThisMonth: number;
 };
 
+type CompletedQuoteRow = {
+  id: string;
+  quote_amount_cents: number | null;
+  jobs: { status: string; completed_at: string | null; accepted_quote_id: string | null } | { status: string; completed_at: string | null; accepted_quote_id: string | null }[] | null;
+};
+
+type InProgressQuoteRow = {
+  id: string;
+  quote_amount_cents: number | null;
+  jobs: { status: string; accepted_quote_id: string | null } | { status: string; accepted_quote_id: string | null }[] | null;
+};
+
 function formatEur(cents: number) {
   return new Intl.NumberFormat('en-IE', {
     style: 'currency',
@@ -67,13 +79,13 @@ export default function ProviderEarningsWidget() {
         return;
       }
 
-      const acceptedCompleted = (completedQuotes ?? []).filter((q) => {
+      const acceptedCompleted = (completedQuotes ?? []).filter((q: CompletedQuoteRow) => {
         const job = Array.isArray(q.jobs) ? q.jobs[0] : q.jobs;
         return job?.accepted_quote_id === q.id;
       });
 
       const monthlyGrossCents = acceptedCompleted.reduce(
-        (sum, q) => sum + Number(q.quote_amount_cents ?? 0),
+        (sum: number, q: CompletedQuoteRow) => sum + Number(q.quote_amount_cents ?? 0),
         0
       );
       const monthlyNetCents = Math.round(monthlyGrossCents * 0.9);
@@ -85,13 +97,13 @@ export default function ProviderEarningsWidget() {
         .eq('pro_id', user.id)
         .eq('jobs.status', 'in_progress');
 
-      const pendingQuotes = (inProgressQuotes ?? []).filter((q) => {
+      const pendingQuotes = (inProgressQuotes ?? []).filter((q: InProgressQuoteRow) => {
         const job = Array.isArray(q.jobs) ? q.jobs[0] : q.jobs;
         return job?.accepted_quote_id === q.id;
       });
 
       const pendingCents = Math.round(
-        pendingQuotes.reduce((sum, q) => sum + Number(q.quote_amount_cents ?? 0), 0) * 0.9
+        pendingQuotes.reduce((sum: number, q: InProgressQuoteRow) => sum + Number(q.quote_amount_cents ?? 0), 0) * 0.9
       );
 
       setSummary({ monthlyNetCents, pendingCents, completedJobsThisMonth });

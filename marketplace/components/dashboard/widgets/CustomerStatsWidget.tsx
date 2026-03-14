@@ -29,8 +29,8 @@ export default function CustomerStatsWidget() {
       if (data) {
         setStats({
           total: data.length,
-          open: data.filter((j) => j.status === 'open').length,
-          completed: data.filter((j) => j.status === 'completed').length,
+          open: data.filter((j: { status: string }) => j.status === 'open').length,
+          completed: data.filter((j: { status: string }) => j.status === 'completed').length,
         });
       }
       setLoading(false);

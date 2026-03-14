@@ -29,8 +29,8 @@ function validatePassword(password: string): string | undefined {
   if (!password.trim()) {
     return 'Password is required.';
   }
-  if (password.length < 6) {
-    return 'Password must be at least 6 characters.';
+  if (password.length < 8) {
+    return 'Password must be at least 8 characters.';
   }
   return undefined;
 }
@@ -117,7 +117,7 @@ export function LoginForm() {
           .from('user_roles')
           .select('role')
           .eq('user_id', userId);
-        const roles = (rolesData ?? []).map((r) => r.role as string);
+        const roles = (rolesData ?? []).map((r: { role: string }) => r.role as string);
         if (roles.includes('admin')) {
           dashboardPath = '/dashboard/admin';
         } else if (roles.includes('verified_pro')) {

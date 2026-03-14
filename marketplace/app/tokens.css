@@ -138,6 +138,7 @@
   --wm-blue:      var(--color-info);
   --wm-blue-dark: #1d4ed8;
   --wm-blue-soft: #eff6ff;
+  --wm-blue-rgb:  37, 99, 235;
 
   /* Destructive */
   --wm-destructive:       #EF4444;
@@ -203,6 +204,69 @@
   --wm-transition:        200ms cubic-bezier(0.4, 0, 0.2, 1);
   --wm-transition-slow:   350ms cubic-bezier(0.4, 0, 0.2, 1);
   --wm-transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ── Status / Alert tokens ── */
+  --wm-status-success:        var(--wm-primary);
+  --wm-status-success-light:  #f0fdf4;
+  --wm-status-success-border: #86efac;
+  --wm-status-success-text:   #166534;
+
+  --wm-status-warning:        var(--wm-gold);
+  --wm-status-warning-light:  #fffbeb;
+  --wm-status-warning-border: #fcd34d;
+  --wm-status-warning-text:   #92400e;
+
+  --wm-status-error:          var(--wm-destructive);
+  --wm-status-error-light:    #fef2f2;
+  --wm-status-error-border:   #fca5a5;
+  --wm-status-error-text:     #991b1b;
+
+  --wm-status-info:           var(--wm-blue);
+  --wm-status-info-light:     #eff6ff;
+  --wm-status-info-border:    #93c5fd;
+  --wm-status-info-text:      #1e40af;
+
+  /* ── Admin / Sidebar tokens ── */
+  --wm-admin-bg:         #0f172a;
+  --wm-admin-surface:    #1e293b;
+  --wm-admin-border:     #334155;
+  --wm-admin-text:       #94a3b8;
+  --wm-admin-text-hover: #e2e8f0;
+  --wm-admin-accent:     #34d399;
+
+  /* ── Chart / Data-viz tokens ── */
+  --wm-chart-emerald: var(--wm-primary);
+  --wm-chart-navy:    var(--wm-navy);
+  --wm-chart-blue:    #0ea5e9;
+  --wm-chart-violet:      #7c3aed;
+  --wm-chart-violet-soft: #f1efff;
+  --wm-chart-violet-dark: #5b21b6;
+  --wm-chart-amber:       #d97706;
+  --wm-chart-amber-soft:  #fffbeb;
+  --wm-chart-amber-rgb:   245, 158, 11;
+  --wm-chart-rose:    #e11d48;
+  --wm-chart-sky:     #0284c7;
+  --wm-chart-purple:  #8b5cf6;
+  --wm-chart-pink:    #ec4899;
+
+  /* ── Neutral shorthand tokens ── */
+  --wm-white:       #ffffff;
+  --wm-neutral-50:  #f8fafc;
+  --wm-neutral-100: #f1f5f9;
+  --wm-neutral-200: #e2e8f0;
+  --wm-neutral-300: #cbd5e1;
+  --wm-neutral-400: #94a3b8;
+  --wm-neutral-500: #64748b;
+  --wm-neutral-600: #475569;
+  --wm-neutral-700: #334155;
+  --wm-neutral-800: #1e293b;
+  --wm-neutral-900: #0f172a;
+
+  /* ── Social brand tokens ── */
+  --wm-social-facebook:       #1877f2;
+  --wm-social-facebook-hover: #145ec2;
+  --wm-social-google:         #ea4335;
+  --wm-social-google-hover:   #d33426;
 }
 
 /* ── Dark Mode (DR-007) ── */
@@ -235,6 +299,48 @@
   --wm-shadow-md:  0 8px 20px rgba(0, 0, 0, 0.30);
   --wm-shadow-lg:  0 14px 36px rgba(0, 0, 0, 0.35);
   --wm-shadow-xl:  0 22px 50px rgba(0, 0, 0, 0.40);
+
+  /* Light variants remap for dark backgrounds */
+  --wm-primary-light: rgba(22, 155, 98, 0.15);
+  --wm-primary-faint: rgba(22, 155, 98, 0.08);
+  --wm-gold-light:    rgba(212, 168, 71, 0.15);
+  --wm-gold-faint:    rgba(212, 168, 71, 0.08);
+  --wm-blue-soft:     rgba(37, 99, 235, 0.15);
+  --wm-destructive-light: rgba(239, 68, 68, 0.15);
+
+  /* Status tokens remap for dark */
+  --wm-status-success-light:  rgba(22, 155, 98, 0.15);
+  --wm-status-success-border: rgba(22, 155, 98, 0.30);
+  --wm-status-success-text:   #86efac;
+
+  --wm-status-warning-light:  rgba(212, 168, 71, 0.15);
+  --wm-status-warning-border: rgba(212, 168, 71, 0.30);
+  --wm-status-warning-text:   #fcd34d;
+
+  --wm-status-error-light:    rgba(239, 68, 68, 0.15);
+  --wm-status-error-border:   rgba(239, 68, 68, 0.30);
+  --wm-status-error-text:     #fca5a5;
+
+  --wm-status-info-light:     rgba(37, 99, 235, 0.15);
+  --wm-status-info-border:    rgba(37, 99, 235, 0.30);
+  --wm-status-info-text:      #93c5fd;
+
+  /* Neutral remap for dark */
+  --wm-white:       #1F2937;
+  --wm-neutral-50:  #1e293b;
+  --wm-neutral-100: #263344;
+  --wm-neutral-200: #334155;
+  --wm-neutral-300: #475569;
+  --wm-neutral-400: #64748b;
+  --wm-neutral-500: #94a3b8;
+  --wm-neutral-600: #cbd5e1;
+  --wm-neutral-700: #e2e8f0;
+  --wm-neutral-800: #f1f5f9;
+  --wm-neutral-900: #f8fafc;
+
+  /* Social brand — same in dark */
+  --wm-social-facebook:       #1877f2;
+  --wm-social-facebook-hover: #4293f5;
 }
 
 /* ── Theme B — OnTask / Minimal Blue ── */

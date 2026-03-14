@@ -24,6 +24,13 @@ vi.mock('@/lib/request-id/middleware', () => ({
   withRequestId: (handler: unknown) => handler,
 }));
 
+// Mock crypto/encrypt — test env has no WEBHOOK_SECRET_ENCRYPTION_KEY
+vi.mock('@/lib/crypto/encrypt', () => ({
+  encrypt: (val: string) => `mock-encrypted:${val}`,
+  decrypt: (val: string) => val.replace('mock-encrypted:', ''),
+  isEncrypted: (val: string) => val.startsWith('mock-encrypted:'),
+}));
+
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { authenticatePublicRequest, type PublicAuthResult } from '@/lib/api/public-auth';
 
@@ -74,7 +81,8 @@ function makeMockClient(
 }
 
 function makeRequest(url: string, init?: RequestInit): NextRequest {
-  return new NextRequest(new URL(url, 'http://localhost:3000'), init);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return new NextRequest(new URL(url, 'http://localhost:3000'), init as any);
 }
 
 function setAuth(result: PublicAuthResult) {

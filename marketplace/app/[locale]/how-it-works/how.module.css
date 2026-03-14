@@ -14,7 +14,7 @@
     url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1800&q=80');
   background-size: cover;
   background-position: center;
-  color: #fff;
+  color: var(--wm-white);
 }
 
 .heroInner {
@@ -28,7 +28,7 @@
   font-family: var(--wm-font-display);
   font-size: clamp(2rem, 4vw, 3.2rem);
   font-weight: 800;
-  color: #fff;
+  color: var(--wm-white);
   letter-spacing: -0.03em;
 }
 
@@ -46,7 +46,7 @@
 }
 
 .step {
-  background: #fff;
+  background: var(--wm-white);
   border-radius: var(--wm-radius-2xl);
   border: 1px solid var(--wm-border);
   box-shadow: var(--wm-shadow-md);
@@ -128,7 +128,7 @@
   right: 14px;
   bottom: 14px;
   background: var(--wm-grad-primary);
-  color: #fff;
+  color: var(--wm-white);
   border-radius: 999px;
   padding: 7px 14px;
   font-family: var(--wm-font-display);
@@ -164,7 +164,7 @@
   font-family: var(--wm-font-display);
   font-size: clamp(1.6rem, 3vw, 2.4rem);
   font-weight: 800;
-  color: #fff;
+  color: var(--wm-white);
   letter-spacing: -0.03em;
   position: relative;
 }
@@ -188,7 +188,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #fff;
+  background: var(--wm-white);
   color: var(--wm-primary-dark);
   font-family: var(--wm-font-display);
   font-weight: 700;
@@ -209,7 +209,7 @@
   align-items: center;
   gap: 6px;
   background: rgba(255, 255, 255, 0.10);
-  color: #fff;
+  color: var(--wm-white);
   font-weight: 600;
   padding: 13px 28px;
   border-radius: var(--wm-radius-md);
@@ -219,7 +219,7 @@
 }
 
 .ctaSecondary:hover {
-  border-color: #fff;
+  border-color: var(--wm-white);
   background: rgba(255, 255, 255, 0.16);
 }
 

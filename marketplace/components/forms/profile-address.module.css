@@ -1,8 +1,8 @@
 .card {
-  background: #fff;
-  border: 1px solid #e5e9ef;
+  background: var(--wm-white);
+  border: 1px solid var(--wm-neutral-200);
   border-radius: 16px;
-  box-shadow: 0 12px 24px rgba(35, 47, 74, 0.08);
+  box-shadow: 0 12px 24px rgba(var(--wm-navy-rgb), 0.08);
   padding: 16px;
   display: grid;
   gap: 10px;
@@ -19,15 +19,15 @@
 }
 
 .ok {
-  background: #e8fff5;
-  color: #008f6f;
-  border: 1px solid #bfeedd;
+  background: var(--wm-status-success-light);
+  color: var(--wm-primary-dark);
+  border: 1px solid var(--wm-status-success-border);
 }
 
 .error {
-  background: #fff1f1;
-  color: #cc4f4f;
-  border: 1px solid #ffd6d6;
+  background: var(--wm-destructive-light);
+  color: var(--wm-destructive);
+  border: 1px solid rgba(var(--wm-destructive-rgb), 0.25);
 }
 
 .grid {
@@ -46,19 +46,19 @@
 }
 
 .field span {
-  color: #636e72;
+  color: var(--wm-neutral-500);
 }
 
 .input {
-  border: 1px solid #d6dce8;
+  border: 1px solid var(--wm-neutral-200);
   border-radius: 10px;
   padding: 10px 12px;
   font: inherit;
 }
 
 .input:focus {
-  border-color: #00b894;
-  box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.14);
+  border-color: var(--wm-primary);
+  box-shadow: 0 0 0 3px rgba(var(--wm-primary-rgb), 0.14);
   outline: none;
 }
 
@@ -67,9 +67,9 @@
 }
 
 .save {
-  border: 1px solid #00b894;
-  background: #00b894;
-  color: #fff;
+  border: 1px solid var(--wm-primary);
+  background: var(--wm-primary);
+  color: var(--wm-white);
   border-radius: 10px;
   padding: 9px 14px;
   font-weight: 700;

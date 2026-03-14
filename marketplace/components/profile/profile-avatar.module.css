@@ -87,7 +87,7 @@
 .primary {
   border: none;
   background: linear-gradient(135deg, var(--wm-primary) 0%, var(--wm-primary-dark) 100%);
-  color: #fff;
+  color: var(--wm-white);
   border-radius: var(--wm-radius-lg);
   padding: 9px 14px;
   font-weight: 600;

@@ -62,8 +62,6 @@ docs/legal/
 .claude/*
 !.claude/skills/
 .claude/skills/*
-!.claude/skills/ui-system-hybrid-migration/
-!.claude/skills/ui-system-hybrid-migration/SKILL.md
 !.claude/skills/workmate-visual-qa/
 !.claude/skills/workmate-visual-qa/SKILL.md
 !.claude/skills/workmate-schema-guardian/
@@ -84,6 +82,8 @@ docs/legal/
 !.claude/skills/workmate-seo-audit/SKILL.md
 !.claude/skills/workmate-ai-integration/
 !.claude/skills/workmate-ai-integration/SKILL.md
+!.claude/skills/workmate-ui-migration/
+!.claude/skills/workmate-ui-migration/SKILL.md
 .sandbox/
 sandbox/
 .vscode/

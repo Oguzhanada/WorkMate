@@ -160,3 +160,22 @@ export function createCircuitBreaker(
   breakers.set(name, breaker);
   return breaker;
 }
+
+// ── Health reporting (FD-33) ────────────────────────────────────────────────
+
+export type CircuitBreakerHealthEntry = {
+  name: string;
+  state: CircuitBreakerState;
+};
+
+/**
+ * Returns the current state of all registered circuit breakers.
+ * Exposed via /api/health for observability per FD-33 / DR-014.
+ */
+export function getCircuitBreakerHealth(): CircuitBreakerHealthEntry[] {
+  const entries: CircuitBreakerHealthEntry[] = [];
+  for (const [name, breaker] of breakers.entries()) {
+    entries.push({ name, state: breaker.getState() });
+  }
+  return entries;
+}

@@ -3,8 +3,9 @@ name: workmate-api-route
 description: Standard pattern for writing new API route handlers in WorkMate. Use when creating or reviewing any file under app/api/. Enforces correct Supabase client selection, Zod validation, RBAC checks, error handling format, and webhook trigger pattern.
 metadata:
   severity: critical
-  last_synced: 2026-03-13
-  synced_with: FD-01, FD-08, FD-09, FD-12, FD-27, DR-010
+  status: active
+  last_synced: 2026-03-14
+  synced_with: FD-01, FD-08, FD-09, FD-12, FD-27, FD-31, DR-010
 ---
 
 # WorkMate API Route Pattern
@@ -27,6 +28,7 @@ app/api/<resource>/[id]/route.ts      # item: GET, PATCH, DELETE
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getUserRoles } from '@/lib/auth/rbac';
+import { apiUnauthorized, apiForbidden, apiValidationError, apiServerError } from '@/lib/api/error-response';
 // 1. Import schema from the shared validation file (never define inline)
 import { CreateResourceSchema } from '@/lib/validation/jobs';
 
@@ -36,20 +38,20 @@ export async function POST(req: NextRequest) {
   // 2. Auth check (always)
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (!user || authError) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiUnauthorized();
   }
 
   // 3. RBAC check (when role-restricted)
   const roles = await getUserRoles(supabase, user.id);
   if (!roles.includes('verified_pro')) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiForbidden();
   }
 
   // 4. Validate input using shared schema
   const body = await req.json();
   const parsed = CreateResourceSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+    return apiValidationError(parsed.error.issues);
   }
 
   // 5. DB operation
@@ -60,7 +62,7 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return apiServerError(error.message);
   }
 
   // 6. Webhook trigger (when applicable)
@@ -101,6 +103,10 @@ Never add schemas in the route file itself.
 | Client component | `getSupabaseBrowserClient()` from `lib/supabase/client.ts` |
 | Admin bypass (service role) | `getSupabaseServiceClient()` from `lib/supabase/service.ts` |
 
+**Service role restrictions (FD-08):** `getSupabaseServiceClient()` bypasses RLS entirely. It is ONLY acceptable in: (a) admin routes behind `ensureAdminRoute()`, (b) webhook handlers after signature verification, (c) system-level background tasks (notifications, audit, idempotency), (d) public API v1 routes behind `authenticatePublicRequest()`, (e) read-only public endpoints returning only non-sensitive fields. For all standard user-facing routes, use `getSupabaseRouteClient()`.
+
+When using service role, log the operation via `lib/logger.ts` with `requestId` for audit trail.
+
 Never use a module-scope singleton. Never re-create `lib/supabase.ts`.
 
 ## RBAC Helpers
@@ -125,9 +131,11 @@ z.record(z.string(), z.string())
 z.record(z.string())
 ```
 
-## Error Response Format
+## Error Response Format (FD-27)
 
-Always return `{ error: string | object }` with appropriate HTTP status:
+> **Always use helpers from `lib/api/error-response.ts`** — never raw `NextResponse.json` for errors.
+
+Available helpers: `apiUnauthorized()`, `apiForbidden()`, `apiValidationError(issues)`, `apiNotFound()`, `apiConflict(msg)`, `apiServerError(msg)`, `apiError(msg, status, details?)`.
 
 | Status | When |
 |---|---|
@@ -151,6 +159,16 @@ await sendWebhook(userId, 'payment.completed', paymentData);
 
 Webhook delivery is HTTPS-only, HMAC-SHA256 signed via `X-WorkMate-Signature`.
 
+## TypeScript Strict Mode (FD-31)
+
+TypeScript `strict: true` is enabled project-wide. All route handlers must have explicit return type annotations. Example:
+
+```typescript
+export async function POST(req: NextRequest): Promise<NextResponse> {
+```
+
+Note: The `RouteHandler` type in `lib/rate-limit/middleware.ts` uses `any` for the ctx parameter. This is intentional for strict mode compatibility with Next.js dynamic route context typing.
+
 ## Checklist Before Committing
 
 - [ ] `getSupabaseRouteClient()` used (not browser or server client)
@@ -161,3 +179,4 @@ Webhook delivery is HTTPS-only, HMAC-SHA256 signed via `X-WorkMate-Signature`.
 - [ ] Error response uses `{ error: ... }` format
 - [ ] Webhook fired for state-change events
 - [ ] No raw user data passed to HTML (XSS prevention)
+- [ ] Explicit return type annotations on all exported functions (FD-31)

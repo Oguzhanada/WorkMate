@@ -18,22 +18,22 @@ import {
   ChevronRight,
 } from 'lucide-react';
 
-// ─── Colours (admin-only dark palette, no CSS vars to avoid theme bleed) ────
+// ─── Colours (admin-only dark palette via --wm-admin-* tokens) ──────────────
 const C = {
-  sidebarBg: '#0f172a',
-  sidebarBorder: '#1e293b',
-  sidebarText: '#94a3b8',
-  sidebarTextHover: '#e2e8f0',
-  sidebarActive: '#34d399',
+  sidebarBg: 'var(--wm-admin-bg)',
+  sidebarBorder: 'var(--wm-admin-surface)',
+  sidebarText: 'var(--wm-admin-text)',
+  sidebarTextHover: 'var(--wm-admin-text-hover)',
+  sidebarActive: 'var(--wm-admin-accent)',
   sidebarActiveBg: 'rgba(52,211,153,0.12)',
-  topBarBg: '#ffffff',
-  topBarBorder: '#e2e8f0',
-  contentBg: '#f1f5f9',
-  badgeBg: '#f59e0b',
-  badgeText: '#1e293b',
-  logoAccent: '#34d399',
-  logoText: '#f1f5f9',
-  sectionLabel: '#475569',
+  topBarBg: 'var(--wm-white)',
+  topBarBorder: 'var(--wm-neutral-200)',
+  contentBg: 'var(--wm-neutral-100)',
+  badgeBg: 'var(--wm-status-warning)',
+  badgeText: 'var(--wm-neutral-800)',
+  logoAccent: 'var(--wm-admin-accent)',
+  logoText: 'var(--wm-neutral-100)',
+  sectionLabel: 'var(--wm-neutral-600)',
 } as const;
 
 const NAV_ITEMS = [
@@ -125,7 +125,7 @@ export default function AdminSidebarLayout({
               background: C.logoAccent, display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0,
             }}>
-              <span style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>W</span>
+              <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--wm-neutral-900)', letterSpacing: '-0.5px' }}>W</span>
             </div>
             <div>
               <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: C.logoText, lineHeight: 1.2 }}>WorkMate</p>
@@ -240,11 +240,11 @@ export default function AdminSidebarLayout({
           <nav style={{ display: 'flex', alignItems: 'center', gap: '4px', flex: 1, overflow: 'hidden' }}>
             {breadcrumbs.map((crumb, i) => (
               <span key={crumb.href} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                {i > 0 && <ChevronRight size={12} style={{ color: '#94a3b8', flexShrink: 0 }} />}
+                {i > 0 && <ChevronRight size={12} style={{ color: 'var(--wm-neutral-400)', flexShrink: 0 }} />}
                 {crumb.isLast ? (
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{crumb.label}</span>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--wm-neutral-900)' }}>{crumb.label}</span>
                 ) : (
-                  <Link href={crumb.href} style={{ fontSize: '13px', color: '#64748b', textDecoration: 'none' }}>{crumb.label}</Link>
+                  <Link href={crumb.href} style={{ fontSize: '13px', color: 'var(--wm-neutral-500)', textDecoration: 'none' }}>{crumb.label}</Link>
                 )}
               </span>
             ))}
@@ -255,7 +255,7 @@ export default function AdminSidebarLayout({
             margin: 0,
             fontSize: '15px',
             fontWeight: 700,
-            color: '#0f172a',
+            color: 'var(--wm-neutral-900)',
             position: 'absolute',
             left: '50%',
             transform: 'translateX(-50%)',
@@ -269,16 +269,16 @@ export default function AdminSidebarLayout({
             {(pendingVerification + pendingDocs) > 0 && (
               <div style={{
                 width: '8px', height: '8px', borderRadius: '50%',
-                background: '#f59e0b', position: 'relative',
+                background: 'var(--wm-status-warning)', position: 'relative',
               }} />
             )}
-            <Bell size={18} style={{ color: '#64748b', cursor: 'pointer' }} />
+            <Bell size={18} style={{ color: 'var(--wm-neutral-500)', cursor: 'pointer' }} />
             <div style={{
               width: '32px', height: '32px', borderRadius: '50%',
-              background: '#e2e8f0',
+              background: 'var(--wm-neutral-200)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>{adminInitials}</span>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--wm-neutral-600)' }}>{adminInitials}</span>
             </div>
           </div>
         </header>

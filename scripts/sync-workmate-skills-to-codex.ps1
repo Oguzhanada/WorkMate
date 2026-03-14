@@ -1,6 +1,6 @@
 param(
   [string]$RepoRoot = "C:\Users\Ada\Git\Python\WorkMate",
-  [string]$TargetRoot = "$HOME\.codex\skills"
+  [string]$TargetRoot = "$HOME\.claude\skills"
 )
 
 $sourceRoot = Join-Path $RepoRoot ".claude\skills"

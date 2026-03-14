@@ -23,7 +23,7 @@
 
 /* ── Generic card ─────────────────────────────────────────── */
 .card {
-  background: #fff;
+  background: var(--wm-white);
   border-radius: var(--wm-radius-xl);
   border: 1px solid var(--wm-border);
   box-shadow: var(--wm-shadow-sm);
@@ -101,7 +101,7 @@
 /* ── Stat banner ──────────────────────────────────────────── */
 .statBar {
   background: var(--wm-grad-navy);
-  color: #fff;
+  color: var(--wm-white);
   border-radius: var(--wm-radius-md);
   padding: 16px;
   font-weight: 600;
@@ -116,7 +116,7 @@
 }
 
 .teamCard {
-  background: #fff;
+  background: var(--wm-white);
   border-radius: var(--wm-radius-xl);
   border: 1px solid var(--wm-border);
   box-shadow: var(--wm-shadow-sm);
@@ -143,7 +143,7 @@
 .formWrap {
   width: min(820px, calc(100% - 32px));
   margin: 56px auto;
-  background: #fff;
+  background: var(--wm-white);
   border-radius: var(--wm-radius-xl);
   border: 1px solid var(--wm-border);
   box-shadow: var(--wm-shadow-md);
@@ -251,7 +251,7 @@
 }
 
 .metricCard {
-  background: #fff;
+  background: var(--wm-white);
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-xl);
   padding: 16px;
@@ -360,18 +360,18 @@
 .badgePending {
   background: var(--wm-amber-light);
   color: var(--wm-amber-dark);
-  border-color: rgba(245, 158, 11, 0.25);
+  border-color: rgba(var(--wm-chart-amber-rgb), 0.25);
 }
 
 .badgeCompleted {
   background: var(--wm-blue-soft);
   color: var(--wm-blue-dark);
-  border-color: rgba(26, 86, 219, 0.2);
+  border-color: rgba(var(--wm-blue-rgb), 0.2);
 }
 
 .badgeAssigned {
-  background: #f3f0ff;
-  color: #5b21b6;
+  background: var(--wm-chart-violet-soft);
+  color: var(--wm-chart-violet-dark);
   border-color: rgba(91, 33, 182, 0.20);
 }
 
@@ -385,7 +385,7 @@
 .primary {
   border: none;
   background: var(--wm-grad-primary);
-  color: #fff;
+  color: var(--wm-white);
   padding: 10px 16px;
   border-radius: var(--wm-radius-sm);
   font-family: var(--wm-font-display);
@@ -407,7 +407,7 @@
 
 .secondary {
   border: 1px solid var(--wm-border);
-  background: #fff;
+  background: var(--wm-white);
   color: var(--wm-navy);
   padding: 10px 16px;
   border-radius: var(--wm-radius-sm);
@@ -424,7 +424,7 @@
 
 .secondaryLink {
   border: 1px solid var(--wm-border);
-  background: #fff;
+  background: var(--wm-white);
   color: var(--wm-navy);
   padding: 10px 16px;
   border-radius: var(--wm-radius-sm);
@@ -446,7 +446,7 @@
 .oauthButton {
   width: 100%;
   border: 1px solid var(--wm-border);
-  background: #fff;
+  background: var(--wm-white);
   border-radius: var(--wm-radius-sm);
   padding: 11px;
   font-weight: 600;
@@ -472,7 +472,7 @@
 .tabButton {
   flex: 1;
   border: 0;
-  background: #fff;
+  background: var(--wm-white);
   padding: 11px;
   font-weight: 600;
   cursor: pointer;
@@ -481,7 +481,7 @@
 
 .activeTab {
   background: var(--wm-grad-primary);
-  color: #fff;
+  color: var(--wm-white);
 }
 
 /* ── Toast / error ────────────────────────────────────────── */
@@ -507,7 +507,7 @@
 .banner {
   background: var(--wm-grad-navy);
   border-radius: var(--wm-radius-xl);
-  color: #fff;
+  color: var(--wm-white);
   padding: 28px;
 }
 
@@ -531,7 +531,7 @@
 /* ── Service hero ─────────────────────────────────────────── */
 .serviceHero {
   position: relative;
-  color: #fff;
+  color: var(--wm-white);
   padding: 82px 0;
   background-size: cover;
   background-position: center;
@@ -569,7 +569,7 @@
 }
 
 .proCard {
-  background: #fff;
+  background: var(--wm-white);
   border-radius: var(--wm-radius-xl);
   border: 1px solid var(--wm-border);
   box-shadow: var(--wm-shadow-sm);
@@ -600,7 +600,7 @@
 }
 
 .faq details {
-  background: #fff;
+  background: var(--wm-white);
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-md);
   padding: 12px;
@@ -615,7 +615,7 @@
 }
 
 .resultCard {
-  background: #fff;
+  background: var(--wm-white);
   border-radius: var(--wm-radius-xl);
   border: 1px solid var(--wm-border);
   box-shadow: var(--wm-shadow-sm);
@@ -641,7 +641,7 @@
 /* ── Top offer ────────────────────────────────────────────── */
 .cardTopOffer {
   border: 1.5px solid var(--wm-amber);
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12), var(--wm-shadow-sm);
+  box-shadow: 0 0 0 3px rgba(var(--wm-chart-amber-rgb), 0.12), var(--wm-shadow-sm);
 }
 
 /* ── Mode badges ──────────────────────────────────────────── */
@@ -650,7 +650,7 @@
   padding: 2px 8px;
   border-radius: 999px;
   background: var(--wm-amber-light);
-  border: 1px solid rgba(245, 158, 11, 0.25);
+  border: 1px solid rgba(var(--wm-chart-amber-rgb), 0.25);
   color: var(--wm-amber-dark);
   font-size: 0.8rem;
   font-weight: 600;
@@ -661,7 +661,7 @@
   padding: 2px 8px;
   border-radius: 999px;
   background: var(--wm-blue-soft);
-  border: 1px solid rgba(26, 86, 219, 0.2);
+  border: 1px solid rgba(var(--wm-blue-rgb), 0.2);
   color: var(--wm-blue-dark);
   font-size: 0.8rem;
   font-weight: 600;
@@ -671,7 +671,7 @@
   padding: 8px 12px;
   border-radius: var(--wm-radius-sm);
   background: var(--wm-amber-faint);
-  border: 1px solid rgba(245, 158, 11, 0.25);
+  border: 1px solid rgba(var(--wm-chart-amber-rgb), 0.25);
   color: var(--wm-amber-dark);
   font-size: 0.88rem;
   font-weight: 500;
@@ -748,7 +748,7 @@
   gap: 6px;
   padding: 6px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(245, 158, 11, 0.30);
+  border: 1px solid rgba(var(--wm-chart-amber-rgb), 0.30);
   background: var(--wm-amber-light);
   color: var(--wm-amber-dark);
   font-weight: 700;

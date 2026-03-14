@@ -9,7 +9,7 @@
   padding: 12px;
   display: grid;
   gap: 8px;
-  background: #fff;
+  background: var(--wm-white);
   transition: box-shadow var(--wm-transition);
 }
 
@@ -42,7 +42,7 @@
 .btnPrimary {
   border: none;
   background: var(--wm-grad-primary);
-  color: #fff;
+  color: var(--wm-white);
   border-radius: var(--wm-radius-xs);
   padding: 6px 12px;
   font-weight: 600;
@@ -58,7 +58,7 @@
 
 .btnGhost {
   border: 1px solid var(--wm-border);
-  background: #fff;
+  background: var(--wm-white);
   color: var(--wm-text);
   border-radius: var(--wm-radius-xs);
   padding: 6px 12px;

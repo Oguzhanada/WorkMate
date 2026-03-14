@@ -120,11 +120,16 @@ class UpstashStore implements RateLimitStore {
 
 // ── Active store selection ────────────────────────────────────────────────────
 
+type RateLimitStoreType = 'distributed' | 'degraded';
+
+let activeStoreType: RateLimitStoreType = 'degraded';
+
 function buildActiveStore(): RateLimitStore {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
   if (url && token) {
+    activeStoreType = 'distributed';
     if (process.env.NODE_ENV !== 'production') {
       // eslint-disable-next-line no-console
       console.log('[rate-limit] Using Upstash Redis distributed store');
@@ -132,9 +137,9 @@ function buildActiveStore(): RateLimitStore {
     return new UpstashStore(url, token);
   }
 
+  activeStoreType = 'degraded';
   if (process.env.NODE_ENV === 'production') {
     // Warn operators that rate limiting is in-memory — less effective on multi-instance
-     
     console.warn(
       '[rate-limit] WARNING: Using in-memory store in production. ' +
         'Set UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN for distributed rate limiting.'
@@ -145,6 +150,12 @@ function buildActiveStore(): RateLimitStore {
 }
 
 const activeStore: RateLimitStore = buildActiveStore();
+
+// ── Health reporting (FD-33) ────────────────────────────────────────────────
+
+export function getRateLimitHealth(): { store: RateLimitStoreType } {
+  return { store: activeStoreType };
+}
 
 // ── Predefined limit configurations ──────────────────────────────────────────
 

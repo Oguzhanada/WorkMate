@@ -14,27 +14,27 @@ import type { AdminDashboardData } from './types';
 import AdminCalendar from '@/components/admin/AdminCalendar';
 import AdminAnalyticsCharts from '@/components/admin/AdminAnalyticsCharts';
 
-// ─── Design tokens (admin content area — light) ───────────────────────────────
+// ─── Design tokens (--wm-* CSS custom properties) ───────────────────────────
 const T = {
-  cardBg: '#ffffff',
-  cardBorder: '#e2e8f0',
+  cardBg: 'var(--wm-white)',
+  cardBorder: 'var(--wm-neutral-200)',
   cardRadius: '14px',
   cardShadow: '0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04)',
-  contentBg: '#f1f5f9',
-  text: '#0f172a',
-  muted: '#64748b',
-  border: '#e2e8f0',
-  emerald: '#169B62',
+  contentBg: 'var(--wm-neutral-100)',
+  text: 'var(--wm-neutral-900)',
+  muted: 'var(--wm-neutral-500)',
+  border: 'var(--wm-neutral-200)',
+  emerald: 'var(--wm-primary)',
   emeraldBg: 'rgba(22,155,98,0.10)',
-  navy: '#1B2A4A',
+  navy: 'var(--wm-navy)',
   navyBg: 'rgba(27,42,74,0.10)',
-  violet: '#7c3aed',
+  violet: 'var(--wm-chart-violet)',
   violetBg: 'rgba(124,58,237,0.10)',
-  amber: '#d97706',
+  amber: 'var(--wm-chart-amber)',
   amberBg: 'rgba(217,119,6,0.10)',
-  rose: '#e11d48',
+  rose: 'var(--wm-chart-rose)',
   roseBg: 'rgba(225,29,72,0.10)',
-  sky: '#0284c7',
+  sky: 'var(--wm-chart-sky)',
   skyBg: 'rgba(2,132,199,0.10)',
 } as const;
 
@@ -352,9 +352,9 @@ export default function AdminDashboard({
               alignItems: 'center',
               gap: '6px',
               padding: '7px 14px',
-              background: '#fef3c7',
+              background: 'var(--wm-status-warning-light)',
               color: T.amber,
-              border: '1px solid #fde68a',
+              border: '1px solid var(--wm-status-warning-border)',
               borderRadius: '8px',
               fontSize: '12px',
               fontWeight: 600,
@@ -747,8 +747,8 @@ export default function AdminDashboard({
                   justifyContent: 'space-between',
                   padding: '9px 12px',
                   borderRadius: '8px',
-                  background: a.urgent && a.count > 0 ? '#fef3c7' : '#f8fafc',
-                  border: `1px solid ${a.urgent && a.count > 0 ? '#fde68a' : T.border}`,
+                  background: a.urgent && a.count > 0 ? 'var(--wm-status-warning-light)' : 'var(--wm-neutral-50)',
+                  border: `1px solid ${a.urgent && a.count > 0 ? 'var(--wm-status-warning-border)' : T.border}`,
                   textDecoration: 'none',
                   transition: 'background 0.12s',
                 }}
@@ -766,7 +766,7 @@ export default function AdminDashboard({
                   <span
                     style={{
                       background: a.urgent ? T.amber : T.emerald,
-                      color: '#fff',
+                      color: 'var(--wm-white)',
                       borderRadius: '10px',
                       padding: '1px 8px',
                       fontSize: '10px',

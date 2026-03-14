@@ -1,7 +1,7 @@
 # WorkMate (Ada Marketplace) - AI Context File
 > Last updated: 2026-03-13
 > Session: 36 (alignment audit — doc sync)
-> Governance: Skill-based (10 skills) + Frozen Decisions (FD-01→FD-25) + CI/CD
+> Governance: Skill-based (11 skills) + Frozen Decisions (FD-01→FD-33) + CI/CD
 
 ---
 
@@ -35,16 +35,16 @@
 
 ## 2. TECH STACK
 
-- Frontend: Next.js 16.1.6 (App Router, Turbopack), React 19, TypeScript (`strict: false` — permanent)
+- Frontend: Next.js 16.1.6 (App Router, Turbopack), React 19, TypeScript (`strict: true` — FD-31)
 - Backend: Next.js API routes + Supabase Edge Functions (6 deployed)
-- Database: Supabase PostgreSQL with RLS (81 migrations applied)
+- Database: Supabase PostgreSQL with RLS (88 migrations applied)
 - Auth: Supabase Auth (Email/Password + Google/Facebook OAuth) — email+phone verified on prod
 - Payments: Stripe Connect (secure hold → capture/refund) — Identity bypass in test, active on prod
 - Styling/UI: Tailwind CSS v4, `--wm-*` design tokens, Framer Motion, @dnd-kit (drag-drop)
 - Validation: Zod 4 + custom Ireland validators (Eircode, phone, name)
 - i18n: next-intl infrastructure, English content only
 - Email: Resend (`notifications@workmate.ie`, 11 templates) — always enabled (`liveServices.email = true`; Resend free tier, no card required; `EMAIL_SEND_ENABLED` env var does NOT control email)
-- AI: @anthropic-ai/sdk (job description writer) — guarded by `AI_CALLS_ENABLED`
+- AI: groq (native fetch via `lib/ai/groq.ts`) — guarded by `AI_CALLS_ENABLED`
 - Monitoring: @sentry/nextjs (tunnel at /monitoring)
 - Maps: leaflet + react-leaflet
 
@@ -91,7 +91,7 @@ marketplace/
 │   ├── ranking/ pricing/ types/     # Airtasker-style feature layer
 │   ├── validation/ constants/ hooks/ i18n/ onboarding/
 │   └── (no lib/supabase.ts — deleted, all use getSupabaseBrowserClient() inline)
-├── migrations/                      # 001..081 ALL APPLIED
+├── migrations/                      # 001..088 ALL APPLIED
 ├── supabase/functions/              # edge functions
 └── messages/en.json
 ```
@@ -259,8 +259,8 @@ marketplace/
 
 ## 6. CURRENT STATE
 
-- Migrations 001–081: ALL APPLIED in Supabase
-- Next migration: **082**
+- Migrations 001–088: ALL APPLIED in Supabase
+- Next migration: **089**
 - Vercel deployment: active at `work-mate-neon.vercel.app`
 - Stripe: test mode (`sk_test_*`) — Identity bypass in test, active on prod
 - Email: 11 templates, guarded by `EMAIL_SEND_ENABLED` env var
@@ -395,7 +395,7 @@ Phase fallback:
 5. [ ] Supabase Auth — enable email confirmation + phone verification
 
 ### Already completed (for reference)
-- [x] Migrations 001–081 applied
+- [x] Migrations 001–088 applied
 - [x] Edge functions deployed (6 total)
 - [x] DPAs signed (Supabase, Sentry, Vercel)
 - [x] GDPR cron deployed + pg_cron scheduled

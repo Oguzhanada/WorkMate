@@ -39,7 +39,7 @@ WorkMate context:
 - Marketplace directory: marketplace/ — all runtime code lives here
 - Strict RLS on every Supabase table; no FOR ALL USING (true)
 - Module boundaries enforced: lib/ireland/, lib/data/, lib/stripe/, components/ui/ (see agents.md §4)
-- Frozen decisions FD-01–FD-28 are locked — propose a Decision Record before touching them
+- Frozen decisions FD-01–FD-33 are locked — propose a Decision Record before touching them
 
 Your task: [DESCRIBE THE ARCHITECTURAL QUESTION OR CHANGE HERE]
 
@@ -144,7 +144,7 @@ Output format:
 - Group findings by: type-safety → duplication → naming → structure → minor style
 - For each finding: file:line → current code → recommended change → reason
 - Prioritise findings that affect runtime correctness over pure style issues
-- If a finding touches a frozen decision (FD-01–FD-28), flag it explicitly
+- If a finding touches a frozen decision (FD-01–FD-33), flag it explicitly
 
 Exclusions:
 - Do not suggest refactors beyond the scope of the change under review
@@ -192,7 +192,7 @@ Your task: [DESCRIBE THE SCHEMA CHANGE, MIGRATION, OR DATABASE ISSUE]
 Activate skill: supabase-migration-guardian (mandatory for any new migration or RLS policy)
 
 Output format:
-- Lead with the proposed migration filename (e.g., 082_description.sql)
+- Lead with the proposed migration filename (e.g., 089_description.sql)
 - Provide the full SQL in a fenced sql block — ready to paste into Supabase SQL Editor
 - After the SQL: list every new table → RLS enabled? → policies covered?
 - Flag any column or policy that deviates from the standards above
