@@ -317,7 +317,7 @@ AI-authored commit messages CAN be factually wrong. Apply these rules:
 
 ---
 
-## 6. Frozen Decisions (FD-01 — FD-29)
+## 6. Frozen Decisions (FD-01 — FD-30)
 
 > These decisions are locked. Do not change without writing a Decision Record.
 >
@@ -335,7 +335,7 @@ AI-authored commit messages CAN be factually wrong. Apply these rules:
 | FD-05 | `<PageHeader>` required on all top-level page routes — no raw Card+h1. **Exempt**: modal contents, wizard steps, widget inner views, sub-route tabs inside a page that already has a PageHeader. See DR-011. | 🟡 Updated (DR-011, S41) | Scope narrowed to top-level pages; modal/wizard DX improved |
 | FD-06 | `<EmptyState>` on every list — always handle zero-item state | 🟢 Active | No blank/broken UIs on empty data |
 | FD-07 | Responsive grid default: `sm:grid-cols-2 lg:grid-cols-3` on card lists. Override allowed for admin dashboards, fluid layouts, or wide-card lists — must include a `{/* DR-011: reason */}` comment. See DR-011. | 🟡 Updated (DR-011, S41) | Grid density flexibility for dashboard contexts; default preserved |
-| FD-08 | Supabase clients per-context — never a module-scope singleton | 🟢 Active | Prevents hydration errors, shared state bugs, SSR leaks |
+| FD-08 | Supabase per-context clients — NEVER module-scope singleton. `getSupabaseServiceClient()` (RLS bypass) is restricted to: (a) admin routes behind `ensureAdminRoute()`, (b) webhook handlers after signature verification, (c) system-level background tasks (notifications, audit, idempotency), (d) public API v1 routes behind `authenticatePublicRequest()`, (e) read-only public endpoints returning only non-sensitive fields. All other queries MUST use `getSupabaseRouteClient()` or `getSupabaseServerClient()`. | 🟡 Updated (S42 audit) | Prevents hydration errors, shared state bugs, SSR leaks; service role usage now explicitly scoped |
 | FD-09 | Money always as integer cents (`*_amount_cents`), EUR only | 🟢 Active | Float rounding prevention; Irish jurisdiction requirement |
 | FD-10 | RLS never `FOR ALL USING (true)` — all policies scoped to `auth.uid()` | 🟢 Active | Security — open policies expose all rows to all authenticated users |
 | FD-11 | No hardcoded `/en/` in hrefs, redirects, or router.push — use `lib/i18n/locale-path` helpers | 🟢 Active | Locale routing correctness; future locale expansion readiness |
@@ -354,6 +354,7 @@ AI-authored commit messages CAN be factually wrong. Apply these rules:
 | FD-27 | `lib/api/error-response.ts` helpers in all API routes — no raw `NextResponse.json` for errors | 🟢 Active | Session 35 — consistent error shape |
 | FD-28 | **`middleware.ts` is the sole Next.js middleware entry point. `proxy.ts` MUST NOT exist.** Prior belief that proxy.ts was the Next.js 16 entry point was false — Next.js only reads middleware.ts. Auth guard + locale routing were silently not running. Fixed session 38. | 🔴 Critical | Session 38 — confirmed by Next.js spec + code analysis |
 | FD-29 | **No premature deletion of "dead" code.** Before removing an unused function or module, verify it is not pre-built infrastructure awaiting integration. Checklist: (1) Was it added in a recent hardening/foundation session? (2) Does a TODO, design doc, or audit report reference it as planned work? (3) Would a near-future feature (dashboard, observability, fallback) need it? If any answer is yes → wire it instead of deleting it. Only delete if the function is a true duplicate of an existing, actively-used alternative. | 🟢 Active | Session 42 — logAiCall() was incorrectly deleted as dead code; it was pre-built AI observability infrastructure |
+| FD-30 | **CSP strict-dynamic, no unsafe-eval.** Script-src uses `'strict-dynamic'` to neutralize `'unsafe-inline'` in CSP3 browsers. `'unsafe-eval'` is permanently banned from all CSP directives. | 🟢 Active | Security audit — unsafe-eval removed, strict-dynamic added for defense-in-depth |
 
 > **Note:** FD-23 (feature branch requirement), FD-24 (no agent self-reports), and FD-25 (skill whitelist) are now maintained as **process rules** in section 5 above, not as architecture frozen decisions.
 

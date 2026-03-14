@@ -4,7 +4,7 @@ description: WorkMate project core skill — security guardrails, PM mindset, an
 metadata:
   severity: critical
   last_synced: 2026-03-13
-  synced_with: FD-01..FD-12, DR-010
+  synced_with: FD-01..FD-12, DR-010, FD-08 (S42 audit)
 ---
 
 # WorkMate Core — Security & PM Assistant
@@ -26,7 +26,7 @@ These rules apply to every line of code produced:
 4. **XSS prevention** — Never render raw user-supplied HTML. Sanitize before output.
 5. **Authorization checks** — Role must be verified server-side on every sensitive operation (admin, verified_pro, customer).
 6. **Money in cents** — Always `*_amount_cents`, EUR only. Never floats for currency.
-7. **Supabase client discipline** — Use the right client per context: browser → `getSupabaseBrowserClient()`, server component → `getSupabaseServerClient()`, API route → `getSupabaseRouteClient()`, admin → `getSupabaseServiceClient()`. Never a module-scope singleton.
+7. **Supabase client discipline** — Use the right client per context: browser → `getSupabaseBrowserClient()`, server component → `getSupabaseServerClient()`, API route → `getSupabaseRouteClient()`. Never a module-scope singleton. `getSupabaseServiceClient()` (RLS bypass) is restricted to: (a) admin routes behind `ensureAdminRoute()`, (b) webhook handlers after signature verification, (c) system-level background tasks (notifications, audit, idempotency), (d) public API v1 routes behind `authenticatePublicRequest()`, (e) read-only public endpoints returning only non-sensitive fields.
 
 ## Architecture Rules
 

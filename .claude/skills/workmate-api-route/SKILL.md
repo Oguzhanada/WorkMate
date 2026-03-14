@@ -101,6 +101,8 @@ Never add schemas in the route file itself.
 | Client component | `getSupabaseBrowserClient()` from `lib/supabase/client.ts` |
 | Admin bypass (service role) | `getSupabaseServiceClient()` from `lib/supabase/service.ts` |
 
+**Service role restrictions (FD-08):** `getSupabaseServiceClient()` bypasses RLS entirely. It is ONLY acceptable in: (a) admin routes behind `ensureAdminRoute()`, (b) webhook handlers after signature verification, (c) system-level background tasks (notifications, audit, idempotency), (d) public API v1 routes behind `authenticatePublicRequest()`, (e) read-only public endpoints returning only non-sensitive fields. For all standard user-facing routes, use `getSupabaseRouteClient()`.
+
 Never use a module-scope singleton. Never re-create `lib/supabase.ts`.
 
 ## RBAC Helpers
