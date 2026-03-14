@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { runAllHealthChecks } from '@/lib/monitoring/health-checks';
+import { getAllServiceStatuses } from '@/lib/resilience/service-status';
 import { apiUnauthorized, apiForbidden, apiServerError } from '@/lib/api/error-response';
 
 /**
@@ -76,10 +77,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const services = await getAllServiceStatuses();
+
     return NextResponse.json({
       status: 'ok',
       db: 'connected',
       database: 'connected',
+      services,
       latency_ms: Date.now() - start,
       uptime: process.uptime(),
       timestamp: new Date().toISOString(),

@@ -84,7 +84,7 @@ export const logger = {
 
 // ── Convenience helpers ───────────────────────────────────────────────────────
 
-/** Log an AI call (model, token count, latency) */
+/** Log an AI call (model, token count, latency). Wire into AI routes for observability. */
 export function logAiCall(opts: {
   model: string;
   endpoint: string;
@@ -106,6 +106,7 @@ export function logAiCall(opts: {
 /** Log a webhook delivery attempt */
 export function logWebhookDelivery(opts: {
   subscriptionId: string;
+  url: string;
   event: string;
   statusCode?: number;
   attempt: number;
@@ -119,17 +120,4 @@ export function logWebhookDelivery(opts: {
   } else {
     logger.warn({ ...rest }, 'Webhook delivery failed', requestId);
   }
-}
-
-/** Log an API error (for use in route handlers as a fallback to Sentry) */
-export function logApiError(opts: {
-  route: string;
-  method: string;
-  statusCode: number;
-  error: string;
-  userId?: string;
-  requestId?: string;
-}): void {
-  const { requestId, ...rest } = opts;
-  logger.error({ ...rest }, 'API route error', requestId);
 }

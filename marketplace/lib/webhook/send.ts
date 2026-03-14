@@ -1,5 +1,6 @@
 import { createHmac } from 'crypto';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { logWebhookDelivery } from '@/lib/logger';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -22,6 +23,7 @@ function buildSignature(secret: string, body: string, timestamp: string): string
 // ── Delivery ───────────────────────────────────────────────────────────────
 
 async function deliverWebhook(
+  subscriptionId: string,
   url: string,
   secret: string,
   event: string,
@@ -30,7 +32,7 @@ async function deliverWebhook(
 ): Promise<void> {
   // Only deliver to HTTPS endpoints
   if (!url.startsWith('https://')) {
-    console.warn(`[webhook] Skipping non-HTTPS URL: ${url}`);
+    logWebhookDelivery({ subscriptionId, url, event, attempt: 0, success: false, durationMs: 0, requestId });
     return;
   }
 
@@ -45,6 +47,7 @@ async function deliverWebhook(
       await new Promise((resolve) => setTimeout(resolve, attemptDelays[attempt]));
     }
 
+    const start = Date.now();
     try {
       const response = await fetch(url, {
         method: 'POST',
@@ -59,16 +62,19 @@ async function deliverWebhook(
         signal: AbortSignal.timeout(10_000), // 10s timeout
       });
 
-      if (response.ok) return;
+      if (response.ok) {
+        logWebhookDelivery({ subscriptionId, url, event, statusCode: response.status, attempt, success: true, durationMs: Date.now() - start, requestId: resolvedRequestId });
+        return;
+      }
 
       const isRetriable = response.status >= 500 || response.status === 429;
       if (!isRetriable || attempt === attemptDelays.length - 1) {
-        console.warn(`[webhook] Delivery failed for ${url}: HTTP ${response.status}`);
+        logWebhookDelivery({ subscriptionId, url, event, statusCode: response.status, attempt, success: false, durationMs: Date.now() - start, requestId: resolvedRequestId });
         return;
       }
     } catch {
       if (attempt === attemptDelays.length - 1) {
-        console.warn(`[webhook] Delivery failed for ${url}: network error`);
+        logWebhookDelivery({ subscriptionId, url, event, attempt, success: false, durationMs: Date.now() - start, requestId: resolvedRequestId });
         return;
       }
     }
@@ -105,7 +111,7 @@ export async function sendWebhookEvent(
 
     // Fire all deliveries in parallel — best effort, non-blocking
     await Promise.allSettled(
-      subs.map((sub) => deliverWebhook(sub.url, sub.secret, event, payload, requestId))
+      subs.map((sub) => deliverWebhook(sub.id, sub.url, sub.secret, event, payload, requestId))
     );
   } catch {
     // Non-blocking: webhook failures must not disrupt the calling API route
