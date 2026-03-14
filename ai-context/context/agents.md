@@ -317,7 +317,7 @@ AI-authored commit messages CAN be factually wrong. Apply these rules:
 
 ---
 
-## 6. Frozen Decisions (FD-01 — FD-30)
+## 6. Frozen Decisions (FD-01 — FD-33)
 
 > These decisions are locked. Do not change without writing a Decision Record.
 >
@@ -335,11 +335,11 @@ AI-authored commit messages CAN be factually wrong. Apply these rules:
 | FD-05 | `<PageHeader>` required on all top-level page routes — no raw Card+h1. **Exempt**: modal contents, wizard steps, widget inner views, sub-route tabs inside a page that already has a PageHeader. See DR-011. | 🟡 Updated (DR-011, S41) | Scope narrowed to top-level pages; modal/wizard DX improved |
 | FD-06 | `<EmptyState>` on every list — always handle zero-item state | 🟢 Active | No blank/broken UIs on empty data |
 | FD-07 | Responsive grid default: `sm:grid-cols-2 lg:grid-cols-3` on card lists. Override allowed for admin dashboards, fluid layouts, or wide-card lists — must include a `{/* DR-011: reason */}` comment. See DR-011. | 🟡 Updated (DR-011, S41) | Grid density flexibility for dashboard contexts; default preserved |
-| FD-08 | Supabase per-context clients — NEVER module-scope singleton. `getSupabaseServiceClient()` (RLS bypass) is restricted to: (a) admin routes behind `ensureAdminRoute()`, (b) webhook handlers after signature verification, (c) system-level background tasks (notifications, audit, idempotency), (d) public API v1 routes behind `authenticatePublicRequest()`, (e) read-only public endpoints returning only non-sensitive fields. All other queries MUST use `getSupabaseRouteClient()` or `getSupabaseServerClient()`. | 🟡 Updated (S42 audit) | Prevents hydration errors, shared state bugs, SSR leaks; service role usage now explicitly scoped |
+| FD-08 | Supabase client rules: **Browser** — singleton via `getSupabaseBrowserClient()` is correct (`createBrowserClient` manages auth state and token refresh internally); never create multiple browser instances. **Server/Route** — per-request via `getSupabaseServerClient()` / `getSupabaseRouteClient()`; NEVER module-scope or cached. **Service role** (`getSupabaseServiceClient()`) restricted to: (a) admin routes behind `ensureAdminRoute()`, (b) webhook handlers after signature verification, (c) system-level background tasks, (d) public API v1 routes behind `authenticatePublicRequest()`, (e) read-only public endpoints returning only non-sensitive fields. See DR-015. | 🟡 Updated (DR-015, S43) | S42: service role scoping. S43: browser singleton clarified as correct per independent audit — FD wording previously contradicted actual code |
 | FD-09 | Money always as integer cents (`*_amount_cents`), EUR only | 🟢 Active | Float rounding prevention; Irish jurisdiction requirement |
 | FD-10 | RLS never `FOR ALL USING (true)` — all policies scoped to `auth.uid()` | 🟢 Active | Security — open policies expose all rows to all authenticated users |
 | FD-11 | No hardcoded `/en/` in hrefs, redirects, or router.push — use `lib/i18n/locale-path` helpers | 🟢 Active | Locale routing correctness; future locale expansion readiness |
-| FD-12 | Webhook delivery: HTTPS-only, HMAC-SHA256 via `X-WorkMate-Signature` from `lib/webhook/send.ts` | 🟢 Active | Security — unsigned webhooks are spoofable |
+| FD-12 | Webhook delivery: HTTPS-only, HMAC-SHA256 via `X-WorkMate-Signature` from `lib/webhook/send.ts`. Secrets encrypted at rest with AES-256-GCM via `lib/crypto/encrypt.ts`; `WEBHOOK_SECRET_ENCRYPTION_KEY` env var required. | 🟡 Updated (S42 security) | Security — unsigned webhooks are spoofable; plaintext secrets at rest are a data-breach risk |
 | FD-13 | Contrast: text on light surfaces must use semantic text tokens (`--wm-text-strong/default/muted/soft`) — never low-opacity hacks | 🟢 Active | Prevents recurring unreadable UI regressions |
 | FD-14 | Light is default (`<html data-theme="light">` in layout.tsx). Dark mode supported via `[data-theme="dark"]`. Never use Tailwind `dark:` utilities — `--wm-*` tokens only. All component changes must pass visual QA in both modes. See DR-007. | 🟡 Updated (DR-007, S39) | Dark mode fully supported since UI overhaul 2026-03-12 |
 | FD-15 | No page/container-level opacity on readable content wrappers (`main`, `section`, hero/content cards) — except loading/skeleton states | 🟢 Active | Prevents whole-screen faded text incidents |
@@ -355,6 +355,9 @@ AI-authored commit messages CAN be factually wrong. Apply these rules:
 | FD-28 | **`middleware.ts` is the sole Next.js middleware entry point. `proxy.ts` MUST NOT exist.** Prior belief that proxy.ts was the Next.js 16 entry point was false — Next.js only reads middleware.ts. Auth guard + locale routing were silently not running. Fixed session 38. | 🔴 Critical | Session 38 — confirmed by Next.js spec + code analysis |
 | FD-29 | **No premature deletion of "dead" code.** Before removing an unused function or module, verify it is not pre-built infrastructure awaiting integration. Checklist: (1) Was it added in a recent hardening/foundation session? (2) Does a TODO, design doc, or audit report reference it as planned work? (3) Would a near-future feature (dashboard, observability, fallback) need it? If any answer is yes → wire it instead of deleting it. Only delete if the function is a true duplicate of an existing, actively-used alternative. | 🟢 Active | Session 42 — logAiCall() was incorrectly deleted as dead code; it was pre-built AI observability infrastructure |
 | FD-30 | **CSP strict-dynamic, no unsafe-eval.** Script-src uses `'strict-dynamic'` to neutralize `'unsafe-inline'` in CSP3 browsers. `'unsafe-eval'` is permanently banned from all CSP directives. | 🟢 Active | Security audit — unsafe-eval removed, strict-dynamic added for defense-in-depth |
+| FD-31 | **TypeScript `strictNullChecks: true` is permanently enabled.** Never disable. Next step: `noImplicitAny: true` when ready. | 🟢 Active (S43) | Independent audit — compiler safety net was missing; 640 files now null-checked |
+| FD-32 | **Payment, webhook, Stripe, and idempotent routes MUST have unit tests** covering happy path, validation failure, auth failure, and at least one edge case. Routes: `app/api/payments/**`, `app/api/webhooks/**`, `app/api/stripe/**`, any route using `checkIdempotency`. New routes in these categories cannot be merged without tests. See DR-013. | 🟢 Active (S43) | Independent audit — 29 test files for 116 routes; critical business logic untested |
+| FD-33 | **Production state-bearing middleware must expose health status.** Rate limiter must use Redis (Upstash) in production; in-memory fallback must report `degraded` via health endpoint. Circuit breaker states must be observable via health endpoint. `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are required production env vars. See DR-014. | 🟢 Active (S43) | Independent audit — in-memory rate limit ineffective in Vercel multi-instance; circuit breaker state invisible |
 
 > **Note:** FD-23 (feature branch requirement), FD-24 (no agent self-reports), and FD-25 (skill whitelist) are now maintained as **process rules** in section 5 above, not as architecture frozen decisions.
 
@@ -367,6 +370,9 @@ AI-authored commit messages CAN be factually wrong. Apply these rules:
 - FD-07 (DR-011, S41): Override allowed — non-default grid column counts allowed with inline comment.
 - FD-29 (S42): New — "no premature deletion" rule after logAiCall() was incorrectly classified as dead code.
 - FD-03 (DR-012, S43): Expanded — token system gained status, admin, chart, neutral, social families; "add token first" rule enforced.
+- FD-32 (DR-013, S43): New — critical route test coverage mandatory (payment, webhook, Stripe, idempotency).
+- FD-33 (DR-014, S43): New — production distributed state health reporting mandatory; Upstash required.
+- FD-08 (DR-015, S43): Clarified — browser singleton is correct; server/route per-request unchanged.
 
 ---
 

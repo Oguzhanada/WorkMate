@@ -1,6 +1,7 @@
 import { createHmac } from 'crypto';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { logWebhookDelivery } from '@/lib/logger';
+import { decrypt } from '@/lib/crypto/encrypt';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -103,7 +104,7 @@ export async function sendWebhookEvent(
     // Find all enabled subscriptions that include this event type
     const { data: subs, error } = await svc
       .from('webhook_subscriptions')
-      .select('id, url, secret')
+      .select('id, url, secret, encrypted_secret')
       .eq('enabled', true)
       .contains('events', [event]);
 
@@ -111,7 +112,13 @@ export async function sendWebhookEvent(
 
     // Fire all deliveries in parallel — best effort, non-blocking
     await Promise.allSettled(
-      subs.map((sub) => deliverWebhook(sub.id, sub.url, sub.secret, event, payload, requestId))
+      subs.map((sub) => {
+        // Prefer encrypted_secret (AES-256-GCM); fall back to plaintext during migration
+        const resolvedSecret = sub.encrypted_secret
+          ? decrypt(sub.encrypted_secret)
+          : sub.secret;
+        return deliverWebhook(sub.id, sub.url, resolvedSecret, event, payload, requestId);
+      })
     );
   } catch {
     // Non-blocking: webhook failures must not disrupt the calling API route

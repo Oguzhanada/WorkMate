@@ -5,6 +5,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { webhookSubscribeSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { apiError } from '@/lib/api/error-response';
+import { encrypt } from '@/lib/crypto/encrypt';
 
 async function postHandler(request: NextRequest) {
   const auth = await authenticatePublicRequest(request);
@@ -24,6 +25,7 @@ async function postHandler(request: NextRequest) {
 
   const svc = getSupabaseServiceClient();
   const secret = randomBytes(32).toString('hex');
+  const encryptedSecret = encrypt(secret);
 
   const { data, error } = await svc
     .from('webhook_subscriptions')
@@ -32,6 +34,7 @@ async function postHandler(request: NextRequest) {
       url: parsed.data.url,
       events: parsed.data.events,
       secret,
+      encrypted_secret: encryptedSecret,
       enabled: true,
     })
     .select('id,url,events,enabled,created_at')
