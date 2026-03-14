@@ -29,8 +29,8 @@ function validatePassword(password: string): string | undefined {
   if (!password.trim()) {
     return 'Password is required.';
   }
-  if (password.length < 6) {
-    return 'Password must be at least 6 characters.';
+  if (password.length < 8) {
+    return 'Password must be at least 8 characters.';
   }
   return undefined;
 }
