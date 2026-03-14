@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { normalizeEircode } from '@/lib/ireland/eircode';
 import { addressLookupQuerySchema } from '@/lib/validation/api';
 import { apiError } from '@/lib/api/error-response';
+import { cacheGet } from '@/lib/cache';
+
+type AddressData = {
+  eircode: string;
+  is_format_valid: boolean;
+  line_1: string | null;
+  line_2: string | null;
+  post_town: string | null;
+  county: string | null;
+  country: string;
+};
 
 export async function GET(request: NextRequest) {
   const parsed = addressLookupQuerySchema.safeParse({
@@ -29,36 +40,48 @@ export async function GET(request: NextRequest) {
     return apiError('Address lookup not configured', 503);
   }
 
+  // Cache successful address lookups for 1 hour — Eircode data rarely changes.
+  // On fetch error the fetcher throws, so cacheGet will not cache failures.
+  const cacheKey = `address:${eircode}`;
+
   try {
-    const res = await fetch(
-      `https://api.ideal-postcodes.co.uk/v1/eircodes/${encodeURIComponent(eircode)}?api_key=${apiKey}`,
-      { next: { revalidate: 86400 } } // cache 24 h — Eircodes don't change
-    );
+    const address = await cacheGet<AddressData>(cacheKey, async () => {
+      const res = await fetch(
+        `https://api.ideal-postcodes.co.uk/v1/eircodes/${encodeURIComponent(eircode)}?api_key=${apiKey}`,
+        { next: { revalidate: 86400 } } // Next.js fetch cache 24h
+      );
 
-    if (res.status === 404) {
-      return apiError('Eircode not found', 404);
-    }
+      if (res.status === 404) {
+        throw new Error('NOT_FOUND');
+      }
 
-    if (!res.ok) {
-      return apiError('Address lookup failed', 502);
-    }
+      if (!res.ok) {
+        throw new Error('UPSTREAM_ERROR');
+      }
 
-    const data = await res.json();
-    const result = data.result ?? {};
+      const data = await res.json();
+      const r = data.result ?? {};
 
-    return NextResponse.json({
-      address: {
+      return {
         eircode,
         is_format_valid: true,
-        line_1: result.line_1 ?? null,
-        line_2: result.line_2 ?? null,
-        post_town: result.post_town ?? null,
-        county: result.county ?? null,
-        country: result.country ?? 'Ireland',
-      },
-      provider: 'ideal_postcodes',
-    });
-  } catch {
+        line_1: r.line_1 ?? null,
+        line_2: r.line_2 ?? null,
+        post_town: r.post_town ?? null,
+        county: r.county ?? null,
+        country: r.country ?? 'Ireland',
+      };
+    }, 3600);
+
+    return NextResponse.json({ address, provider: 'ideal_postcodes' });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : '';
+    if (message === 'NOT_FOUND') {
+      return apiError('Eircode not found', 404);
+    }
+    if (message === 'UPSTREAM_ERROR') {
+      return apiError('Address lookup failed', 502);
+    }
     return apiError('Address lookup unavailable', 503);
   }
 }
