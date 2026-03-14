@@ -33,7 +33,6 @@ async function postHandler(request: NextRequest) {
       profile_id: auth.profileId,
       url: parsed.data.url,
       events: parsed.data.events,
-      secret,
       encrypted_secret: encryptedSecret,
       enabled: true,
     })

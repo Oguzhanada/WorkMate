@@ -1,6 +1,17 @@
--- Migration 078: Provider search performance indexes
+-- ============================================================
+-- Migration 078 — Provider Search Performance Indexes
+-- ============================================================
+-- WARNING: This migration uses CREATE INDEX CONCURRENTLY.
+-- CONCURRENTLY indexes CANNOT run inside a transaction block.
+-- Apply each CREATE INDEX statement INDIVIDUALLY via the
+-- Supabase SQL Editor or MCP execute_sql — do NOT paste the
+-- entire file as a single batch.
+-- ============================================================
 -- Sprint 6 — scalability at 1 000+ providers
 -- Additive only, no destructive changes.
+-- Bug fixes applied 2026-03-14: corrected column names
+-- (profile_id→user_id, step→step_name, created_at→processed_at)
+-- and enum value (provider→verified_pro) to match actual schema.
 
 -- ─────────────────────────────────────────────
 -- 1. Profiles: composite index for provider search
@@ -8,7 +19,7 @@
 -- ─────────────────────────────────────────────
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_profiles_role_verification
   ON profiles (role, verification_status)
-  WHERE role = 'provider';
+  WHERE role = 'verified_pro';
 
 -- ─────────────────────────────────────────────
 -- 2. Jobs: status + customer composite (dashboard list)
@@ -51,7 +62,7 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reviews_pro_created
 --    Used by GET /api/notifications?unread=true
 -- ─────────────────────────────────────────────
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_notifications_profile_unread
-  ON notifications (profile_id, read_at)
+  ON notifications (user_id, read_at)
   WHERE read_at IS NULL;
 
 -- ─────────────────────────────────────────────
@@ -59,7 +70,7 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_notifications_profile_unread
 --    Used by GET /api/admin/analytics funnel queries
 -- ─────────────────────────────────────────────
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_funnel_events_funnel_step
-  ON funnel_events (funnel_name, step, created_at DESC);
+  ON funnel_events (funnel_name, step_name, created_at DESC);
 
 -- ─────────────────────────────────────────────
 -- 9. Credit transactions: provider_id + created_at
@@ -73,7 +84,7 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_credit_transactions_provider_created
 --     Used by webhook delivery latency SLA queries
 -- ─────────────────────────────────────────────
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_webhook_events_status_created
-  ON webhook_events (status, created_at DESC);
+  ON webhook_events (status, processed_at DESC);
 
 COMMENT ON INDEX idx_profiles_role_verification IS 'Speeds up provider search — role + verification_status filter';
 COMMENT ON INDEX idx_jobs_status_customer IS 'Speeds up customer dashboard job list';

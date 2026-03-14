@@ -5,7 +5,7 @@
 
 **Project:** WorkMate (Ireland-first services marketplace)
 **Database:** Supabase (Postgres) — `ejpnmcxzycxqfdbetydp.supabase.co`
-**Migrations:** `marketplace/migrations/` — 001–080 all applied. Next = **081**.
+**Migrations:** `marketplace/migrations/` — 001–089 all applied. Next = **090**.
 
 ---
 
@@ -13,7 +13,7 @@
 
 ### Creating a new migration
 
-1. Determine the next sequence number. As of this writing it is **081**. Check `marketplace/migrations/` for the highest number currently present.
+1. Determine the next sequence number. As of this writing it is **090**. Check `marketplace/migrations/` for the highest number currently present.
 2. Create the file following this naming pattern:
 
    ```
@@ -72,6 +72,38 @@ Two files share the sequence number `021`:
 - `021_user_roles_multi_role.sql`
 
 Both have been applied. This collision is a known historical artifact and **must not be renumbered or modified**. It is fully resolved — treat 022 as the next sequential number after both 021 files.
+
+**Canonical application order:** If re-applying from scratch, run `021_pro_documents_rls.sql` **first**, then `021_user_roles_multi_role.sql` **second**. The user_roles migration depends on `profiles` existing (for the INSERT ... FROM profiles) but does not depend on pro_documents_rls. The ordering is arbitrary but documented here for reproducibility.
+
+### Known phantom migration — add_is_available_to_provider_availability
+
+A migration named `add_is_available_to_provider_availability` appears in the Supabase internal migration list (visible via MCP `list_migrations`) but has no corresponding file in `marketplace/migrations/`. The `is_available` column exists in the database on the `provider_availability` table.
+
+**Resolution:** The column is included in migration `065_provider_availability.sql` which creates the table with `is_available BOOLEAN NOT NULL DEFAULT true`. The phantom migration was an ad-hoc ALTER run directly in the SQL Editor before or alongside 065. No action required — the column exists and is correct.
+
+### provider_availability RLS — file vs. database delta
+
+Migration file `065_provider_availability.sql` contains broad RLS policies (`FOR ALL USING (auth.uid() = provider_id)` + `FOR SELECT USING (true)`), but the actual database has scoped policies applied via `048_provider_scheduling.sql`:
+
+- `provider_availability_select_scope` — own OR admin OR (recurring OR future-dated)
+- `provider_availability_insert_owner_or_admin` — owner or admin
+- `provider_availability_update_owner_or_admin` — owner or admin
+- `provider_availability_delete_owner_or_admin` — owner or admin
+
+The 048 policies are correct and more restrictive than 065's. The 065 file is a historical artifact and must **NOT** be re-applied in isolation.
+
+### Migration 078 — CONCURRENTLY index bug fixes (2026-03-14)
+
+The original `078_provider_search_indexes.sql` contained 4 column/enum name errors that prevented application:
+
+| Original (incorrect) | Corrected | Table |
+|---|---|---|
+| `WHERE role = 'provider'` | `WHERE role = 'verified_pro'` | profiles |
+| `ON notifications (profile_id, ...)` | `ON notifications (user_id, ...)` | notifications |
+| `ON funnel_events (..., step, ...)` | `ON funnel_events (..., step_name, ...)` | funnel_events |
+| `ON webhook_events (status, created_at ...)` | `ON webhook_events (status, processed_at ...)` | webhook_events |
+
+All 10 indexes were applied with the corrected column names on 2026-03-14. The migration file has been updated to match.
 
 ---
 

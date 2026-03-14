@@ -104,7 +104,7 @@ export async function sendWebhookEvent(
     // Find all enabled subscriptions that include this event type
     const { data: subs, error } = await svc
       .from('webhook_subscriptions')
-      .select('id, url, secret, encrypted_secret')
+      .select('id, url, encrypted_secret')
       .eq('enabled', true)
       .contains('events', [event]);
 
@@ -113,10 +113,7 @@ export async function sendWebhookEvent(
     // Fire all deliveries in parallel — best effort, non-blocking
     await Promise.allSettled(
       subs.map((sub) => {
-        // Prefer encrypted_secret (AES-256-GCM); fall back to plaintext during migration
-        const resolvedSecret = sub.encrypted_secret
-          ? decrypt(sub.encrypted_secret)
-          : sub.secret;
+        const resolvedSecret = decrypt(sub.encrypted_secret);
         return deliverWebhook(sub.id, sub.url, resolvedSecret, event, payload, requestId);
       })
     );

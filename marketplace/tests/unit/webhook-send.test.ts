@@ -75,7 +75,7 @@ describe('webhook/send — sendWebhookEvent', () => {
     const payload = { jobId: '123' };
 
     setupSupabaseChain({
-      data: [{ id: '1', url: 'https://example.com/hook', secret }],
+      data: [{ id: '1', url: 'https://example.com/hook', encrypted_secret: secret }],
       error: null,
     });
 
@@ -102,7 +102,7 @@ describe('webhook/send — sendWebhookEvent', () => {
 
   it('skips non-HTTPS URLs and does not call fetch', async () => {
     setupSupabaseChain({
-      data: [{ id: '1', url: 'http://insecure.example.com/hook', secret: 's' }],
+      data: [{ id: '1', url: 'http://insecure.example.com/hook', encrypted_secret: 's' }],
       error: null,
     });
 
@@ -120,7 +120,7 @@ describe('webhook/send — sendWebhookEvent', () => {
 
   it('retries up to 3 times on 500 errors', async () => {
     setupSupabaseChain({
-      data: [{ id: '1', url: 'https://example.com/hook', secret: 's' }],
+      data: [{ id: '1', url: 'https://example.com/hook', encrypted_secret: 's' }],
       error: null,
     });
 
@@ -143,7 +143,7 @@ describe('webhook/send — sendWebhookEvent', () => {
 
   it('does not retry on 4xx errors (except 429)', async () => {
     setupSupabaseChain({
-      data: [{ id: '1', url: 'https://example.com/hook', secret: 's' }],
+      data: [{ id: '1', url: 'https://example.com/hook', encrypted_secret: 's' }],
       error: null,
     });
 
@@ -163,7 +163,7 @@ describe('webhook/send — sendWebhookEvent', () => {
 
   it('retries on 429 status', async () => {
     setupSupabaseChain({
-      data: [{ id: '1', url: 'https://example.com/hook', secret: 's' }],
+      data: [{ id: '1', url: 'https://example.com/hook', encrypted_secret: 's' }],
       error: null,
     });
 
@@ -182,7 +182,7 @@ describe('webhook/send — sendWebhookEvent', () => {
 
   it('retries on network errors (fetch throwing)', async () => {
     setupSupabaseChain({
-      data: [{ id: '1', url: 'https://example.com/hook', secret: 's' }],
+      data: [{ id: '1', url: 'https://example.com/hook', encrypted_secret: 's' }],
       error: null,
     });
 
@@ -205,7 +205,7 @@ describe('webhook/send — sendWebhookEvent', () => {
 
   it('stops retrying after a successful 200 response', async () => {
     setupSupabaseChain({
-      data: [{ id: '1', url: 'https://example.com/hook', secret: 's' }],
+      data: [{ id: '1', url: 'https://example.com/hook', encrypted_secret: 's' }],
       error: null,
     });
 
@@ -220,7 +220,7 @@ describe('webhook/send — sendWebhookEvent', () => {
 
   it('stops retrying once a retry attempt succeeds', async () => {
     setupSupabaseChain({
-      data: [{ id: '1', url: 'https://example.com/hook', secret: 's' }],
+      data: [{ id: '1', url: 'https://example.com/hook', encrypted_secret: 's' }],
       error: null,
     });
 
@@ -240,9 +240,9 @@ describe('webhook/send — sendWebhookEvent', () => {
   it('delivers to all matching subscriptions in parallel', async () => {
     setupSupabaseChain({
       data: [
-        { id: '1', url: 'https://a.example.com/hook', secret: 'sa' },
-        { id: '2', url: 'https://b.example.com/hook', secret: 'sb' },
-        { id: '3', url: 'https://c.example.com/hook', secret: 'sc' },
+        { id: '1', url: 'https://a.example.com/hook', encrypted_secret: 'sa' },
+        { id: '2', url: 'https://b.example.com/hook', encrypted_secret: 'sb' },
+        { id: '3', url: 'https://c.example.com/hook', encrypted_secret: 'sc' },
       ],
       error: null,
     });
@@ -315,7 +315,7 @@ describe('webhook/send — sendWebhookEvent', () => {
   it('sends all required headers on delivery', async () => {
     const requestId = 'custom-req-id-999';
     setupSupabaseChain({
-      data: [{ id: '1', url: 'https://example.com/hook', secret: 'sec' }],
+      data: [{ id: '1', url: 'https://example.com/hook', encrypted_secret: 'sec' }],
       error: null,
     });
 
@@ -339,7 +339,7 @@ describe('webhook/send — sendWebhookEvent', () => {
 
   it('generates a UUID for X-Request-Id when none is provided', async () => {
     setupSupabaseChain({
-      data: [{ id: '1', url: 'https://example.com/hook', secret: 'sec' }],
+      data: [{ id: '1', url: 'https://example.com/hook', encrypted_secret: 'sec' }],
       error: null,
     });
 
@@ -362,7 +362,7 @@ describe('webhook/send — sendWebhookEvent', () => {
     const payload = { documentId: 'doc-55', status: 'approved' };
 
     setupSupabaseChain({
-      data: [{ id: '1', url: 'https://example.com/hook', secret: 's' }],
+      data: [{ id: '1', url: 'https://example.com/hook', encrypted_secret: 's' }],
       error: null,
     });
 
