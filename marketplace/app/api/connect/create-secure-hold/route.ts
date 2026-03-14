@@ -8,6 +8,7 @@ import { calculateFees } from '@/lib/pricing/fee-calculator';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { apiError, apiUnauthorized, apiForbidden, apiNotFound } from '@/lib/api/error-response';
 import { checkIdempotency, saveIdempotencyResponse } from '@/lib/idempotency';
+import { getServiceStatus } from '@/lib/resilience/service-status';
 
 async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
@@ -23,6 +24,14 @@ async function postHandler(request: NextRequest) {
   const roles = await getUserRoles(supabase, user.id);
   if (!canPostJob(roles)) {
     return apiForbidden('Only customers can create secure hold');
+  }
+
+  // Early exit if Stripe is known to be down
+  if ((await getServiceStatus('stripe')) === 'down') {
+    return NextResponse.json(
+      { error: 'Payment service temporarily unavailable. Please try again shortly.' },
+      { status: 503 }
+    );
   }
 
   // Idempotency check — prevents duplicate Stripe checkout sessions on retry

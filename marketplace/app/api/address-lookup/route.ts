@@ -3,6 +3,7 @@ import { normalizeEircode } from '@/lib/ireland/eircode';
 import { addressLookupQuerySchema } from '@/lib/validation/api';
 import { apiError } from '@/lib/api/error-response';
 import { cacheGet } from '@/lib/cache';
+import { getServiceStatus, setServiceStatus } from '@/lib/resilience/service-status';
 
 type AddressData = {
   eircode: string;
@@ -32,6 +33,11 @@ export async function GET(request: NextRequest) {
       address: { eircode, is_format_valid: true },
       provider: 'format_only',
     });
+  }
+
+  // Early exit if Ideal Postcodes is known to be down
+  if ((await getServiceStatus('ideal_postcodes')) === 'down') {
+    return apiError('Address lookup temporarily unavailable', 503);
   }
 
   // Ideal Postcodes live lookup
@@ -73,6 +79,7 @@ export async function GET(request: NextRequest) {
       };
     }, 3600);
 
+    setServiceStatus('ideal_postcodes', 'healthy');
     return NextResponse.json({ address, provider: 'ideal_postcodes' });
   } catch (err) {
     const message = err instanceof Error ? err.message : '';
@@ -80,8 +87,10 @@ export async function GET(request: NextRequest) {
       return apiError('Eircode not found', 404);
     }
     if (message === 'UPSTREAM_ERROR') {
+      setServiceStatus('ideal_postcodes', 'down');
       return apiError('Address lookup failed', 502);
     }
+    setServiceStatus('ideal_postcodes', 'down');
     return apiError('Address lookup unavailable', 503);
   }
 }

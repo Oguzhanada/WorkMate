@@ -5,6 +5,7 @@ import { createAccountLinkSchema } from '@/lib/validation/api';
 import { stripe } from '@/lib/stripe/client';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { apiError, apiUnauthorized, apiForbidden } from '@/lib/api/error-response';
+import { getServiceStatus } from '@/lib/resilience/service-status';
 
 async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
@@ -20,6 +21,14 @@ async function postHandler(request: NextRequest) {
   const roles = await getUserRoles(supabase, user.id);
   if (!canQuote(roles)) {
     return apiForbidden('Only professionals can use this endpoint');
+  }
+
+  // Early exit if Stripe is known to be down
+  if ((await getServiceStatus('stripe')) === 'down') {
+    return NextResponse.json(
+      { error: 'Payment service temporarily unavailable. Please try again shortly.' },
+      { status: 503 }
+    );
   }
 
   let rawBody: unknown;
