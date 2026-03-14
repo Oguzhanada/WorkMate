@@ -317,7 +317,7 @@ AI-authored commit messages CAN be factually wrong. Apply these rules:
 
 ---
 
-## 6. Frozen Decisions (FD-01 — FD-28)
+## 6. Frozen Decisions (FD-01 — FD-29)
 
 > These decisions are locked. Do not change without writing a Decision Record.
 >
@@ -353,6 +353,7 @@ AI-authored commit messages CAN be factually wrong. Apply these rules:
 | FD-26 | `next/image` for known-size, long-lived remote URLs (Supabase Storage avatars, portfolio images, etc.) — raw `<img>` is allowed for: blob/object URLs, signed/temporary URLs, dynamic document previews, and Leaflet contexts. Every intentional `<img>` MUST have an `// eslint-disable-next-line @next/next/no-img-element` comment explaining why. | 🟢 Active | Session 34 — performance + LCP; refined after code audit confirmed signed-URL and preview exceptions |
 | FD-27 | `lib/api/error-response.ts` helpers in all API routes — no raw `NextResponse.json` for errors | 🟢 Active | Session 35 — consistent error shape |
 | FD-28 | **`middleware.ts` is the sole Next.js middleware entry point. `proxy.ts` MUST NOT exist.** Prior belief that proxy.ts was the Next.js 16 entry point was false — Next.js only reads middleware.ts. Auth guard + locale routing were silently not running. Fixed session 38. | 🔴 Critical | Session 38 — confirmed by Next.js spec + code analysis |
+| FD-29 | **No premature deletion of "dead" code.** Before removing an unused function or module, verify it is not pre-built infrastructure awaiting integration. Checklist: (1) Was it added in a recent hardening/foundation session? (2) Does a TODO, design doc, or audit report reference it as planned work? (3) Would a near-future feature (dashboard, observability, fallback) need it? If any answer is yes → wire it instead of deleting it. Only delete if the function is a true duplicate of an existing, actively-used alternative. | 🟢 Active | Session 42 — logAiCall() was incorrectly deleted as dead code; it was pre-built AI observability infrastructure |
 
 > **Note:** FD-23 (feature branch requirement), FD-24 (no agent self-reports), and FD-25 (skill whitelist) are now maintained as **process rules** in section 5 above, not as architecture frozen decisions.
 
@@ -363,6 +364,7 @@ AI-authored commit messages CAN be factually wrong. Apply these rules:
 - FD-01 (DR-010, S41): Domain split — `api.ts` becomes re-export barrel; schemas live in `lib/validation/<domain>.ts`.
 - FD-05 (DR-011, S41): Scope narrowed — `<PageHeader>` exempt in modals, wizard steps, widget inner views.
 - FD-07 (DR-011, S41): Override allowed — non-default grid column counts allowed with inline comment.
+- FD-29 (S42): New — "no premature deletion" rule after logAiCall() was incorrectly classified as dead code.
 
 ---
 
