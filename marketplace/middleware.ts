@@ -11,6 +11,10 @@ const intlMiddleware = createMiddleware({
   localePrefix: 'never'
 });
 
+// Layer 1 (edge) rate limiting — protects auth endpoints (login, signup) before
+// any route handler executes. Complements the per-route withRateLimit (Layer 2
+// in lib/rate-limit/middleware.ts) which covers API routes. Both layers are
+// intentional defense-in-depth: auth mutations need early rejection at the edge.
 const checkAuthRateLimit = rateLimit(RATE_LIMITS.AUTH_LOGIN);
 
 function getClientIdentifier(request: NextRequest) {

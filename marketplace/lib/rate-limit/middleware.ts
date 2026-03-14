@@ -1,3 +1,7 @@
+// Layer 2 (per-route) rate limiting — sliding-window limiter used by API route
+// handlers via withRateLimit. Layer 1 lives in middleware.ts (checkAuthRateLimit)
+// and guards auth mutations at the edge before route handlers run. Both layers
+// are intentional defense-in-depth; neither replaces the other.
 import { NextRequest, NextResponse } from 'next/server';
 import { rateLimit, type RateLimitConfig } from './index';
 
