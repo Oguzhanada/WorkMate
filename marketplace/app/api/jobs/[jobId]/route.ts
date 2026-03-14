@@ -11,6 +11,7 @@ import {
   apiNotFound,
   apiServerError,
 } from '@/lib/api/error-response';
+import { checkIdempotency, saveIdempotencyResponse } from '@/lib/idempotency';
 
 export async function GET(
   _request: NextRequest,
@@ -60,6 +61,13 @@ async function patchHandler(
 
   if (authError || !user) {
     return apiUnauthorized();
+  }
+
+  // Idempotency check — prevents duplicate job updates on retry
+  const iKey = request.headers.get('Idempotency-Key');
+  if (iKey) {
+    const cached = await checkIdempotency(iKey, 'jobs/update', user.id);
+    if (cached) return NextResponse.json(cached.body, { status: cached.status });
   }
 
   let body: unknown;
@@ -114,7 +122,11 @@ async function patchHandler(
     return apiServerError(updateError.message);
   }
 
-  return NextResponse.json({ job: updated }, { status: 200 });
+  const responseBody = { job: updated };
+  if (iKey) {
+    void saveIdempotencyResponse(iKey, 'jobs/update', user.id, 200, responseBody as Record<string, unknown>);
+  }
+  return NextResponse.json(responseBody, { status: 200 });
 }
 
 export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);

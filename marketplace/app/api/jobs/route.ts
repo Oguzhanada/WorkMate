@@ -8,6 +8,7 @@ import { createJobSchema } from '@/lib/validation/api';
 import { sendWebhookEvent } from '@/lib/webhook/send';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { apiError, apiUnauthorized, apiForbidden, apiServerError } from '@/lib/api/error-response';
+import { checkIdempotency, saveIdempotencyResponse } from '@/lib/idempotency';
 
 async function postHandler(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
@@ -23,6 +24,13 @@ async function postHandler(request: NextRequest) {
   const roles = await getUserRoles(supabase, user.id);
   if (!canPostJob(roles)) {
     return apiForbidden('Only customers can create jobs');
+  }
+
+  // Idempotency check — prevents duplicate job creation on retry
+  const iKey = request.headers.get('Idempotency-Key');
+  if (iKey) {
+    const cached = await checkIdempotency(iKey, 'jobs/create', user.id);
+    if (cached) return NextResponse.json(cached.body, { status: cached.status });
   }
 
   const { data: profile } = await supabase
@@ -194,16 +202,17 @@ async function postHandler(request: NextRequest) {
     created_at: data.created_at,
   });
 
-  return NextResponse.json(
-    {
-      job: data,
-      customer_verification_status: customerIsVerified ? 'approved' : profile?.id_verification_status ?? 'none',
-      upgrade_message: customerIsVerified
-        ? null
-        : 'Verify your ID to increase trust and unlock higher-priority matching.'
-    },
-    { status: 201 }
-  );
+  const responseBody = {
+    job: data,
+    customer_verification_status: customerIsVerified ? 'approved' : profile?.id_verification_status ?? 'none',
+    upgrade_message: customerIsVerified
+      ? null
+      : 'Verify your ID to increase trust and unlock higher-priority matching.'
+  };
+  if (iKey) {
+    void saveIdempotencyResponse(iKey, 'jobs/create', user.id, 201, responseBody as Record<string, unknown>);
+  }
+  return NextResponse.json(responseBody, { status: 201 });
 }
 
 export const POST = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, postHandler);

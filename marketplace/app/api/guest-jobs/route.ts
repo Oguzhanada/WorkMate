@@ -6,6 +6,7 @@ import { normalizeEircode } from '@/lib/ireland/eircode';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { verifyTurnstileToken } from '@/lib/cloudflare/turnstile';
 import { apiError, apiForbidden } from '@/lib/api/error-response';
+import { checkIdempotency, saveIdempotencyResponse } from '@/lib/idempotency';
 
 async function handler(request: NextRequest): Promise<NextResponse> {
   let rawBody: unknown;
@@ -27,6 +28,14 @@ async function handler(request: NextRequest): Promise<NextResponse> {
   const turnstile = await verifyTurnstileToken(body.cf_turnstile_token, remoteip);
   if (!turnstile.success) {
     return apiForbidden('Bot protection check failed. Please try again.');
+  }
+
+  // Idempotency check — prevents duplicate guest job creation on retry
+  const guestIdentifier = remoteip ?? 'guest';
+  const iKey = request.headers.get('Idempotency-Key');
+  if (iKey) {
+    const cached = await checkIdempotency(iKey, 'guest-jobs/create', guestIdentifier);
+    if (cached) return NextResponse.json(cached.body, { status: cached.status });
   }
 
   const eircode = normalizeEircode(body.eircode);
@@ -98,17 +107,18 @@ async function handler(request: NextRequest): Promise<NextResponse> {
     return apiError(error?.message || 'Intent could not be created', 400);
   }
 
-  return NextResponse.json(
-    {
-      intent_id: data.id,
-      status: data.status,
-      // When status is 'email_pending', the guest must click the email
-      // verification link before the intent transitions to 'ready_to_publish'
-      // and can be claimed via POST /api/guest-jobs/claim.
-      verification_required: !skipVerification,
-    },
-    { status: 201 }
-  );
+  const responseBody = {
+    intent_id: data.id,
+    status: data.status,
+    // When status is 'email_pending', the guest must click the email
+    // verification link before the intent transitions to 'ready_to_publish'
+    // and can be claimed via POST /api/guest-jobs/claim.
+    verification_required: !skipVerification,
+  };
+  if (iKey) {
+    void saveIdempotencyResponse(iKey, 'guest-jobs/create', guestIdentifier, 201, responseBody as Record<string, unknown>);
+  }
+  return NextResponse.json(responseBody, { status: 201 });
 }
 
 export const POST = withRateLimit(RATE_LIMITS.AUTH_STRICT, handler);
