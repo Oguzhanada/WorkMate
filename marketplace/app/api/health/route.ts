@@ -5,6 +5,8 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { runAllHealthChecks } from '@/lib/monitoring/health-checks';
 import { getAllServiceStatuses } from '@/lib/resilience/service-status';
+import { getCircuitBreakerHealth } from '@/lib/resilience/circuit-breaker';
+import { getRateLimitHealth } from '@/lib/rate-limit';
 import { apiUnauthorized, apiForbidden, apiServerError } from '@/lib/api/error-response';
 
 /**
@@ -78,12 +80,16 @@ export async function GET(request: NextRequest) {
     }
 
     const services = await getAllServiceStatuses();
+    const rateLimitHealth = getRateLimitHealth();
+    const circuitBreakers = getCircuitBreakerHealth();
 
     return NextResponse.json({
       status: 'ok',
       db: 'connected',
       database: 'connected',
       services,
+      rateLimit: rateLimitHealth,
+      circuitBreakers,
       latency_ms: Date.now() - start,
       uptime: process.uptime(),
       timestamp: new Date().toISOString(),

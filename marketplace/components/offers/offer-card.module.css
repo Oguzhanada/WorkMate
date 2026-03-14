@@ -3,7 +3,7 @@
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-xl);
   padding: 1.125rem;
-  background: white;
+  background: var(--wm-white);
   display: grid;
   gap: 0.875rem;
   box-shadow: var(--wm-shadow-sm);
@@ -16,7 +16,7 @@
 
 .cardTop {
   border-color: var(--wm-amber);
-  box-shadow: 0 10px 30px rgba(245, 158, 11, 0.14);
+  box-shadow: 0 10px 30px rgba(var(--wm-gold-rgb), 0.14);
 }
 
 /* ── Badges ───────────────────────────────────────────────── */
@@ -38,13 +38,13 @@
 .badgeTop {
   background: var(--wm-amber-light);
   color: var(--wm-amber-dark);
-  border: 1px solid rgba(245, 158, 11, 0.25);
+  border: 1px solid rgba(var(--wm-gold-rgb), 0.25);
 }
 
 .badgeTrusted {
   background: var(--wm-blue-soft);
   color: var(--wm-blue-dark);
-  border: 1px solid rgba(26, 86, 219, 0.20);
+  border: 1px solid rgba(var(--wm-blue-rgb, 37, 99, 235), 0.20);
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
@@ -53,22 +53,22 @@
 .badgeFast {
   background: var(--wm-primary-light);
   color: var(--wm-primary-dark);
-  border: 1px solid rgba(0, 184, 148, 0.20);
+  border: 1px solid rgba(var(--wm-primary-rgb), 0.20);
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
 }
 
 .badgeRebook {
-  background: #f3f0ff;
-  color: #5b21b6;
-  border: 1px solid rgba(91, 33, 182, 0.20);
+  background: var(--wm-chart-violet-soft);
+  color: var(--wm-chart-violet-dark);
+  border: 1px solid rgba(139, 92, 246, 0.20);
 }
 
 .badgeMatch {
   background: var(--wm-primary-light);
   color: var(--wm-primary-dark);
-  border: 1px solid rgba(0, 184, 148, 0.22);
+  border: 1px solid rgba(var(--wm-primary-rgb), 0.22);
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
@@ -77,7 +77,7 @@
 .badgeSameDay {
   background: var(--wm-blue-soft);
   color: var(--wm-blue);
-  border: 1px solid rgba(26, 86, 219, 0.20);
+  border: 1px solid rgba(var(--wm-blue-rgb, 37, 99, 235), 0.20);
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
@@ -211,13 +211,13 @@
 .expiryUrgent {
   background: var(--wm-amber-light);
   color: var(--wm-amber-dark);
-  border: 1px solid rgba(245, 158, 11, 0.25);
+  border: 1px solid rgba(var(--wm-gold-rgb), 0.25);
 }
 
 .expiryCritical {
   background: var(--wm-destructive-light);
   color: var(--wm-destructive);
-  border: 1px solid rgba(220, 38, 38, 0.25);
+  border: 1px solid rgba(var(--wm-destructive-rgb), 0.25);
 }
 
 /* ── Toggle ───────────────────────────────────────────────── */
@@ -267,25 +267,25 @@
   flex: 1;
   border: none;
   background: var(--wm-grad-primary);
-  color: white;
+  color: var(--wm-white);
   border-radius: var(--wm-radius-md);
   padding: 0.65rem 0.9rem;
   font-family: var(--wm-font-display);
   font-weight: 700;
   font-size: 0.875rem;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 184, 148, 0.30);
+  box-shadow: 0 4px 12px rgba(var(--wm-primary-rgb), 0.30);
   transition: box-shadow var(--wm-transition), transform var(--wm-transition);
 }
 
 .accept:hover {
-  box-shadow: 0 6px 18px rgba(0, 184, 148, 0.42);
+  box-shadow: 0 6px 18px rgba(var(--wm-primary-rgb), 0.42);
   transform: translateY(-1px);
 }
 
 .message {
   border: 1.5px solid var(--wm-border);
-  background: white;
+  background: var(--wm-white);
   color: var(--wm-text);
   border-radius: var(--wm-radius-md);
   padding: 0.65rem 0.9rem;

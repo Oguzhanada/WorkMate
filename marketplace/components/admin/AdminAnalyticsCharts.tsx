@@ -8,21 +8,21 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-// ─── Admin design tokens (same as AdminDashboard.tsx) ─────────────────────────
+// ─── Admin design tokens (--wm-* CSS custom properties) ─────────────────────
 const T = {
-  cardBg: '#ffffff',
-  cardBorder: '#e2e8f0',
+  cardBg: 'var(--wm-white)',
+  cardBorder: 'var(--wm-neutral-200)',
   cardRadius: '14px',
   cardShadow: '0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04)',
-  text: '#0f172a',
-  muted: '#64748b',
-  border: '#e2e8f0',
-  emerald: '#169B62',
-  navy: '#1B2A4A',
-  violet: '#7c3aed',
-  amber: '#d97706',
-  rose: '#e11d48',
-  sky: '#0284c7',
+  text: 'var(--wm-neutral-900)',
+  muted: 'var(--wm-neutral-500)',
+  border: 'var(--wm-neutral-200)',
+  emerald: 'var(--wm-chart-emerald)',
+  navy: 'var(--wm-chart-navy)',
+  violet: 'var(--wm-chart-violet)',
+  amber: 'var(--wm-chart-amber)',
+  rose: 'var(--wm-chart-rose)',
+  sky: 'var(--wm-chart-sky)',
 } as const;
 
 // ─── Types ─────────────────────────────────────────────────────────────────────

@@ -165,7 +165,7 @@ export default function Navbar() {
         );
 
         if (!active) return;
-        const roleList = (roles ?? []).map((item) => item.role);
+        const roleList = (roles ?? []).map((item: { role: string }) => item.role);
         const nextProfileName = profile?.full_name?.trim() || quickDisplayName || '';
         const nextState: NavAuthSnapshot = {
           isAuthenticated: true,

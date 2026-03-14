@@ -203,7 +203,7 @@ export default function JobMultiStepForm({ customerId }: { customerId: string })
       .select('id_verification_status')
       .eq('id', customerId)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(({ data }: { data: { id_verification_status: string } | null }) => {
         setCustomerIdStatus(data?.id_verification_status ?? 'none');
       });
   }, [customerId]);

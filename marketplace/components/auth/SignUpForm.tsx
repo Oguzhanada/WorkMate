@@ -1,8 +1,8 @@
 "use client";
 
 import Link from 'next/link';
-import {FormEvent, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {usePathname, useRouter} from 'next/navigation';
+import {useMemo} from 'react';
+import {usePathname} from 'next/navigation';
 import {motion} from 'framer-motion';
 import {
   AtSign,
@@ -15,171 +15,29 @@ import {
   Phone,
   UserRound
 } from 'lucide-react';
-import {z} from 'zod';
 
-import {getSupabaseBrowserClient} from '@/lib/supabase/client';
 import {getLocaleRoot, withLocalePrefix} from '@/lib/i18n/locale-path';
-import {getCitiesByCounty} from '@/lib/ireland/locations';
-import {isValidIrishPhone, normalizeIrishPhone} from '@/lib/ireland/phone';
+import {normalizeIrishPhone} from '@/lib/ireland/phone';
 import {formItemVariants, formListVariants, rightColumnVariants} from '@/styles/animations';
 import {IdentityConsent} from './IdentityConsent';
-import {PasswordChecks, PasswordStrength} from './PasswordStrength';
-import {RoleSelector, AccountRole} from './RoleSelector';
+import {PasswordStrength} from './PasswordStrength';
+import {RoleSelector} from './RoleSelector';
 import {SecurityDropdown} from './SecurityDropdown';
 import {SocialButtons} from './SocialButtons';
 import {TurnstileWidget} from '@/components/cloudflare/TurnstileWidget';
 import Button from '@/components/ui/Button';
 import styles from './login.module.css';
 
-const counties26 = [
-  'Carlow',
-  'Cavan',
-  'Clare',
-  'Cork',
-  'Donegal',
-  'Dublin',
-  'Galway',
-  'Kerry',
-  'Kildare',
-  'Kilkenny',
-  'Laois',
-  'Leitrim',
-  'Limerick',
-  'Longford',
-  'Louth',
-  'Mayo',
-  'Meath',
-  'Monaghan',
-  'Offaly',
-  'Roscommon',
-  'Sligo',
-  'Tipperary',
-  'Waterford',
-  'Westmeath',
-  'Wexford',
-  'Wicklow'
-] as const;
+import {useSignUpFormState} from './hooks/useSignUpFormState';
+import {useEircodeValidation} from './hooks/useEircodeValidation';
+import {useSignUpSubmit} from './hooks/useSignUpSubmit';
 
-const prioritizedCounties = ['Dublin', 'Cork', 'Galway'] as const;
-const orderedCounties = [
-  ...prioritizedCounties,
-  ...counties26.filter((c) => !prioritizedCounties.includes(c as (typeof prioritizedCounties)[number]))
-].sort((a, b) => {
-  const ai = prioritizedCounties.indexOf(a as (typeof prioritizedCounties)[number]);
-  const bi = prioritizedCounties.indexOf(b as (typeof prioritizedCounties)[number]);
-  if (ai !== -1 || bi !== -1) {
-    if (ai === -1) return 1;
-    if (bi === -1) return -1;
-    return ai - bi;
-  }
-  return a.localeCompare(b);
-});
-
-// Eircode regex validation deferred — pass-through mode pending real API integration
-// const _eircodeRegex = /^[A-Z0-9]{3}[ ]?[A-Z0-9]{1,4}$/;
-
-const usernameRegex = /^[a-z0-9_]{3,20}$/;
-
-const commonSchema = z.object({
-  fullName: z.string().min(2, 'Full name must be at least 2 characters.'),
-  username: z
-    .string()
-    .min(3, 'Username must be at least 3 characters.')
-    .max(20, 'Username must be 20 characters or fewer.')
-    .regex(usernameRegex, 'Only lowercase letters, numbers, and underscores allowed.'),
-  email: z.string().email('Enter a valid email address.'),
-  phone: z.string().min(1, 'Phone is required.'),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters.')
-    .regex(/[a-z]/, 'Password needs at least one lowercase letter.')
-    .regex(/[A-Z]/, 'Password needs at least one uppercase letter.')
-    .regex(/[0-9]/, 'Password needs at least one number.')
-    .regex(/[^A-Za-z0-9]/, 'Password needs at least one special character.'),
-  confirmPassword: z.string(),
-  identityConsent: z.boolean().refine((v) => v === true, {message: 'You must accept the terms to continue.'})
-});
-
-const providerOnlySchema = z.object({
-  address1: z.string().min(3, 'Address line 1 is required.'),
-  address2: z.string().optional(),
-  county: z.string().min(1, 'Please choose a county.'),
-  city: z.string().min(1, 'Please choose a city.'),
-  eircode: z.string().min(3, 'Please enter your Eircode.')
-});
-
-type SignUpFormData = {
-  fullName: string;
-  username: string;
-  phone: string;
-  email: string;
-  county: string;
-  city: string;
-  eircode: string;
-  address1: string;
-  address2: string;
-  password: string;
-  confirmPassword: string;
-  identityConsent: boolean;
-  referralCode: string;
-};
-
-type FieldErrors = Partial<Record<keyof SignUpFormData, string>>;
-
-type EircodeStatus = 'idle' | 'validating' | 'valid' | 'invalid';
-
-type EircodeSuggestion = {
-  line1: string | null;
-  line2: string | null;
-  postTown: string | null;
-  county: string | null;
-};
-
-type SignUpDraft = {
-  role: AccountRole;
-  form: SignUpFormData;
-  eircodeStatus: EircodeStatus;
-};
-
-const AUTH_TIMEOUT_MS = 15000;
-const AUTH_PING_TIMEOUT_MS = 5000;
-const SIGNUP_DRAFT_KEY = 'workmate.signup.draft.v1';
-
-async function canReachAuthServer() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const apikey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !apikey) return false;
-
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), AUTH_PING_TIMEOUT_MS);
-  try {
-    const response = await fetch(`${url}/auth/v1/health`, {
-      method: 'GET',
-      headers: {apikey},
-      signal: controller.signal
-    });
-    return response.ok || response.status === 401;
-  } catch {
-    return false;
-  } finally {
-    clearTimeout(timer);
-  }
-}
+/* ---------- pure helpers (no hooks) ---------- */
 
 function normalizeEircode(value: string) {
   const compact = value.toUpperCase().replace(/\s+/g, '');
   if (compact.length <= 3) return compact;
   return `${compact.slice(0, 3)} ${compact.slice(3, 7)}`;
-}
-
-function getPasswordChecks(password: string): PasswordChecks {
-  return {
-    minLength: password.length >= 8,
-    lower: /[a-z]/.test(password),
-    upper: /[A-Z]/.test(password),
-    number: /\d/.test(password),
-    special: /[^A-Za-z0-9]/.test(password)
-  };
 }
 
 function toRawIrishNumber(masked: string) {
@@ -203,342 +61,44 @@ function formatIrishPhone(value: string) {
   return output;
 }
 
-function validatePhone(masked: string) {
-  if (!isValidIrishPhone(masked)) {
-    return 'Use a valid Irish (+353) or UK (+44 7xxx) mobile number.';
-  }
-  return undefined;
-}
-
-function validateByRole(role: AccountRole, form: SignUpFormData) {
-  const common = commonSchema
-    .refine((data) => data.password === data.confirmPassword, {
-      message: 'Passwords do not match.',
-      path: ['confirmPassword']
-    })
-    .safeParse(form);
-
-  const errors: FieldErrors = {};
-  if (!common.success) {
-    for (const issue of common.error.issues) {
-      const field = issue.path[0] as keyof SignUpFormData;
-      if (field && !errors[field]) {
-        errors[field] = issue.message;
-      }
-    }
-  }
-
-  const phoneError = validatePhone(form.phone);
-  if (phoneError) {
-    errors.phone = phoneError;
-  }
-
-  if (role === 'provider') {
-    const provider = providerOnlySchema.safeParse(form);
-    if (!provider.success) {
-      for (const issue of provider.error.issues) {
-        const field = issue.path[0] as keyof SignUpFormData;
-        if (field && !errors[field]) {
-          errors[field] = issue.message;
-        }
-      }
-    }
-    // eircode validated automatically via debounced lookup; no manual button needed
-  }
-
-  return errors;
-}
+/* ---------- component ---------- */
 
 export function SignUpForm() {
-  const router = useRouter();
   const pathname = usePathname() || '/';
   const localeRoot = useMemo(() => getLocaleRoot(pathname), [pathname]);
-  const [intentId, setIntentId] = useState('');
-  const [intentEmail, setIntentEmail] = useState('');
 
-  const [role, setRole] = useState<AccountRole>('customer');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isSecurityOpen, setIsSecurityOpen] = useState(false);
+  const state = useSignUpFormState();
+  const {
+    form, setForm, errors, setErrors,
+    formError, setFormError, success, setSuccess,
+    isPending, setIsPending,
+    role, setRole,
+    showPassword, setShowPassword,
+    showConfirmPassword, setShowConfirmPassword,
+    isSecurityOpen, setIsSecurityOpen,
+    intentId, intentEmail,
+    eircodeStatus, setEircodeStatus,
+    passwordChecks, updateField,
+    cfToken, handleTurnstileVerify, handleTurnstileExpire,
+    oauthPending, setOauthPending,
+    loading,
+  } = state;
 
-  const [form, setForm] = useState<SignUpFormData>({
-    fullName: '',
-    username: '',
-    phone: '+353',
-    city: '',
-    county: '',
-    email: '',
-    eircode: '',
-    address1: '',
-    address2: '',
-    password: '',
-    confirmPassword: '',
-    identityConsent: false,
-    referralCode: ''
+  const eircode = useEircodeValidation(
+    form, setForm, role, eircodeStatus, setEircodeStatus, setErrors,
+  );
+  const {
+    setCountyQuery,
+    eircodeLoading, eircodeSuggestion,
+    eircodeDropdownOpen, setEircodeDropdownOpen,
+    cityOptions, filteredCounties,
+    applyEircodeSuggestion,
+  } = eircode;
+
+  const {onSubmit, signUpWithOAuth} = useSignUpSubmit({
+    form, role, cfToken, intentId, intentEmail, localeRoot,
+    setErrors, setFormError, setSuccess, setIsPending, setOauthPending,
   });
-
-  const [countyQuery, setCountyQuery] = useState('');
-
-  const [cfToken, setCfToken] = useState('');
-  const [errors, setErrors] = useState<FieldErrors>({});
-  const [formError, setFormError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [isPending, setIsPending] = useState(false);
-  const [oauthPending, setOauthPending] = useState<'' | 'google' | 'facebook'>('');
-  const [eircodeStatus, setEircodeStatus] = useState<EircodeStatus>('idle');
-  const [eircodeLoading, setEircodeLoading] = useState(false);
-  const [eircodeSuggestion, setEircodeSuggestion] = useState<EircodeSuggestion | null>(null);
-  const [eircodeDropdownOpen, setEircodeDropdownOpen] = useState(false);
-  const eircodeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const handleTurnstileVerify = useCallback((token: string) => setCfToken(token), []);
-  const handleTurnstileExpire = useCallback(() => setCfToken(''), []);
-
-  useEffect(() => {
-    try {
-      const raw = window.sessionStorage.getItem(SIGNUP_DRAFT_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as Partial<SignUpDraft>;
-      if (parsed?.role === 'customer' || parsed?.role === 'provider') {
-        setRole(parsed.role);
-      }
-      if (parsed?.form && typeof parsed.form === 'object') {
-        setForm((prev) => ({...prev, ...parsed.form}));
-      }
-      if (
-        parsed?.eircodeStatus === 'idle' ||
-        parsed?.eircodeStatus === 'validating' ||
-        parsed?.eircodeStatus === 'valid' ||
-        parsed?.eircodeStatus === 'invalid'
-      ) {
-        setEircodeStatus(parsed.eircodeStatus);
-      }
-    } catch {}
-  }, []);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const nextIntentId = params.get('intent') ?? '';
-    const nextIntentEmail = params.get('email') ?? '';
-    setIntentId(nextIntentId);
-    setIntentEmail(nextIntentEmail);
-    if (nextIntentEmail) {
-      setForm((prev) => ({...prev, email: prev.email || nextIntentEmail}));
-    }
-  }, []);
-
-  useEffect(() => {
-    try {
-      const draft: SignUpDraft = {role, form, eircodeStatus};
-      window.sessionStorage.setItem(SIGNUP_DRAFT_KEY, JSON.stringify(draft));
-    } catch {}
-  }, [role, form, eircodeStatus]);
-
-  const passwordChecks = useMemo(() => getPasswordChecks(form.password), [form.password]);
-
-  const cityOptions = useMemo(() => {
-    if (!form.county) return [] as string[];
-    const fromCounty = getCitiesByCounty(form.county);
-    if (fromCounty.length > 0) return fromCounty;
-    return [`${form.county} Town`, `${form.county} City`];
-  }, [form.county]);
-
-  const filteredCounties = useMemo(() => {
-    if (!countyQuery.trim()) return orderedCounties;
-    const q = countyQuery.toLowerCase();
-    return orderedCounties.filter((county) => county.toLowerCase().includes(q));
-  }, [countyQuery]);
-
-  // Debounced Eircode autocomplete lookup
-  useEffect(() => {
-    if (role !== 'provider') return;
-    const raw = form.eircode.trim().toUpperCase();
-    const compact = raw.replace(/\s/g, '');
-    if (compact.length < 7) {
-      setEircodeSuggestion(null);
-      setEircodeDropdownOpen(false);
-      return;
-    }
-    if (eircodeDebounceRef.current) clearTimeout(eircodeDebounceRef.current);
-    eircodeDebounceRef.current = setTimeout(async () => {
-      setEircodeLoading(true);
-      try {
-        const res = await fetch(`/api/address-lookup?eircode=${encodeURIComponent(raw)}`);
-        if (!res.ok) { setEircodeSuggestion(null); setEircodeDropdownOpen(false); return; }
-        const json = await res.json();
-        const addr = json.address ?? {};
-        if (addr.line_1 || addr.post_town) {
-          setEircodeSuggestion({ line1: addr.line_1 ?? null, line2: addr.line_2 ?? null, postTown: addr.post_town ?? null, county: addr.county ?? null });
-          setEircodeDropdownOpen(true);
-        } else {
-          setEircodeSuggestion(null);
-          setEircodeDropdownOpen(false);
-          setEircodeStatus('valid');
-        }
-      } catch { /* ignore */ }
-      finally { setEircodeLoading(false); }
-    }, 700);
-    return () => { if (eircodeDebounceRef.current) clearTimeout(eircodeDebounceRef.current); };
-   
-  }, [form.eircode, role]);
-
-  const applyEircodeSuggestion = () => {
-    if (!eircodeSuggestion) return;
-    const updates: Partial<SignUpFormData> = {};
-    if (eircodeSuggestion.line1) updates.address1 = eircodeSuggestion.line1;
-    if (eircodeSuggestion.line2) updates.address2 = eircodeSuggestion.line2;
-    if (eircodeSuggestion.postTown) updates.city = eircodeSuggestion.postTown;
-    if (eircodeSuggestion.county) {
-      const raw = eircodeSuggestion.county.replace(/^County\s+/i, '').trim();
-      const matched = (orderedCounties as readonly string[]).find(
-        (c) => c.toLowerCase() === raw.toLowerCase()
-      );
-      if (matched) { updates.county = matched; updates.city = eircodeSuggestion.postTown || updates.city || ''; }
-    }
-    setForm((prev) => ({ ...prev, ...updates }));
-    setEircodeStatus('valid');
-    setEircodeDropdownOpen(false);
-    setEircodeSuggestion(null);
-    setErrors((prev) => ({ ...prev, eircode: undefined }));
-  };
-
-  const updateField = <K extends keyof SignUpFormData>(key: K, value: SignUpFormData[K]) => {
-    setForm((prev) => ({...prev, [key]: value}));
-    if (errors[key]) {
-      setErrors((prev) => ({...prev, [key]: undefined}));
-    }
-    if (key === 'eircode') {
-      setEircodeStatus('idle');
-      setEircodeSuggestion(null);
-      setEircodeDropdownOpen(false);
-    }
-  };
-
-
-  const signUpWithOAuth = async (provider: 'google' | 'facebook') => {
-    setFormError('');
-    setSuccess('');
-    setOauthPending(provider);
-
-    const supabase = getSupabaseBrowserClient();
-    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent('/?welcome=1')}`;
-
-    try {
-      const {error} = await Promise.race([
-        supabase.auth.signInWithOAuth({
-          provider,
-          options: {redirectTo}
-        }),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Authentication request timed out. Please try again.')), AUTH_TIMEOUT_MS)
-        )
-      ]);
-
-      if (error) {
-        setOauthPending('');
-        setFormError(error.message);
-      }
-    } catch (oauthError) {
-      const message = oauthError instanceof Error ? oauthError.message : 'OAuth login failed. Please try again.';
-      setOauthPending('');
-      setFormError(message);
-    }
-  };
-
-  const onSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-    setFormError('');
-    setSuccess('');
-
-    const validationErrors = validateByRole(role, form);
-
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-
-    setIsPending(true);
-
-    try {
-      // Cloudflare Turnstile bot protection check (skipped if site key not configured)
-      if (process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && cfToken) {
-        const turnstileRes = await fetch('/api/auth/verify-turnstile', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({token: cfToken}),
-        });
-        if (!turnstileRes.ok) {
-          setFormError('Bot protection check failed. Please complete the security challenge and try again.');
-          return;
-        }
-      }
-
-      const reachable = await canReachAuthServer();
-      if (!reachable) {
-        setFormError('Cannot reach authentication server. Check VPN/ad blocker and try again.');
-        return;
-      }
-
-      const supabase = getSupabaseBrowserClient();
-      const redirectTo = `${window.location.origin}/auth/callback?next=/?welcome=1`;
-
-      const {error} = await Promise.race([
-        supabase.auth.signUp({
-          email: form.email,
-          password: form.password,
-          options: {
-            emailRedirectTo: redirectTo,
-            data: {
-              full_name: form.fullName,
-              username: form.username.trim().toLowerCase(),
-              phone: normalizeIrishPhone(form.phone),
-              city: role === 'provider' ? form.city : '',
-              county: role === 'provider' ? form.county : '',
-              eircode: role === 'provider' ? form.eircode : '',
-              address_line_1: role === 'provider' ? form.address1 : '',
-              address_line_2: role === 'provider' ? form.address2 : '',
-              locality: role === 'provider' ? form.city : '',
-              role,
-              referral_code: form.referralCode.trim().toUpperCase() || undefined
-            }
-          }
-        }),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Authentication request timed out. Please try again.')), AUTH_TIMEOUT_MS)
-        )
-      ]);
-
-      if (error) {
-        setFormError('❌ Something went wrong. Please try again.');
-        return;
-      }
-
-      try {
-        window.sessionStorage.removeItem(SIGNUP_DRAFT_KEY);
-      } catch {}
-
-      const nextQuery = intentId
-        ? `?intent=${encodeURIComponent(intentId)}${intentEmail ? `&email=${encodeURIComponent(intentEmail)}` : ''}`
-        : '';
-      let remaining = 5;
-      setSuccess(`🎉 Account created! Check your email to verify. Redirecting in ${remaining}s...`);
-      const countdownTimer = setInterval(() => {
-        remaining -= 1;
-        if (remaining <= 0) {
-          clearInterval(countdownTimer);
-          router.push(withLocalePrefix(localeRoot, '/login') + nextQuery);
-        } else {
-          setSuccess(`🎉 Account created! Check your email to verify. Redirecting in ${remaining}s...`);
-        }
-      }, 1000);
-    } catch {
-      setFormError('❌ Something went wrong. Please try again.');
-    } finally {
-      setIsPending(false);
-    }
-  };
-
-  const loading = isPending || Boolean(oauthPending);
 
   const eircodeInputStyle =
     eircodeStatus === 'valid'

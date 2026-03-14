@@ -34,7 +34,7 @@
 
 .modeButtonActive {
   background: var(--wm-primary);
-  color: #fff;
+  color: var(--wm-white);
 }
 
 /* ── Mobile filter toggle ─────────────────────────────────── */
@@ -42,7 +42,7 @@
   display: none;
   border: 1px solid var(--wm-border);
   border-radius: 999px;
-  background: #fff;
+  background: var(--wm-white);
   color: var(--wm-text);
   padding: 7px 14px;
   font-family: var(--wm-font-display);
@@ -53,7 +53,7 @@
 /* ── Card shell ───────────────────────────────────────────── */
 .cardShell {
   border: 1px solid var(--wm-border);
-  background: #fff;
+  background: var(--wm-white);
 }
 
 /* ── Search row ───────────────────────────────────────────── */
@@ -86,7 +86,7 @@
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-md);
   padding: 11px 12px;
-  background: #fff;
+  background: var(--wm-white);
   font: inherit;
   color: var(--wm-text);
   transition: border-color var(--wm-transition), box-shadow var(--wm-transition);
@@ -154,7 +154,7 @@
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-xl);
   overflow: hidden;
-  background: #fff;
+  background: var(--wm-white);
   box-shadow: var(--wm-shadow-sm);
   display: flex;
   flex-direction: column;
@@ -259,7 +259,7 @@
   right: 0;
   bottom: 0;
   border-radius: var(--wm-radius-xl) var(--wm-radius-xl) 0 0;
-  background: #fff;
+  background: var(--wm-white);
   border-top: 1px solid var(--wm-border);
   padding: 18px;
   max-height: min(80vh, 560px);
@@ -279,7 +279,7 @@
   top: 92px;
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-xl);
-  background: #fff;
+  background: var(--wm-white);
   box-shadow: var(--wm-shadow-sm);
   padding: 12px;
   display: grid;
@@ -328,7 +328,7 @@
   height: 28px;
   font-size: 0.72rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--wm-white);
   background: var(--wm-primary);
   box-shadow: 0 6px 14px rgba(var(--wm-primary-rgb), 0.30);
   cursor: pointer;
@@ -354,7 +354,7 @@
 
 .mapListItem {
   border: 1px solid var(--wm-border);
-  background: #fff;
+  background: var(--wm-white);
   border-radius: var(--wm-radius-sm);
   padding: 9px 10px;
   text-align: left;

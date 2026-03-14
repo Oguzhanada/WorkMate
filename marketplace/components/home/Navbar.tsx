@@ -141,7 +141,9 @@ export default function Navbar() {
         sessionUser = (sessionData.session?.user as { id: string } | null) ?? null;
 
         if (!sessionUser) {
-          const userResult = await withTimeout<any>(supabase.auth.getUser());
+          const userResult = await withTimeout<Awaited<ReturnType<typeof supabase.auth.getUser>>>(
+            supabase.auth.getUser()
+          );
           sessionUser = (userResult?.data?.user as { id: string } | null) ?? null;
           quickDisplayName = userResult?.data?.user?.user_metadata?.full_name?.trim() || quickDisplayName;
         }
@@ -163,7 +165,7 @@ export default function Navbar() {
         );
 
         if (!active) return;
-        const roleList = (roles ?? []).map((item) => item.role);
+        const roleList = (roles ?? []).map((item: { role: string }) => item.role);
         const nextProfileName = profile?.full_name?.trim() || quickDisplayName || '';
         const nextState: NavAuthSnapshot = {
           isAuthenticated: true,

@@ -30,10 +30,10 @@ async function resolveContext(request: NextRequest) {
 async function patchHandler(
   request: NextRequest,
   { params }: { params: Promise<{ widgetId: string }> }
-) {
+): Promise<NextResponse> {
   const { widgetId } = await params;
   const context = await resolveContext(request);
-  if ('error' in context) return context.error;
+  if ('error' in context) return context.error as NextResponse;
 
   const service = getSupabaseServiceClient();
   const { data: existing, error: existingError } = await service
@@ -87,10 +87,10 @@ async function patchHandler(
 async function deleteHandler(
   request: NextRequest,
   { params }: { params: Promise<{ widgetId: string }> }
-) {
+): Promise<NextResponse> {
   const { widgetId } = await params;
   const context = await resolveContext(request);
-  if ('error' in context) return context.error;
+  if ('error' in context) return context.error as NextResponse;
 
   const service = getSupabaseServiceClient();
   const { data: existing, error: existingError } = await service

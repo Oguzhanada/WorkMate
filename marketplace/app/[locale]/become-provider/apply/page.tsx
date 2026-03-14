@@ -202,17 +202,17 @@ export default function BecomeProviderPage() {
 
       setHasExistingIdDocument(
         (existingDocs ?? []).some(
-          (doc) =>
+          (doc: { document_type: string; verification_status: string }) =>
             doc.document_type === 'id_verification' &&
             (doc.verification_status === 'pending' || doc.verification_status === 'verified')
         )
       );
       const hasVerifiedIdDoc = (existingDocs ?? []).some(
-        (doc) => doc.document_type === 'id_verification' && doc.verification_status === 'verified'
+        (doc: { document_type: string; verification_status: string }) => doc.document_type === 'id_verification' && doc.verification_status === 'verified'
       );
       setHasExistingInsuranceDocument(
         (existingDocs ?? []).some(
-          (doc) =>
+          (doc: { document_type: string; verification_status: string }) =>
             doc.document_type === 'public_liability_insurance' &&
             (doc.verification_status === 'pending' || doc.verification_status === 'verified')
         )
@@ -227,13 +227,13 @@ export default function BecomeProviderPage() {
         .from('pro_services')
         .select('category_id')
         .eq('profile_id', user.id);
-      setSelectedServiceIds((existingServices ?? []).map((service) => service.category_id).filter(Boolean));
+      setSelectedServiceIds((existingServices ?? []).map((service: { category_id: string }) => service.category_id).filter(Boolean));
 
       const { data: existingAreas } = await supabase
         .from('pro_service_areas')
         .select('county')
         .eq('profile_id', user.id);
-      setSelectedAreas((existingAreas ?? []).map((area) => area.county).filter(Boolean));
+      setSelectedAreas((existingAreas ?? []).map((area: { county: string }) => area.county).filter(Boolean));
 
     };
 

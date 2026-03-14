@@ -23,7 +23,7 @@ export default function LoginPage() {
       return;
     }
     const supabase = getSupabaseBrowserClient();
-    supabase.auth.getSession().then(({data}) => {
+    supabase.auth.getSession().then(({data}: { data: { session: unknown } }) => {
       if (data.session) {
         router.replace(withLocalePrefix(localeRoot, '/dashboard/customer'));
       }

@@ -36,7 +36,7 @@
 .completeButton {
   border: none;
   background: var(--wm-grad-primary);
-  color: #fff;
+  color: var(--wm-white);
   text-decoration: none;
   border-radius: var(--wm-radius-lg);
   padding: 9px 16px;
@@ -48,7 +48,7 @@
   transition:
     opacity var(--wm-transition),
     transform var(--wm-transition);
-  box-shadow: 0 4px 14px rgba(0, 184, 148, 0.35);
+  box-shadow: 0 4px 14px rgba(var(--wm-primary-rgb), 0.35);
   display: inline-block;
 }
 
@@ -207,7 +207,7 @@
 .addBtn:hover {
   transform: scale(1.05);
   background: var(--wm-primary);
-  color: #fff;
+  color: var(--wm-white);
 }
 
 /* ─── Tooltip ─────────────────────────────────────────────────── */
@@ -235,7 +235,7 @@
   min-width: 220px;
   max-width: 280px;
   background: var(--wm-accent);
-  color: #f4f7fb;
+  color: var(--wm-neutral-100);
   border-radius: var(--wm-radius-md);
   padding: 8px 12px;
   font-size: 0.8rem;
@@ -330,7 +330,7 @@
 .providerCtaButton {
   border: none;
   background: linear-gradient(135deg, var(--wm-primary) 0%, var(--wm-primary-dark) 100%);
-  color: #fff;
+  color: var(--wm-white);
   text-decoration: none;
   border-radius: var(--wm-radius-lg);
   padding: 10px 18px;

@@ -16,13 +16,13 @@
 .heading {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--wm-neutral-800);
   margin: 0;
 }
 
 .sub {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--wm-neutral-400);
   margin: 2px 0 0;
 }
 
@@ -36,36 +36,36 @@
 
 .rangeBtn {
   padding: 5px 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--wm-neutral-200);
   border-radius: 8px;
-  background: #fff;
+  background: var(--wm-white);
   font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
-  color: #64748b;
+  color: var(--wm-neutral-500);
   transition: all 0.12s;
 }
 
-.rangeBtn:hover { border-color: #94a3b8; color: #1e293b; }
+.rangeBtn:hover { border-color: var(--wm-neutral-400); color: var(--wm-neutral-800); }
 
 .rangeBtnActive {
-  border-color: #6c5ce7;
-  background: #f1efff;
-  color: #4b3dc9;
+  border-color: var(--wm-chart-violet);
+  background: var(--wm-chart-violet-soft);
+  color: var(--wm-chart-violet-dark);
   font-weight: 600;
 }
 
 .refreshBtn {
   padding: 5px 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--wm-neutral-200);
   border-radius: 8px;
-  background: #fff;
+  background: var(--wm-white);
   font-size: 0.8rem;
   cursor: pointer;
-  color: #64748b;
+  color: var(--wm-neutral-500);
 }
 
-.refreshBtn:hover { background: #f8fafc; }
+.refreshBtn:hover { background: var(--wm-neutral-50); }
 
 /* KPI grid */
 .kpiGrid {
@@ -75,8 +75,8 @@
 }
 
 .kpi {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--wm-white);
+  border: 1px solid var(--wm-neutral-200);
   border-radius: 14px;
   padding: 16px 18px;
   position: relative;
@@ -93,7 +93,7 @@
 
 .kpiLabel {
   font-size: 0.72rem;
-  color: #94a3b8;
+  color: var(--wm-neutral-400);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   margin: 0 0 4px;
@@ -103,15 +103,15 @@
 .kpiValue {
   font-size: 1.35rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--wm-neutral-800);
   margin: 0;
   letter-spacing: -0.02em;
 }
 
 /* Cards */
 .card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--wm-white);
+  border: 1px solid var(--wm-neutral-200);
   border-radius: 16px;
   padding: 20px;
 }
@@ -128,7 +128,7 @@
 .cardTitle {
   font-size: 0.95rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--wm-neutral-800);
   margin: 0 0 14px;
 }
 
@@ -140,7 +140,7 @@
   align-items: center;
   gap: 10px;
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--wm-neutral-500);
 }
 
 .legendDot {
@@ -193,7 +193,7 @@
 }
 
 .catLabel {
-  color: #334155;
+  color: var(--wm-neutral-700);
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -201,7 +201,7 @@
 }
 
 .barWrap {
-  background: #f1f5f9;
+  background: var(--wm-neutral-100);
   border-radius: 4px;
   height: 8px;
   overflow: hidden;
@@ -209,14 +209,14 @@
 
 .bar {
   height: 100%;
-  background: linear-gradient(90deg, #6c5ce7, #0ea5e9);
+  background: linear-gradient(90deg, var(--wm-chart-violet), var(--wm-chart-blue));
   border-radius: 4px;
   transition: width 0.5s ease;
   min-width: 2px;
 }
 
 .catCount {
-  color: #94a3b8;
+  color: var(--wm-neutral-400);
   font-size: 0.72rem;
   white-space: nowrap;
 }
@@ -238,14 +238,14 @@
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #94a3b8;
-  border-bottom: 1px solid #e2e8f0;
+  color: var(--wm-neutral-400);
+  border-bottom: 1px solid var(--wm-neutral-200);
 }
 
 .table td {
   padding: 9px 10px;
-  border-bottom: 1px solid #f1f5f9;
-  color: #334155;
+  border-bottom: 1px solid var(--wm-neutral-100);
+  color: var(--wm-neutral-700);
   vertical-align: middle;
 }
 
@@ -253,12 +253,12 @@
 
 .rank {
   font-weight: 700;
-  color: #6c5ce7;
+  color: var(--wm-chart-violet);
   width: 28px;
 }
 
 .stars {
-  color: #f59e0b;
+  color: var(--wm-chart-amber);
   letter-spacing: -1px;
   font-size: 0.85rem;
 }
@@ -271,20 +271,20 @@
 .score {
   text-align: right;
   font-weight: 700;
-  color: #6c5ce7;
+  color: var(--wm-chart-violet);
 }
 
 /* Misc */
 .muted {
   font-size: 0.875rem;
-  color: #94a3b8;
+  color: var(--wm-neutral-400);
   padding: 8px 0;
 }
 
 .errorMsg {
   font-size: 0.875rem;
-  color: #ef4444;
-  background: #fee2e2;
+  color: var(--wm-destructive);
+  background: var(--wm-destructive-light);
   padding: 10px 14px;
   border-radius: 10px;
 }

@@ -82,13 +82,13 @@
 
 .heroCtaPrimary {
   background: var(--wm-grad-primary);
-  color: #fff;
+  color: var(--wm-white);
   border: none;
   box-shadow: 0 6px 20px rgba(var(--wm-primary-rgb), 0.32);
 }
 
 .heroCtaSecondary {
-  background: #fff;
+  background: var(--wm-white);
   color: var(--wm-navy);
   border: 1.5px solid var(--wm-border);
 }
@@ -125,7 +125,7 @@
 }
 
 .trendCard {
-  background: #fff;
+  background: var(--wm-white);
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-xl);
   overflow: hidden;
@@ -177,7 +177,7 @@
   margin-top: 12px;
   width: 100%;
   background: var(--wm-grad-primary);
-  color: #fff;
+  color: var(--wm-white);
   border: none;
   border-radius: var(--wm-radius-sm);
   padding: 10px;
@@ -208,7 +208,7 @@
 }
 
 .valueCard {
-  background: #fff;
+  background: var(--wm-white);
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-xl);
   padding: 24px;
@@ -251,7 +251,7 @@
 }
 
 .stepCard {
-  background: #fff;
+  background: var(--wm-white);
   border: 1px solid var(--wm-border);
   border-radius: var(--wm-radius-xl);
   display: grid;
@@ -278,7 +278,7 @@
   width: 42px;
   height: 42px;
   background: var(--wm-grad-primary);
-  color: #fff;
+  color: var(--wm-white);
   border-radius: 999px;
   display: grid;
   place-items: center;
@@ -327,7 +327,7 @@
 
 .providerContent {
   background: var(--wm-grad-navy);
-  color: #fff;
+  color: var(--wm-white);
   padding: 40px;
   display: grid;
   gap: 14px;
@@ -359,7 +359,7 @@
 
 .providerButton {
   background: var(--wm-grad-primary);
-  color: #fff;
+  color: var(--wm-white);
   border-radius: var(--wm-radius-sm);
   text-decoration: none;
   font-family: var(--wm-font-display);

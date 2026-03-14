@@ -116,14 +116,14 @@
 .chipActive {
   border-color: var(--wm-primary);
   background: var(--wm-primary);
-  color: #fff;
+  color: var(--wm-white);
   box-shadow: 0 2px 8px rgba(22, 155, 98, 0.28);
 }
 
 .chipActive:hover {
   background: var(--wm-primary-dark);
   border-color: var(--wm-primary-dark);
-  color: #fff;
+  color: var(--wm-white);
 }
 
 /* Scope chips — slightly wider with two-line label */
@@ -232,7 +232,7 @@
 .primary {
   border: none;
   background: var(--wm-grad-primary);
-  color: #fff;
+  color: var(--wm-white);
   border-radius: var(--wm-radius-md);
   padding: 10px 14px;
   font-family: var(--wm-font-display);
@@ -621,7 +621,7 @@
   gap: 6px;
   border: none;
   background: var(--wm-primary);
-  color: #fff;
+  color: var(--wm-white);
   border-radius: var(--wm-radius-sm);
   padding: 7px 14px;
   font-size: 0.85rem;

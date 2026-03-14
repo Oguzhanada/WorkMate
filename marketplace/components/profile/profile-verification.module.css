@@ -126,7 +126,7 @@
 .primary {
   border: none;
   background: linear-gradient(135deg, var(--wm-primary) 0%, var(--wm-primary-dark) 100%);
-  color: #fff;
+  color: var(--wm-white);
   padding: 10px 18px;
   border-radius: var(--wm-radius-lg);
   font-weight: 600;

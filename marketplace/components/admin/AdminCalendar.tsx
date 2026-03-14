@@ -3,23 +3,23 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-// ─── Design tokens (admin content area palette) ────────────────────────────────
+// ─── Design tokens (--wm-* CSS custom properties) ──────────────────────────────
 const T = {
-  cardBg: '#ffffff',
-  cardBorder: '#e2e8f0',
+  cardBg: 'var(--wm-white)',
+  cardBorder: 'var(--wm-neutral-200)',
   cardRadius: '14px',
   cardShadow: '0 1px 3px rgba(0,0,0,0.07)',
-  text: '#0f172a',
-  muted: '#64748b',
-  border: '#e2e8f0',
-  emerald: '#169B62',
+  text: 'var(--wm-neutral-900)',
+  muted: 'var(--wm-neutral-500)',
+  border: 'var(--wm-neutral-200)',
+  emerald: 'var(--wm-primary)',
   emeraldBg: 'rgba(22,155,98,0.10)',
-  navy: '#1B2A4A',
-  amber: '#d97706',
+  navy: 'var(--wm-navy)',
+  amber: 'var(--wm-chart-amber)',
   amberBg: 'rgba(217,119,6,0.10)',
-  sky: '#0284c7',
+  sky: 'var(--wm-chart-sky)',
   skyBg: 'rgba(2,132,199,0.10)',
-  headerBg: '#f8fafc',
+  headerBg: 'var(--wm-neutral-50)',
 } as const;
 
 type CalendarEvent = {
@@ -213,7 +213,7 @@ export default function AdminCalendar({ events = [] }: Props) {
                   margin: 0,
                   fontSize: '11px',
                   fontWeight: isToday ? 800 : 400,
-                  color: isToday ? '#fff' : T.text,
+                  color: isToday ? 'var(--wm-white)' : T.text,
                   textAlign: 'center',
                   lineHeight: '16px',
                 }}
@@ -239,7 +239,7 @@ export default function AdminCalendar({ events = [] }: Props) {
                         width: '5px',
                         height: '5px',
                         borderRadius: '50%',
-                        background: isToday ? '#fff' : (evt.color ?? T.sky),
+                        background: isToday ? 'var(--wm-white)' : (evt.color ?? T.sky),
                         flexShrink: 0,
                       }}
                     />
@@ -248,7 +248,7 @@ export default function AdminCalendar({ events = [] }: Props) {
                     <span
                       style={{
                         fontSize: '8px',
-                        color: isToday ? '#fff' : T.muted,
+                        color: isToday ? 'var(--wm-white)' : T.muted,
                         lineHeight: '5px',
                       }}
                     >

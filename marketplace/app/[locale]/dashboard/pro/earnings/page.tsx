@@ -352,22 +352,23 @@ export default function ProviderEarningsPage() {
       .select('amount_cents, commission_cents, status, created_at')
       .eq('pro_id', user.id);
 
-    const all = allPayments ?? [];
+    type PaymentSummaryRow = { amount_cents: number; commission_cents: number; status: string; created_at: string };
+    const all: PaymentSummaryRow[] = (allPayments ?? []) as PaymentSummaryRow[];
     const { start, end } = getMonthRange();
 
     const totalEarnedCents = all
-      .filter((p) => p.status === 'captured')
-      .reduce((sum, p) => sum + (p.amount_cents - p.commission_cents), 0);
+      .filter((p: PaymentSummaryRow) => p.status === 'captured')
+      .reduce((sum: number, p: PaymentSummaryRow) => sum + (p.amount_cents - p.commission_cents), 0);
 
     const pendingCents = all
-      .filter((p) => p.status === 'authorized')
-      .reduce((sum, p) => sum + (p.amount_cents - p.commission_cents), 0);
+      .filter((p: PaymentSummaryRow) => p.status === 'authorized')
+      .reduce((sum: number, p: PaymentSummaryRow) => sum + (p.amount_cents - p.commission_cents), 0);
 
     const thisMonthCents = all
-      .filter((p) => p.status === 'captured' && p.created_at >= start && p.created_at <= end)
-      .reduce((sum, p) => sum + (p.amount_cents - p.commission_cents), 0);
+      .filter((p: PaymentSummaryRow) => p.status === 'captured' && p.created_at >= start && p.created_at <= end)
+      .reduce((sum: number, p: PaymentSummaryRow) => sum + (p.amount_cents - p.commission_cents), 0);
 
-    const completedJobs = all.filter((p) => p.status === 'captured').length;
+    const completedJobs = all.filter((p: PaymentSummaryRow) => p.status === 'captured').length;
 
     setSummary({ totalEarnedCents, pendingCents, thisMonthCents, completedJobs });
     setLoading(false);
