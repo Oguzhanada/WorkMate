@@ -272,8 +272,8 @@ Mandatory process rules. These govern how work is done, not what the architectur
 
 ### 5.1 Branching — AI agents MUST NOT commit to `main`
 
-- **NEVER** commit directly to the `main` branch.
-- **ALWAYS** create a feature branch: `feat/<desc>`, `fix/<desc>`, `chore/<desc>`, `docs/<desc>`.
+- **Default**: create a feature branch: `feat/<desc>`, `fix/<desc>`, `chore/<desc>`, `docs/<desc>`.
+- **Exception**: the user may explicitly request a direct commit to `main` — honour that instruction.
 - **Only the repository owner** (user) can merge branches into `main`.
 - Check branch before starting: `git branch --show-current`.
 - **NEVER** run `git push origin main`.
@@ -331,7 +331,7 @@ AI-authored commit messages CAN be factually wrong. Apply these rules:
 | FD-01 | Zod schemas in domain files under `lib/validation/<domain>.ts` — never inline in route files. `lib/validation/api.ts` is a re-export barrel only; never add new schema definitions there. See DR-010. | 🟡 Updated (DR-010, S41) | Domain split for scalability; api.ts retained as backward-compat barrel |
 | FD-02 | `loading.tsx` required on pages with async Supabase/DB calls. Exempt: static pages with only `getTranslations()`. See DR-008. | 🟢 Active | No blank screens on data-fetching navigation |
 | FD-03 | Colors/spacing/radius/shadows must map to `--wm-*` tokens; wrapper internals may use Shadcn/Radix primitives | 🟢 Active | Brand identity preserved while enabling modern primitive internals |
-| FD-04 | `<Button>` wrapper always — never raw `<button>` or `<Link>` with bg- classes | 🟢 Active | Stable app-level API; consistent behaviour |
+| FD-04 | `<Button>` wrapper always — never raw `<button>` or `<Link>` with bg- classes. **Exempt**: icon toggles (ThemeToggle, hamburger), drag handles, and other micro-interaction controls where `<Button>` variant/size/padding is unsuitable. | 🟡 Updated (S41) | Stable app-level API; icon toggles get flexibility |
 | FD-05 | `<PageHeader>` required on all top-level page routes — no raw Card+h1. **Exempt**: modal contents, wizard steps, widget inner views, sub-route tabs inside a page that already has a PageHeader. See DR-011. | 🟡 Updated (DR-011, S41) | Scope narrowed to top-level pages; modal/wizard DX improved |
 | FD-06 | `<EmptyState>` on every list — always handle zero-item state | 🟢 Active | No blank/broken UIs on empty data |
 | FD-07 | Responsive grid default: `sm:grid-cols-2 lg:grid-cols-3` on card lists. Override allowed for admin dashboards, fluid layouts, or wide-card lists — must include a `{/* DR-011: reason */}` comment. See DR-011. | 🟡 Updated (DR-011, S41) | Grid density flexibility for dashboard contexts; default preserved |
