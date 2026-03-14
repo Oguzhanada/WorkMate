@@ -16,7 +16,7 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://challenges.cloudflare.com https://static.cloudflareinsights.com",
+      "script-src 'self' 'unsafe-inline' 'strict-dynamic' https://js.stripe.com https://challenges.cloudflare.com https://static.cloudflareinsights.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
       "img-src 'self' data: blob: https://ejpnmcxzycxqfdbetydp.supabase.co https://*.stripe.com https://images.unsplash.com https://*.tile.openstreetmap.org https://*.r2.dev https://*.cloudflarestorage.com",
       "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
@@ -26,6 +26,7 @@ const securityHeaders = [
       "base-uri 'self'",
       "form-action 'self'",
       "frame-ancestors 'none'",
+      "upgrade-insecure-requests",
     ].join('; '),
   },
 ];

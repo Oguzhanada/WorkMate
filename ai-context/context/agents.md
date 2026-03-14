@@ -330,7 +330,7 @@ AI-authored commit messages CAN be factually wrong. Apply these rules:
 |----|----------------|--------|---------------|
 | FD-01 | Zod schemas in domain files under `lib/validation/<domain>.ts` — never inline in route files. `lib/validation/api.ts` is a re-export barrel only; never add new schema definitions there. See DR-010. | 🟡 Updated (DR-010, S41) | Domain split for scalability; api.ts retained as backward-compat barrel |
 | FD-02 | `loading.tsx` required on pages with async Supabase/DB calls. Exempt: static pages with only `getTranslations()`. See DR-008. | 🟢 Active | No blank screens on data-fetching navigation |
-| FD-03 | Colors/spacing/radius/shadows must map to `--wm-*` tokens; wrapper internals may use Shadcn/Radix primitives | 🟢 Active | Brand identity preserved while enabling modern primitive internals |
+| FD-03 | Colors/spacing/radius/shadows must map to `--wm-*` tokens (status, admin, chart, neutral, social families included). No new hex without first adding a `--wm-*` token to `tokens.css` with dark mode override. Wrapper internals may use Shadcn/Radix primitives. See DR-012. | 🟡 Updated (DR-012, S43) | Brand identity preserved; token system expanded to close coverage gaps found by independent audit |
 | FD-04 | `<Button>` wrapper always — never raw `<button>` or `<Link>` with bg- classes. **Exempt**: icon toggles (ThemeToggle, hamburger), drag handles, and other micro-interaction controls where `<Button>` variant/size/padding is unsuitable. | 🟡 Updated (S41) | Stable app-level API; icon toggles get flexibility |
 | FD-05 | `<PageHeader>` required on all top-level page routes — no raw Card+h1. **Exempt**: modal contents, wizard steps, widget inner views, sub-route tabs inside a page that already has a PageHeader. See DR-011. | 🟡 Updated (DR-011, S41) | Scope narrowed to top-level pages; modal/wizard DX improved |
 | FD-06 | `<EmptyState>` on every list — always handle zero-item state | 🟢 Active | No blank/broken UIs on empty data |
@@ -366,6 +366,7 @@ AI-authored commit messages CAN be factually wrong. Apply these rules:
 - FD-05 (DR-011, S41): Scope narrowed — `<PageHeader>` exempt in modals, wizard steps, widget inner views.
 - FD-07 (DR-011, S41): Override allowed — non-default grid column counts allowed with inline comment.
 - FD-29 (S42): New — "no premature deletion" rule after logAiCall() was incorrectly classified as dead code.
+- FD-03 (DR-012, S43): Expanded — token system gained status, admin, chart, neutral, social families; "add token first" rule enforced.
 
 ---
 
