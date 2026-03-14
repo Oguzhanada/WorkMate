@@ -43,11 +43,24 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('framer-motion', () => ({
   AnimatePresence: ({children}: {children?: ReactNode; [key: string]: unknown}) => children,
-  motion: {
-    div: ({children, initial: _initial, animate: _animate, variants: _variants, exit: _exit, transition: _transition, ...props}: {children?: ReactNode; [key: string]: unknown}) => (
-      <div {...props}>{children}</div>
-    )
-  }
+  motion: new Proxy(
+    {},
+    {
+      get: (_target, tag: string) =>
+        ({children, initial: _initial, animate: _animate, variants: _variants, exit: _exit, transition: _transition, ...props}: {children?: ReactNode; [key: string]: unknown}) => {
+          const Component = tag as keyof JSX.IntrinsicElements;
+          return <Component {...props}>{children}</Component>;
+        }
+    }
+  )
+}));
+
+vi.mock('@/components/ui/ThemeToggle', () => ({
+  default: () => <button type="button" aria-label="Theme toggle">Theme</button>
+}));
+
+vi.mock('@/components/notifications/NotificationBell', () => ({
+  default: () => <div aria-label="Notifications bell">Bell</div>
 }));
 
 vi.mock('@/lib/supabase/client', () => ({
