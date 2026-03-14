@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import Button from '@/components/ui/Button';
 
 type NotificationRow = {
@@ -100,12 +101,43 @@ export default function NotificationBell() {
     }
   }, []);
 
-  // Initial fetch + polling
+  // Initial fetch + polling (fallback) + Supabase Realtime subscription
   useEffect(() => {
     fetchUnread();
     pollRef.current = setInterval(fetchUnread, POLL_INTERVAL_MS);
+
+    // Realtime: subscribe to new notifications for this user
+    const supabase = getSupabaseBrowserClient();
+    let channelInstance: ReturnType<typeof supabase.channel> | null = null;
+
+    void (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        channelInstance = supabase
+          .channel(`notifications:${user.id}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'INSERT',
+              schema: 'public',
+              table: 'notifications',
+              filter: `user_id=eq.${user.id}`,
+            },
+            () => {
+              fetchUnread();
+            }
+          )
+          .subscribe();
+      } catch {
+        // Realtime subscription failure is non-critical — polling remains active
+      }
+    })();
+
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
+      if (channelInstance) void supabase.removeChannel(channelInstance);
     };
   }, [fetchUnread]);
 

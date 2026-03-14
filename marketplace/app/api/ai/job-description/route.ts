@@ -7,6 +7,8 @@ import { groqGenerate } from '@/lib/ai/groq';
 import { apiError, apiUnauthorized, apiServerError } from '@/lib/api/error-response';
 import { AI_MODELS } from '@/lib/ai/config';
 import { sanitizeForPrompt } from '@/lib/ai/sanitize';
+import { getServiceStatus } from '@/lib/resilience/service-status';
+import { CircuitBreakerOpenError } from '@/lib/resilience/circuit-breaker';
 
 async function handler(request: NextRequest): Promise<NextResponse> {
   // Cost guard — blocked until LIVE_SERVICES_ENABLED=true (or AI_CALLS_ENABLED=true)
@@ -38,6 +40,13 @@ async function handler(request: NextRequest): Promise<NextResponse> {
   }
 
   const { jobTitle, categoryName, scope, urgency, taskType } = parsed.data;
+
+  // Graceful degradation: if Groq is known down/degraded, return template fallback
+  const groqStatus = await getServiceStatus('groq');
+  if (groqStatus === 'down' || groqStatus === 'degraded') {
+    const fallback = buildTemplateFallback(jobTitle, categoryName, scope);
+    return NextResponse.json({ description: fallback, ai_generated: false });
+  }
 
   // Sanitize all user-supplied strings before prompt interpolation
   const promptParts = [
@@ -76,11 +85,26 @@ Return only the description text, no preamble.`,
       return apiServerError('No description generated');
     }
 
-    return NextResponse.json({ description: text });
+    return NextResponse.json({ description: text, ai_generated: true });
   } catch (err) {
+    // Circuit breaker open → return template fallback instead of 500
+    if (err instanceof CircuitBreakerOpenError) {
+      const fallback = buildTemplateFallback(jobTitle, categoryName, scope);
+      return NextResponse.json({ description: fallback, ai_generated: false });
+    }
     const message = err instanceof Error ? err.message : 'AI generation failed';
     return apiServerError(message);
   }
 }
 
 export const POST = withRateLimit(RATE_LIMITS.AI_ENDPOINT, handler);
+
+/** Template-based fallback when AI is unavailable */
+function buildTemplateFallback(jobTitle: string, categoryName: string, scope?: string): string {
+  const parts = [
+    `I need a ${jobTitle} service (${categoryName}).`,
+    scope ? `Scope: ${scope}.` : null,
+    'Please provide a quote with your availability and pricing.',
+  ];
+  return parts.filter(Boolean).join(' ');
+}

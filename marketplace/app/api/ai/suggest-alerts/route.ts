@@ -8,6 +8,8 @@ import { groqGenerate } from '@/lib/ai/groq';
 import { apiError, apiUnauthorized, apiForbidden, apiServerError } from '@/lib/api/error-response';
 import { AI_MODELS } from '@/lib/ai/config';
 import { sanitizeListForPrompt } from '@/lib/ai/sanitize';
+import { getServiceStatus } from '@/lib/resilience/service-status';
+import { CircuitBreakerOpenError } from '@/lib/resilience/circuit-breaker';
 
 type AISuggestion = {
   keywords: string[];
@@ -79,6 +81,17 @@ async function handler(request: NextRequest): Promise<NextResponse> {
     })
     .filter((n): n is string => Boolean(n));
 
+  // Graceful degradation: if Groq is known down/degraded, return empty suggestions
+  const groqStatus = await getServiceStatus('groq');
+  if (groqStatus === 'down' || groqStatus === 'degraded') {
+    return NextResponse.json({
+      created: 0,
+      suggestions: [],
+      ai_unavailable: true,
+      message: 'AI suggestions are temporarily unavailable. Please try again later.',
+    });
+  }
+
   // Sanitize service names before prompt interpolation
   const serviceList = sanitizeListForPrompt(rawServiceNames, 80);
 
@@ -110,7 +123,15 @@ Return ONLY valid JSON array: [{"keywords": ["word1", "word2"], "category_hint":
       return apiServerError('AI service temporarily unavailable');
     }
     suggestions = JSON.parse(jsonMatch[0]) as AISuggestion[];
-  } catch {
+  } catch (err) {
+    if (err instanceof CircuitBreakerOpenError) {
+      return NextResponse.json({
+        created: 0,
+        suggestions: [],
+        ai_unavailable: true,
+        message: 'AI suggestions are temporarily unavailable. Please try again later.',
+      });
+    }
     return apiServerError('AI service temporarily unavailable');
   }
 

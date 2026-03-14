@@ -75,10 +75,29 @@ export async function GET(req: NextRequest) {
     query = query.eq('id_verification_status', 'approved');
   }
 
+  // Step 3b: Resolve provider IDs from full-text search (migration 082).
+  // Must run before intersection so FTS result participates in the ID filter.
+  let ftsFilterIds: string[] | null = null;
+  let ftsFallback = false;
+  if (q) {
+    const { data: ftsRows, error: ftsErr } = await supabase
+      .from('provider_search')
+      .select('provider_id')
+      .textSearch('search_vector', q, { type: 'websearch', config: 'english' });
+
+    if (!ftsErr && ftsRows && ftsRows.length > 0) {
+      ftsFilterIds = ftsRows.map((r) => (r as { provider_id: string }).provider_id);
+    } else {
+      // View empty or error — fall back to ilike on profiles directly
+      ftsFallback = true;
+    }
+  }
+
   // Intersect all ID sets derived from sub-queries.
   const idSets: string[][] = [];
   if (categoryFilterIds !== null) idSets.push(categoryFilterIds);
   if (countyFilterIds !== null) idSets.push(countyFilterIds);
+  if (ftsFilterIds !== null) idSets.push(ftsFilterIds);
 
   if (idSets.length > 0) {
     // Intersection: only IDs that appear in all filter sets.
@@ -98,8 +117,8 @@ export async function GET(req: NextRequest) {
     query = query.not('id', 'in', `(${adminIds.map((id) => `"${id}"`).join(',')})`);
   }
 
-  // Full-name text search (simple ilike).
-  if (q) {
+  // ilike fallback when provider_search view returned no results.
+  if (ftsFallback) {
     query = query.ilike('full_name', `%${q}%`);
   }
 

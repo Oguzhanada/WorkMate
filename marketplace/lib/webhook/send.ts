@@ -25,7 +25,8 @@ async function deliverWebhook(
   url: string,
   secret: string,
   event: string,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
+  requestId?: string
 ): Promise<void> {
   // Only deliver to HTTPS endpoints
   if (!url.startsWith('https://')) {
@@ -36,6 +37,7 @@ async function deliverWebhook(
   const timestamp = Math.floor(Date.now() / 1000).toString();
   const body = JSON.stringify({ event, data: payload, timestamp: Number(timestamp) });
   const signature = buildSignature(secret, body, timestamp);
+  const resolvedRequestId = requestId ?? crypto.randomUUID();
 
   const attemptDelays = [0, 1_000, 3_000];
   for (let attempt = 0; attempt < attemptDelays.length; attempt++) {
@@ -51,6 +53,7 @@ async function deliverWebhook(
           'X-WorkMate-Event': event,
           'X-WorkMate-Timestamp': timestamp,
           'X-WorkMate-Signature': `sha256=${signature}`,
+          'X-Request-Id': resolvedRequestId,
         },
         body,
         signal: AbortSignal.timeout(10_000), // 10s timeout
@@ -77,10 +80,16 @@ async function deliverWebhook(
 /**
  * Sends an event to all matching active webhook subscriptions.
  * Non-blocking — catches all errors so it never disrupts the calling route.
+ *
+ * @param requestId - Optional correlation ID from the originating HTTP request.
+ *   Forwarded as `X-Request-Id` on every outgoing delivery so recipients can
+ *   correlate webhook calls back to the triggering request. A new UUID is
+ *   generated per delivery when omitted.
  */
 export async function sendWebhookEvent(
   event: WebhookEvent,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
+  requestId?: string
 ): Promise<void> {
   try {
     const svc = getSupabaseServiceClient();
@@ -96,7 +105,7 @@ export async function sendWebhookEvent(
 
     // Fire all deliveries in parallel — best effort, non-blocking
     await Promise.allSettled(
-      subs.map((sub) => deliverWebhook(sub.url, sub.secret, event, payload))
+      subs.map((sub) => deliverWebhook(sub.url, sub.secret, event, payload, requestId))
     );
   } catch {
     // Non-blocking: webhook failures must not disrupt the calling API route

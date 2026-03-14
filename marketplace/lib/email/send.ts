@@ -1,5 +1,6 @@
 import { getResendClient } from './client';
 import { liveServices } from '../live-services';
+import { getServiceStatus } from '../resilience/service-status';
 import {
   quoteReceivedEmail,
   quoteAcceptedEmail,
@@ -52,7 +53,14 @@ export function sendTransactionalEmail(event: EmailEvent): void {
     try {
       // Block real email sends unless live services are enabled.
       if (!liveServices.email) {
-        console.log('[EMAIL BLOCKED — live services off]', event.type, '->', event.to);
+        console.warn('[EMAIL BLOCKED — live services off]', event.type, '->', event.to);
+        return;
+      }
+
+      // Graceful degradation: if Resend is known down, log and skip silently
+      const resendStatus = await getServiceStatus('resend');
+      if (resendStatus === 'down') {
+        console.warn('[EMAIL SKIPPED — Resend service down]', event.type, '->', event.to);
         return;
       }
 

@@ -49,7 +49,7 @@ function redact(obj: LogContext): LogContext {
 const isProd = process.env.NODE_ENV === 'production';
 const isTest = process.env.NODE_ENV === 'test';
 
-function log(level: LogLevel, context: LogContext, message: string): void {
+function log(level: LogLevel, context: LogContext, message: string, requestId?: string): void {
   if (isTest) return; // Suppress logs during tests
 
   const safe = redact(context);
@@ -58,27 +58,28 @@ function log(level: LogLevel, context: LogContext, message: string): void {
     service: 'workmate-api',
     msg: message,
     time: new Date().toISOString(),
+    ...(requestId !== undefined ? { requestId } : {}),
     ...safe,
   };
 
   if (isProd) {
     // JSON output — structured log drain compatible
-    const fn = level === 'error' ? console.error : level === 'warn' ? console.warn : console.log;
+    const fn = level === 'error' ? console.error : console.warn;
     fn(JSON.stringify(entry));
   } else {
     // Human-readable in development
-    const prefix = `[${level.toUpperCase()}]`;
+    const prefix = `[${level.toUpperCase()}]${requestId !== undefined ? ` [${requestId}]` : ''}`;
     const contextStr = Object.keys(safe).length ? ` ${JSON.stringify(safe)}` : '';
-    const fn = level === 'error' ? console.error : level === 'warn' ? console.warn : console.log;
+    const fn = level === 'error' ? console.error : console.warn;
     fn(`${prefix} ${message}${contextStr}`);
   }
 }
 
 export const logger = {
-  debug: (context: LogContext, message: string) => log('debug', context, message),
-  info: (context: LogContext, message: string) => log('info', context, message),
-  warn: (context: LogContext, message: string) => log('warn', context, message),
-  error: (context: LogContext, message: string) => log('error', context, message),
+  debug: (context: LogContext, message: string, requestId?: string) => log('debug', context, message, requestId),
+  info:  (context: LogContext, message: string, requestId?: string) => log('info',  context, message, requestId),
+  warn:  (context: LogContext, message: string, requestId?: string) => log('warn',  context, message, requestId),
+  error: (context: LogContext, message: string, requestId?: string) => log('error', context, message, requestId),
 };
 
 // ── Convenience helpers ───────────────────────────────────────────────────────
@@ -92,11 +93,13 @@ export function logAiCall(opts: {
   inputTokens?: number;
   outputTokens?: number;
   error?: string;
+  requestId?: string;
 }): void {
+  const { requestId, ...rest } = opts;
   if (opts.error) {
-    logger.error({ ...opts }, 'AI inference failed');
+    logger.error({ ...rest }, 'AI inference failed', requestId);
   } else {
-    logger.info({ ...opts }, 'AI inference completed');
+    logger.info({ ...rest }, 'AI inference completed', requestId);
   }
 }
 
@@ -108,11 +111,13 @@ export function logWebhookDelivery(opts: {
   attempt: number;
   success: boolean;
   durationMs: number;
+  requestId?: string;
 }): void {
+  const { requestId, ...rest } = opts;
   if (opts.success) {
-    logger.info({ ...opts }, 'Webhook delivered');
+    logger.info({ ...rest }, 'Webhook delivered', requestId);
   } else {
-    logger.warn({ ...opts }, 'Webhook delivery failed');
+    logger.warn({ ...rest }, 'Webhook delivery failed', requestId);
   }
 }
 
@@ -123,6 +128,8 @@ export function logApiError(opts: {
   statusCode: number;
   error: string;
   userId?: string;
+  requestId?: string;
 }): void {
-  logger.error({ ...opts }, 'API route error');
+  const { requestId, ...rest } = opts;
+  logger.error({ ...rest }, 'API route error', requestId);
 }

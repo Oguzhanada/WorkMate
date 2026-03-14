@@ -1,0 +1,1 @@
+export { cacheGet } from './redis';

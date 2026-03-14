@@ -9,6 +9,13 @@ export type { RateLimitConfig };
 
 type RouteHandler = (req: NextRequest, ctx?: unknown) => Promise<NextResponse> | NextResponse;
 
+const UUID_V4_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function getOrCreateRequestId(req: NextRequest): string {
+  const incoming = req.headers.get('x-request-id')?.trim() ?? '';
+  return UUID_V4_RE.test(incoming) ? incoming : crypto.randomUUID();
+}
+
 // ── Identifier extraction ─────────────────────────────────────────────────────
 // Priority order:
 //   1. x-api-key header (public API consumers — keyed by the API key value itself)
@@ -69,7 +76,16 @@ export function withRateLimit(config: RateLimitConfig, handler: RouteHandler): R
   const check = rateLimit(config);
 
   return async function rateLimitedHandler(req: NextRequest, ctx?: unknown): Promise<NextResponse> {
-    const identifier = extractIdentifier(req);
+    const requestId = getOrCreateRequestId(req);
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set('x-request-id', requestId);
+    const requestWithId = new NextRequest(req.url, {
+      method: req.method,
+      headers: requestHeaders,
+      body: req.body,
+    });
+
+    const identifier = extractIdentifier(requestWithId);
     const { allowed, remaining, resetAt } = await check(identifier);
 
     if (!allowed) {
@@ -82,14 +98,16 @@ export function withRateLimit(config: RateLimitConfig, handler: RouteHandler): R
         { status: 429 }
       );
       response.headers.set('Retry-After', String(retryAfterSeconds));
+      response.headers.set('x-request-id', requestId);
       applyRateLimitHeaders(response, config, 0, resetAt);
       return response;
     }
 
     // Call the underlying handler
-    const response = (await handler(req, ctx)) as NextResponse;
+    const response = (await handler(requestWithId, ctx)) as NextResponse;
 
     // Attach quota headers to the real response
+    response.headers.set('x-request-id', requestId);
     applyRateLimitHeaders(response, config, remaining, resetAt);
     return response;
   };

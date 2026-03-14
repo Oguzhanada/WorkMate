@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isValidEircode, normalizeEircode } from '@/lib/ireland/eircode';
+import { normalizeEircode } from '@/lib/ireland/eircode';
 import { addressLookupQuerySchema } from '@/lib/validation/api';
 import { apiError } from '@/lib/api/error-response';
 
@@ -14,10 +14,6 @@ export async function GET(request: NextRequest) {
 
   const eircode = normalizeEircode(parsed.data.eircode);
   const provider = process.env.ADDRESS_PROVIDER ?? 'none';
-
-  if (!isValidEircode(eircode)) {
-    return apiError('Invalid Eircode format', 400);
-  }
 
   // Format-only validation (no API key required)
   if (provider !== 'ideal_postcodes') {

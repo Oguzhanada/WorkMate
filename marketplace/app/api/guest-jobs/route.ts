@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { createGuestJobIntentSchema } from '@/lib/validation/api';
-import { isValidEircode, normalizeEircode } from '@/lib/ireland/eircode';
+import { normalizeEircode } from '@/lib/ireland/eircode';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { verifyTurnstileToken } from '@/lib/cloudflare/turnstile';
 import { apiError, apiForbidden } from '@/lib/api/error-response';
@@ -30,9 +30,6 @@ async function handler(request: NextRequest): Promise<NextResponse> {
   }
 
   const eircode = normalizeEircode(body.eircode);
-  if (!isValidEircode(eircode)) {
-    return apiError('Please enter a valid Eircode.', 400);
-  }
 
   const supabase = getSupabaseServiceClient();
 

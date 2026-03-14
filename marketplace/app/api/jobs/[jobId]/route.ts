@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { normalizeEircode, isValidEircode } from '@/lib/ireland/eircode';
+import { normalizeEircode } from '@/lib/ireland/eircode';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { updateJobDraftSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
@@ -75,9 +75,6 @@ async function patchHandler(
   }
 
   const eircode = normalizeEircode(parsed.data.eircode);
-  if (!isValidEircode(eircode)) {
-    return apiError('Please enter a valid Eircode.', 400);
-  }
 
   const { data: existing, error: existingError } = await supabase
     .from('jobs')

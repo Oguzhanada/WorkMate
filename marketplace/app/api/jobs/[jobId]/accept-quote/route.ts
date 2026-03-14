@@ -8,6 +8,7 @@ import { sendTransactionalEmail } from '@/lib/email/send';
 import { sendNotification } from '@/lib/notifications/send';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { apiError, apiValidationError, apiUnauthorized, apiForbidden, apiNotFound } from '@/lib/api/error-response';
+import { checkIdempotency, saveIdempotencyResponse } from '@/lib/idempotency';
 
 async function patchHandler(
   request: NextRequest,
@@ -28,6 +29,13 @@ async function patchHandler(
   const isAdmin = canAccessAdmin(roles);
   if (!canPostJob(roles)) {
     return apiForbidden('Only customers can accept quotes');
+  }
+
+  // Idempotency check — prevents double-accept on retry
+  const iKey = request.headers.get('Idempotency-Key');
+  if (iKey) {
+    const cached = await checkIdempotency(iKey, '/api/jobs/[jobId]/accept-quote', user.id);
+    if (cached) return NextResponse.json(cached.body, { status: cached.status });
   }
 
   let rawBody: unknown;
@@ -160,7 +168,11 @@ async function patchHandler(
     })();
   }
 
-  return NextResponse.json({ job: updatedJob }, { status: 200 });
+  const responseBody = { job: updatedJob };
+  if (iKey) {
+    void saveIdempotencyResponse(iKey, '/api/jobs/[jobId]/accept-quote', user.id, 200, responseBody as Record<string, unknown>);
+  }
+  return NextResponse.json(responseBody, { status: 200 });
 }
 
 export const PATCH = withRateLimit(RATE_LIMITS.WRITE_ENDPOINT, patchHandler);

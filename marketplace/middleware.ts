@@ -1,8 +1,9 @@
 import {createServerClient} from '@supabase/ssr';
 import createMiddleware from 'next-intl/middleware';
-import {NextResponse, type NextRequest} from 'next/server';
+import {NextRequest, NextResponse} from 'next/server';
 
 import {defaultLocale, locales} from './i18n/config';
+import {rateLimit, RATE_LIMITS} from './lib/rate-limit';
 
 const intlMiddleware = createMiddleware({
   locales,
@@ -10,15 +11,7 @@ const intlMiddleware = createMiddleware({
   localePrefix: 'never'
 });
 
-type Bucket = {
-  count: number;
-  resetAt: number;
-};
-
-const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX_ATTEMPTS = 10;
-
-const rateLimitStore = new Map<string, Bucket>();
+const checkAuthRateLimit = rateLimit(RATE_LIMITS.AUTH_LOGIN);
 
 function getClientIdentifier(request: NextRequest) {
   const forwarded = request.headers.get('x-forwarded-for');
@@ -38,45 +31,48 @@ function isProtectedPath(pathname: string) {
   return /^\/(profile|dashboard)(?:\/|$)/.test(pathname);
 }
 
-function allowRequest(key: string) {
-  const now = Date.now();
-  const bucket = rateLimitStore.get(key);
-
-  if (!bucket || bucket.resetAt < now) {
-    rateLimitStore.set(key, {count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS});
-    return {allowed: true, retryAfterMs: 0};
-  }
-
-  if (bucket.count >= RATE_LIMIT_MAX_ATTEMPTS) {
-    return {allowed: false, retryAfterMs: bucket.resetAt - now};
-  }
-
-  bucket.count += 1;
-  return {allowed: true, retryAfterMs: 0};
-}
-
 export async function middleware(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+
+  // Propagate the request ID to downstream handlers via a request header.
+  // NextResponse.next() with request.headers override is the only safe way to
+  // mutate headers for the route handler in Next.js middleware.
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-request-id', requestId);
+
   // OAuth callback route must bypass locale rewrites and reach its route handler directly.
   if (request.nextUrl.pathname === '/auth/callback') {
-    return NextResponse.next();
+    const res = NextResponse.next({ request: { headers: requestHeaders } });
+    res.headers.set('x-request-id', requestId);
+    return res;
   }
 
   if (request.method === 'POST' && isAuthMutationPath(request.nextUrl.pathname)) {
     const ip = getClientIdentifier(request);
-    const key = `${ip}:${request.nextUrl.pathname}`;
-    const rateLimit = allowRequest(key);
+    const identifier = `${ip}:${request.nextUrl.pathname}`;
+    const result = await checkAuthRateLimit(identifier);
 
-    if (!rateLimit.allowed) {
+    if (!result.allowed) {
+      const retryAfterSeconds = Math.ceil((result.resetAt - Date.now()) / 1000);
       const response = NextResponse.json(
         {error: 'Too many requests. Please try again shortly.'},
         {status: 429}
       );
-      response.headers.set('Retry-After', Math.ceil(rateLimit.retryAfterMs / 1000).toString());
+      response.headers.set('Retry-After', String(Math.max(retryAfterSeconds, 1)));
+      response.headers.set('x-request-id', requestId);
       return response;
     }
   }
 
-  const response = intlMiddleware(request);
+  // Re-create the request with the injected x-request-id header so that
+  // intlMiddleware and the Supabase client both see a consistent request object.
+  const modifiedRequest = new NextRequest(request.url, {
+    method: request.method,
+    headers: requestHeaders,
+    body: request.body,
+  });
+
+  const response = intlMiddleware(modifiedRequest);
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -84,10 +80,10 @@ export async function middleware(request: NextRequest) {
     {
       cookies: {
         getAll() {
-          return request.cookies.getAll();
+          return modifiedRequest.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({name, value}) => request.cookies.set(name, value));
+          cookiesToSet.forEach(({name, value}) => modifiedRequest.cookies.set(name, value));
           cookiesToSet.forEach(({name, value, options}) => response.cookies.set(name, value, options));
         }
       }
@@ -102,9 +98,12 @@ export async function middleware(request: NextRequest) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = '/login';
     loginUrl.searchParams.set('next', request.nextUrl.pathname + request.nextUrl.search);
-    return NextResponse.redirect(loginUrl);
+    const redirectResponse = NextResponse.redirect(loginUrl);
+    redirectResponse.headers.set('x-request-id', requestId);
+    return redirectResponse;
   }
 
+  response.headers.set('x-request-id', requestId);
   return response;
 }
 

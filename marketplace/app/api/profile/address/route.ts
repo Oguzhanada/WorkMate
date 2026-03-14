@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
-import { normalizeEircode, isValidEircode } from '@/lib/ireland/eircode';
+import { normalizeEircode } from '@/lib/ireland/eircode';
 import { profileAddressSchema } from '@/lib/validation/api';
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit/middleware';
 import { apiError, apiValidationError, apiUnauthorized } from '@/lib/api/error-response';
@@ -48,9 +48,6 @@ async function postHandler(request: NextRequest) {
 
   const body = parsed.data;
   const eircode = normalizeEircode(body.eircode);
-  if (!isValidEircode(eircode)) {
-    return apiError('Invalid Eircode format', 400);
-  }
 
   const payload = {
     profile_id: user.id,
