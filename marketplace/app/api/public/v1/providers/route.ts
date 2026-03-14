@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authenticatePublicRequest } from '@/lib/api/public-auth';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { apiServerError } from '@/lib/api/error-response';
+import { withRequestId } from '@/lib/request-id/middleware';
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 
-export async function GET(request: NextRequest) {
+export const GET = withRequestId(async function GET(request: NextRequest) {
   const auth = await authenticatePublicRequest(request);
   if (auth.error) return auth.error;
 
@@ -109,4 +110,4 @@ export async function GET(request: NextRequest) {
     },
     { status: 200 }
   );
-}
+});

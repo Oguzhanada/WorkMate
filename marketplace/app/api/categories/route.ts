@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { getTaxonomyCategories } from '@/lib/data/services';
+import { withRequestId } from '@/lib/request-id/middleware';
 
-export async function GET() {
+export const GET = withRequestId(async function GET(_request: NextRequest) {
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return NextResponse.json({ categories: getTaxonomyCategories() });
   }
@@ -26,4 +27,4 @@ export async function GET() {
   }
 
   return NextResponse.json({ categories: data });
-}
+});

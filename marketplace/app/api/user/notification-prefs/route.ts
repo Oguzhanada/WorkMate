@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { apiError, apiUnauthorized, apiServerError } from '@/lib/api/error-response';
+import { withRequestId } from '@/lib/request-id/middleware';
 
 const prefsSchema = z.object({
   email_new_quote: z.boolean(),
@@ -33,7 +34,7 @@ const DEFAULT_PREFS: NotificationPrefs = {
   email_marketing: false,
 };
 
-export async function GET() {
+export const GET = withRequestId(async function GET(_request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -45,9 +46,9 @@ export async function GET() {
   const prefs: NotificationPrefs = { ...DEFAULT_PREFS, ...stored };
 
   return NextResponse.json({ prefs });
-}
+});
 
-export async function POST(request: NextRequest) {
+export const POST = withRequestId(async function POST(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -74,4 +75,4 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({ ok: true });
-}
+});

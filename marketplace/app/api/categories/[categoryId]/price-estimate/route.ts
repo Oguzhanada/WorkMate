@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { apiError, apiServerError } from '@/lib/api/error-response';
+import { withRequestId } from '@/lib/request-id/middleware';
 
-export async function GET(
+export const GET = withRequestId(async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ categoryId: string }> }
 ) {
@@ -49,4 +50,4 @@ export async function GET(
       sampleSize: amounts.length,
     },
   });
-}
+});

@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { funnelSummaryQuerySchema } from '@/lib/validation/api';
 import { apiError, apiUnauthorized, apiForbidden, apiServerError } from '@/lib/api/error-response';
+import { withRequestId } from '@/lib/request-id/middleware';
 
 // GET /api/analytics/funnel-summary?days=7|30|all
 // Admin-only: aggregated funnel step completion counts.
 // Returns: { summary: { funnel_name, step_name, step_number, count }[], meta: { days, total_today } }
 // Ordered by funnel_name ASC, step_number ASC for easy chart consumption.
-export async function GET(req: NextRequest) {
+export const GET = withRequestId(async function GET(req: NextRequest) {
   const supabase = await getSupabaseRouteClient();
 
   // Auth check
@@ -102,4 +103,4 @@ export async function GET(req: NextRequest) {
   });
 
   return NextResponse.json({ summary, meta: { days, total_today: totalToday } });
-}
+});

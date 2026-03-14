@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { grantMonthlyCredits, MONTHLY_CREDITS_BY_PLAN } from '@/lib/credits/provider-credits';
 import { apiUnauthorized } from '@/lib/api/error-response';
+import { withRequestId } from '@/lib/request-id/middleware';
 
 type Plan = keyof typeof MONTHLY_CREDITS_BY_PLAN;
 const VALID_PLANS = new Set<string>(['basic', 'professional', 'premium']);
@@ -70,5 +71,5 @@ async function runGrant(request: NextRequest): Promise<NextResponse> {
   });
 }
 
-export const GET = runGrant;
-export const POST = runGrant;
+export const GET = withRequestId(runGrant);
+export const POST = withRequestId(runGrant);

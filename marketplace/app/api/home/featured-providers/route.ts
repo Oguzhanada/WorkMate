@@ -1,7 +1,8 @@
-import {NextResponse} from 'next/server';
+import { NextRequest, NextResponse} from 'next/server';
 
 import {getSupabaseRouteClient} from '@/lib/supabase/route';
 import { apiError } from '@/lib/api/error-response';
+import { withRequestId } from '@/lib/request-id/middleware';
 
 type ProfileRow = {
   id: string;
@@ -79,7 +80,7 @@ function rankProviders(
     }));
 }
 
-export async function GET() {
+export const GET = withRequestId(async function GET(_request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
 
   const {data: roleRows} = await supabase.from('user_roles').select('user_id').eq('role', 'verified_pro').limit(200);
@@ -152,4 +153,4 @@ export async function GET() {
   const ranked = rankProviders(rankedInput, scoreMap);
 
   return NextResponse.json({providers: ranked}, {status: 200});
-}
+});

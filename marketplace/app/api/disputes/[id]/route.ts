@@ -3,8 +3,9 @@ import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getDisputeParticipantContext, isDisputeParticipant } from '@/lib/disputes';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { apiUnauthorized, apiNotFound, apiForbidden } from '@/lib/api/error-response';
+import { withRequestId } from '@/lib/request-id/middleware';
 
-export async function GET(
+export const GET = withRequestId(async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -58,4 +59,4 @@ export async function GET(
     },
     { status: 200 }
   );
-}
+});

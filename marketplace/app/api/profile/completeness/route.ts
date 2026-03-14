@@ -1,14 +1,15 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canQuote, getUserRoles } from '@/lib/auth/rbac';
 import { calculateCompleteness } from '@/lib/profile/completeness';
 import { apiUnauthorized, apiForbidden, apiNotFound, apiServerError } from '@/lib/api/error-response';
+import { withRequestId } from '@/lib/request-id/middleware';
 
 // GET /api/profile/completeness
 // Returns the profile completeness score for the authenticated provider.
 // Only verified_pro and admin roles may call this endpoint.
-export async function GET() {
+export const GET = withRequestId(async function GET(_request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -63,4 +64,4 @@ export async function GET() {
   const result = calculateCompleteness(profile, hasServices, hasServiceAreas);
 
   return NextResponse.json(result);
-}
+});

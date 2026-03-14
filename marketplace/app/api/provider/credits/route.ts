@@ -2,13 +2,14 @@
  * GET /api/provider/credits
  * Returns the authenticated provider's credit balance and recent transactions.
  */
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { canQuoteJob, getUserRoles } from '@/lib/auth/rbac';
 import { apiUnauthorized, apiForbidden } from '@/lib/api/error-response';
+import { withRequestId } from '@/lib/request-id/middleware';
 
-export async function GET() {
+export const GET = withRequestId(async function GET(_request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -51,4 +52,4 @@ export async function GET() {
     last_updated: credits?.updated_at ?? null,
     transactions: transactions ?? [],
   });
-}
+});

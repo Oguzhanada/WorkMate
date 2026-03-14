@@ -4,6 +4,7 @@ import { addressLookupQuerySchema } from '@/lib/validation/api';
 import { apiError } from '@/lib/api/error-response';
 import { cacheGet } from '@/lib/cache';
 import { getServiceStatus, setServiceStatus } from '@/lib/resilience/service-status';
+import { withRequestId } from '@/lib/request-id/middleware';
 
 type AddressData = {
   eircode: string;
@@ -15,7 +16,7 @@ type AddressData = {
   country: string;
 };
 
-export async function GET(request: NextRequest) {
+async function handler(request: NextRequest) {
   const parsed = addressLookupQuerySchema.safeParse({
     eircode: request.nextUrl.searchParams.get('eircode') ?? '',
   });
@@ -94,3 +95,5 @@ export async function GET(request: NextRequest) {
     return apiError('Address lookup unavailable', 503);
   }
 }
+
+export const GET = withRequestId(handler);

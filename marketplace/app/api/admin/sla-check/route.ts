@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { apiUnauthorized, apiServerError } from '@/lib/api/error-response';
+import { withRequestId } from '@/lib/request-id/middleware';
 
 const SLA_HOURS = 24;
 
@@ -68,5 +69,5 @@ async function runSlaCheck(request: NextRequest): Promise<NextResponse> {
   );
 }
 
-export const GET = runSlaCheck;
-export const POST = runSlaCheck;
+export const GET = withRequestId(runSlaCheck);
+export const POST = withRequestId(runSlaCheck);

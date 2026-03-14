@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authenticatePublicRequest } from '@/lib/api/public-auth';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { apiNotFound, apiServerError } from '@/lib/api/error-response';
+import { withRequestId } from '@/lib/request-id/middleware';
 
-export async function GET(
+export const GET = withRequestId(async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -24,4 +25,4 @@ export async function GET(
   if (!data) return apiNotFound('Job not found');
 
   return NextResponse.json({ job: data }, { status: 200 });
-}
+});

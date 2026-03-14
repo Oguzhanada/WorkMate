@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { getUserRoles, canAccessAdmin } from '@/lib/auth/rbac';
 import { appointmentCalendarQuerySchema } from '@/lib/validation/api';
 import { apiError, apiUnauthorized, apiServerError } from '@/lib/api/error-response';
+import { withRequestId } from '@/lib/request-id/middleware';
 
 export type CalendarAppointment = {
   id: string;
@@ -21,7 +22,7 @@ export type CalendarResponse = {
   days: Record<string, CalendarAppointment[]>;
 };
 
-export async function GET(request: NextRequest) {
+export const GET = withRequestId(async function GET(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -138,4 +139,4 @@ export async function GET(request: NextRequest) {
 
   const response: CalendarResponse = { month, days: grouped };
   return NextResponse.json(response, { status: 200 });
-}
+});

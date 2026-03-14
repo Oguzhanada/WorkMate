@@ -1,9 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { canAccessAdmin, getUserRoles } from '@/lib/auth/rbac';
 import { apiError, apiUnauthorized } from '@/lib/api/error-response';
+import { withRequestId } from '@/lib/request-id/middleware';
 
-export async function GET() {
+export const GET = withRequestId(async function GET(_request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -55,4 +56,4 @@ export async function GET() {
   }
 
   return NextResponse.json({ disputes: data ?? [] }, { status: 200 });
-}
+});

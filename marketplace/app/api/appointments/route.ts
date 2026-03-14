@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { apiUnauthorized, apiServerError } from '@/lib/api/error-response';
+import { withRequestId } from '@/lib/request-id/middleware';
 
 /**
  * GET /api/appointments
@@ -9,7 +10,7 @@ import { apiUnauthorized, apiServerError } from '@/lib/api/error-response';
  * Returns all appointments for the authenticated user (as provider or customer),
  * ordered by start_time ascending (upcoming first).
  */
-export async function GET() {
+export const GET = withRequestId(async function GET(_request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -47,4 +48,4 @@ export async function GET() {
   }
 
   return NextResponse.json({ appointments: rows ?? [] }, { status: 200 });
-}
+});

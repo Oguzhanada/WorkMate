@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { apiError } from '@/lib/api/error-response';
+import { withRequestId } from '@/lib/request-id/middleware';
 
 // GET /api/providers/[providerId]/services
 // Returns the category IDs registered to a provider, plus their display name.
 // Public — no auth required (used on the post-job form to scope category choices).
-export async function GET(
+export const GET = withRequestId(async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ providerId: string }> }
 ) {
@@ -34,4 +35,4 @@ export async function GET(
     category_ids: (services ?? []).map((row) => row.category_id),
     provider_name: profile?.full_name ?? null,
   });
-}
+});

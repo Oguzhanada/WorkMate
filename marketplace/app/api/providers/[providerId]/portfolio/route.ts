@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { apiError } from '@/lib/api/error-response';
+import { withRequestId } from '@/lib/request-id/middleware';
 
 type Params = Promise<{ providerId: string }>;
 
 // GET /api/providers/[providerId]/portfolio — public, no auth required
-export async function GET(_request: NextRequest, { params }: { params: Params }) {
+export const GET = withRequestId(async function GET(_request: NextRequest, { params }: { params: Params }) {
   const { providerId } = await params;
 
   const service = getSupabaseServiceClient();
@@ -21,4 +22,4 @@ export async function GET(_request: NextRequest, { params }: { params: Params })
   }
 
   return NextResponse.json({ items: data ?? [] }, { status: 200 });
-}
+});

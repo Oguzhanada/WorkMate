@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { apiError } from '@/lib/api/error-response';
 import { eircodeToCounty } from '@/lib/ireland/eircode-county';
 import { IRISH_COUNTIES } from '@/lib/ireland/locations';
+import { withRequestId } from '@/lib/request-id/middleware';
 
 // Permissive Eircode pattern — 3 alphanumeric + space + 4 alphanumeric
 const EIRCODE_RE = /^[A-Z0-9]{3}\s[A-Z0-9]{4}$/i;
@@ -46,7 +47,7 @@ function parseIrlSuggestion(suggestion: string) {
   };
 }
 
-export async function GET(request: NextRequest) {
+export const GET = withRequestId(async function GET(request: NextRequest) {
   const q = request.nextUrl.searchParams.get('q')?.trim() ?? '';
 
   if (!q || q.length < 1) {
@@ -89,4 +90,4 @@ export async function GET(request: NextRequest) {
   } catch {
     return NextResponse.json({ hits: [], provider: 'ideal_postcodes' });
   }
-}
+});

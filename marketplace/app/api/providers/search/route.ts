@@ -3,9 +3,10 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { providerSearchSchema } from '@/lib/validation/api';
 import { apiError, apiServerError } from '@/lib/api/error-response';
 import { cacheGet } from '@/lib/cache';
+import { withRequestId } from '@/lib/request-id/middleware';
 
 // Public search endpoint — never returns email, phone, or private data.
-export async function GET(req: NextRequest) {
+async function handler(req: NextRequest) {
   const rawParams: Record<string, string> = {};
   req.nextUrl.searchParams.forEach((value, key) => {
     rawParams[key] = value;
@@ -270,3 +271,5 @@ export async function GET(req: NextRequest) {
     return apiServerError(message);
   }
 }
+
+export const GET = withRequestId(handler);

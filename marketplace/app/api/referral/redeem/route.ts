@@ -13,10 +13,11 @@ import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { redeemReferralSchema } from '@/lib/validation/api';
 import { adjustCredits } from '@/lib/credits/provider-credits';
 import { apiError, apiUnauthorized, apiNotFound, apiConflict, apiServerError } from '@/lib/api/error-response';
+import { withRequestId } from '@/lib/request-id/middleware';
 
 const REFERRER_BONUS_CREDITS = 10;
 
-export async function POST(request: NextRequest) {
+export const POST = withRequestId(async function POST(request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -104,4 +105,4 @@ export async function POST(request: NextRequest) {
     { success: true, message: 'Referral code redeemed! The referring provider has received bonus credits.' },
     { status: 200 }
   );
-}
+});

@@ -3,10 +3,11 @@
  * Returns the authenticated user's referral code + redemption summary.
  * Creates a code on-demand if none exists (all authenticated users may share).
  */
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { apiUnauthorized, apiServerError } from '@/lib/api/error-response';
+import { withRequestId } from '@/lib/request-id/middleware';
 
 function generateCode(userId: string): string {
   // Deterministic prefix + 8 hex chars derived from userId
@@ -14,7 +15,7 @@ function generateCode(userId: string): string {
   return `WM-${hash}`;
 }
 
-export async function GET() {
+export const GET = withRequestId(async function GET(_request: NextRequest) {
   const supabase = await getSupabaseRouteClient();
   const {
     data: { user },
@@ -68,4 +69,4 @@ export async function GET() {
     created_at: referralCode.created_at,
     redemptions: (redemptions ?? []).map((r) => ({ id: r.id, redeemed_at: r.created_at })),
   });
-}
+});

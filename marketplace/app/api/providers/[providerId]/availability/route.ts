@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { apiError } from '@/lib/api/error-response';
+import { withRequestId } from '@/lib/request-id/middleware';
 
 // GET /api/providers/[providerId]/availability
 // Public — no auth required. Returns weekly availability schedule for a provider.
 // Used on public provider profile pages and by customers browsing schedules.
-export async function GET(
+export const GET = withRequestId(async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ providerId: string }> }
 ) {
@@ -27,4 +28,4 @@ export async function GET(
   }
 
   return NextResponse.json({ availability: data ?? [] }, { status: 200 });
-}
+});

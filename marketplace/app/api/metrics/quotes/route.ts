@@ -1,9 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { ensureAdminRoute } from '@/lib/auth/admin';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { apiError } from '@/lib/api/error-response';
+import { withRequestId } from '@/lib/request-id/middleware';
 
-export async function GET() {
+export const GET = withRequestId(async function GET(_request: NextRequest) {
   const auth = await ensureAdminRoute();
   if (auth.error) return auth.error;
 
@@ -77,4 +78,4 @@ export async function GET() {
     jobs_with_3plus_quotes: jobsWith3plus,
     first_quote_median_minutes: median ? Number(median.toFixed(1)) : null,
   });
-}
+});

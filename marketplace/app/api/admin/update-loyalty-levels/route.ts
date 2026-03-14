@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { computeCustomerLevel, computeProviderLevel } from '@/lib/loyalty/levels';
 import { apiUnauthorized } from '@/lib/api/error-response';
+import { withRequestId } from '@/lib/request-id/middleware';
 
 async function runUpdate(request: NextRequest): Promise<NextResponse> {
   const secret = process.env.CRON_SECRET ?? process.env.TASK_ALERT_SECRET;
@@ -102,5 +103,5 @@ async function runUpdate(request: NextRequest): Promise<NextResponse> {
   });
 }
 
-export const GET = runUpdate;
-export const POST = runUpdate;
+export const GET = withRequestId(runUpdate);
+export const POST = withRequestId(runUpdate);

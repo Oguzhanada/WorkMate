@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
 import { apiError } from '@/lib/api/error-response';
+import { withRequestId } from '@/lib/request-id/middleware';
 
 /**
  * GET /api/auth/resolve-username?identifier=<username_or_email>
@@ -15,7 +16,7 @@ import { apiError } from '@/lib/api/error-response';
  * Returns: { email: string }
  * Error:   { error: string }  (404 when username not found)
  */
-export async function GET(request: NextRequest) {
+export const GET = withRequestId(async function GET(request: NextRequest) {
   const identifier = request.nextUrl.searchParams.get('identifier')?.trim();
 
   if (!identifier) {
@@ -52,4 +53,4 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({ email: authUser.user.email });
-}
+});
