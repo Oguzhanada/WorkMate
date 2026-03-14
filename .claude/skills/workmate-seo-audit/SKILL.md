@@ -3,7 +3,8 @@ name: workmate-seo-audit
 description: Audit SEO metadata across all WorkMate pages. Checks for missing <title>, meta description, Open Graph tags, and JSON-LD structured data. Use when reviewing SEO completeness, preparing for launch, or after adding new pages.
 metadata:
   severity: standard
-  last_synced: 2026-03-13
+  status: active
+  last_synced: 2026-03-14
   synced_with: FD-11
 ---
 
@@ -53,27 +54,27 @@ Verify `app/og/route.tsx` exists and generates dynamic OG images.
 
 When activated, run these searches:
 
-```bash
-# 1. Find all page.tsx files under [locale]
-find marketplace/app/\[locale\]/ -name "page.tsx" -type f
+Use Claude Code's built-in tools (not bash commands):
 
-# 2. Check which pages export metadata or generateMetadata
-grep -rL "export.*metadata\|generateMetadata" marketplace/app/\[locale\]/ --include="page.tsx"
-# Files in output are MISSING metadata — these are violations
+1. **Find all page.tsx files under [locale]:**
+   Use **Glob** with pattern `marketplace/app/[locale]/**/page.tsx`
 
-# 3. Check for OG tags in metadata exports
-grep -r "openGraph" marketplace/app/\[locale\]/ --include="page.tsx" --include="layout.tsx" -l
-# Compare against total page count — missing files need OG tags
+2. **Check which pages export metadata or generateMetadata:**
+   Use **Grep** with pattern `export.*metadata|generateMetadata` and glob `marketplace/app/[locale]/**/page.tsx`
+   Files NOT in the output are violations (missing metadata).
 
-# 4. Check for JSON-LD usage on key pages
-grep -r "JsonLd\|jsonLd\|json-ld" marketplace/app/\[locale\]/ --include="page.tsx" -l
+3. **Check for OG tags in metadata exports:**
+   Use **Grep** with pattern `openGraph` and glob `marketplace/app/[locale]/**/*.tsx`
+   Compare against total page count — missing files need OG tags.
 
-# 5. Verify metadataBase in root layout
-grep -r "metadataBase" marketplace/app/layout.tsx marketplace/app/\[locale\]/layout.tsx
+4. **Check for JSON-LD usage on key pages:**
+   Use **Grep** with pattern `JsonLd|jsonLd|json-ld` and glob `marketplace/app/[locale]/**/page.tsx`
 
-# 6. Check for empty/placeholder titles
-grep -r "title.*:\s*['\"]\"" marketplace/app/\[locale\]/ --include="page.tsx" --include="layout.tsx"
-```
+5. **Verify metadataBase in root layout:**
+   Use **Grep** with pattern `metadataBase` in files `marketplace/app/layout.tsx` and `marketplace/app/[locale]/layout.tsx`
+
+6. **Check for empty/placeholder titles:**
+   Use **Grep** with pattern `title.*:\s*['"]"` and glob `marketplace/app/[locale]/**/*.tsx`
 
 ---
 

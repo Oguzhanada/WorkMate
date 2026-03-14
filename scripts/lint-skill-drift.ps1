@@ -9,6 +9,10 @@
   4. Missing metadata frontmatter fields
   5. Stale last_synced dates (>30 days)
   6. DR reference completeness (FD-01 without DR-010, etc.)
+  7. Stale FD range references (FD-01–FD-XX where XX < current max)
+  8. Stale TypeScript strict mode claims (strict: false)
+  9. Deprecated AI provider references (@anthropic-ai/sdk)
+  10. Skill count accuracy vs actual .claude/skills/ directories
 .NOTES
   Exit code 0 = all pass, 1 = any FAIL
 #>
@@ -100,6 +104,7 @@ foreach ($file in $skillFiles) {
   # --- Check 4: Missing metadata frontmatter ---
   $hasMetadata = $content -match 'metadata:'
   $hasSeverity = [regex]::IsMatch($content, 'severity:\s*(critical|standard)')
+  $hasStatus = [regex]::IsMatch($content, 'status:\s*(active|deprecated|draft)')
   $hasLastSynced = [regex]::IsMatch($content, 'last_synced:\s*\d{4}-\d{2}-\d{2}')
 
   if (-not $hasMetadata) {
@@ -107,6 +112,9 @@ foreach ($file in $skillFiles) {
     $fails++
   } elseif (-not $hasSeverity) {
     $fileIssues += "  FAIL: Missing metadata.severity (critical|standard)"
+    $fails++
+  } elseif (-not $hasStatus) {
+    $fileIssues += "  FAIL: Missing metadata.status (active|deprecated|draft)"
     $fails++
   }
 
@@ -138,6 +146,30 @@ foreach ($file in $skillFiles) {
     $fails++
   }
 
+  # --- Check 7: Stale FD range references ---
+  # Detect patterns like FD-01–FD-XX, FD-01..FD-XX, FD-01-FD-XX and validate XX
+  $fdRangeMatches = [regex]::Matches($content, 'FD-01[\u2013\-\.]+FD-(\d+)')
+  foreach ($m in $fdRangeMatches) {
+    $fdMax = [int]$m.Groups[1].Value
+    if ($fdMax -lt 33) {
+      $fileIssues += "  FAIL: Stale FD range (found FD-$fdMax, current max FD-33)"
+      $fails++
+    }
+  }
+
+  # --- Check 8: Stale TypeScript strict mode claims ---
+  # Flag "strict: false" unless it's in a negation context
+  if ([regex]::IsMatch($content, '(?i)strict:\s*false') -and -not [regex]::IsMatch($content, '(?i)(never|do not|must not).*strict:\s*false')) {
+    $fileIssues += "  FAIL: Claims TypeScript strict: false (FD-31 mandates strict: true)"
+    $fails++
+  }
+
+  # --- Check 9: Deprecated AI provider references ---
+  if ([regex]::IsMatch($content, '@anthropic-ai/sdk') -and -not [regex]::IsMatch($content, '(?i)(legacy|unused|deprecated|removed).*@anthropic-ai/sdk')) {
+    $fileIssues += "  FAIL: References deprecated AI provider @anthropic-ai/sdk (now groq)"
+    $fails++
+  }
+
   # --- Output ---
   if ($fileIssues.Count -eq 0) {
     Write-Host "PASS: $skillName" -ForegroundColor Green
@@ -151,6 +183,21 @@ foreach ($file in $skillFiles) {
         Write-Host $issue -ForegroundColor Yellow
       }
     }
+  }
+}
+
+# --- Check 10: Skill count accuracy (global check) ---
+$actualSkillCount = (Get-ChildItem -LiteralPath $skillRoot -Directory -ErrorAction SilentlyContinue).Count
+$skillCountMatches = [regex]::Matches(
+  ((Get-Content -LiteralPath (Join-Path $RepoRoot "ai-context\context\PROJECT_CONTEXT.md") -Raw -ErrorAction SilentlyContinue) + $null),
+  '(\d+)\s*skills?\b'
+)
+foreach ($m in $skillCountMatches) {
+  $claimed = [int]$m.Groups[1].Value
+  if ($claimed -ne $actualSkillCount -and $claimed -gt 5) {
+    Write-Host "ISSUES: Skill count mismatch" -ForegroundColor Yellow
+    Write-Host "  WARN: PROJECT_CONTEXT.md claims $claimed skills, actual $actualSkillCount" -ForegroundColor Yellow
+    $warns++
   }
 }
 
@@ -174,6 +221,26 @@ if (Test-Path -LiteralPath $pcFile) {
       }
     }
   }
+  # FD range check
+  $pcFdMatches = [regex]::Matches($pcContent, 'FD-01[\u2013\-\u2192\.]+FD-(\d+)')
+  foreach ($m in $pcFdMatches) {
+    $fdVal = [int]$m.Groups[1].Value
+    if ($fdVal -lt 33) {
+      $pcIssues += "  FAIL: Stale FD range (found FD-$fdVal, current max FD-33)"
+      $fails++
+    }
+  }
+  # TypeScript strict mode check
+  if ([regex]::IsMatch($pcContent, '(?i)strict:\s*false') -and -not [regex]::IsMatch($pcContent, '(?i)(never|do not).*strict:\s*false')) {
+    $pcIssues += "  FAIL: Claims TypeScript strict: false (FD-31 mandates strict: true)"
+    $fails++
+  }
+  # AI provider check
+  if ([regex]::IsMatch($pcContent, '@anthropic-ai/sdk') -and -not [regex]::IsMatch($pcContent, '(?i)(legacy|unused|deprecated).*@anthropic-ai/sdk')) {
+    $pcIssues += "  FAIL: References deprecated AI provider @anthropic-ai/sdk"
+    $fails++
+  }
+
   if ($pcIssues.Count -eq 0) {
     Write-Host "PASS: PROJECT_CONTEXT.md" -ForegroundColor Green
     $passes++

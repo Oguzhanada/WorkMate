@@ -3,7 +3,8 @@ name: workmate-ai-integration
 description: WorkMate AI integration guardrails — model config, prompt sanitization, cost guards, rate limiting, and output validation patterns for all AI (Groq) API routes. Use when creating, reviewing, or debugging any file under app/api/ai/ or lib/ai/.
 metadata:
   severity: standard
-  last_synced: 2026-03-13
+  status: active
+  last_synced: 2026-03-14
   synced_with: FD-01, FD-27, DR-010
 ---
 

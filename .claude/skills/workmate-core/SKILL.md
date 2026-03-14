@@ -3,8 +3,9 @@ name: workmate-core
 description: WorkMate project core skill — security guardrails, PM mindset, and project-specific rules for the Ireland-first services marketplace. Auto-activates for all work in this repository. Covers RLS enforcement, architectural decisions, priority framing, and crisis management protocol.
 metadata:
   severity: critical
-  last_synced: 2026-03-13
-  synced_with: FD-01..FD-12, DR-010, FD-08 (S42 audit)
+  status: active
+  last_synced: 2026-03-14
+  synced_with: FD-01..FD-33, DR-010, DR-012, DR-015 (S42+ audit)
 ---
 
 # WorkMate Core — Security & PM Assistant
@@ -26,18 +27,22 @@ These rules apply to every line of code produced:
 4. **XSS prevention** — Never render raw user-supplied HTML. Sanitize before output.
 5. **Authorization checks** — Role must be verified server-side on every sensitive operation (admin, verified_pro, customer).
 6. **Money in cents** — Always `*_amount_cents`, EUR only. Never floats for currency.
-7. **Supabase client discipline** — Use the right client per context: browser → `getSupabaseBrowserClient()`, server component → `getSupabaseServerClient()`, API route → `getSupabaseRouteClient()`. Never a module-scope singleton. `getSupabaseServiceClient()` (RLS bypass) is restricted to: (a) admin routes behind `ensureAdminRoute()`, (b) webhook handlers after signature verification, (c) system-level background tasks (notifications, audit, idempotency), (d) public API v1 routes behind `authenticatePublicRequest()`, (e) read-only public endpoints returning only non-sensitive fields.
+7. **Supabase client discipline** — Use the right client per context: browser → `getSupabaseBrowserClient()`, server component → `getSupabaseServerClient()`, API route → `getSupabaseRouteClient()`. Never a module-scope singleton (exception: browser singleton is correct per DR-015). `getSupabaseServiceClient()` (RLS bypass) is restricted to: (a) admin routes behind `ensureAdminRoute()`, (b) webhook handlers after signature verification, (c) system-level background tasks (notifications, audit, idempotency), (d) public API v1 routes behind `authenticatePublicRequest()`, (e) read-only public endpoints returning only non-sensitive fields.
 
 ## Architecture Rules
 
 - All pages under `app/[locale]/` — never create orphan routes outside locale segment
 - Every data-fetching page needs co-located `loading.tsx`
-- Colors via `--wm-*` CSS tokens only — no hardcoded hex in page/feature code
+- Colors via `--wm-*` CSS tokens only — no hardcoded hex in page/feature code. Expanded token families: status, admin, chart, neutral, social (DR-012)
 - Button component always — no raw `<button className="bg-...">` in pages
 - PageHeader component for all page-level headers
 - EmptyState on every list — handle zero-item state
-- Migrations additive only — never rewrite existing files, next = **082**
-- Webhook delivery: HTTPS-only, HMAC-SHA256 signed via `X-WorkMate-Signature`
+- Migrations additive only — never rewrite existing files, next = **089** (001–088 applied)
+- Webhook delivery: HTTPS-only, HMAC-SHA256 signed via `X-WorkMate-Signature`, AES-256-GCM encrypted webhook secrets
+- TypeScript `strict: true` permanently enabled — never disable (FD-31)
+- CSP `strict-dynamic`, no `unsafe-eval` (FD-30)
+- Critical route test coverage mandatory (FD-32)
+- Production distributed state health monitoring required (FD-33)
 
 ## PM Mindset
 
@@ -67,7 +72,7 @@ When user types these in chat (NOT as /skill-name — these are conversational t
 - `!tasks` — P0/P1/P2/P3 priority list based on Phase 1 roadmap
 - `!blockers` — Open issues + recommended resolution for each
 - `!decisions` — Recent architectural decisions with date and rationale
-- `!audit` — Activate `workmate-schema-guardian` skill and run the full FD-01–FD-28 frozen decisions audit checklist
+- `!audit` — Activate `workmate-schema-guardian` skill and run the full FD-01–FD-33 frozen decisions audit checklist
 
 ## Key File Locations
 
@@ -82,11 +87,12 @@ When user types these in chat (NOT as /skill-name — these are conversational t
 | Job access resolver | `lib/jobs/access.ts` |
 | Public API auth | `lib/api/public-auth.ts` |
 | i18n strings | `messages/en.json` |
-| Migrations | `migrations/` (001–081 applied, next = **082**) |
+| Migrations | `migrations/` (001–088 applied, next = **089**) |
 | AI model config | `lib/ai/config.ts` |
 | AI prompt sanitize | `lib/ai/sanitize.ts` |
 | Structured logger | `lib/logger.ts` |
 | Rate limiting | `lib/rate-limit/index.ts` (Upstash KV auto-selected) |
 
 > For current roadmap / priorities, read `ai-context/context/PROJECT_CONTEXT.md`.
-> For frozen architectural decisions (FD-01–FD-28), activate `workmate-schema-guardian`.
+> For frozen architectural decisions (FD-01–FD-33), activate `workmate-schema-guardian`.
+> Active decision records: DR-010, DR-012, DR-015.

@@ -13,6 +13,10 @@
 | DR-009 | 2026-03-12 | Temporary AI analysis files allowed in `ai-reports/` (gitignored) | Accepted |
 | DR-010 | 2026-03-13 | Zod schema domain-driven split — `api.ts` becomes re-export barrel | Accepted |
 | DR-011 | 2026-03-13 | Layout rules scope narrowed to top-level pages — modals/wizards/dashboards exempt | Accepted |
+| DR-012 | 2026-03-14 | Token system expansion — status, admin, chart, neutral families (strengthens FD-03) | Accepted |
+| DR-013 | 2026-03-14 | Critical route test coverage mandatory — new FD-32 (payment, webhook, Stripe, idempotency) | Accepted |
+| DR-014 | 2026-03-14 | Production distributed state Redis-backed — new FD-33 (rate limit + circuit breaker health) | Accepted |
+| DR-015 | 2026-03-14 | Supabase browser singleton clarification — FD-08 updated (browser singleton correct) | Accepted |
 
 ## Record Format
 - Create one file per decision: `DR-XXX-short-title.md`.

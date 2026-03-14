@@ -158,7 +158,7 @@ router.push(withLocalePrefix(localeRoot, '/dashboard/customer'));
 - Every new table **must** have RLS enabled and explicit policies.
 - **NEVER** add `FOR ALL USING (true)` — this bypasses security entirely.
 - Every migration must be additive — never rewrite or renumber existing files.
-- **Next migration number: 082** — check `marketplace/migrations/` before creating any new migration.
+- **Next migration number: 089** — check `marketplace/migrations/` before creating any new migration.
 - Migrations are applied manually in Supabase SQL Editor — do not attempt CLI apply.
 
 ### 3.5 Zod — API validation rule
@@ -193,23 +193,28 @@ router.push(withLocalePrefix(localeRoot, '/dashboard/customer'));
 
 When working in these areas, activate the matching skill first:
 
-| Area | Skill |
-|------|-------|
-| New migration / RLS policy | `supabase-migration-guardian` |
-| Payment / Stripe / webhook / dispute | `stripe-connect-payment-ops` |
-| Provider onboarding / admin review flow | `provider-onboarding-qa-ie` |
-| Admin dashboard regression | `admin-dashboard-live-qa` |
-| Task alert RLS or match flow | `task-alerts-rls-smoke` |
-| Locale route or `[locale]` path issue | `locale-route-guard-next-intl` |
-| Hybrid UI migration and wrapper strategy | `ui-system-hybrid-migration` |
-| Visual QA and regression gate workflow | `workmate-visual-qa` |
-| New API route handler | `workmate-api-route` |
-| New dashboard widget | `workmate-dashboard-widget` |
-| Production launch / env vars / go-live | `workmate-production-launch` |
-| Seed data / demo accounts | `workmate-seed-ireland` |
-| General project rules + guardrails | `workmate-core` |
-| AI route / lib/ai/ integration | `workmate-ai-integration` |
-| Frozen decision check / architecture audit | `workmate-schema-guardian` |
+| Area | Skill | Level | Auto |
+|------|-------|-------|------|
+| New migration / RLS policy | `supabase-migration-guardian` | user | no |
+| Payment / Stripe / webhook / dispute | `stripe-connect-payment-ops` | user | no |
+| Provider onboarding / admin review flow | `provider-onboarding-qa-ie` | user | no |
+| Admin dashboard regression | `admin-dashboard-live-qa` | user | no |
+| Task alert RLS or match flow | `task-alerts-rls-smoke` | user | no |
+| Locale route or `[locale]` path issue | `locale-route-guard-next-intl` | user | no |
+| Hybrid UI migration and wrapper strategy | `workmate-ui-migration` | project | no |
+| Visual QA and regression gate workflow | `workmate-visual-qa` | project | no |
+| New API route handler | `workmate-api-route` | project | no |
+| New dashboard widget | `workmate-dashboard-widget` | project | no |
+| Production launch / env vars / go-live | `workmate-production-launch` | project | no |
+| Seed data / demo accounts | `workmate-seed-ireland` | project | no |
+| General project rules + guardrails | `workmate-core` | project | **yes** |
+| AI route / lib/ai/ integration | `workmate-ai-integration` | project | no |
+| Frozen decision check / architecture audit | `workmate-schema-guardian` | project | no |
+| WorkMate marketplace UI / Ireland design | `workmate-front-engineer` | project | no |
+| SEO metadata audit | `workmate-seo-audit` | project | no |
+
+**Shorthand commands** (conversational triggers defined in `workmate-core`):
+`!status` `!tasks` `!blockers` `!decisions` `!audit`
 
 ### 3.10 MCP security note
 
@@ -355,7 +360,7 @@ AI-authored commit messages CAN be factually wrong. Apply these rules:
 | FD-28 | **`middleware.ts` is the sole Next.js middleware entry point. `proxy.ts` MUST NOT exist.** Prior belief that proxy.ts was the Next.js 16 entry point was false — Next.js only reads middleware.ts. Auth guard + locale routing were silently not running. Fixed session 38. | 🔴 Critical | Session 38 — confirmed by Next.js spec + code analysis |
 | FD-29 | **No premature deletion of "dead" code.** Before removing an unused function or module, verify it is not pre-built infrastructure awaiting integration. Checklist: (1) Was it added in a recent hardening/foundation session? (2) Does a TODO, design doc, or audit report reference it as planned work? (3) Would a near-future feature (dashboard, observability, fallback) need it? If any answer is yes → wire it instead of deleting it. Only delete if the function is a true duplicate of an existing, actively-used alternative. | 🟢 Active | Session 42 — logAiCall() was incorrectly deleted as dead code; it was pre-built AI observability infrastructure |
 | FD-30 | **CSP strict-dynamic, no unsafe-eval.** Script-src uses `'strict-dynamic'` to neutralize `'unsafe-inline'` in CSP3 browsers. `'unsafe-eval'` is permanently banned from all CSP directives. | 🟢 Active | Security audit — unsafe-eval removed, strict-dynamic added for defense-in-depth |
-| FD-31 | **TypeScript `strictNullChecks: true` is permanently enabled.** Never disable. Next step: `noImplicitAny: true` when ready. | 🟢 Active (S43) | Independent audit — compiler safety net was missing; 640 files now null-checked |
+| FD-31 | **TypeScript `strict: true` is permanently enabled.** Never disable, never add `strict: false` overrides. Includes `strictNullChecks`, `noImplicitAny`, `strictFunctionTypes`, `strictBindCallApply`, `strictPropertyInitialization`, `noImplicitThis`, `alwaysStrict`. | 🟡 Updated (S43-audit) | Independent code quality audit — full strict mode enabled after fixing 180 errors across 640 files |
 | FD-32 | **Payment, webhook, Stripe, and idempotent routes MUST have unit tests** covering happy path, validation failure, auth failure, and at least one edge case. Routes: `app/api/payments/**`, `app/api/webhooks/**`, `app/api/stripe/**`, any route using `checkIdempotency`. New routes in these categories cannot be merged without tests. See DR-013. | 🟢 Active (S43) | Independent audit — 29 test files for 116 routes; critical business logic untested |
 | FD-33 | **Production state-bearing middleware must expose health status.** Rate limiter must use Redis (Upstash) in production; in-memory fallback must report `degraded` via health endpoint. Circuit breaker states must be observable via health endpoint. `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are required production env vars. See DR-014. | 🟢 Active (S43) | Independent audit — in-memory rate limit ineffective in Vercel multi-instance; circuit breaker state invisible |
 
