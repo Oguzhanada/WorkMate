@@ -161,7 +161,7 @@ const ARTICLES: Article[] = [
           </li>
         </ul>
         <p>
-          Disputes are reviewed within 5 business days. Resolution team decisions are final for jobs
+          Disputes are reviewed within 7 days. Resolution team decisions are final for jobs
           under €500; escalation to a senior reviewer is available for larger amounts.
         </p>
 
@@ -377,7 +377,7 @@ export default async function BlogArticlePage({
         {/* Back link */}
         <Link
           href={`/${locale}/blog`}
-          className="inline-flex items-center gap-1.5 text-sm font-medium transition-colors hover:opacity-80"
+          className="inline-flex items-center gap-1.5 text-sm font-medium transition-colors"
           style={{ color: 'var(--wm-primary)' }}
         >
           <ArrowLeft size={15} />

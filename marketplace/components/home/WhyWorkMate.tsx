@@ -16,7 +16,7 @@ const features = [
     icon: ShieldCheck,
     problem: 'How do you know they\'re legit?',
     title: 'Irish Compliance Stack',
-    description: 'SafePass, Public Liability Insurance, Tax Clearance — all verified.',
+    description: 'SafePass, Public Liability Insurance, Tax Clearance — documents uploaded and admin-reviewed.',
     accent: 'var(--wm-blue)',
     lightBg: 'var(--wm-blue-soft)',
   },

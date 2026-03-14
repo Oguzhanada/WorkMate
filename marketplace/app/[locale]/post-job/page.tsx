@@ -38,7 +38,11 @@ export default async function LocalizedPostJobPage({
         getUserRoles(supabase, user.id),
       ]);
       const effectiveRoles: AppRole[] = roles.length ? roles : ['customer'];
-      canCreate = canPostJobWithIdentity(effectiveRoles, profile?.id_verification_status);
+      canCreate = canPostJobWithIdentity(
+        effectiveRoles,
+        profile?.id_verification_status,
+        authUser?.email_confirmed_at
+      );
       blockedByRole = !canCreate;
     }
   } catch {

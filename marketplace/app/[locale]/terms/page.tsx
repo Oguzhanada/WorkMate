@@ -160,8 +160,8 @@ export default function TermsPage() {
                 off-platform cash payments for jobs booked through the marketplace.
               </li>
               <li>
-                Refunds are subject to WorkMate&apos;s refund and dispute policy, available on
-                request.
+                Refunds are subject to WorkMate&apos;s refund and dispute policy. Disputes are
+                reviewed within 7 days of submission.
               </li>
             </ul>
           </Card>

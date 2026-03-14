@@ -24,7 +24,7 @@ const highlights = [
     icon: ShieldCheck,
     title: 'Every pro is compliance-checked',
     description:
-      'Every provider is admin-reviewed and compliance-checked — SafePass, insurance, and tax clearance verified before they go live.',
+      'Every provider is admin-reviewed — SafePass, insurance, and tax clearance documents checked before they go live.',
     accent: 'var(--wm-primary)',
     lightBg: 'rgba(var(--wm-primary-rgb), 0.1)',
   },

@@ -17,11 +17,18 @@ export function canQuote(roles: AppRole[]) {
   return roles.some((role) => PRO_ROLES.has(role));
 }
 
-export function canPostJobWithIdentity(roles: AppRole[], idVerificationStatus?: string | null) {
-  return canPostJob(roles);
+export function canPostJobWithIdentity(
+  roles: AppRole[],
+  idVerificationStatus?: string | null,
+  emailConfirmedAt?: string | null
+) {
+  if (!canPostJob(roles)) return false;
+  // Require confirmed email before allowing job posting
+  if (!emailConfirmedAt) return false;
+  return true;
 }
 
-export function canQuoteJob(roles: AppRole[], idVerificationStatus?: string | null) {
+export function canQuoteJob(roles: AppRole[], _idVerificationStatus?: string | null) {
   return canQuote(roles);
 }
 

@@ -70,7 +70,7 @@ const BENEFITS = [
   {
     icon: Shield,
     title: 'Irish compliance built in',
-    desc: 'SafePass, Public Liability, Tax Clearance — all managed in one place.',
+    desc: 'SafePass, Public Liability, Tax Clearance — upload once, admin-reviewed before activation.',
     accent: 'var(--wm-primary)',
     bg: 'var(--wm-primary-faint)',
   },

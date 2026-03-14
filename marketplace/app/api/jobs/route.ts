@@ -26,6 +26,11 @@ async function postHandler(request: NextRequest) {
     return apiForbidden('Only customers can create jobs');
   }
 
+  // Require confirmed email before creating jobs
+  if (!user.email_confirmed_at) {
+    return apiForbidden('Please confirm your email address before posting a job');
+  }
+
   // Idempotency check — prevents duplicate job creation on retry
   const iKey = request.headers.get('Idempotency-Key');
   if (iKey) {

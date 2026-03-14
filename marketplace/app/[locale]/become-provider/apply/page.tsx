@@ -897,6 +897,9 @@ export default function BecomeProviderPage() {
                     {hasExistingInsuranceDocument ? <small className={styles.muted}>Existing insurance document found.</small> : null}
                   </label>
                   <p className={styles.muted}>{t('form.bankInfo')}</p>
+                  <p className={styles.muted}>
+                    Prefer instant verification? After submitting, you can verify your identity via Stripe Identity in your profile settings — no manual review needed.
+                  </p>
                 </div>
               ) : null}
 
