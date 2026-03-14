@@ -340,6 +340,37 @@ code, kbd, pre, samp {
   border-color: var(--wm-border-soft);
 }
 
+/* ── Skeleton shimmer ──────────────────────────────────────── */
+@keyframes wm-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@utility animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--wm-border) 25%,
+    var(--wm-border-soft) 50%,
+    var(--wm-border) 75%
+  );
+  background-size: 200% 100%;
+  animation: wm-shimmer 1.8s ease-in-out infinite;
+}
+
+/* ── Form micro-interactions ────────────────────────────────── */
+@keyframes wm-shake {
+  0%, 100% { transform: translateX(0); }
+  15%      { transform: translateX(-4px); }
+  30%      { transform: translateX(4px); }
+  45%      { transform: translateX(-3px); }
+  60%      { transform: translateX(3px); }
+  75%      { transform: translateX(-1px); }
+}
+
+@utility animate-shake {
+  animation: wm-shake 0.4s ease-out;
+}
+
 /* ── Reduced motion ─────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

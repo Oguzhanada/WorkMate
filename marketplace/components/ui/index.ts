@@ -24,6 +24,7 @@ export { default as WorkMateLogo } from './WorkMateLogo';
 export { default as CookieConsent } from './CookieConsent';
 export { default as ErrorBoundaryPage } from './ErrorBoundaryPage';
 export { default as AlertBanner } from './AlertBanner';
+export { default as ThemeToggle } from './ThemeToggle';
 export { default as Timeline } from './Timeline';
 export { ToastProvider, useToast } from './Toast';
 export type { ToastVariant, Toast } from './Toast';

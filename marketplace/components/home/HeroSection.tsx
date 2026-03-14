@@ -236,12 +236,20 @@ export default function HeroSection() {
                   onFocus={() => {
                     if (suggestions.length > 0) setShowSuggestions(true);
                   }}
+                  onBlur={(e) => {
+                    // Close dropdown when focus leaves the autocomplete area
+                    if (!suggestionsRef.current?.contains(e.relatedTarget as Node)) {
+                      setShowSuggestions(false);
+                    }
+                  }}
                   placeholder="What do you need done?"
                   className="w-full border-none bg-transparent text-sm font-medium outline-none placeholder:text-soft"
                   style={{ color: 'white', fontFamily: 'var(--wm-font-sans)' }}
                   autoComplete="off"
+                  role="combobox"
                   aria-autocomplete="list"
                   aria-expanded={showSuggestions}
+                  aria-controls="hero-search-suggestions"
                   aria-haspopup="listbox"
                 />
               </label>
@@ -249,6 +257,7 @@ export default function HeroSection() {
               {/* Autocomplete dropdown */}
               {showSuggestions && (
                 <div
+                  id="hero-search-suggestions"
                   ref={suggestionsRef}
                   role="listbox"
                   className="absolute left-0 right-0 z-50 mt-1 overflow-hidden rounded-xl"

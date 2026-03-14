@@ -8,6 +8,7 @@ import WorkMateLogo from '@/components/ui/WorkMateLogo';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import { usePathname, useRouter } from 'next/navigation';
 
+import ThemeToggle from '@/components/ui/ThemeToggle';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { getLocaleRoot, withLocalePrefix } from '@/lib/i18n/locale-path';
 
@@ -358,6 +359,7 @@ export default function Navbar() {
               >
                 <MessageSquare className="h-4 w-4" />
               </Link>
+              <ThemeToggle />
               <NotificationBell />
               <Link
                 href={withLocalePrefix(localeRoot, '/profile')}
@@ -388,6 +390,7 @@ export default function Navbar() {
             </>
           ) : (
             <>
+              <ThemeToggle />
               <Link
                 href={withLocalePrefix(localeRoot, '/login')}
                 className="group relative px-3 py-2 text-sm font-medium transition-colors"
@@ -420,16 +423,19 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile hamburger */}
-        <button
-          type="button"
-          className="inline-flex rounded-xl p-2 lg:hidden"
-          style={{ border: '1px solid var(--wm-border)', color: 'var(--wm-text)' }}
-          onClick={() => setMobileOpen((prev) => !prev)}
-          aria-label="Toggle mobile navigation"
-        >
-          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        {/* Mobile: theme toggle + hamburger */}
+        <div className="flex items-center gap-1 lg:hidden">
+          <ThemeToggle />
+          <button
+            type="button"
+            className="inline-flex rounded-xl p-2"
+            style={{ border: '1px solid var(--wm-border)', color: 'var(--wm-text)' }}
+            onClick={() => setMobileOpen((prev) => !prev)}
+            aria-label="Toggle mobile navigation"
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu */}
