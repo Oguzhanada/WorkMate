@@ -1,6 +1,7 @@
 import { getResendClient } from './client';
 import { liveServices } from '../live-services';
-import { getServiceStatus } from '../resilience/service-status';
+import { getCircuitBreaker } from '@/lib/resilience/circuit-breaker';
+import { getServiceStatus, setServiceStatus } from '../resilience/service-status';
 import {
   quoteReceivedEmail,
   quoteAcceptedEmail,
@@ -92,9 +93,24 @@ export function sendTransactionalEmail(event: EmailEvent): void {
       }
 
       const recipient = process.env.DEV_EMAIL_OVERRIDE ?? event.to;
-      await resend.emails.send({ from: FROM, to: recipient, subject, html });
+
+      const breaker = getCircuitBreaker('resend', {
+        failureThreshold: 3,
+        resetTimeoutMs: 60_000,
+      });
+
+      await breaker.execute(async () => {
+        try {
+          await resend.emails.send({ from: FROM, to: recipient, subject, html });
+          setServiceStatus('resend', 'healthy');
+        } catch (err) {
+          setServiceStatus('resend', 'down');
+          throw err;
+        }
+      });
     } catch {
       // Non-blocking — email delivery failure never propagates to the API caller.
+      // Circuit breaker handles state transitions; on open it calls setServiceStatus.
     }
   })();
 }
