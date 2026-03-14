@@ -54,12 +54,20 @@ export async function GET(request: NextRequest) {
 
   try {
     const supabase = getSupabaseServiceClient();
-    const { error } = await supabase.from('profiles').select('id').limit(1);
 
-    if (error) {
+    // Lightweight connectivity check — limit(0) returns no rows, just tests the connection
+    const { error: pingError } = await supabase
+      .from('profiles')
+      .select('id')
+      .limit(0);
+
+    const dbReachable = !pingError;
+
+    if (!dbReachable) {
       return NextResponse.json(
         {
           status: 'degraded',
+          db: 'unreachable',
           database: 'unreachable',
           uptime: process.uptime(),
           timestamp: new Date().toISOString(),
@@ -69,7 +77,8 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      status: 'healthy',
+      status: 'ok',
+      db: 'connected',
       database: 'connected',
       latency_ms: Date.now() - start,
       uptime: process.uptime(),
@@ -78,7 +87,8 @@ export async function GET(request: NextRequest) {
   } catch {
     return NextResponse.json(
       {
-        status: 'unhealthy',
+        status: 'degraded',
+        db: 'unreachable',
         database: 'error',
         uptime: process.uptime(),
         timestamp: new Date().toISOString(),
