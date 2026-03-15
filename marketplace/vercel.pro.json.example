@@ -1,4 +1,5 @@
 {
+  "_note": "Hobby mode: hourly cron is disabled in vercel.json. When you upgrade to Vercel Pro, rename this file to vercel.json. The Hobby daily SLA cron can be removed entirely if not needed.",
   "crons": [
     {
       "path": "/api/admin/sla-check",
