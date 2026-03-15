@@ -1,68 +1,37 @@
 ---
 name: workmate-dashboard-widget
-description: Step-by-step workflow for adding a new dashboard widget to WorkMate. Use when creating a new widget type, adding it to a dashboard mode, or debugging widget rendering/drag-drop issues. Covers the full 5-step process from type registration to component implementation.
+description: Step-by-step workflow for adding a new dashboard widget to WorkMate. Use when creating a new widget type, adding it to a dashboard mode, or debugging widget rendering/drag-drop issues.
 metadata:
   severity: standard
   status: active
-  last_synced: 2026-03-14
-  synced_with: FD-04, FD-06, FD-08, FD-31
+  synced_with: agents.md section 6
 ---
 
 # WorkMate Dashboard Widget Development
 
-Dashboard architecture: `DashboardShell` → `WidgetGrid` (@dnd-kit) → `WidgetRenderer` → widget component.
+Dashboard architecture: `DashboardShell` -> `WidgetGrid` (@dnd-kit) -> `WidgetRenderer` -> widget component.
 
 ## Widget Architecture
 
-```
-lib/dashboard/widgets.ts          ← WidgetType enum + ALLOWED_WIDGETS + DEFAULT_WIDGETS
-components/dashboard/
-  WidgetGrid.tsx                  ← @dnd-kit drag-drop container
-  widget-types.ts                 ← DashboardWidgetRow type (DB row shape)
-  widgets/
-    WidgetRenderer.tsx            ← switch on widget_type → renders component
-    ActiveJobsWidget.tsx          ← example widget
-    PendingQuotesWidget.tsx
-    RecentMessagesWidget.tsx
-    TaskAlertsWidget.tsx
-    CustomerStatsWidget.tsx
-    AdminStatsWidget.tsx
-    AdminPendingJobsWidget.tsx
-    AdminApplicationsWidget.tsx
-    AdminApiKeysWidget.tsx
-```
+Widget types: read `lib/dashboard/widgets.ts` for the canonical `WidgetType` union and `ALLOWED_WIDGETS` map. Each dashboard mode (customer, provider, admin) defines its own allowed widget set.
 
-## Current Widget Types
-
-```typescript
-// lib/dashboard/widgets.ts
-type WidgetType =
-  | 'active_jobs'        // customer + provider
-  | 'pending_quotes'     // customer + provider
-  | 'recent_messages'    // all modes
-  | 'task_alerts'        // provider only
-  | 'customer_stats'     // customer only
-  | 'admin_pending_jobs' // admin only
-  | 'admin_applications' // admin only
-  | 'admin_stats'        // admin only
-  | 'admin_api_keys';    // admin only
-```
+Dashboard components: explore `components/dashboard/` directory. Core registry: `lib/dashboard/widgets.ts`. Widget implementations: `components/dashboard/widgets/`.
 
 ## Adding a New Widget — 5 Steps
 
 ### Step 1: Register the type
 
-In [lib/dashboard/widgets.ts](lib/dashboard/widgets.ts):
+In `lib/dashboard/widgets.ts`:
 
 ```typescript
 // Add to WidgetType union
 export type WidgetType =
   | ... existing types ...
-  | 'my_new_widget';       // ← add here
+  | 'my_new_widget';
 
 // Add to ALLOWED_WIDGETS for the correct mode(s)
 const ALLOWED_WIDGETS: Record<DashboardMode, WidgetType[]> = {
-  customer: [..., 'my_new_widget'],  // if customer widget
+  customer: [..., 'my_new_widget'],
   provider: [...],
   admin: [...],
 };
@@ -73,99 +42,70 @@ const DEFAULT_WIDGETS: Record<DashboardMode, WidgetConfig[]> = {
     ...,
     { widget_type: 'my_new_widget', position: { x: 0, y: 3, w: 6, h: 2 }, settings: {} },
   ],
-  ...
 };
 
 // Add label
 export function getWidgetLabel(widgetType: WidgetType) {
   switch (widgetType) {
     case 'my_new_widget': return 'My New Widget';
-    ...
   }
 }
 ```
 
 ### Step 2: Create the component
 
-In `components/dashboard/widgets/MyNewWidget.tsx`:
-
-```typescript
-'use client';
-import { useEffect, useState } from 'react';
-import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { Card } from '@/components/ui/Card';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { Skeleton } from '@/components/ui/Skeleton';
-
-export function MyNewWidget() {
-  const [data, setData] = useState<...[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const supabase = getSupabaseBrowserClient();
-    // fetch data
-    setLoading(false);
-  }, []);
-
-  if (loading) return <Skeleton className="h-32 w-full" />;
-  if (data.length === 0) return <EmptyState title="No items" description="..." />;
-
-  return (
-    <Card>
-      {/* widget content */}
-    </Card>
-  );
-}
-```
+Create `components/dashboard/widgets/MyNewWidget.tsx`. Use `getSupabaseBrowserClient()` for data fetching. Include `<Skeleton>` for loading and `<EmptyState>` for empty states. Wrap content in `<Card>`.
 
 ### Step 3: Register in WidgetRenderer
 
-In [components/dashboard/widgets/WidgetRenderer.tsx](components/dashboard/widgets/WidgetRenderer.tsx):
+In `components/dashboard/widgets/WidgetRenderer.tsx`, import and add a case:
 
 ```typescript
-import { MyNewWidget } from './MyNewWidget';
-
-// Add to switch:
 case 'my_new_widget':
   return <MyNewWidget />;
 ```
 
 ### Step 4: Verify API allows it
 
-`app/api/user/dashboard/widgets/route.ts` validates widget types against `getAllowedWidgetTypes(mode)`. Since you added to `ALLOWED_WIDGETS`, this auto-allows the new type.
+`app/api/user/dashboard/widgets/route.ts` validates widget types against `getAllowedWidgetTypes(mode)`. Adding to `ALLOWED_WIDGETS` auto-allows the new type.
 
 ### Step 5: Test drag-drop
 
-The `WidgetGrid` handles positioning via @dnd-kit. No changes needed unless widget needs custom sizing. Default `w: 6, h: 2` = half-width, standard height.
+`WidgetGrid` handles positioning via @dnd-kit. No changes needed unless the widget requires custom sizing. Default `w: 6, h: 2` = half-width, standard height.
 
 ## Widget Component Rules
 
-- Use `getSupabaseBrowserClient()` — never server client in widget (client component)
-- Always handle loading state with `<Skeleton />`
-- Always handle empty state with `<EmptyState />`
-- Colors via `--wm-*` CSS vars only — use expanded token families: `--wm-status-*` (success, warning, error, info), `--wm-admin-*`, `--wm-chart-*`, `--wm-neutral-*` in addition to core tokens
-- Widget must be wrapped in a `<Card>` for consistent styling
-- FD-31: TypeScript `strict: true` is enabled — all components must have explicit type annotations
+- Use `getSupabaseBrowserClient()` — never server client in widgets (client components).
+- Always handle loading state with `<Skeleton />`.
+- Always handle empty state with `<EmptyState />`.
+- Colors via `--wm-*` CSS vars only. Read `app/tokens.css` for available token families.
+- Wrap widget content in `<Card>` for consistent styling.
+- TypeScript `strict: true` is enabled — all components must have explicit type annotations.
+- Extract stateful logic into co-located hooks when a widget exceeds ~200 lines. Read `components/dashboard/hooks/` for reference patterns.
 
-## Architecture Example: AdminApplicationsPanel Refactor
+## DB Widget Config
 
-AdminApplicationsPanel was refactored from 1457 to 790 lines by extracting custom hooks into `components/dashboard/hooks/`:
-- `useApplicationsData` — data fetching and state
-- `useApplicationFilters` — filter/search logic
-- `useApplicationActions` — approve/reject/bulk actions
-- `useApplicationStats` — computed statistics
-
-Use this pattern when building complex widgets: extract stateful logic into co-located hooks under the relevant `components/` feature directory.
-
-## DB Widget Config (migration 049)
-
-```sql
--- dashboard_widgets table
-id, user_id, mode, widget_type, position (jsonb), settings (jsonb), created_at
-```
+Read migration `049` for the `dashboard_widgets` table schema: `id, user_id, mode, widget_type, position (jsonb), settings (jsonb), created_at`.
 
 API endpoints:
 - `GET /api/user/dashboard/widgets?mode=customer` — load saved config
 - `POST /api/user/dashboard/widgets` — save widget
 - `PATCH /api/user/dashboard/widgets/[id]` — update position/settings
 - `DELETE /api/user/dashboard/widgets/[id]` — remove widget
+
+## Where to Look
+
+- Widget registry: `lib/dashboard/widgets.ts`
+- Widget components: `components/dashboard/widgets/`
+- Widget grid: `components/dashboard/WidgetGrid.tsx`
+- API route: `app/api/user/dashboard/widgets/route.ts`
+- DB migration: `marketplace/migrations/049*`
+- Design tokens: `app/tokens.css`
+
+## NEVER DO
+
+- Never use server-side Supabase client inside widget components (they are client components).
+- Never hardcode hex colors — use `--wm-*` tokens from `app/tokens.css`.
+- Never skip loading or empty states in data-dependent widgets.
+- Never add a widget type without registering it in both `WidgetType` union and `ALLOWED_WIDGETS`.
+- Never bypass TypeScript strict mode with `any` casts or `@ts-ignore`.

@@ -1,16 +1,13 @@
 ---
 name: workmate-api-route
-description: Standard pattern for writing new API route handlers in WorkMate. Use when creating or reviewing any file under app/api/. Enforces correct Supabase client selection, Zod validation, RBAC checks, error handling format, and webhook trigger pattern.
+description: Activate when creating, reviewing, or modifying any file under app/api/. Enforces Supabase client selection, Zod validation, RBAC checks, error handling, and webhook patterns.
 metadata:
   severity: critical
   status: active
-  last_synced: 2026-03-14
-  synced_with: FD-01, FD-08, FD-09, FD-12, FD-27, FD-31, DR-010
+  synced_with: agents.md section 6
 ---
 
 # WorkMate API Route Pattern
-
-Every API route in `app/api/` must follow this exact structure.
 
 ## File Location
 
@@ -19,126 +16,61 @@ app/api/<resource>/route.ts           # collection: GET, POST
 app/api/<resource>/[id]/route.ts      # item: GET, PATCH, DELETE
 ```
 
-## Standard Route Template
+## Route Structure
 
-> **FD-01 (DR-010):** Never define Zod schemas inline inside a route handler.
-> Add schemas to the appropriate domain file under `lib/validation/<domain>.ts` (e.g., `jobs.ts`, `auth.ts`, `quotes.ts`). `api.ts` is a re-export barrel only — never add new schema definitions there.
-
-```typescript
-import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseRouteClient } from '@/lib/supabase/route';
-import { getUserRoles } from '@/lib/auth/rbac';
-import { apiUnauthorized, apiForbidden, apiValidationError, apiServerError } from '@/lib/api/error-response';
-// 1. Import schema from the shared validation file (never define inline)
-import { CreateResourceSchema } from '@/lib/validation/jobs';
-
-export async function POST(req: NextRequest) {
-  const supabase = getSupabaseRouteClient();
-
-  // 2. Auth check (always)
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (!user || authError) {
-    return apiUnauthorized();
-  }
-
-  // 3. RBAC check (when role-restricted)
-  const roles = await getUserRoles(supabase, user.id);
-  if (!roles.includes('verified_pro')) {
-    return apiForbidden();
-  }
-
-  // 4. Validate input using shared schema
-  const body = await req.json();
-  const parsed = CreateResourceSchema.safeParse(body);
-  if (!parsed.success) {
-    return apiValidationError(parsed.error.issues);
-  }
-
-  // 5. DB operation
-  const { data, error } = await supabase
-    .from('table_name')
-    .insert({ ...parsed.data, user_id: user.id })
-    .select()
-    .single();
-
-  if (error) {
-    return apiServerError(error.message);
-  }
-
-  // 6. Webhook trigger (when applicable)
-  // import { sendWebhook } from '@/lib/webhook/send';
-  // await sendWebhook(user.id, 'resource.created', data);
-
-  return NextResponse.json(data, { status: 201 });
-}
-```
-
-### Adding a new schema
-
-Add your schema to the appropriate domain file under `lib/validation/` (DR-010):
+Every route handler must follow this order:
 
 ```typescript
-// lib/validation/jobs.ts  ← domain file, NOT api.ts
-export const CreateResourceSchema = z.object({
-  field: z.string().min(1),
-  amount_cents: z.number().int().positive(), // money always in cents
-});
+// 1. Auth — always first
+const supabase = getSupabaseRouteClient();
+const { data: { user }, error: authError } = await supabase.auth.getUser();
+if (!user || authError) return apiUnauthorized();
+
+// 2. RBAC — when role-restricted
+const roles = await getUserRoles(supabase, user.id);
+if (!roles.includes('verified_pro')) return apiForbidden();
+
+// 3. Validate — Zod schema from lib/validation/<domain>.ts
+const parsed = MySchema.safeParse(await req.json());
+if (!parsed.success) return apiValidationError(parsed.error.issues);
+
+// 4. DB operation
+const { data, error } = await supabase.from('table').insert({...}).select().single();
+if (error) return apiServerError(error.message);
+
+// 5. Webhook — fire AFTER successful DB op only
+await sendWebhook(user.id, 'resource.created', data);
+
+// 6. Return
+return NextResponse.json(data, { status: 201 });
 ```
 
-Then re-export from `lib/validation/api.ts` (barrel only):
+Explicit return type annotations required on all exported functions (FD-31):
+`export async function POST(req: NextRequest): Promise<NextResponse>`
 
-```typescript
-// lib/validation/api.ts  ← re-export barrel, never define schemas here
-export { CreateResourceSchema } from './jobs';
-```
+## Zod Schema Rules (DR-010)
 
-Never add schemas in the route file itself.
+- Define schemas in `lib/validation/<domain>.ts` (e.g., `jobs.ts`, `auth.ts`, `quotes.ts`).
+- `lib/validation/api.ts` is a re-export barrel only — never add definitions there.
+- Use `z.record(z.string(), z.string())` — single-arg `z.record()` errors in Zod 4.
+- Money fields: always `_amount_cents` as `z.number().int().positive()`.
 
-## Supabase Client — Which to Use
+## Supabase Client Selection
 
-| Context | Import |
-|---|---|
-| API route handler | `getSupabaseRouteClient()` from `lib/supabase/route.ts` |
-| Server component/page | `getSupabaseServerClient()` from `lib/supabase/server.ts` |
-| Client component | `getSupabaseBrowserClient()` from `lib/supabase/client.ts` |
-| Admin bypass (service role) | `getSupabaseServiceClient()` from `lib/supabase/service.ts` |
+Read `lib/supabase/` directory — each file documents its use case in header comments.
 
-**Service role restrictions (FD-08):** `getSupabaseServiceClient()` bypasses RLS entirely. It is ONLY acceptable in: (a) admin routes behind `ensureAdminRoute()`, (b) webhook handlers after signature verification, (c) system-level background tasks (notifications, audit, idempotency), (d) public API v1 routes behind `authenticatePublicRequest()`, (e) read-only public endpoints returning only non-sensitive fields. For all standard user-facing routes, use `getSupabaseRouteClient()`.
-
-When using service role, log the operation via `lib/logger.ts` with `requestId` for audit trail.
-
-Never use a module-scope singleton. Never re-create `lib/supabase.ts`.
+**Service role restrictions (FD-08):** `getSupabaseServiceClient()` bypasses RLS. Only use in: admin routes behind `ensureAdminRoute()`, webhook handlers after signature verification, system background tasks, public API v1 routes behind `authenticatePublicRequest()`, read-only public endpoints with non-sensitive fields. Log all service-role operations via `lib/logger.ts` with `requestId`.
 
 ## RBAC Helpers
 
-```typescript
-import { getUserRoles, canAccessAdmin, canQuote } from '@/lib/auth/rbac';
+Read `lib/auth/rbac.ts` for available functions.
 
-const roles = await getUserRoles(supabase, user.id);
-// roles: ('customer' | 'verified_pro' | 'admin')[]
+## Error Responses (FD-27)
 
-canAccessAdmin(roles)  // → boolean
-canQuote(roles)        // → boolean (verified_pro or admin)
-```
-
-## Zod Rules (Zod 4)
-
-```typescript
-// CORRECT — two type args
-z.record(z.string(), z.string())
-
-// WRONG — will error in Zod 4
-z.record(z.string())
-```
-
-## Error Response Format (FD-27)
-
-> **Always use helpers from `lib/api/error-response.ts`** — never raw `NextResponse.json` for errors.
-
-Available helpers: `apiUnauthorized()`, `apiForbidden()`, `apiValidationError(issues)`, `apiNotFound()`, `apiConflict(msg)`, `apiServerError(msg)`, `apiError(msg, status, details?)`.
+Use helpers from `lib/api/error-response.ts` — never raw `NextResponse.json` for errors.
 
 | Status | When |
-|---|---|
+|--------|------|
 | 400 | Validation failed |
 | 401 | Not authenticated |
 | 403 | Authenticated but wrong role |
@@ -146,28 +78,17 @@ Available helpers: `apiUnauthorized()`, `apiForbidden()`, `apiValidationError(is
 | 409 | Conflict (duplicate, state mismatch) |
 | 500 | DB or internal error |
 
-## Webhook Events (when to fire)
+## Webhooks
 
-```typescript
-import { sendWebhook } from '@/lib/webhook/send';
+Fire `sendWebhook()` from `lib/webhook/send.ts` after successful state changes only. Delivery is HTTPS-only, HMAC-SHA256 signed via `X-WorkMate-Signature`.
 
-// Fire after successful state changes:
-await sendWebhook(userId, 'job.created', jobData);
-await sendWebhook(userId, 'quote.accepted', quoteData);
-await sendWebhook(userId, 'payment.completed', paymentData);
-```
+## NEVER DO
 
-Webhook delivery is HTTPS-only, HMAC-SHA256 signed via `X-WorkMate-Signature`.
-
-## TypeScript Strict Mode (FD-31)
-
-TypeScript `strict: true` is enabled project-wide. All route handlers must have explicit return type annotations. Example:
-
-```typescript
-export async function POST(req: NextRequest): Promise<NextResponse> {
-```
-
-Note: The `RouteHandler` type in `lib/rate-limit/middleware.ts` uses `any` for the ctx parameter. This is intentional for strict mode compatibility with Next.js dynamic route context typing.
+- Never define Zod schemas inline in route files — use `lib/validation/<domain>.ts`
+- Never use a module-scope Supabase singleton — never re-create `lib/supabase.ts`
+- Never return raw `NextResponse.json` for errors — use `lib/api/error-response.ts` helpers
+- Never mix Supabase client types within a single handler
+- Never fire webhooks before the DB operation succeeds
 
 ## Checklist Before Committing
 
@@ -176,7 +97,7 @@ Note: The `RouteHandler` type in `lib/rate-limit/middleware.ts` uses `any` for t
 - [ ] Role checked if route is role-restricted
 - [ ] Zod schema validates all input fields
 - [ ] Money fields use `_amount_cents` (integer)
-- [ ] Error response uses `{ error: ... }` format
-- [ ] Webhook fired for state-change events
+- [ ] Error responses use helpers from `lib/api/error-response.ts`
+- [ ] Webhook fired only after successful state change
 - [ ] No raw user data passed to HTML (XSS prevention)
 - [ ] Explicit return type annotations on all exported functions (FD-31)

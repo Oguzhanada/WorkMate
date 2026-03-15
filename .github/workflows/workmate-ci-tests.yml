@@ -35,6 +35,24 @@ jobs:
       - name: Run unit and integration tests
         run: npm run test
 
+      - name: Validate E2E credentials
+        run: |
+          missing=""
+          [ -z "$E2E_CUSTOMER_EMAIL" ] && missing="$missing E2E_CUSTOMER_EMAIL"
+          [ -z "$E2E_CUSTOMER_PASSWORD" ] && missing="$missing E2E_CUSTOMER_PASSWORD"
+          [ -z "$E2E_ADMIN_EMAIL" ] && missing="$missing E2E_ADMIN_EMAIL"
+          [ -z "$E2E_ADMIN_PASSWORD" ] && missing="$missing E2E_ADMIN_PASSWORD"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing E2E credentials:$missing — tests would be silently skipped. Add these secrets to the repository."
+            exit 1
+          fi
+          echo "All E2E credentials present."
+        env:
+          E2E_CUSTOMER_EMAIL: ${{ secrets.E2E_CUSTOMER_EMAIL }}
+          E2E_CUSTOMER_PASSWORD: ${{ secrets.E2E_CUSTOMER_PASSWORD }}
+          E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 

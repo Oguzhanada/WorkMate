@@ -45,7 +45,7 @@ Verify the full happy-path before spending any money.
 - [ ] `npm run lint` — 0 TypeScript errors, English-only check passes
 
 ### Supabase (dev project) checks
-- [ ] All migrations 001–079 applied and no errors
+- [ ] All migrations applied and no errors (check `marketplace/migrations/` for current count)
 - [ ] RLS enabled on all tables — no `FOR ALL USING (true)` policies
 - [ ] `pg_cron` jobs registered and running (provider_rankings refresh, automation rules)
 - [ ] Edge functions deployed and responding:
@@ -74,7 +74,7 @@ Set up third-party accounts. Most have free tiers to start.
 ### Supabase (Production project — separate from dev)
 - [ ] Create a new Supabase project for production (do NOT use dev project)
 - [ ] Note: production URL + anon key + service role key
-- [ ] Apply all migrations 001–081 in Supabase SQL Editor (production)
+- [ ] Apply all migrations in Supabase SQL Editor (production) — run `ls marketplace/migrations/*.sql | wc -l` to confirm count
 - [ ] Enable `pg_cron` extension on production project
 - [ ] **Auth → Policies → Enable "Leaked Password Protection"** (HaveIBeenPwned check — Pro plan only)
 - [ ] Set Auth → Site URL: `https://workmate.ie`
@@ -260,6 +260,54 @@ SENTRY_DSN=https://...@sentry.io/...
 - [ ] Cloudflare: add Vercel IPs / CNAME for `workmate.ie` and `www.workmate.ie`
 - [ ] Add Resend SPF/DKIM/DMARC records in Cloudflare
 - [ ] Verify email sending works after DNS propagation
+
+---
+
+## Deployment Strategy & Rollback
+
+### Deployment Model
+
+WorkMate uses a **Vercel auto-deploy** pipeline:
+
+```
+feature branch → PR → CI checks → merge to main → Vercel auto-deploy → production
+```
+
+### Staging via Vercel Preview Deployments
+
+Every pull request automatically receives a **Vercel Preview Deployment** (`*.vercel.app` URL). Use these as staging environments:
+
+- [ ] Verify UI changes visually on the preview URL before merging
+- [ ] Run manual smoke tests (auth, job posting, quote flow) on the preview deployment
+- [ ] Preview deployments share environment variables set under "Preview" scope in Vercel
+
+### Canary Releases via Feature Flags
+
+For high-risk changes, use the existing `feature_flags` table:
+
+1. Merge the code behind a feature flag (`feature_flags.enabled = false`)
+2. Deploy to production with the flag disabled
+3. Enable the flag for a subset of users (e.g. admin accounts) via Supabase
+4. Monitor Sentry + Vercel logs for errors
+5. Gradually enable for all users by setting `enabled = true`
+
+### Rollback Procedure
+
+| Severity | Action | Time to recover |
+|----------|--------|-----------------|
+| UI regression | Vercel instant rollback (Dashboard → Deployments → promote previous) | < 1 minute |
+| API breaking change | Vercel instant rollback + disable feature flag if applicable | < 2 minutes |
+| Database migration issue | Follow `docs/DB_RUNBOOK.md` rollback procedure (rollback SQL files in `migrations/`) | 5-15 minutes |
+| Stripe/payment issue | Disable `LIVE_SERVICES_ENABLED` → investigate → redeploy | < 5 minutes |
+
+### Rollback Steps
+
+1. Go to Vercel Dashboard → Deployments
+2. Find the last known-good deployment
+3. Click "Promote to Production"
+4. Verify `/api/health` returns OK
+5. If database migration caused the issue: run the corresponding `rollback_*.sql` from `marketplace/migrations/`
+6. Post-mortem: document what broke and why in a decision record
 
 ---
 

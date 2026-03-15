@@ -1,112 +1,75 @@
 ---
 name: workmate-seed-ireland
-description: WorkMate Ireland seed data management. Use when running the seed script, adding new seed entries, resetting demo data, or verifying seed output in Supabase. Covers demo accounts, data patterns, and post-seed validation steps.
+description: Use when running seed SQL, adding new seed entries, resetting demo data, or verifying seed output in Supabase.
 metadata:
   severity: standard
   status: active
-  last_synced: 2026-03-14
-  synced_with: FD-09
+  synced_with: agents.md section 6
 ---
 
 # WorkMate Ireland Seed Data
 
-Script location: `scripts/seed-ireland.mjs`
-Run from repo root: `node scripts/seed-ireland.mjs`
+Seed data is managed via SQL files executed in the Supabase SQL Editor (service_role context, RLS bypassed).
 
-## Demo Accounts (created by seed)
+## Where to Look
 
-Seed creates a fixed set of demo providers and customers for local/dev verification. Do not copy or document credential values in this skill; inspect `scripts/seed-ireland.mjs` locally if the auth flow needs to change.
+- Seed files: `marketplace/scripts/seed-categories.sql`, `marketplace/scripts/seed-test-data.sql`, `marketplace/scripts/seed-scenarios.sql`
+- Shared guardrails: `.claude/skills/references/workmate-shared-guardrails.md`
 
-### Providers (8 accounts)
-Irish-realistic names, verified_pro role, `is_verified: true`, Dublin/Cork/Galway counties, valid Eircodes, pro_services populated.
+## Seed Files
 
-### Customers (5 accounts)
-Standard customer role accounts with realistic Irish names and addresses.
+| File | Purpose | Run order |
+|------|---------|-----------|
+| `marketplace/scripts/seed-categories.sql` | Parent categories + subcategories | 1 (run first) |
+| `marketplace/scripts/seed-test-data.sql` | Auth users, profiles, jobs, quotes, reviews | 2 |
+| `marketplace/scripts/seed-scenarios.sql` | Pro documents, disputes, messages, notifications, referrals | 3 (depends on seed-test-data IDs) |
 
-### Jobs (6 open)
-Mix of `get_quotes` and `quick_hire` modes, various services, valid Eircodes, open status.
+> The legacy `scripts/seed-ireland.mjs` at the repo root is deprecated. Use the SQL files above.
 
-### Reviews
-Provider reviews with realistic ratings and Irish-context comments.
+## Demo Accounts
 
-## Running the Seed
+Demo accounts: read `marketplace/scripts/seed-test-data.sql` header for current account structure and counts. Account IDs: see `seed-test-data.sql` for current ID assignment scheme.
 
-```bash
-# From repo root
-node scripts/seed-ireland.mjs
+## Procedure
 
-# Script reads .env.local for Supabase credentials
-# Uses SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (bypasses RLS)
-# Idempotent — can re-run, but creates duplicates if emails not cleaned first
-```
+### Run the Seed
 
-## Before Re-Seeding (clean up first)
+Execute each SQL file in order in the Supabase SQL Editor. Each file is re-runnable: cleanup sections at the top delete previous seed data by ID prefix before re-inserting.
 
-> **WARNING: DEV ONLY** — never run cleanup SQL on a production database. These DELETE statements bypass RLS via service role.
+### Clean Up Before Re-Seeding
 
-In Supabase SQL Editor:
+> **WARNING: DEV ONLY** — never run cleanup SQL on a production database.
+
 ```sql
--- Remove seed users by email pattern
-DELETE FROM auth.users WHERE email LIKE '%@workmate-demo.ie';
--- OR delete specific profiles first (cascade handles auth.users)
-DELETE FROM profiles WHERE email LIKE '%@workmate-demo.ie';
+-- Remove all test users by ID prefix (cascade deletes child records)
+DELETE FROM auth.users WHERE id::text LIKE 'a1000000%'
+                          OR id::text LIKE 'a2000000%'
+                          OR id::text LIKE 'a3000000%';
 ```
 
-## Adding New Seed Entries
+### Add New Seed Entries
 
-Open `scripts/seed-ireland.mjs` and follow the existing pattern:
+Edit the appropriate SQL file and follow the existing INSERT pattern. Use deterministic UUIDs within the established ID ranges.
 
-```javascript
-// Provider pattern
-// Omit credential details from skill docs; follow the current auth helper contract in scripts/seed-ireland.mjs.
-{
-  email: 'newprovider@workmate-demo.ie',
-  profile: {
-    full_name: 'Seán Murphy',
-    phone: '+353861234567',       // must be +353 + valid prefix (83/85/86/87/89)
-    county: 'Dublin',
-    eircode: 'D02 X285',          // must be valid Eircode format
-    role: 'verified_pro',
-    is_verified: true,
-    verification_status: 'approved',
-    id_verification_status: 'verified',
-    bio: '...',
-    hourly_rate_cents: 5000,       // money in cents — €50.00/hr
-  },
-  services: ['plumbing', 'heating'], // from service_taxonomy
-}
-```
+### Post-Seed Verification
 
-## Ireland-First Data Rules
+1. Check `profiles` table — seed accounts visible.
+2. Check `user_roles` table — `verified_pro` role assigned to providers.
+3. Check `jobs` table — open and completed jobs present.
+4. Log in with a demo account at `localhost:3000/en/login`.
+5. Verify featured providers appear on homepage (requires `is_verified: true`).
+6. Verify supplemental data in respective tables (pro documents, disputes, messages, notifications).
 
-- **Phone**: always `+353XXXXXXXXX` — valid prefixes: 83, 85, 86, 87, 89
-- **Eircode**: format `X00 XXXX` (routing key + unique identifier)
-- **County**: one of Ireland's 26 counties (not UK counties)
-- **Money**: always in cents — €50 = `5000`
-- **Email**: use `@workmate-demo.ie` domain for all seed accounts
+## Rules — Ireland-First Data
 
-## Valid Eircode Examples by County
+- **Phone**: always `+353XXXXXXXXX` — valid prefixes: 83, 85, 86, 87, 89.
+- **Eircode**: format `X00 XXXX` (routing key + unique identifier). Examples: Dublin `D01`, Cork `T12`. See seed files for full list.
+- **County**: one of Ireland's 26 counties (not UK counties).
+- **Money**: always in cents — €50 = `5000`.
+- **Email**: use `@workmate-demo.ie` domain for all seed accounts.
 
-```
-Dublin:   D01, D02, D04, D06, D08, D12, D14, D18, D22, D24
-Cork:     T12, T23
-Galway:   H91
-Limerick: V94
-Waterford: X91
-```
+## NEVER DO
 
-## Post-Seed Verification
-
-1. Check Supabase → Table Editor → `profiles` — seed accounts visible
-2. Check `user_roles` table — `verified_pro` role assigned to providers
-3. Check `jobs` table — 6 open jobs present
-4. Log in with a demo account at `localhost:3000/en/login`
-5. Check featured providers appear on homepage (requires `is_verified: true`)
-
-## Script Internals
-
-- Uses `@supabase/supabase-js` ESM import (no `require`)
-- Creates auth users via `supabase.auth.admin.createUser()`
-- Inserts profiles directly to bypass triggers
-- Sets `user_roles` entries after profile creation
-- Commits reviews after both reviewer and reviewee profiles exist
+- Never run cleanup SQL on a production database.
+- Never use UK counties, postcodes, or phone formats in seed data.
+- Never create seed accounts outside the established ID prefix ranges.

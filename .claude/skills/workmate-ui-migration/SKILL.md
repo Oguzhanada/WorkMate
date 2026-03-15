@@ -1,11 +1,10 @@
 ---
 name: workmate-ui-migration
-description: Hybrid UI migration workflow for WorkMate. Use when introducing or migrating shared UI primitives, creating wrapper-based components in components/ui, updating token mappings, or enforcing the boundary that Shadcn/Radix primitives are allowed in wrappers but not scattered across page-level code.
+description: Hybrid UI migration workflow for WorkMate. Use when introducing or migrating shared UI primitives, creating wrapper-based components in components/ui/, updating token mappings, or enforcing the boundary that Shadcn/Radix primitives are allowed in wrappers but not scattered across page-level code.
 metadata:
   severity: standard
   status: active
-  last_synced: 2026-03-14
-  synced_with: FD-03, FD-14, FD-20, DR-007, DR-012
+  synced_with: agents.md section 6
 ---
 
 # WorkMate UI Migration
@@ -21,10 +20,10 @@ metadata:
 - If using Shadcn/Radix, keep usage internal to wrappers.
 - Do not leak primitive-specific patterns directly into page files.
 
-3. Enforce token mapping (DR-012):
+3. Enforce token mapping:
 - Map color, spacing, radius, shadow, and transitions to `--wm-*` tokens.
-- 10+ token families are now available: `--wm-primary-*`, `--wm-accent-*`, `--wm-status-*` (success, warning, error, info), `--wm-admin-*`, `--wm-chart-*`, `--wm-neutral-*`, `--wm-bg-*`, `--wm-text-*`, `--wm-border-*`, `--wm-shadow-*`.
-- Zero hardcoded hex values remain in the codebase after the S43-audit migration. All new code must maintain this standard.
+- Token families: read `app/tokens.css` for current list.
+- Zero hardcoded hex values in the codebase. All new code must maintain this standard.
 - Remove duplicated page-level visual styles and move repeatable patterns to wrappers.
 
 4. Protect behavior:
@@ -35,6 +34,12 @@ metadata:
 - `npm run lint`
 - `npm run test`
 - Run visual gate checks through PR workflows (Lighthouse).
+
+## Where to Look
+
+- Token definitions: `app/tokens.css`
+- UI wrappers: `components/ui/`
+- Migration strategy: `ai-context/decisions/DR-002-hybrid-ui-strategy.md`
 
 ## Checklist
 

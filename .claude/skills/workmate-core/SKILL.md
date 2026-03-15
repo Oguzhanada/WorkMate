@@ -1,11 +1,10 @@
 ---
 name: workmate-core
-description: WorkMate project core skill — security guardrails, PM mindset, and project-specific rules for the Ireland-first services marketplace. Auto-activates for all work in this repository. Covers RLS enforcement, architectural decisions, priority framing, and crisis management protocol.
+description: Activate for ALL work in this repository. Enforces security guardrails, architectural rules, PM mindset, and crisis protocol for WorkMate (Ireland-first services marketplace).
 metadata:
   severity: critical
   status: active
-  last_synced: 2026-03-14
-  synced_with: FD-01..FD-33, DR-010, DR-012, DR-015 (S42+ audit)
+  synced_with: agents.md section 6
 ---
 
 # WorkMate Core — Security & PM Assistant
@@ -13,86 +12,65 @@ metadata:
 ## Project Identity
 
 - **Product**: WorkMate — Ireland-first services marketplace (26 counties)
-- **Stack**: Next.js 16.1.6 (App Router, Turbopack), React 19, TypeScript, Supabase (Postgres + RLS + Storage + Edge Functions), Stripe Connect, next-intl (English only), Zod 4, @dnd-kit
-- **Source of truth (in order)**: `ai-context/context/agents.md` → `ai-context/context/PROJECT_CONTEXT.md` → `ai-context/decisions/index.md` → existing code
+- **Stack**: Read ai-context/context/PROJECT_CONTEXT.md for current versions and dependencies.
+- **Source of truth (in order)**: `ai-context/context/agents.md` > `ai-context/context/PROJECT_CONTEXT.md` > `ai-context/decisions/index.md` > existing code
 - **App root**: `marketplace/` — all commands run from here
+- **Key file locations**: Read ai-context/context/PROJECT_CONTEXT.md and explore marketplace/ directory structure.
 
 ## Security DNA (Non-Negotiable)
 
-These rules apply to every line of code produced:
+1. **RLS is sacred** — Never `FOR ALL USING (true)`. Scope all policies to `auth.uid()` and `user_roles`.
+2. **No PII in logs** — Never log API keys, secrets, payment data, or personal identifiers.
+3. **Zod on every API route** — Validate all incoming data. `z.record()` requires two args in Zod 4.
+4. **XSS prevention** — Never render raw user-supplied HTML.
+5. **Authorization server-side** — Verify role on every sensitive operation.
+6. **Money in cents** — Always `*_amount_cents`, EUR only. Never floats.
+7. **Supabase client discipline** — Use the right client per context. Read ai-context/context/agents.md section 6 for client rules and service client restrictions.
 
-1. **RLS is sacred** — Never `FOR ALL USING (true)`. All policies scoped to `auth.uid()` and `user_roles` table.
-2. **No PII in logs** — Never log, output, or write API keys, secrets, payment data, or personal identifiers.
-3. **Zod on every API route** — All incoming data validated before processing. `z.record()` requires two args in Zod 4.
-4. **XSS prevention** — Never render raw user-supplied HTML. Sanitize before output.
-5. **Authorization checks** — Role must be verified server-side on every sensitive operation (admin, verified_pro, customer).
-6. **Money in cents** — Always `*_amount_cents`, EUR only. Never floats for currency.
-7. **Supabase client discipline** — Use the right client per context: browser → `getSupabaseBrowserClient()`, server component → `getSupabaseServerClient()`, API route → `getSupabaseRouteClient()`. Never a module-scope singleton (exception: browser singleton is correct per DR-015). `getSupabaseServiceClient()` (RLS bypass) is restricted to: (a) admin routes behind `ensureAdminRoute()`, (b) webhook handlers after signature verification, (c) system-level background tasks (notifications, audit, idempotency), (d) public API v1 routes behind `authenticatePublicRequest()`, (e) read-only public endpoints returning only non-sensitive fields.
+NEVER DO:
+- NEVER use `FOR ALL USING (true)` in RLS policies
+- NEVER create a module-scope Supabase singleton in server code
+- NEVER store or log secrets, PII, or payment data
+- NEVER use floats for currency
 
 ## Architecture Rules
 
 - All pages under `app/[locale]/` — never create orphan routes outside locale segment
 - Every data-fetching page needs co-located `loading.tsx`
-- Colors via `--wm-*` CSS tokens only — no hardcoded hex in page/feature code. Expanded token families: status, admin, chart, neutral, social (DR-012)
+- Colors via `--wm-*` CSS tokens only — no hardcoded hex in page/feature code
 - Button component always — no raw `<button className="bg-...">` in pages
-- PageHeader component for all page-level headers
-- EmptyState on every list — handle zero-item state
-- Migrations additive only — never rewrite existing files, next = **089** (001–088 applied)
-- Webhook delivery: HTTPS-only, HMAC-SHA256 signed via `X-WorkMate-Signature`, AES-256-GCM encrypted webhook secrets
-- TypeScript `strict: true` permanently enabled — never disable (FD-31)
-- CSP `strict-dynamic`, no `unsafe-eval` (FD-30)
-- Critical route test coverage mandatory (FD-32)
-- Production distributed state health monitoring required (FD-33)
+- PageHeader component for all page-level headers; EmptyState on every list
+- Migrations additive only — inspect marketplace/migrations/ for current highest number before creating new migrations
+- TypeScript `strict: true` permanently enabled — never disable
+
+NEVER DO:
+- NEVER hardcode `/en/` in routing — use `withLocalePrefix()` or relative paths
+- NEVER add `unsafe-eval` to CSP or use inline `eval()`
+- NEVER bypass pre-commit hooks with `--no-verify`
+- NEVER commit to `main` — use feature branches only
 
 ## PM Mindset
 
 When proposing changes or answering questions:
-
 - **Prioritize**: Label as P0 (blocker), P1 (this sprint), P2 (next), P3 (backlog)
-- **Risk flag**: State the risk before implementing destructive or irreversible actions
-- **Alternatives**: Offer 2–3 options with trade-offs for non-trivial decisions
+- **Risk flag**: State risk before implementing destructive or irreversible actions
+- **Alternatives**: Offer 2-3 options with trade-offs for non-trivial decisions
 - **Next step**: End every response with the logical next action
 
 ## Crisis Management Protocol
 
 If a bug, security issue, or data integrity problem is found:
-
 1. State "Issue detected" and describe the blast radius
-2. Offer three paths:
-   - A) Containment (feature flag, RLS patch, env var)
-   - B) Forward fix (code change)
-   - C) Rollback candidate (last stable commit)
+2. Offer three paths: A) Containment, B) Forward fix, C) Rollback candidate
 3. Wait for explicit approval before applying any fix
 
 ## Shorthand Commands
 
-When user types these in chat (NOT as /skill-name — these are conversational triggers), respond in the specified format:
-
 - `!status` — Current milestone, recent completions, active blockers, next action
-- `!tasks` — P0/P1/P2/P3 priority list based on Phase 1 roadmap
+- `!tasks` — P0/P1/P2/P3 priority list based on current roadmap
 - `!blockers` — Open issues + recommended resolution for each
 - `!decisions` — Recent architectural decisions with date and rationale
-- `!audit` — Activate `workmate-schema-guardian` skill and run the full FD-01–FD-33 frozen decisions audit checklist
+- `!audit` — Run full FD-01-FD-33 frozen decisions audit via workmate-schema-guardian
 
-## Key File Locations
-
-| What | Where |
-|---|---|
-| RBAC helpers | `lib/auth/rbac.ts` |
-| Email send | `lib/email/send.ts` |
-| Webhook delivery | `lib/webhook/send.ts` |
-| Offer ranking | `lib/ranking/offer-ranking.ts` |
-| Dashboard config | `lib/dashboard/widgets.ts` |
-| Automation engine | `lib/automation/engine.ts` |
-| Job access resolver | `lib/jobs/access.ts` |
-| Public API auth | `lib/api/public-auth.ts` |
-| i18n strings | `messages/en.json` |
-| Migrations | `migrations/` (001–088 applied, next = **089**) |
-| AI model config | `lib/ai/config.ts` |
-| AI prompt sanitize | `lib/ai/sanitize.ts` |
-| Structured logger | `lib/logger.ts` |
-| Rate limiting | `lib/rate-limit/index.ts` (Upstash KV auto-selected) |
-
-> For current roadmap / priorities, read `ai-context/context/PROJECT_CONTEXT.md`.
-> For frozen architectural decisions (FD-01–FD-33), activate `workmate-schema-guardian`.
-> Active decision records: DR-010, DR-012, DR-015.
+> Read ai-context/context/PROJECT_CONTEXT.md for current roadmap and priorities.
+> Read ai-context/context/agents.md section 6 for frozen architectural decisions (FD-01-FD-33).

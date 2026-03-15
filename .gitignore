@@ -22,6 +22,7 @@ marketplace/tsconfig.tsbuildinfo
 marketplace/playwright-report/
 marketplace/test-results/
 marketplace/.lighthouseci/
+marketplace/tests/load/summary.json
 
 # BackstopJS removed (Session 29) — no longer in use
 

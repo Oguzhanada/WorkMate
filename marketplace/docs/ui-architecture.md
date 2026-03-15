@@ -73,7 +73,6 @@ Flow roadmap reference: `marketplace/docs/flow-maturity-roadmap-10w.md`
 ## Visual Quality Gate
 
 - PRs must pass visual baseline checks before merge:
-  - Backstop visual regression (`.github/workflows/backstop.yml`)
   - Lighthouse CI (`.github/workflows/lighthouse.yml`)
 - Visual failures are treated as blocking quality failures, not informational warnings.
 

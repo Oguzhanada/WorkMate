@@ -21,7 +21,7 @@ WorkMate is a well-structured, production-approaching Next.js 16 application wit
 |---|----------|----------|
 | 1 | **Centralized validation** | 60+ Zod schemas in `lib/validation/api.ts`, used across all 105 API routes |
 | 2 | **Perfect loading-state coverage** | Every one of 54 pages has a corresponding `loading.tsx` — zero blank-screen navigations |
-| 3 | **Mature CI/CD pipeline** | 6 GitHub Actions workflows: lint, typecheck, unit/integration/E2E, BackstopJS visual regression, Lighthouse CI, CodeQL security |
+| 3 | **Mature CI/CD pipeline** | 5 GitHub Actions workflows: lint, typecheck, unit/integration/E2E, Lighthouse CI, CodeQL security |
 | 4 | **Supabase client separation** | 4 purpose-built clients (browser/server/route/service-role), no module-scope singletons on server |
 | 5 | **Comprehensive live-service guards** | Master `LIVE_SERVICES_ENABLED` switch + per-service overrides prevent any paid API calls in development |
 
@@ -127,12 +127,11 @@ WorkMate is a well-structured, production-approaching Next.js 16 application wit
 
 ### 2.4 Infrastructure & Ops Posture
 
-**CI/CD — 6 workflows (`.github/workflows/`):**
+**CI/CD — 5 workflows (`.github/workflows/`):**
 
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
 | `workmate-ci-tests.yml` | PR + push to main | Lint, typecheck, unit/integration/E2E smoke |
-| `backstop.yml` | PR | Visual regression (6 scenarios × 3 viewports) |
 | `lighthouse.yml` | PR | Performance 0.7, a11y/SEO/best-practices 0.8 |
 | `codeql.yml` | Push | GitHub security analysis |
 | `workmate-english-only.yml` | PR + push | UI string validation |
@@ -572,7 +571,6 @@ lib/ireland/
 | `.env`, `.env.local`, `.env.*.local` | ✅ | Only `.env.example` committed |
 | `coverage/` | ✅ | Vitest coverage output |
 | `test-results/`, `playwright-report/` | ✅ | |
-| `backstop_data/bitmaps_test/` | ✅ | Visual regression test output |
 | `.sentryclirc` | ✅ | |
 | `.mcp.json` | ✅ | Contains secrets |
 | `docs/legal/` | ✅ | DPAs, contracts |
@@ -630,7 +628,7 @@ main (production)
 | Lint + typecheck | ✅ `npm run lint` | Add `--strict` flag progressively |
 | Unit/integration tests | ✅ `npm run test` | Add coverage threshold gate (70%) |
 | E2E smoke | ✅ Playwright chromium | Add Firefox in nightly, keep smoke fast |
-| Visual regression | ✅ BackstopJS 3 viewports | Consider adding new scenarios as pages grow |
+| Visual regression | ❌ Removed (was BackstopJS) | Consider Playwright visual comparison or Chromatic |
 | Performance | ✅ Lighthouse CI | Add bundle size check (`@next/bundle-analyzer`) |
 | Security | ✅ CodeQL | Add `npm audit --audit-level=high` step |
 | Deploy gate | ❌ Missing | Add Vercel preview deploy + comment URL on PR |

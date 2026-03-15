@@ -46,7 +46,9 @@
     "test:e2e:smoke": "playwright test tests/e2e/smoke --project=chromium",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
-    "test:visual:lighthouse": "echo 'Run Lighthouse via .github/workflows/lighthouse.yml'"
+    "test:visual:lighthouse": "echo 'Run Lighthouse via .github/workflows/lighthouse.yml'",
+    "test:load": "k6 run tests/load/smoke.js",
+    "test:load:smoke": "k6 run --vus 5 --duration 30s tests/load/smoke.js"
   },
   "lint-staged": {
     "*.{ts,tsx}": [

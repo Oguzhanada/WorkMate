@@ -6,12 +6,13 @@
 ---
 
 ## 0. PROJECT MANAGEMENT & RULES
+
+> **Guardrails & frozen decisions**: See `ai-context/context/agents.md` (conflict-resolution authority).
+> Rules below are **state snapshots**, not the canonical source. If any conflict, `agents.md` wins.
+
 - **Team**: Project Manager (AI), FrontendAgent, BackendAgent, FintechAgent, DesignAgent, ComplianceAgent, QAAgent, DevOpsAgent.
-- **Language**: English-only (Output, Code, UI, Docs).
-- **Currency**: Cents (EUR) ONLY.
-- **Security**: Strict RLS (No exceptions).
 - **Design**: Apple premium level (copious whitespace, soft shadows, green accent).
-- **Protocol**: 
+- **Protocol**:
   - PM provides task summary and agent assignments.
   - ComplianceAgent approval required before merging code.
   - QAAgent testing required for all tasks.
@@ -37,7 +38,7 @@
 
 - Frontend: Next.js 16.1.6 (App Router, Turbopack), React 19, TypeScript (`strict: true` — FD-31)
 - Backend: Next.js API routes + Supabase Edge Functions (6 deployed)
-- Database: Supabase PostgreSQL with RLS (88 migrations applied)
+- Database: Supabase PostgreSQL with RLS (check `marketplace/migrations/` for count)
 - Auth: Supabase Auth (Email/Password + Google/Facebook OAuth) — email+phone verified on prod
 - Payments: Stripe Connect (secure hold → capture/refund) — Identity bypass in test, active on prod
 - Styling/UI: Tailwind CSS v4, `--wm-*` design tokens, Framer Motion, @dnd-kit (drag-drop)
@@ -91,7 +92,7 @@ marketplace/
 │   ├── ranking/ pricing/ types/     # Airtasker-style feature layer
 │   ├── validation/ constants/ hooks/ i18n/ onboarding/
 │   └── (no lib/supabase.ts — deleted, all use getSupabaseBrowserClient() inline)
-├── migrations/                      # 001..088 ALL APPLIED
+├── migrations/                      # ALL APPLIED (check dir for current count)
 ├── supabase/functions/              # edge functions
 └── messages/en.json
 ```
@@ -259,8 +260,8 @@ marketplace/
 
 ## 6. CURRENT STATE
 
-- Migrations 001–088: ALL APPLIED in Supabase
-- Next migration: **089**
+- Migrations: ALL APPLIED in Supabase (check `marketplace/migrations/` for current count)
+- Next migration: check highest existing number + 1
 - Vercel deployment: active at `work-mate-neon.vercel.app`
 - Stripe: test mode (`sk_test_*`) — Identity bypass in test, active on prod
 - Email: 11 templates, guarded by `EMAIL_SEND_ENABLED` env var
@@ -304,15 +305,11 @@ marketplace/
 
 ## 9. IMPORTANT DECISIONS
 
-- Ireland-only product/legal context is mandatory
-- English-only content across all product, docs, and errors
-- RLS strict on all tables — no `FOR ALL USING (true)`
-- All money in cents (`*_amount_cents`), EUR only
+> **Canonical rules**: `ai-context/context/agents.md` (FD-01→FD-33).
+> Below are project-specific facts not covered by frozen decisions.
+
 - Quotes sorted: `ranking_score DESC` → `provider_matching_priority DESC` → `created_at DESC`
-- Zod 4: `z.record()` needs 2 args — `z.record(z.string(), z.string())`
-- Webhook delivery: HTTPS-only, HMAC-SHA256 via `X-WorkMate-Signature` header
 - Public API auth: `x-api-key` header → `profiles.api_key_hash` lookup (SHA-256 hash; plaintext column never created — see migration 060)
-- Supabase client pattern: always call `getSupabaseBrowserClient()` inside async callbacks, never at module scope
 
 ---
 
@@ -342,9 +339,9 @@ marketplace/
 
 ## 11. IRELAND COMPLIANCE BASELINE
 
+> **Ireland validation rules**: See `agents.md` sections 2.2 and 3.8 for canonical Eircode/phone rules.
+
 - Provider docs: ID, Public Liability Insurance, Safe Pass, Tax Clearance (where applicable)
-- Eircode validation enforced in all posting flows
-- Irish phone validation (+353, prefixes 83/85/86/87/89)
 - No forced PPSN collection in baseline app flow
 
 ---
@@ -395,7 +392,7 @@ Phase fallback:
 5. [ ] Supabase Auth — enable email confirmation + phone verification
 
 ### Already completed (for reference)
-- [x] Migrations 001–088 applied
+- [x] All migrations applied (check `marketplace/migrations/` for current count)
 - [x] Edge functions deployed (6 total)
 - [x] DPAs signed (Supabase, Sentry, Vercel)
 - [x] GDPR cron deployed + pg_cron scheduled
