@@ -23,10 +23,7 @@ marketplace/playwright-report/
 marketplace/test-results/
 marketplace/.lighthouseci/
 
-# BackstopJS — keep bitmaps_reference committed, ignore test outputs
-backstop_data/bitmaps_test/
-backstop_data/html_report/
-backstop_data/ci_report/
+# BackstopJS removed (Session 29) — no longer in use
 
 # Supabase local
 marketplace/supabase/.temp/
