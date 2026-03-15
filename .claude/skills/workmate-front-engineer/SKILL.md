@@ -1,33 +1,20 @@
 ---
 name: workmate-front-engineer
 description: Build WorkMate marketplace UI components with the Ireland design system and --wm-* token system. Use when creating or styling pages, React components, or layouts specific to WorkMate.
-license: Complete terms in LICENSE.txt
 metadata:
   severity: standard
   status: active
   synced_with: agents.md section 6
 ---
 
-## Design Thinking
+## WorkMate Design Identity
 
-Before coding, commit to a BOLD aesthetic direction:
+Ireland-first, premium-but-approachable. Clean and trustworthy — users are hiring tradespeople, not browsing art.
 
-- **Purpose**: What problem does this interface solve? Who uses it?
-- **Tone**: Pick an extreme — brutally minimal, maximalist chaos, retro-futuristic, organic/natural, luxury/refined, playful/toy-like, editorial/magazine, brutalist/raw, art deco/geometric, soft/pastel, industrial/utilitarian. Use for inspiration but design one true to the aesthetic.
-- **Constraints**: Framework, performance, accessibility requirements.
-- **Differentiation**: What makes this UNFORGETTABLE?
-
-Choose a clear conceptual direction and execute with precision. Bold maximalism and refined minimalism both work — the key is intentionality.
-
-Implement working code that is production-grade, visually striking, cohesive, and meticulously refined.
-
-## Frontend Aesthetics
-
-- **Typography**: Choose distinctive, characterful fonts. Pair a display font with a refined body font.
-- **Color & Theme**: Commit to a cohesive aesthetic. Use CSS variables. Dominant colors with sharp accents outperform timid palettes.
-- **Motion**: Prioritize CSS-only solutions. Use Motion library for React when available. One well-orchestrated page load with staggered reveals creates more delight than scattered micro-interactions.
-- **Spatial Composition**: Unexpected layouts. Asymmetry. Overlap. Generous negative space OR controlled density.
-- **Backgrounds & Visual Details**: Create atmosphere and depth — gradient meshes, noise textures, geometric patterns, layered transparencies, dramatic shadows, grain overlays.
+- **Tone**: Professional, warm, trustworthy. Ireland Emerald (#169B62) as primary accent, Navy (#1B2A4A) for depth, Gold (#D4A847) for highlights.
+- **Typography**: Poppins for headings (`--wm-font-heading`), Plus Jakarta Sans for body (`--wm-font-sans`), JetBrains Mono for code (`--wm-font-mono`). Read root `layout.tsx` for Google Fonts import.
+- **Motion**: Framer Motion for page transitions and micro-interactions. CSS transitions for hover/focus states (150-300ms). One orchestrated page load > scattered animations.
+- **Spatial Composition**: Generous whitespace, consistent 8px spacing scale. Cards with soft shadows (`--wm-shadow-*`). Grid default `sm:grid-cols-2 lg:grid-cols-3` (FD-07).
 
 ## WorkMate Design System
 

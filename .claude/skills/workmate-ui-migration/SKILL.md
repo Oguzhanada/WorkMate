@@ -1,6 +1,7 @@
 ---
 name: workmate-ui-migration
 description: Hybrid UI migration workflow for WorkMate. Use when introducing or migrating shared UI primitives, creating wrapper-based components in components/ui/, updating token mappings, or enforcing the boundary that Shadcn/Radix primitives are allowed in wrappers but not scattered across page-level code.
+disable-model-invocation: true
 metadata:
   severity: standard
   status: active

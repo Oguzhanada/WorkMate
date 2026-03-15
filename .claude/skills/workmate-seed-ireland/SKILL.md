@@ -1,6 +1,7 @@
 ---
 name: workmate-seed-ireland
 description: Use when running seed SQL, adding new seed entries, resetting demo data, or verifying seed output in Supabase.
+disable-model-invocation: true
 metadata:
   severity: standard
   status: active

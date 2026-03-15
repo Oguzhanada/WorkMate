@@ -1,6 +1,7 @@
 ---
 name: workmate-seo-audit
 description: Use when auditing SEO metadata completeness, preparing for launch, or after adding new pages to WorkMate.
+disable-model-invocation: true
 metadata:
   severity: standard
   status: active

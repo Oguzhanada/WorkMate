@@ -82,6 +82,20 @@ Use helpers from `lib/api/error-response.ts` — never raw `NextResponse.json` f
 
 Fire `sendWebhook()` from `lib/webhook/send.ts` after successful state changes only. Delivery is HTTPS-only, HMAC-SHA256 signed via `X-WorkMate-Signature`.
 
+## Rate Limiting & Correlation ID
+
+All routes must use one of two wrappers:
+- `withRateLimit` (86 routes) — sliding window rate limit + correlation ID
+- `withRequestId` from `lib/request-id/middleware.ts` (28 routes) — lightweight correlation ID only
+
+Only `/api/health` and `/api/webhooks/stripe` are exempt.
+
+## Circuit Breaker & Idempotency
+
+- Stripe calls: wrap with `executeStripeCall<T>()` from `lib/stripe/with-breaker.ts`
+- Payment mutations: use `checkIdempotency` + `saveIdempotencyResponse` from `lib/idempotency/` (24h TTL, FD-32)
+- External service calls (Resend, Loqate): use circuit breaker from `lib/resilience/circuit-breaker.ts`
+
 ## NEVER DO
 
 - Never define Zod schemas inline in route files — use `lib/validation/<domain>.ts`

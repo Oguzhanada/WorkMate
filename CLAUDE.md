@@ -12,6 +12,14 @@ For task-specific reads, see `ai-context/prompts/session-bootstrap.md`.
 
 Before creating any new migration, inspect `marketplace/migrations/` to confirm the current highest number. Never trust a stale reference in documentation.
 
+## Commands (run from marketplace/)
+
+- Build: `npm run build`
+- Test: `npm test`
+- Type check: `npm run typecheck`
+- Lint: `npm run lint`
+- Dev: `npm run dev`
+
 ## Skill activation
 
 Activate `workmate-core` at the start of every session. For task-specific skills, see `ai-context/context/agents.md` section 3.9.

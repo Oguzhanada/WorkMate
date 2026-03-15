@@ -47,7 +47,7 @@ NEVER DO:
 - NEVER hardcode `/en/` in routing — use `withLocalePrefix()` or relative paths
 - NEVER add `unsafe-eval` to CSP or use inline `eval()`
 - NEVER bypass pre-commit hooks with `--no-verify`
-- NEVER commit to `main` — use feature branches only
+- NEVER commit to `main` — use feature branches only (exception: user may explicitly request direct main commit)
 
 ## PM Mindset
 

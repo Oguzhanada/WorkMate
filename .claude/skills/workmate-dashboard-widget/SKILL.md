@@ -1,6 +1,7 @@
 ---
 name: workmate-dashboard-widget
 description: Step-by-step workflow for adding a new dashboard widget to WorkMate. Use when creating a new widget type, adding it to a dashboard mode, or debugging widget rendering/drag-drop issues.
+disable-model-invocation: true
 metadata:
   severity: standard
   status: active

@@ -1,6 +1,7 @@
 ---
 name: workmate-production-launch
 description: Use when preparing for go-live, verifying production readiness, activating live services (Stripe, Resend, Supabase), or checking env vars.
+disable-model-invocation: true
 metadata:
   severity: standard
   status: active

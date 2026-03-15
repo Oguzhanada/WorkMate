@@ -1,6 +1,7 @@
 ---
 name: workmate-ai-integration
 description: Activate when creating, reviewing, or debugging any file under app/api/ai/ or lib/ai/. Enforces model config, prompt sanitization, cost guards, rate limiting, and output validation.
+disable-model-invocation: true
 metadata:
   severity: standard
   status: active

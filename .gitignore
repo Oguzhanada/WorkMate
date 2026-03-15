@@ -58,6 +58,8 @@ docs/legal/
 
 # Editor / OS
 .claude/*
+!.claude/rules/
+!.claude/rules/*.md
 !.claude/skills/
 .claude/skills/*
 !.claude/skills/workmate-visual-qa/
@@ -82,6 +84,20 @@ docs/legal/
 !.claude/skills/workmate-ai-integration/SKILL.md
 !.claude/skills/workmate-ui-migration/
 !.claude/skills/workmate-ui-migration/SKILL.md
+!.claude/skills/workmate-admin-qa/
+!.claude/skills/workmate-admin-qa/SKILL.md
+!.claude/skills/workmate-alerts-qa/
+!.claude/skills/workmate-alerts-qa/SKILL.md
+!.claude/skills/workmate-locale-guard/
+!.claude/skills/workmate-locale-guard/SKILL.md
+!.claude/skills/workmate-migration-guard/
+!.claude/skills/workmate-migration-guard/SKILL.md
+!.claude/skills/workmate-onboarding-qa/
+!.claude/skills/workmate-onboarding-qa/SKILL.md
+!.claude/skills/workmate-payment-ops/
+!.claude/skills/workmate-payment-ops/SKILL.md
+!.claude/skills/references/
+!.claude/skills/references/workmate-shared-guardrails.md
 .sandbox/
 sandbox/
 .vscode/
