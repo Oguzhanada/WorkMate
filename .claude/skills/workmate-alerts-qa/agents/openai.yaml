@@ -1,0 +1,4 @@
+interface:
+  display_name: "Task Alerts RLS Smoke"
+  short_description: "Smoke-test task alerts RLS and match flow"
+  default_prompt: "Use $task-alerts-rls-smoke to validate task_alerts RLS and matching behavior."

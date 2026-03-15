@@ -1,0 +1,4 @@
+interface:
+  display_name: "Stripe Connect Payment Ops"
+  short_description: "Operate and debug Stripe Connect payment flows"
+  default_prompt: "Use $stripe-connect-payment-ops to diagnose and fix a Stripe Connect hold/capture or webhook issue safely."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Admin Dashboard Live QA"
+  short_description: "Validate live admin dashboard workflows safely"
+  default_prompt: "Use $admin-dashboard-live-qa to run an end-to-end admin dashboard QA pass."

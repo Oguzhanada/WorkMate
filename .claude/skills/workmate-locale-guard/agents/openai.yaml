@@ -1,0 +1,4 @@
+interface:
+  display_name: "Locale Route Guard Next Intl"
+  short_description: "Catch and fix locale routing regressions"
+  default_prompt: "Use $locale-route-guard-next-intl to find and fix non-localized route usage."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Provider Onboarding QA IE"
+  short_description: "Validate provider onboarding and admin review flows"
+  default_prompt: "Use $provider-onboarding-qa-ie to run a full onboarding QA pass with Ireland-first checks."

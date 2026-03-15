@@ -1,0 +1,4 @@
+interface:
+  display_name: "Supabase Migration Guardian"
+  short_description: "Safely design and review Supabase SQL migrations"
+  default_prompt: "Use $supabase-migration-guardian to create or review a safe Supabase migration with strict RLS checks."
